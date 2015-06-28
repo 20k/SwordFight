@@ -24,6 +24,52 @@
 
 #include "fighter.hpp"
 
+///has the button been pressed once, and only once
+template<sf::Keyboard::Key k>
+bool once()
+{
+    static bool last;
+
+    sf::Keyboard key;
+
+    if(key.isKeyPressed(k) && !last)
+    {
+        last = true;
+
+        return true;
+    }
+
+    if(!key.isKeyPressed(k))
+    {
+        last = false;
+    }
+
+    return false;
+}
+
+template<sf::Mouse::Button b>
+bool once()
+{
+    static bool last;
+
+    sf::Mouse m;
+
+    if(m.isButtonPressed(b) && !last)
+    {
+        last = true;
+
+        return true;
+    }
+
+    if(!m.isButtonPressed(b))
+    {
+        last = false;
+    }
+
+    return false;
+}
+
+
 
 int main(int argc, char *argv[])
 {
@@ -65,9 +111,12 @@ int main(int argc, char *argv[])
     sf::Mouse mouse;
     sf::Keyboard key;
 
-    vec3f seek_pos = fight.parts[bodypart::LHAND].pos;
+    vec3f original_pos = fight.parts[bodypart::LHAND].pos;
 
-    seek_pos.v[2] = -100.f;
+    vec3f seek_pos = original_pos;
+
+    seek_pos.v[2] = -170.f;
+    seek_pos.v[1] = -00.f;
 
     while(window.window.isOpen())
     {
@@ -83,16 +132,47 @@ int main(int argc, char *argv[])
 
         //seek_pos.v[2] -= 0.1f;
 
-        if(key.isKeyPressed(sf::Keyboard::O))
-        {
+        /*if(key.isKeyPressed(sf::Keyboard::O))
             seek_pos.v[1] += 0.5f;
-        }
+
         if(key.isKeyPressed(sf::Keyboard::U))
-        {
             seek_pos.v[1] -= 0.5f;
+
+        if(key.isKeyPressed(sf::Keyboard::I))
+            seek_pos.v[2] += 0.5f;
+
+        if(key.isKeyPressed(sf::Keyboard::K))
+            seek_pos.v[2] -= 0.5f;
+
+        if(key.isKeyPressed(sf::Keyboard::J))
+            seek_pos.v[0] += 0.5f;
+
+        if(key.isKeyPressed(sf::Keyboard::L))
+            seek_pos.v[0] -= 0.5f;
+
+        fight.IK_hand(0, seek_pos);*/
+
+        if(once<sf::Keyboard::G>())
+        {
+            fight.linear_move(0, seek_pos, 400);
         }
 
-        fight.IK_hand(0, seek_pos);
+        if(once<sf::Keyboard::H>())
+        {
+            fight.linear_move(0, original_pos, 400);
+        }
+
+        if(once<sf::Keyboard::J>())
+        {
+            fight.spherical_move(0, seek_pos, 400);
+        }
+
+        if(once<sf::Keyboard::K>())
+        {
+            fight.spherical_move(0, original_pos, 400);
+        }
+
+        fight.tick();
 
         window.draw_bulk_objs_n();
 

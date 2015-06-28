@@ -410,11 +410,12 @@ inline vec3f cross(const vec3f& v1, const vec3f& v2)
     return ret;
 }
 
-inline float dot(const vec3f& v1, const vec3f& v2)
+template<int N, typename T>
+inline float dot(const vec<N, T>& v1, const vec<N, T>& v2)
 {
     float ret = 0;
 
-    for(int i=0; i<3; i++)
+    for(int i=0; i<N; i++)
     {
         ret += v1.v[i] * v2.v[i];
     }
@@ -539,6 +540,35 @@ inline vec<N, T> d2r(const vec<N, T>& v1)
     {
         ret = (v1.v[i] / 360.f) * M_PI * 2;
     }
+
+    return ret;
+}
+
+template<int N, typename T>
+inline vec<N, T> mix(const vec<N, T>& v1, const vec<N, T>& v2, float a)
+{
+    vec<N, T> ret;
+
+    for(int i=0; i<N; i++)
+    {
+        ret.v[i] = v1.v[i] + (v2.v[i] - v1.v[i]) * a;
+    }
+
+    return ret;
+}
+
+template<int N, typename T>
+inline vec<N, T> slerp(const vec<N, T>& v1, const vec<N, T>& v2, float a)
+{
+    vec<N, T> ret;
+
+    ///im sure you can convert the cos of a number to the sign, rather than doing this
+    float angle = acos(dot(v1.norm(), v2.norm()));
+
+    float a1 = sin((1 - a) * angle) / sin(angle);
+    float a2 = sin(a * angle) / sin(angle);
+
+    ret = a1 * v1 + a2 * v2;
 
     return ret;
 }

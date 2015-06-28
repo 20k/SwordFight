@@ -76,6 +76,34 @@ void part::set_pos(vec3f _pos)
     model.g_flush_objects();
 }
 
+float movement::get_frac()
+{
+    return (float)clk.getElapsedTime().asMilliseconds() / end_time;
+}
+
+void movement::fire()
+{
+    clk.restart();
+    going = true;
+}
+
+bool movement::finished()
+{
+    if(going && get_frac() >= 1)
+        return true;
+
+    return false;
+}
+
+movement::movement()
+{
+    end_time = 0.f;
+    start = {0,0,0};
+    fin = {0,0,0};
+    type = 0;
+    hand = 0;
+    going = false;
+}
 
 fighter::fighter()
 {
@@ -136,9 +164,14 @@ void inverse_kinematic(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec
     float height = 2 * area / s1;
 
     ///ah just fuck it
+    ///we need to fekin work this out properly
     vec3f halfway = (o_p3 + o_p1) / 2.f;
 
     halfway.v[1] -= height;
+
+    halfway = (halfway - p1).norm();
+
+    halfway = p1 + halfway * (s2);
 
     o_p2 = halfway;
 }
@@ -157,9 +190,90 @@ void fighter::IK_hand(int which_hand, vec3f pos)
 
     inverse_kinematic(pos, default_position[upper], default_position[lower], default_position[hand], o1, o2, o3);
 
-    printf("%f\n", o2.v[2]);
+    //printf("%f\n", o2.v[2]);
 
     parts[upper].set_pos(o1);
     parts[lower].set_pos(o2);
     parts[hand].set_pos(o3);
+}
+
+void fighter::linear_move(int hand, vec3f pos, float time)
+{
+    movement m;
+
+    m.end_time = time;
+    m.fin = pos;
+    m.type = 0;
+    m.hand = hand;
+    m.limb = hand ? bodypart::RHAND : bodypart::LHAND;
+    m.start = parts[m.limb].pos; ///only pretend
+
+    moves.push_back(m);
+}
+
+void fighter::spherical_move(int hand, vec3f pos, float time)
+{
+    movement m;
+
+    m.end_time = time;
+    m.fin = pos;
+    m.type = 1;
+    m.hand = hand;
+    m.limb = hand ? bodypart::RHAND : bodypart::LHAND;
+    m.start = parts[m.limb].pos; ///only pretend
+
+    moves.push_back(m);
+}
+
+void fighter::tick()
+{
+    std::vector<bodypart_t> busy_list;
+
+    for(auto& i : moves)
+    {
+        if(std::find(busy_list.begin(), busy_list.end(), i.limb) != busy_list.end())
+        {
+            continue;
+        }
+
+        if(!i.going)
+        {
+            i.fire();
+
+            i.start = parts[i.limb].pos;
+        }
+
+        busy_list.push_back(i.limb);
+
+        float frac = i.get_frac();
+
+        frac = clamp(frac, 0.f, 1.f);
+
+        ///apply a bit of smoothing
+        frac = - frac * (frac - 2);
+
+
+        vec3f current_pos;
+
+        if(i.type == 0)
+        {
+            current_pos = mix(i.start, i.fin, frac);
+        }
+        if(i.type == 1)
+        {
+            current_pos = slerp(i.start, i.fin, frac);
+        }
+
+        IK_hand(i.hand, current_pos);
+    }
+
+    for(auto it = moves.begin(); it != moves.end();)
+    {
+        if(it->finished() >= 1.f)
+        {
+            it = moves.erase(it);
+        }
+        else
+            it++;
+    }
 }
