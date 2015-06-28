@@ -211,158 +211,6 @@ typedef vec<2, float> vec2f;
 typedef vec<3, int> vec3i;
 typedef vec<2, int> vec2i;
 
-template<int N, typename T>
-struct mat
-{
-    T v[N][N];
-
-    mat<N, T> from_vec(vec3f v1, vec3f v2, vec3f v3) const
-    {
-        mat m;
-
-        for(int i=0; i<3; i++)
-            m.v[0][i] = v1.v[i];
-
-        for(int i=0; i<3; i++)
-            m.v[1][i] = v2.v[i];
-
-        for(int i=0; i<3; i++)
-            m.v[2][i] = v3.v[i];
-
-        return m;
-    }
-
-    void load(vec3f v1, vec3f v2, vec3f v3)
-    {
-        for(int i=0; i<3; i++)
-            v[0][i] = v1.v[i];
-
-        for(int i=0; i<3; i++)
-            v[1][i] = v2.v[i];
-
-        for(int i=0; i<3; i++)
-            v[2][i] = v3.v[i];
-    }
-
-    float det() const
-    {
-        float a11, a12, a13, a21, a22, a23, a31, a32, a33;
-
-        a11 = v[0][0];
-        a12 = v[0][1];
-        a13 = v[0][2];
-
-        a21 = v[1][0];
-        a22 = v[1][1];
-        a23 = v[1][2];
-
-        a31 = v[2][0];
-        a32 = v[2][1];
-        a33 = v[2][2];
-
-        ///get determinant
-        float d = a11*a22*a33 + a21*a32*a13 + a31*a12*a23 - a11*a32*a23 - a31*a22*a13 - a21*a12*a33;
-
-        return d;
-    }
-
-    mat<N, T> invert() const
-    {
-        float d = det();
-
-        float a11, a12, a13, a21, a22, a23, a31, a32, a33;
-
-        a11 = v[0][0];
-        a12 = v[0][1];
-        a13 = v[0][2];
-
-        a21 = v[1][0];
-        a22 = v[1][1];
-        a23 = v[1][2];
-
-        a31 = v[2][0];
-        a32 = v[2][1];
-        a33 = v[2][2];
-
-
-        vec3f ir1, ir2, ir3;
-
-        ir1.v[0] = a22 * a33 - a23 * a32;
-        ir1.v[1] = a13 * a32 - a12 * a33;
-        ir1.v[2] = a12 * a23 - a13 * a22;
-
-        ir2.v[0] = a23 * a31 - a21 * a33;
-        ir2.v[1] = a11 * a33 - a13 * a31;
-        ir2.v[2] = a13 * a21 - a11 * a23;
-
-        ir3.v[0] = a21 * a32 - a22 * a31;
-        ir3.v[1] = a12 * a31 - a11 * a32;
-        ir3.v[2] = a11 * a22 - a12 * a21;
-
-        ir1 = ir1 * d;
-        ir2 = ir2 * d;
-        ir3 = ir3 * d;
-
-        return from_vec(ir1, ir2, ir3);
-    }
-
-    vec<3, T> get_v1() const
-    {
-        return {v[0][0], v[0][1], v[0][2]};
-    }
-    vec<3, T> get_v2() const
-    {
-        return {v[1][0], v[1][1], v[1][2]};
-    }
-    vec<3, T> get_v3() const
-    {
-        return {v[2][0], v[2][1], v[2][2]};
-    }
-
-    void load_rotation_matrix(vec3f rotation)
-    {
-        vec3f c;
-        vec3f s;
-
-        for(int i=0; i<3; i++)
-        {
-            c.v[i] = cos(-rotation.v[i]);
-            s.v[i] = sin(-rotation.v[i]);
-        }
-
-        ///rotation matrix
-        vec3f r1 = {c.v[1]*c.v[2], -c.v[1]*s.v[2], s.v[1]};
-        vec3f r2 = {c.v[0]*s.v[2] + c.v[2]*s.v[0]*s.v[1], c.v[0]*c.v[2] - s.v[0]*s.v[1]*s.v[2], -c.v[1]*s.v[0]};
-        vec3f r3 = {s.v[0]*s.v[2] - c.v[0]*c.v[2]*s.v[1], c.v[2]*s.v[0] + c.v[0]*s.v[1]*s.v[2], c.v[1]*c.v[0]};
-
-        load(r1, r2, r3);
-    }
-
-    vec<3, T> operator*(const vec<3, T>& other) const
-    {
-        vec<3, T> val;
-
-        val.v[0] = v[0][0] * other.v[0] + v[0][1] * other.v[1] + v[0][2] * other.v[2];
-        val.v[1] = v[1][0] * other.v[0] + v[1][1] * other.v[1] + v[1][2] * other.v[2];
-        val.v[2] = v[2][0] * other.v[0] + v[2][1] * other.v[1] + v[2][2] * other.v[2];
-
-        return val;
-    }
-};
-
-/*template<typename T>
-vec<3, T> operator*(const mat<3, T> m, const vec<3, T>& other)
-{
-    vec<3, T> val;
-
-    val.v[0] = m.v[0][0] * other.v[0] + m.v[0][1] * other.v[1] + m.v[0][2] * other.v[2];
-    val.v[1] = m.v[1][0] * other.v[0] + m.v[1][1] * other.v[1] + m.v[1][2] * other.v[2];
-    val.v[2] = m.v[2][0] * other.v[0] + m.v[2][1] * other.v[1] + m.v[2][2] * other.v[2];
-
-    return val;
-}*/
-
-typedef mat<3, float> mat3f;
 
 
 template<int N, typename T>
@@ -557,7 +405,7 @@ inline vec<N, T> mix(const vec<N, T>& v1, const vec<N, T>& v2, float a)
     return ret;
 }
 
-template<int N, typename T>
+/*template<int N, typename T>
 inline vec<N, T> slerp(const vec<N, T>& v1, const vec<N, T>& v2, float a)
 {
     vec<N, T> ret;
@@ -565,12 +413,211 @@ inline vec<N, T> slerp(const vec<N, T>& v1, const vec<N, T>& v2, float a)
     ///im sure you can convert the cos of a number to the sign, rather than doing this
     float angle = acos(dot(v1.norm(), v2.norm()));
 
+    if(angle < 0.0001f && angle >= -0.0001f)
+        return mix(v1, v2, a);
+
     float a1 = sin((1 - a) * angle) / sin(angle);
     float a2 = sin(a * angle) / sin(angle);
 
     ret = a1 * v1 + a2 * v2;
 
     return ret;
+}*/
+
+template<int N, typename T>
+inline vec<N, T> slerp(const vec<N, T>& v1, const vec<N, T>& v2, const vec<N, T>& focus, float a)
+{
+    vec<N, T> ret;
+
+    ///im sure you can convert the cos of a number to the sign, rather than doing this
+    float angle = acos(dot(v1, v2) / (v1.length() * v2.length()));
+
+    if(angle < 0.0001f && angle >= -0.0001f)
+        return mix(v1, v2, a);
+
+    float a1 = sin((1 - a) * angle) / sin(angle);
+    float a2 = sin(a * angle) / sin(angle);
+
+    ret = a1 * v1 + a2 * v2;
+
+    return ret;
+
+
+
 }
+
+
+template<int N, typename T>
+struct mat
+{
+    T v[N][N];
+
+    mat<N, T> from_vec(vec3f v1, vec3f v2, vec3f v3) const
+    {
+        mat m;
+
+        for(int i=0; i<3; i++)
+            m.v[0][i] = v1.v[i];
+
+        for(int i=0; i<3; i++)
+            m.v[1][i] = v2.v[i];
+
+        for(int i=0; i<3; i++)
+            m.v[2][i] = v3.v[i];
+
+        return m;
+    }
+
+    void load(vec3f v1, vec3f v2, vec3f v3)
+    {
+        for(int i=0; i<3; i++)
+            v[0][i] = v1.v[i];
+
+        for(int i=0; i<3; i++)
+            v[1][i] = v2.v[i];
+
+        for(int i=0; i<3; i++)
+            v[2][i] = v3.v[i];
+    }
+
+    float det() const
+    {
+        float a11, a12, a13, a21, a22, a23, a31, a32, a33;
+
+        a11 = v[0][0];
+        a12 = v[0][1];
+        a13 = v[0][2];
+
+        a21 = v[1][0];
+        a22 = v[1][1];
+        a23 = v[1][2];
+
+        a31 = v[2][0];
+        a32 = v[2][1];
+        a33 = v[2][2];
+
+        ///get determinant
+        float d = a11*a22*a33 + a21*a32*a13 + a31*a12*a23 - a11*a32*a23 - a31*a22*a13 - a21*a12*a33;
+
+        return d;
+    }
+
+    mat<N, T> invert() const
+    {
+        float d = det();
+
+        float a11, a12, a13, a21, a22, a23, a31, a32, a33;
+
+        a11 = v[0][0];
+        a12 = v[0][1];
+        a13 = v[0][2];
+
+        a21 = v[1][0];
+        a22 = v[1][1];
+        a23 = v[1][2];
+
+        a31 = v[2][0];
+        a32 = v[2][1];
+        a33 = v[2][2];
+
+
+        vec3f ir1, ir2, ir3;
+
+        ir1.v[0] = a22 * a33 - a23 * a32;
+        ir1.v[1] = a13 * a32 - a12 * a33;
+        ir1.v[2] = a12 * a23 - a13 * a22;
+
+        ir2.v[0] = a23 * a31 - a21 * a33;
+        ir2.v[1] = a11 * a33 - a13 * a31;
+        ir2.v[2] = a13 * a21 - a11 * a23;
+
+        ir3.v[0] = a21 * a32 - a22 * a31;
+        ir3.v[1] = a12 * a31 - a11 * a32;
+        ir3.v[2] = a11 * a22 - a12 * a21;
+
+        ir1 = ir1 * d;
+        ir2 = ir2 * d;
+        ir3 = ir3 * d;
+
+        return from_vec(ir1, ir2, ir3);
+    }
+
+    vec<3, T> get_v1() const
+    {
+        return {v[0][0], v[0][1], v[0][2]};
+    }
+    vec<3, T> get_v2() const
+    {
+        return {v[1][0], v[1][1], v[1][2]};
+    }
+    vec<3, T> get_v3() const
+    {
+        return {v[2][0], v[2][1], v[2][2]};
+    }
+
+    void from_dir(vec3f dir)
+    {
+        vec3f up = {0, 1, 0};
+
+        vec3f xaxis = cross(up, dir).norm();
+        vec3f yaxis = cross(dir, xaxis).norm();
+
+        v[0][0] = xaxis.v[0];
+        v[0][1] = yaxis.v[0];
+        v[0][2] = dir.v[0];
+
+        v[1][0] = xaxis.v[1];
+        v[1][1] = yaxis.v[1];
+        v[1][2] = dir.v[1];
+
+        v[2][0] = xaxis.v[2];
+        v[2][1] = yaxis.v[2];
+        v[2][2] = dir.v[2];
+    }
+
+    void load_rotation_matrix(vec3f rotation)
+    {
+        vec3f c;
+        vec3f s;
+
+        for(int i=0; i<3; i++)
+        {
+            c.v[i] = cos(-rotation.v[i]);
+            s.v[i] = sin(-rotation.v[i]);
+        }
+
+        ///rotation matrix
+        vec3f r1 = {c.v[1]*c.v[2], -c.v[1]*s.v[2], s.v[1]};
+        vec3f r2 = {c.v[0]*s.v[2] + c.v[2]*s.v[0]*s.v[1], c.v[0]*c.v[2] - s.v[0]*s.v[1]*s.v[2], -c.v[1]*s.v[0]};
+        vec3f r3 = {s.v[0]*s.v[2] - c.v[0]*c.v[2]*s.v[1], c.v[2]*s.v[0] + c.v[0]*s.v[1]*s.v[2], c.v[1]*c.v[0]};
+
+        load(r1, r2, r3);
+    }
+
+    vec<3, T> operator*(const vec<3, T>& other) const
+    {
+        vec<3, T> val;
+
+        val.v[0] = v[0][0] * other.v[0] + v[0][1] * other.v[1] + v[0][2] * other.v[2];
+        val.v[1] = v[1][0] * other.v[0] + v[1][1] * other.v[1] + v[1][2] * other.v[2];
+        val.v[2] = v[2][0] * other.v[0] + v[2][1] * other.v[1] + v[2][2] * other.v[2];
+
+        return val;
+    }
+};
+
+/*template<typename T>
+vec<3, T> operator*(const mat<3, T> m, const vec<3, T>& other)
+{
+    vec<3, T> val;
+
+    val.v[0] = m.v[0][0] * other.v[0] + m.v[0][1] * other.v[1] + m.v[0][2] * other.v[2];
+    val.v[1] = m.v[1][0] * other.v[0] + m.v[1][1] * other.v[1] + m.v[1][2] * other.v[2];
+    val.v[2] = m.v[2][0] * other.v[0] + m.v[2][1] * other.v[1] + m.v[2][2] * other.v[2];
+
+    return val;
+}*/
+
+typedef mat<3, float> mat3f;
 
 #endif // VEC_HPP_INCLUDED

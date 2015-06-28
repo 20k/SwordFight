@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 
     fight.scale();
 
-    c1.scale(0.1f);
+    c1.scale(0.0001f);
 
     texture_manager::allocate_textures();
 
@@ -117,6 +117,8 @@ int main(int argc, char *argv[])
 
     seek_pos.v[2] = -170.f;
     seek_pos.v[1] = -00.f;
+
+    vec3f rest_position = {0, -200, -100};
 
     while(window.window.isOpen())
     {
@@ -152,7 +154,7 @@ int main(int argc, char *argv[])
 
         fight.IK_hand(0, seek_pos);*/
 
-        if(once<sf::Keyboard::G>())
+        /*if(once<sf::Keyboard::G>())
         {
             fight.linear_move(0, seek_pos, 400);
         }
@@ -170,6 +172,21 @@ int main(int argc, char *argv[])
         if(once<sf::Keyboard::K>())
         {
             fight.spherical_move(0, original_pos, 400);
+        }*/
+
+        if(once<sf::Keyboard::T>())
+        {
+            fight.queue_attack(attacks::OVERHEAD);
+        }
+
+        if(once<sf::Keyboard::Y>())
+        {
+            fight.queue_attack(attacks::SLASH);
+        }
+
+        if(once<sf::Keyboard::G>())
+        {
+            fight.queue_attack(attacks::REST);
         }
 
         fight.tick();
@@ -180,6 +197,6 @@ int main(int argc, char *argv[])
 
         window.display();
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

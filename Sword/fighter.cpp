@@ -76,6 +76,25 @@ void part::set_pos(vec3f _pos)
     model.g_flush_objects();
 }
 
+void part::set_rot(vec3f _rot)
+{
+    rot = _rot;
+
+    model.set_rot({rot.v[0], rot.v[1], rot.v[2]});
+
+    model.g_flush_objects();
+}
+
+void movement::load(int _hand, vec3f _end_pos, float _time, int _type)
+{
+    end_time = _time;
+    fin = _end_pos;
+    type = _type;
+    hand = _hand;
+
+    limb = hand ? bodypart::RHAND : bodypart::LHAND;
+}
+
 float movement::get_frac()
 {
     return (float)clk.getElapsedTime().asMilliseconds() / end_time;
@@ -105,18 +124,64 @@ movement::movement()
     going = false;
 }
 
+movement::movement(int hand, vec3f end_pos, float time, int type) : movement()
+{
+    load(hand, end_pos, time, type);
+}
+
+sword::sword()
+{
+    model.set_file("res/sword.obj");
+    model.set_pos({0, 0, -100});
+    model.set_active(true);
+}
+
+void sword::scale()
+{
+    model.scale(50.f);
+}
+
+void sword::set_pos(vec3f _pos)
+{
+    pos = _pos;
+
+    model.set_pos({pos.v[0], pos.v[1], pos.v[2]});
+
+    model.g_flush_objects();
+}
+
+void sword::set_rot(vec3f _rot)
+{
+    rot = _rot;
+
+    model.set_rot({rot.v[0], rot.v[1], rot.v[2]});
+
+    model.g_flush_objects();
+}
+
 fighter::fighter()
 {
+    stance = 0;
+
     for(size_t i=0; i<bodypart::COUNT; i++)
     {
         parts[i].set_type((bodypart_t)i);
     }
+
+    weapon.set_pos({0, -200, -100});
+
+    IK_hand(0, weapon.pos);
+    IK_hand(1, weapon.pos);
+
+    focus_pos = weapon.pos;
 }
 
 void fighter::scale()
 {
     for(size_t i=0; i<bodypart::COUNT; i++)
         parts[i].model.scale(bodypart::scale/4.f);
+
+    weapon.scale();
 }
 
 ///s2 and s3 define the shoulder -> elbow, and elbow -> hand length
@@ -143,7 +208,7 @@ void inverse_kinematic(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec
 
     float joint_angle = get_joint_angle(pos, p1, s2, s3);
 
-    o_p1 = p1;
+    //o_p1 = p1;
 
     float max_len = (p3 - p1).length();
 
@@ -152,8 +217,6 @@ void inverse_kinematic(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec
     float len = std::min(max_len, to_target);
 
     vec3f dir = (pos - p1).norm();
-
-    //printf("%f\n", len);
 
     o_p3 = p1 + dir * len;
 
@@ -165,15 +228,17 @@ void inverse_kinematic(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec
 
     ///ah just fuck it
     ///we need to fekin work this out properly
-    vec3f halfway = (o_p3 + o_p1) / 2.f;
+    vec3f halfway = (o_p3 + p1) / 2.f;
 
     halfway.v[1] -= height;
 
-    halfway = (halfway - p1).norm();
+    vec3f halfway_dir = (halfway - p1).norm();
 
-    halfway = p1 + halfway * (s2);
+    o_p2 = p1 + halfway_dir * s2;
 
-    o_p2 = halfway;
+    const float shoulder_move_amount = s2/5.f;
+
+    o_p1 = p1 + halfway_dir * shoulder_move_amount;
 }
 
 void fighter::IK_hand(int which_hand, vec3f pos)
@@ -201,12 +266,7 @@ void fighter::linear_move(int hand, vec3f pos, float time)
 {
     movement m;
 
-    m.end_time = time;
-    m.fin = pos;
-    m.type = 0;
-    m.hand = hand;
-    m.limb = hand ? bodypart::RHAND : bodypart::LHAND;
-    m.start = parts[m.limb].pos; ///only pretend
+    m.load(hand, pos, time, 0);
 
     moves.push_back(m);
 }
@@ -215,16 +275,12 @@ void fighter::spherical_move(int hand, vec3f pos, float time)
 {
     movement m;
 
-    m.end_time = time;
-    m.fin = pos;
-    m.type = 1;
-    m.hand = hand;
-    m.limb = hand ? bodypart::RHAND : bodypart::LHAND;
-    m.start = parts[m.limb].pos; ///only pretend
+    m.load(hand, pos, time, 1);
 
     moves.push_back(m);
 }
 
+///we want the hands to be slightly offset on the sword
 void fighter::tick()
 {
     std::vector<bodypart_t> busy_list;
@@ -252,7 +308,6 @@ void fighter::tick()
         ///apply a bit of smoothing
         frac = - frac * (frac - 2);
 
-
         vec3f current_pos;
 
         if(i.type == 0)
@@ -261,10 +316,12 @@ void fighter::tick()
         }
         if(i.type == 1)
         {
-            current_pos = slerp(i.start, i.fin, frac);
+            ///need to define this manually to confine it to one axis, slerp is not what i want
+            current_pos = slerp(i.start, i.fin, parts[bodypart::BODY].pos, frac);
         }
 
         IK_hand(i.hand, current_pos);
+        IK_hand((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
     }
 
     for(auto it = moves.begin(); it != moves.end();)
@@ -275,5 +332,90 @@ void fighter::tick()
         }
         else
             it++;
+    }
+
+    weapon.set_pos(parts[bodypart::LHAND].pos);
+
+    update_sword_rot();
+
+    parts[bodypart::BODY].set_pos((parts[bodypart::LUPPERARM].pos + parts[bodypart::RUPPERARM].pos + bodypart::default_position[bodypart::BODY]*3.f)/5.f);
+}
+
+void fighter::set_stance(int _stance)
+{
+    stance = _stance;
+}
+
+void fighter::queue_attack(attack_t type)
+{
+    attack a = attack_list[type];
+
+    for(auto& i : a.moves)
+    {
+        add_move(i);
+    }
+}
+
+void fighter::add_move(const movement& m)
+{
+    moves.push_back(m);
+}
+
+void fighter::update_sword_rot()
+{
+    using namespace bodypart;
+
+    if(stance == 0)
+    {
+        ///use elbow -> hand vec
+        vec3f lvec = parts[LHAND].pos - parts[LUPPERARM].pos;
+        vec3f rvec = parts[RHAND].pos - parts[RUPPERARM].pos;
+
+        float l_weight = 1.0f;
+        float r_weight = 0.0f;
+
+        float total = l_weight + r_weight;
+
+        vec3f avg = (lvec*l_weight + rvec*r_weight) / total;
+
+
+        float x = atan2(avg.v[1], avg.v[2]) - M_PI/2.f;
+        float y = atan2(avg.v[2], avg.v[0]);
+        float z = atan2(avg.v[1], avg.v[0]);
+
+
+        //static float xy = 0.f;
+
+        //xy += 0.01f;
+
+        weapon.set_rot({0, y, x});
+
+        parts[LHAND].set_rot({0, y, x});
+        parts[RHAND].set_rot({0, y, x});
+
+        /*mat3f m;
+
+        m.from_dir(avg.norm());
+
+        float a11, a12, a13, a21, a22, a23, a31, a32, a33;
+
+        a11 = m.v[0][0];
+        a12 = m.v[0][1];
+        a13 = m.v[0][2];
+
+        a21 = m.v[1][0];
+        a22 = m.v[1][1];
+        a23 = m.v[1][2];
+
+        a31 = m.v[2][0];
+        a32 = m.v[2][1];
+        a33 = m.v[2][2];
+
+
+        float x = atan2(a32, a33);
+        float y = atan2(-a31, sqrtf(a32*a32 + a33*a33));
+        float z = atan2(a21, a11);*/
+
+        //weapon.set_rot({z, y, x});
     }
 }

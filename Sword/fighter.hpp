@@ -41,29 +41,34 @@ struct part
 {
     bodypart_t type;
     vec3f pos;
+    vec3f rot;
     objects_container model;
 
     void set_type(bodypart_t); ///sets me up in the default position
     void set_pos(vec3f pos);
+    void set_rot(vec3f rot);
 
     part();
     part(bodypart_t);
     ~part();
 };
 
+///one single movement
 struct movement
 {
     sf::Clock clk;
 
     float end_time;
     vec3f fin;
-    vec3f start;
+    vec3f start; ///this is internal, but because i'm bad programmer this is public
     int type; ///0 for linear, 1 for slerp
 
     int hand; ///need leg support too
     bodypart_t limb;
 
     bool going;
+
+    void load(int hand, vec3f end_pos, float time, int type);
 
     float get_frac();
 
@@ -72,7 +77,74 @@ struct movement
     bool finished();
 
     movement();
+    movement(int hand, vec3f end_pos, float time, int type);
 };
+
+namespace attacks
+{
+    enum attacks
+    {
+        SLASH,
+        OVERHEAD,
+        REST
+    };
+}
+
+typedef attacks::attacks attack_t;
+
+struct attack
+{
+    std::vector<movement> moves;
+};
+
+static std::vector<movement> overhead =
+{
+    {0, {-150, -0, -20}, 400, 0}, ///windup
+    {0, {100, -150, -140}, 500, 1} ///attack
+};
+
+static std::vector<movement> slash =
+{
+    {0, {-150, -100, -40}, 350, 0}, ///windup
+    {0, {100, -80, -140}, 450, 1} ///attack
+};
+
+static std::vector<movement> rest =
+{
+    {0, {0, -200, -100}, 500, 1}
+};
+
+static std::map<attack_t, attack> attack_list =
+{
+    {attacks::OVERHEAD, {overhead}},
+    {attacks::SLASH, {slash}},
+    {attacks::REST, {rest}}
+};
+
+
+/*static std::map<attack_t, attack> attack_list2 =
+{
+    {attacks::OVERHEAD, {attacks::OVERHEAD,
+        {{0, {-150, -0, -20}, 400.f, 0}}
+    }}
+};*/
+
+struct sword
+{
+    objects_container model;
+
+    vec3f pos;
+    vec3f rot;
+
+    sword();
+
+    void set_pos(vec3f _pos);
+    void set_rot(vec3f _rot);
+
+    void scale();
+};
+
+///define attacks in terms of a start, an end, a time, and possibly a smoothing function
 
 struct fighter
 {
@@ -82,6 +154,11 @@ struct fighter
 
     std::vector<movement> moves;
 
+    sword weapon;
+    int stance; ///0 means perpendicular to velocity, 1 means parallel
+
+    vec3f focus_pos; ///where to put my hands and sword
+    ///this should almost certainly be relative
 
     ///sigh, cant be on init because needs to be after object load
     void scale();
@@ -90,6 +167,16 @@ struct fighter
 
     void linear_move(int hand, vec3f pos, float time);
     void spherical_move(int hand, vec3f pos, float time);
+
+    void move_hands(vec3f pos);
+
+    void set_stance(int _stance);
+
+    void queue_attack(attack_t type);
+
+    void add_move(const movement& m);
+
+    void update_sword_rot();
 
     void tick();
 };
