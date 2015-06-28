@@ -149,6 +149,7 @@
 		<Unit filename="fighter.cpp" />
 		<Unit filename="fighter.hpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="vec.hpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

@@ -138,7 +138,7 @@ struct sword
 
     sword();
 
-    void set_pos(vec3f _pos);
+    void set_pos(vec3f _pos); //? model now has different pos to actual due to top down approach
     void set_rot(vec3f _rot);
 
     void scale();
@@ -148,6 +148,8 @@ struct sword
 
 struct fighter
 {
+    const vec3f* rest_positions;
+
     part parts[bodypart::COUNT];
 
     fighter();
@@ -159,6 +161,10 @@ struct fighter
 
     vec3f focus_pos; ///where to put my hands and sword
     ///this should almost certainly be relative
+
+
+    vec3f pos;
+    vec3f rot;
 
     ///sigh, cant be on init because needs to be after object load
     void scale();
@@ -179,6 +185,12 @@ struct fighter
     void update_sword_rot();
 
     void tick();
+
+    void set_pos(vec3f);
+    void set_rot(vec3f);
+
+
+    void update_render_positions();
 };
 
 

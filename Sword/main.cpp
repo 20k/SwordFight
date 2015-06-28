@@ -1,26 +1,13 @@
-#include "../openclrenderer/hologram.hpp"
 #include "../openclrenderer/proj.hpp"
 #include "../openclrenderer/ocl.h"
 #include "../openclrenderer/texture_manager.hpp"
-#include "../openclrenderer/game/newtonian_body.hpp"
-#include "../openclrenderer/game/collision.hpp"
-#include "../openclrenderer/interact_manager.hpp"
-#include "../openclrenderer/game/game_object.hpp"
 
 #include "../openclrenderer/text_handler.hpp"
 #include <sstream>
 #include <string>
 #include "../openclrenderer/vec.hpp"
 
-#include "../openclrenderer/game/galaxy/galaxy.hpp"
-
-#include "../openclrenderer/game/game_manager.hpp"
-#include "../openclrenderer/game/space_dust.hpp"
-#include "../openclrenderer/game/asteroid/asteroid_gen.hpp"
 #include "../openclrenderer/ui_manager.hpp"
-
-#include "../openclrenderer/game/ship.hpp"
-#include "../openclrenderer/terrain_gen/terrain_gen.hpp"
 
 #include "fighter.hpp"
 
@@ -189,7 +176,24 @@ int main(int argc, char *argv[])
             fight.queue_attack(attacks::REST);
         }
 
+        if(key.isKeyPressed(sf::Keyboard::I))
+        {
+            fight.pos.v[2] -= 0.3f;
+        }
+
+        if(key.isKeyPressed(sf::Keyboard::Numpad4))
+        {
+            fight.rot.v[1] += 0.01f;
+        }
+
+        if(key.isKeyPressed(sf::Keyboard::Numpad6))
+        {
+            fight.rot.v[1] -= 0.01f;
+        }
+
         fight.tick();
+
+        fight.update_render_positions();
 
         window.draw_bulk_objs_n();
 

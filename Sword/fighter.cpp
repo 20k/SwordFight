@@ -6,6 +6,8 @@ const vec3f* bodypart::init_default()
 
     static vec3f pos[COUNT];
 
+    //vec3f* pos = new vec3f[COUNT];
+
     pos[HEAD] = {0,0,0};
 
     float x_arm_displacement = 1;
@@ -53,12 +55,11 @@ part::part()
 {
     model.set_file("../openclrenderer/objects/cylinder.obj");
     set_pos({0,0,0});
+    set_rot({0,0,0});
 }
 
-part::part(bodypart_t t)
+part::part(bodypart_t t) : part()
 {
-    model.set_file("../openclrenderer/objects/cylinder.obj");
-
     set_type(t);
 }
 
@@ -163,6 +164,8 @@ fighter::fighter()
 {
     stance = 0;
 
+    rest_positions = bodypart::init_default();
+
     for(size_t i=0; i<bodypart::COUNT; i++)
     {
         parts[i].set_type((bodypart_t)i);
@@ -174,6 +177,9 @@ fighter::fighter()
     IK_hand(1, weapon.pos);
 
     focus_pos = weapon.pos;
+
+    pos = {0,0,0};
+    rot = {0,0,0};
 }
 
 void fighter::scale()
@@ -253,7 +259,7 @@ void fighter::IK_hand(int which_hand, vec3f pos)
 
     vec3f o1, o2, o3;
 
-    inverse_kinematic(pos, default_position[upper], default_position[lower], default_position[hand], o1, o2, o3);
+    inverse_kinematic(pos, rest_positions[upper], rest_positions[lower], rest_positions[hand], o1, o2, o3);
 
     //printf("%f\n", o2.v[2]);
 
@@ -338,7 +344,7 @@ void fighter::tick()
 
     update_sword_rot();
 
-    parts[bodypart::BODY].set_pos((parts[bodypart::LUPPERARM].pos + parts[bodypart::RUPPERARM].pos + bodypart::default_position[bodypart::BODY]*3.f)/5.f);
+    parts[bodypart::BODY].set_pos((parts[bodypart::LUPPERARM].pos + parts[bodypart::RUPPERARM].pos + rest_positions[bodypart::BODY]*3.f)/5.f);
 }
 
 void fighter::set_stance(int _stance)
@@ -418,4 +424,51 @@ void fighter::update_sword_rot()
 
         //weapon.set_rot({z, y, x});
     }
+}
+
+///flush HERE?
+void fighter::set_pos(vec3f _pos)
+{
+    pos = _pos;
+}
+
+void fighter::set_rot(vec3f _rot)
+{
+    rot = _rot;
+}
+
+struct pos_rot
+{
+    vec3f pos;
+    vec3f rot;
+};
+
+pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f local_rot)
+{
+    vec3f relative_pos = local_pos.rot({0,0,0}, world_rot);
+
+    vec3f total_rot = world_rot + local_rot;
+
+    vec3f n_pos = relative_pos + world_pos;
+
+    return {n_pos, total_rot};
+}
+
+///note to self, make this not full of shit
+void fighter::update_render_positions()
+{
+    for(part& i : parts)
+    {
+        auto r = to_world_space(pos, rot, i.pos, i.rot);
+
+        i.model.set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
+        i.model.set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
+        i.model.g_flush_objects();
+    }
+
+    auto r = to_world_space(pos, rot, weapon.pos, weapon.rot);
+
+    weapon.model.set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
+    weapon.model.set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
+    weapon.model.g_flush_objects();
 }
