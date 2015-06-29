@@ -32,6 +32,9 @@ const vec3f* bodypart::init_default()
     pos[LLOWERLEG] = {-x_leg_displacement, pos[LUPPERLEG].v[1] + 2, 0};
     pos[RLOWERLEG] = {x_leg_displacement, pos[RUPPERLEG].v[1] + 2, 0};
 
+    pos[LFOOT] = {-x_leg_displacement, pos[LLOWERLEG].v[1] + 1, 0};
+    pos[RFOOT] = { x_leg_displacement, pos[RLOWERLEG].v[1] + 1, 0};
+
     for(size_t i=0; i<COUNT; i++)
     {
         pos[i] = pos[i] * scale;
@@ -86,14 +89,16 @@ void part::set_rot(vec3f _rot)
     model.g_flush_objects();
 }
 
-void movement::load(int _hand, vec3f _end_pos, float _time, int _type)
+size_t movement::gid = 0;
+
+void movement::load(int _hand, vec3f _end_pos, float _time, int _type, bodypart_t b)
 {
     end_time = _time;
     fin = _end_pos;
     type = _type;
     hand = _hand;
 
-    limb = hand ? bodypart::RHAND : bodypart::LHAND;
+    limb = b;
 }
 
 float movement::get_frac()
@@ -123,11 +128,13 @@ movement::movement()
     type = 0;
     hand = 0;
     going = false;
+
+    id = gid++;
 }
 
-movement::movement(int hand, vec3f end_pos, float time, int type) : movement()
+movement::movement(int hand, vec3f end_pos, float time, int type, bodypart_t b) : movement()
 {
-    load(hand, end_pos, time, type);
+    load(hand, end_pos, time, type, b);
 }
 
 sword::sword()
@@ -162,6 +169,12 @@ void sword::set_rot(vec3f _rot)
 
 fighter::fighter()
 {
+    left_id = -1;
+    right_id = -1;
+
+    left_stage = 0;
+    right_stage = 0;
+
     stance = 0;
 
     rest_positions = bodypart::init_default();
@@ -201,6 +214,29 @@ float get_joint_angle(vec3f end_pos, vec3f start_pos, float s2, float s3)
     float angle = acos ( (s2 * s2 + s3 * s3 - s1 * s1) / (2 * s2 * s3) );
 
     //printf("%f\n", angle);
+
+    //if(angle >= M_PI/2.f)
+    //    angle = M_PI/2.f - angle;
+
+    //printf("%f\n", angle);
+
+
+    return angle;
+}
+
+float get_joint_angle_foot(vec3f end_pos, vec3f start_pos, float s2, float s3)
+{
+    float s1 = (end_pos - start_pos).length();
+
+    s1 = clamp(s1, 0.f, s2 + s3);
+
+    float angle = acos ( (s2 * s2 + s3 * s3 - s1 * s1) / (2 * s2 * s3) );
+
+    //printf("%f\n", angle);
+
+    //if(angle >= M_PI/2.f)
+    //    angle = M_PI/2.f - angle;
+
 
     return angle;
 }
@@ -247,6 +283,69 @@ void inverse_kinematic(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec
     o_p1 = p1 + halfway_dir * shoulder_move_amount;
 }
 
+///p1 shoulder, p2 elbow, p3 hand
+void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec3f& o_p2, vec3f& o_p3)
+{
+    float s1 = (p3 - p1).length();
+    float s2 = (p2 - p1).length();
+    float s3 = (p3 - p2).length();
+
+    float joint_angle = M_PI + get_joint_angle_foot(pos, p1, s2, s3);
+
+    //o_p1 = p1;
+
+    float max_len = (p3 - p1).length();
+
+    float to_target = (pos - p1).length();
+
+    float len = std::min(max_len, to_target);
+
+    vec3f dir = (pos - p1).norm();
+
+    o_p3 = p1 + dir * len;
+
+    float area = 0.5f * s2 * s3 * sin(joint_angle);
+
+    ///height of scalene triangle is 2 * area / base
+
+    float height = 2 * area / s1;
+
+    vec3f d1 = (o_p3 - p1);
+    vec3f d2 = {1, 0, 0};
+
+    vec3f d3 = cross(d1, d2);
+
+    d3 = d3.norm();
+
+    vec3f half = (p1 + o_p3)/2.f;
+
+    o_p2 = half + height * d3;
+
+
+    const float leg_move_amount = 1/5.f;
+
+    o_p1 = p1 + height * leg_move_amount;
+
+
+    /*printf("%f\n", height);
+
+    ///ah just fuck it
+    ///we need to fekin work this out properly
+    vec3f halfway = (o_p3 + p1) / 2.f;
+
+    halfway.v[1] -= height;
+
+    vec3f halfway_dir = (halfway - p1).norm();
+
+    o_p2 = p1 + halfway_dir * s2;*/
+
+
+
+    //const float shoulder_move_amount = s2/5.f;
+
+    //o_p1 = p1 + halfway_dir * shoulder_move_amount;
+}
+
 void fighter::IK_hand(int which_hand, vec3f pos)
 {
     using namespace bodypart;
@@ -268,20 +367,42 @@ void fighter::IK_hand(int which_hand, vec3f pos)
     parts[hand].set_pos(o3);
 }
 
-void fighter::linear_move(int hand, vec3f pos, float time)
+
+void fighter::IK_foot(int which_foot, vec3f pos)
+{
+    using namespace bodypart;
+
+    auto upper = which_foot ? RUPPERLEG : LUPPERLEG;
+    auto lower = which_foot ? RLOWERLEG : LLOWERLEG;
+    auto hand = which_foot ? RFOOT : LFOOT;
+
+    //printf("%f\n", pos.v[0]);
+
+    vec3f o1, o2, o3;
+
+    inverse_kinematic_foot(pos, rest_positions[upper], rest_positions[lower], rest_positions[hand], o1, o2, o3);
+
+    //printf("%f\n", o2.v[2]);
+
+    parts[upper].set_pos(o1);
+    parts[lower].set_pos(o2);
+    parts[hand].set_pos(o3);
+}
+
+void fighter::linear_move(int hand, vec3f pos, float time, bodypart_t b)
 {
     movement m;
 
-    m.load(hand, pos, time, 0);
+    m.load(hand, pos, time, 0, b);
 
     moves.push_back(m);
 }
 
-void fighter::spherical_move(int hand, vec3f pos, float time)
+void fighter::spherical_move(int hand, vec3f pos, float time, bodypart_t b)
 {
     movement m;
 
-    m.load(hand, pos, time, 1);
+    m.load(hand, pos, time, 1, b);
 
     moves.push_back(m);
 }
@@ -289,6 +410,8 @@ void fighter::spherical_move(int hand, vec3f pos, float time)
 ///we want the hands to be slightly offset on the sword
 void fighter::tick()
 {
+    using namespace bodypart;
+
     std::vector<bodypart_t> busy_list;
 
     for(auto& i : moves)
@@ -326,8 +449,18 @@ void fighter::tick()
             current_pos = slerp(i.start, i.fin, parts[bodypart::BODY].pos, frac);
         }
 
-        IK_hand(i.hand, current_pos);
-        IK_hand((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
+        if(i.limb == LHAND || i.limb == RHAND)
+        {
+            IK_hand(i.hand, current_pos);
+            IK_hand((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
+        }
+
+        if(i.limb == LFOOT || i.limb == RFOOT)
+        {
+            IK_foot(i.hand, current_pos);
+            //IK_foot((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
+        }
+
     }
 
     for(auto it = moves.begin(); it != moves.end();)
@@ -345,6 +478,159 @@ void fighter::tick()
     update_sword_rot();
 
     parts[bodypart::BODY].set_pos((parts[bodypart::LUPPERARM].pos + parts[bodypart::RUPPERARM].pos + rest_positions[bodypart::BODY]*3.f)/5.f);
+}
+
+void fighter::walk(int which)
+{
+    using namespace bodypart;
+
+    float total_time = 1000.f;
+
+    static sf::Clock clk;
+
+    float frac = total_time / clk.getElapsedTime().asMilliseconds();
+
+    auto foot = which ? RFOOT : LFOOT;
+
+    std::vector<vec3f> positions =
+    {
+        {rest_positions[foot].v[0], rest_positions[foot].v[1], rest_positions[foot].v[2] + 100},
+        {rest_positions[foot].v[0], rest_positions[foot].v[1] + 50, rest_positions[foot].v[2] + 100},
+        {rest_positions[foot].v[0], rest_positions[foot].v[1] + 50, rest_positions[foot].v[2] - 100},
+        {rest_positions[foot].v[0], rest_positions[foot].v[1], rest_positions[foot].v[2] - 100}
+    };
+
+    float air_time = 400.f;
+    float short_time = 200.f;
+
+    movement m;
+    m.load(which, positions[0], short_time, 1, foot);
+    moves.push_back(m);
+
+    m.load(which, positions[1], air_time, 1, foot);
+    moves.push_back(m);
+
+    m.load(which, positions[2], short_time, 1, foot);
+    moves.push_back(m);
+
+    m.load(which, positions[3], air_time, 1, foot);
+    moves.push_back(m);
+
+
+    if(clk.getElapsedTime().asMilliseconds() > total_time)
+        clk.restart();
+}
+
+int modulo_distance(int a, int b, int m)
+{
+    return std::min(abs(b - a), abs(m - b + a));
+}
+
+void fighter::walk_dir(vec2f dir)
+{
+    using namespace bodypart;
+
+    static sf::Clock clk;
+
+    float front_dist = 100.f;
+    float back_dist = -100.f;
+
+    float up_dist = 50.f;
+
+    float stroke_time = 400.f;
+    float lift_time = 200.f;
+
+    vec2f forwards = {0, front_dist};
+    forwards = forwards.rot(dir.angle());
+
+    vec2f backwards = -forwards;
+
+    std::vector<vec3f> l_pos =
+    {
+        {rest_positions[LFOOT].v[0], rest_positions[LFOOT].v[1], rest_positions[LFOOT].v[2]},
+        {rest_positions[LFOOT].v[0], rest_positions[LFOOT].v[1] + up_dist, rest_positions[LFOOT].v[2]},
+        {rest_positions[LFOOT].v[0], rest_positions[LFOOT].v[1] + up_dist, rest_positions[LFOOT].v[2]},
+        {rest_positions[LFOOT].v[0], rest_positions[LFOOT].v[1], rest_positions[LFOOT].v[2]}
+    };
+
+    std::vector<vec3f> r_pos =
+    {
+        {rest_positions[RFOOT].v[0], rest_positions[RFOOT].v[1], rest_positions[RFOOT].v[2]},
+        {rest_positions[RFOOT].v[0], rest_positions[RFOOT].v[1] + up_dist, rest_positions[RFOOT].v[2]},
+        {rest_positions[RFOOT].v[0], rest_positions[RFOOT].v[1] + up_dist, rest_positions[RFOOT].v[2]},
+        {rest_positions[RFOOT].v[0], rest_positions[RFOOT].v[1], rest_positions[RFOOT].v[2]}
+    };
+
+    std::vector<int> times
+    {
+        lift_time,
+        stroke_time,
+        lift_time,
+        stroke_time
+    };
+
+    l_pos[0].v[0] += forwards.v[0];
+    l_pos[0].v[2] += forwards.v[1];
+
+    l_pos[1].v[0] += forwards.v[0];
+    l_pos[1].v[2] += forwards.v[1];
+
+    l_pos[2].v[0] += backwards.v[0];
+    l_pos[2].v[2] += backwards.v[1];
+
+    l_pos[3].v[0] += backwards.v[0];
+    l_pos[3].v[2] += backwards.v[1];
+
+
+    r_pos[0].v[0] += forwards.v[0];
+    r_pos[0].v[2] += forwards.v[1];
+
+    r_pos[1].v[0] += forwards.v[0];
+    r_pos[1].v[2] += forwards.v[1];
+
+    r_pos[2].v[0] += backwards.v[0];
+    r_pos[2].v[2] += backwards.v[1];
+
+    r_pos[3].v[0] += backwards.v[0];
+    r_pos[3].v[2] += backwards.v[1];
+
+    ///foot stages 0 1 2 3 as defined by the positions vector
+
+    ///feet want to be 2 stages out
+    ///lag of two from left foot, then right starts
+    ///aah! we're not moving, do something!
+
+    ///need to go idle
+    if(get_movement(left_id) == nullptr && get_movement(right_id) == nullptr)
+    {
+        int d = modulo_distance(left_stage, right_stage, 4);
+
+        auto foot = LFOOT;
+
+        movement m;
+        m.load(0, l_pos[left_stage], times[left_stage], 1, LFOOT);
+
+        moves.push_back(m);
+
+        left_id = moves.back().id;
+
+        left_stage = (left_stage + 1) % 4;
+
+        if(d == 2)
+        {
+            movement m;
+            m.load(1, r_pos[right_stage], times[right_stage], 1, RFOOT);
+
+            moves.push_back(m);
+            right_id = moves.back().id;
+
+            right_stage = (right_stage + 1) % 4;
+        }
+
+
+
+    }
+
 }
 
 void fighter::set_stance(int _stance)
@@ -435,6 +721,17 @@ void fighter::set_pos(vec3f _pos)
 void fighter::set_rot(vec3f _rot)
 {
     rot = _rot;
+}
+
+movement* fighter::get_movement(size_t id)
+{
+    for(auto& i : moves)
+    {
+        if(id == i.id)
+            return &i;
+    }
+
+    return nullptr;
 }
 
 struct pos_rot

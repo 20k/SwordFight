@@ -23,6 +23,8 @@ namespace bodypart
         LLOWERLEG,
         RUPPERLEG,
         RLOWERLEG,
+        LFOOT,
+        RFOOT,
         COUNT
     };
 
@@ -56,6 +58,9 @@ struct part
 ///one single movement
 struct movement
 {
+    size_t id;
+    static size_t gid;
+
     sf::Clock clk;
 
     float end_time;
@@ -68,7 +73,7 @@ struct movement
 
     bool going;
 
-    void load(int hand, vec3f end_pos, float time, int type);
+    void load(int hand, vec3f end_pos, float time, int type, bodypart_t);
 
     float get_frac();
 
@@ -77,7 +82,7 @@ struct movement
     bool finished();
 
     movement();
-    movement(int hand, vec3f end_pos, float time, int type);
+    movement(int hand, vec3f end_pos, float time, int type, bodypart_t);
 };
 
 namespace attacks
@@ -99,19 +104,19 @@ struct attack
 
 static std::vector<movement> overhead =
 {
-    {0, {-150, -0, -20}, 400, 0}, ///windup
-    {0, {100, -150, -140}, 500, 1} ///attack
+    {0, {-150, -0, -20}, 400, 0, bodypart::LHAND}, ///windup
+    {0, {100, -150, -140}, 500, 1, bodypart::LHAND} ///attack
 };
 
 static std::vector<movement> slash =
 {
-    {0, {-150, -100, -40}, 350, 0}, ///windup
-    {0, {100, -80, -140}, 450, 1} ///attack
+    {0, {-150, -80, -40}, 350, 0, bodypart::LHAND}, ///windup
+    {0, {100, -80, -140}, 450, 1, bodypart::LHAND} ///attack
 };
 
 static std::vector<movement> rest =
 {
-    {0, {0, -200, -100}, 500, 1}
+    {0, {0, -200, -100}, 500, 1, bodypart::LHAND}
 };
 
 static std::map<attack_t, attack> attack_list =
@@ -170,9 +175,10 @@ struct fighter
     void scale();
 
     void IK_hand(int hand, vec3f pos);
+    void IK_foot(int foot, vec3f pos);
 
-    void linear_move(int hand, vec3f pos, float time);
-    void spherical_move(int hand, vec3f pos, float time);
+    void linear_move(int hand, vec3f pos, float time, bodypart_t b);
+    void spherical_move(int hand, vec3f pos, float time, bodypart_t b);
 
     void move_hands(vec3f pos);
 
@@ -185,12 +191,23 @@ struct fighter
     void update_sword_rot();
 
     void tick();
+    void walk(int which); ///temp
+
+    void walk_dir(vec2f dir); ///z, x
 
     void set_pos(vec3f);
     void set_rot(vec3f);
 
+    movement* get_movement(size_t id);
 
     void update_render_positions();
+
+private:
+    size_t left_id;
+    size_t right_id;
+
+    int left_stage;
+    int right_stage;
 };
 
 

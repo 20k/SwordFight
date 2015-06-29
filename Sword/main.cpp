@@ -98,12 +98,10 @@ int main(int argc, char *argv[])
     sf::Mouse mouse;
     sf::Keyboard key;
 
-    vec3f original_pos = fight.parts[bodypart::LHAND].pos;
+    vec3f original_pos = fight.parts[bodypart::LFOOT].pos;
 
     vec3f seek_pos = original_pos;
 
-    seek_pos.v[2] = -170.f;
-    seek_pos.v[1] = -00.f;
 
     vec3f rest_position = {0, -200, -100};
 
@@ -139,7 +137,7 @@ int main(int argc, char *argv[])
         if(key.isKeyPressed(sf::Keyboard::L))
             seek_pos.v[0] -= 0.5f;
 
-        fight.IK_hand(0, seek_pos);*/
+        fight.IK_foot(0, seek_pos);*/
 
         /*if(once<sf::Keyboard::G>())
         {
@@ -176,10 +174,10 @@ int main(int argc, char *argv[])
             fight.queue_attack(attacks::REST);
         }
 
-        if(key.isKeyPressed(sf::Keyboard::I))
+        /*if(key.isKeyPressed(sf::Keyboard::I))
         {
-            fight.pos.v[2] -= 0.3f;
-        }
+            //fight.pos.v[2] -= 0.3f;
+        }*/
 
         if(key.isKeyPressed(sf::Keyboard::Numpad4))
         {
@@ -192,6 +190,32 @@ int main(int argc, char *argv[])
         }
 
         fight.tick();
+
+
+        if(once<sf::Keyboard::C>())
+            fight.walk(0);
+
+        if(once<sf::Keyboard::V>())
+            fight.walk(1);
+
+        vec2f walk_dir = {0,0};
+
+        if(key.isKeyPressed(sf::Keyboard::I))
+            walk_dir.v[0] = 1;
+
+        if(key.isKeyPressed(sf::Keyboard::K))
+            walk_dir.v[0] = -1;
+
+        if(key.isKeyPressed(sf::Keyboard::J))
+            walk_dir.v[1] = 1;
+
+        if(key.isKeyPressed(sf::Keyboard::L))
+            walk_dir.v[1] = -1;
+
+        if(walk_dir.v[0] != 0 || walk_dir.v[1] != 0)
+        {
+            fight.walk_dir(walk_dir);
+        }
 
         fight.update_render_positions();
 

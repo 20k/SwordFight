@@ -271,9 +271,17 @@ inline float dot(const vec<N, T>& v1, const vec<N, T>& v2)
     return ret;
 }
 
-inline vec3f operator-(const vec3f& v1)
+template<int N, typename T>
+inline vec<N, T> operator-(const vec<N, T>& v1)
 {
-    return {-v1.v[0], -v1.v[1], -v1.v[2]};
+    vec<N, T> ret;
+
+    for(int i=0; i<N; i++)
+    {
+        ret.v[i] = -v1.v[i];
+    }
+
+    return ret;
 }
 
 inline vec3f operator*(float v, const vec3f& v1)
