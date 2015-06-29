@@ -13,6 +13,8 @@ struct physobj
 
     vec3f min_pos, max_pos;
 
+    int team;
+
     bool within(vec3f pos);
 };
 
@@ -20,7 +22,7 @@ struct physics
 {
     std::vector<physobj> bodies;
 
-    void add_objects_container(objects_container* o);
+    void add_objects_container(objects_container* o, int team);
 
     void load();
 

@@ -65,10 +65,12 @@ struct part
     vec3f rot;
     objects_container model;
 
+    int team;
+
     void set_type(bodypart_t); ///sets me up in the default position
     void set_pos(vec3f pos);
     void set_rot(vec3f rot);
-    void load_file(int _side);
+    void set_team(int _team);
 
     part();
     part(bodypart_t);
@@ -164,12 +166,14 @@ struct sword
     vec3f rot;
     vec3f dir;
 
+    int team;
+
     sword();
 
     void set_pos(vec3f _pos); //? model now has different pos to actual due to top down approach
     void set_rot(vec3f _rot);
 
-    void load_file(int _side);
+    void set_team(int _team);
 
     void scale();
 };
@@ -205,6 +209,8 @@ struct fighter
     ///this should almost certainly be relative
 
 
+    int team;
+
     vec3f pos;
     vec3f rot;
 
@@ -238,7 +244,7 @@ struct fighter
     movement* get_movement(size_t id);
 
     void update_render_positions();
-    void load_files(int _side);
+    void set_team(int _team);
 
 private:
     size_t left_id;

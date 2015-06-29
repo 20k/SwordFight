@@ -73,10 +73,10 @@ int main(int argc, char *argv[])
     window.set_camera_rot({0, 1.6817, 0});
 
     fighter fight;
-    fight.load_files(0);
+    fight.set_team(0);
 
     fighter fight2;
-    fight2.load_files(1);
+    fight2.set_team(1);
     fight2.set_pos({0, 0, -600});
     fight2.set_rot({0, M_PI, 0});
 
@@ -96,7 +96,7 @@ int main(int argc, char *argv[])
 
     for(part& i : fight2.parts)
     {
-        phys.add_objects_container(&i.model);
+        phys.add_objects_container(&i.model, i.team);
     }
 
 

@@ -27,10 +27,11 @@ void physics::load()
 
 }
 
-void physics::add_objects_container(objects_container* obj)
+void physics::add_objects_container(objects_container* obj, int _team)
 {
     physobj p;
     p.obj = obj;
+    p.team = _team;
 
     vec3f tl = {FLT_MAX, FLT_MAX, FLT_MAX}, br = {FLT_MIN, FLT_MIN, FLT_MIN};
 
@@ -59,7 +60,7 @@ int physics::sword_collides(sword& w)
     vec3f s_rot = w.rot;
     vec3f s_pos = xyz_to_vec(w.model.pos);
 
-    vec3f dir = (vec3f){0, 1, 0}.rot({0,0,0}, s_rot);
+    vec3f dir = (vec3f){0, 1, 0}.rot({0,0,0}, xyz_to_vec(w.model.rot));
     dir = dir.norm();
 
     ///sword height FROM HANDLE FOCUS GRIP POINT
@@ -89,10 +90,13 @@ int physics::sword_collides(sword& w)
 
         for(int i=0; i<bodies.size(); i++)
         {
-            if(bodies[i].within(pos))
+            if(bodies[i].team != w.team && bodies[i].within(pos))
             {
                 return i;
             }
+
+            if(bodies[i].team == w.team)
+                exit(1);
         }
     }
 

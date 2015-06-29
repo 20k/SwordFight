@@ -56,6 +56,8 @@ part::part()
 {
     set_pos({0,0,0});
     set_rot({0,0,0});
+
+    model.set_file("./Res/bodypart_red.obj");
 }
 
 part::part(bodypart_t t) : part()
@@ -86,9 +88,9 @@ void part::set_rot(vec3f _rot)
     //model.g_flush_objects();
 }
 
-void part::load_file(int _side)
+void part::set_team(int _team)
 {
-    if(_side == 0)
+    if(_team == 0)
     {
         model.set_file("./Res/bodypart_red.obj");
     }
@@ -98,6 +100,8 @@ void part::load_file(int _side)
     }
 
     model.set_active(true);
+
+    team = _team;
 }
 
 size_t movement::gid = 0;
@@ -150,9 +154,9 @@ movement::movement(int hand, vec3f end_pos, float time, int type, bodypart_t b) 
     load(hand, end_pos, time, type, b);
 }
 
-void sword::load_file(int _side)
+void sword::set_team(int _team)
 {
-    if(_side == 0)
+    if(_team == 0)
     {
         model.set_file("./Res/sword_red.obj");
 
@@ -163,12 +167,16 @@ void sword::load_file(int _side)
     }
 
     model.set_active(true);
+
+    team = _team;
 }
 
 sword::sword()
 {
     model.set_pos({0, 0, -100});
     dir = {0,0,0};
+    model.set_file("./Res/sword_red.obj");
+
 }
 
 void sword::scale()
@@ -196,6 +204,8 @@ void sword::set_rot(vec3f _rot)
 
 fighter::fighter()
 {
+    team = 0;
+
     left_full = false;
 
     left_id = -1;
@@ -978,14 +988,14 @@ void fighter::update_render_positions()
     }
 }
 
-void fighter::load_files(int _side)
+void fighter::set_team(int _team)
 {
-    side = _side;
+    team = _team;
 
     for(auto& i : parts)
     {
-        i.load_file(side);
+        i.set_team(team);
     }
 
-    weapon.load_file(side);
+    weapon.set_team(team);
 }
