@@ -72,18 +72,18 @@ void part::set_pos(vec3f _pos)
 {
     pos = _pos;
 
-    model.set_pos({pos.v[0], pos.v[1], pos.v[2]});
+    //model.set_pos({pos.v[0], pos.v[1], pos.v[2]});
 
-    model.g_flush_objects();
+   // model.g_flush_objects();
 }
 
 void part::set_rot(vec3f _rot)
 {
     rot = _rot;
 
-    model.set_rot({rot.v[0], rot.v[1], rot.v[2]});
+    //model.set_rot({rot.v[0], rot.v[1], rot.v[2]});
 
-    model.g_flush_objects();
+    //model.g_flush_objects();
 }
 
 void part::load_file(int _side)
@@ -168,6 +168,7 @@ void sword::load_file(int _side)
 sword::sword()
 {
     model.set_pos({0, 0, -100});
+    dir = {0,0,0};
 }
 
 void sword::scale()
@@ -179,18 +180,18 @@ void sword::set_pos(vec3f _pos)
 {
     pos = _pos;
 
-    model.set_pos({pos.v[0], pos.v[1], pos.v[2]});
+    //model.set_pos({pos.v[0], pos.v[1], pos.v[2]});
 
-    model.g_flush_objects();
+    //model.g_flush_objects();
 }
 
 void sword::set_rot(vec3f _rot)
 {
     rot = _rot;
 
-    model.set_rot({rot.v[0], rot.v[1], rot.v[2]});
+    //model.set_rot({rot.v[0], rot.v[1], rot.v[2]});
 
-    model.g_flush_objects();
+    //model.g_flush_objects();
 }
 
 fighter::fighter()
@@ -502,7 +503,6 @@ void fighter::tick()
 
                 pos.v[0] -= diff.v[0];
                 pos.v[2] -= diff.v[2];
-
             }
 
             //IK_foot((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
@@ -875,6 +875,8 @@ void fighter::update_sword_rot()
 
         vec3f avg = (lvec*l_weight + rvec*r_weight) / total;
 
+        weapon.dir = avg.norm();
+
 
         float x = atan2(avg.v[1], avg.v[2]) - M_PI/2.f;
         float y = atan2(avg.v[2], avg.v[0]);
@@ -939,11 +941,6 @@ movement* fighter::get_movement(size_t id)
     return nullptr;
 }
 
-struct pos_rot
-{
-    vec3f pos;
-    vec3f rot;
-};
 
 pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f local_rot)
 {

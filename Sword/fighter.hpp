@@ -28,6 +28,25 @@ namespace bodypart
         COUNT
     };
 
+    static std::vector<std::string> names =
+    {
+        "HEAD",
+        "LUPPERARM",
+        "LLOWERARM",
+        "RUPPERARM",
+        "RLOWERARM",
+        "LHAND",
+        "RHAND",
+        "BODY",
+        "LUPPERLEG",
+        "LLOWERLEG",
+        "RUPPERLEG",
+        "RLOWERLEG",
+        "LFOOT",
+        "RFOOT",
+        "COUNT"
+    };
+
     static float scale = 100.f;
 
     ///internal storage
@@ -143,6 +162,7 @@ struct sword
 
     vec3f pos;
     vec3f rot;
+    vec3f dir;
 
     sword();
 
@@ -155,6 +175,15 @@ struct sword
 };
 
 ///define attacks in terms of a start, an end, a time, and possibly a smoothing function
+
+
+struct pos_rot
+{
+    vec3f pos;
+    vec3f rot;
+};
+
+pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f local_rot);
 
 struct fighter
 {

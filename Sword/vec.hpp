@@ -387,6 +387,18 @@ inline vec<4, float> rgba_to_vec(const U& rgba)
     return ret;
 }
 
+template<typename U>
+inline vec<3, float> xyz_to_vec(const U& xyz)
+{
+    vec<3, float> ret;
+
+    ret.v[0] = xyz.x;
+    ret.v[1] = xyz.y;
+    ret.v[2] = xyz.z;
+
+    return ret;
+}
+
 template<int N, typename T>
 inline vec<N, T> d2r(const vec<N, T>& v1)
 {

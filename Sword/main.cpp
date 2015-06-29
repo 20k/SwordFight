@@ -11,6 +11,8 @@
 
 #include "fighter.hpp"
 
+#include "physics.hpp"
+
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
 bool once()
@@ -56,8 +58,6 @@ bool once()
     return false;
 }
 
-
-
 int main(int argc, char *argv[])
 {
     objects_container c1;
@@ -68,16 +68,37 @@ int main(int argc, char *argv[])
     engine window;
     window.load(1680,1050,1000, "SwordFight", "../openclrenderer/cl2.cl");
 
-    window.set_camera_pos({0,-85,-1000,0});
+    //window.set_camera_pos({0,-85,-1000,0});
+    window.set_camera_pos({-1009.17, -94.6033, -317.804});
+    window.set_camera_rot({0, 1.6817, 0});
 
     fighter fight;
     fight.load_files(0);
 
+    fighter fight2;
+    fight2.load_files(1);
+    fight2.set_pos({0, 0, -600});
+    fight2.set_rot({0, M_PI, 0});
+
+    physics phys;
+    phys.load();
+
     obj_mem_manager::load_active_objects();
 
     fight.scale();
+    fight2.scale();
 
-    c1.scale(0.0001f);
+    c1.scale(0.001f);
+
+
+    //phys.add_objects_container(&c1);
+    //phys.add_objects_container(&c1);
+
+    for(part& i : fight2.parts)
+    {
+        phys.add_objects_container(&i.model);
+    }
+
 
     texture_manager::allocate_textures();
 
@@ -217,6 +238,22 @@ int main(int argc, char *argv[])
         {
             fight.walk_dir(walk_dir);
         }
+
+        phys.tick();
+
+        int collide_id = phys.sword_collides(fight.weapon);
+
+        if(collide_id != -1)
+            printf("%s %i\n", bodypart::names[collide_id].c_str(), collide_id);
+
+        vec3f v = phys.get_pos();
+
+        c1.set_pos({v.v[0], v.v[1], v.v[2]});
+        c1.g_flush_objects();
+
+        fight2.tick();
+
+        fight2.update_render_positions();
 
         fight.update_render_positions();
 
