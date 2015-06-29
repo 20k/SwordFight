@@ -73,6 +73,8 @@ struct movement
 
     bool going;
 
+    bool moves_character;
+
     void load(int hand, vec3f end_pos, float time, int type, bodypart_t);
 
     float get_frac();
@@ -156,6 +158,7 @@ struct fighter
     const vec3f* rest_positions;
 
     part parts[bodypart::COUNT];
+    vec3f old_pos[bodypart::COUNT];
 
     fighter();
 
@@ -208,6 +211,8 @@ private:
 
     int left_stage;
     int right_stage;
+
+    bool left_full;
 };
 
 

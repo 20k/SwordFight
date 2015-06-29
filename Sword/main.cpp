@@ -225,6 +225,6 @@ int main(int argc, char *argv[])
 
         window.display();
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

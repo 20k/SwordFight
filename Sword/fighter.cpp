@@ -129,6 +129,8 @@ movement::movement()
     hand = 0;
     going = false;
 
+    moves_character = false;
+
     id = gid++;
 }
 
@@ -169,6 +171,8 @@ void sword::set_rot(vec3f _rot)
 
 fighter::fighter()
 {
+    left_full = false;
+
     left_id = -1;
     right_id = -1;
 
@@ -179,9 +183,11 @@ fighter::fighter()
 
     rest_positions = bodypart::init_default();
 
+
     for(size_t i=0; i<bodypart::COUNT; i++)
     {
         parts[i].set_type((bodypart_t)i);
+        old_pos[i] = parts[i].pos;
     }
 
     weapon.set_pos({0, -200, -100});
@@ -458,6 +464,23 @@ void fighter::tick()
         if(i.limb == LFOOT || i.limb == RFOOT)
         {
             IK_foot(i.hand, current_pos);
+
+            //float floor = rest_positions[i.limb].v[1];
+
+            //floor += 30.f;
+
+            //if(parts[i.limb].pos.v[1] < floor)
+            if(i.moves_character)
+            {
+                vec3f diff = parts[i.limb].pos - old_pos[i.limb];
+
+                diff = diff.rot({0,0,0}, rot);
+
+                pos.v[0] -= diff.v[0];
+                pos.v[2] -= diff.v[2];
+
+            }
+
             //IK_foot((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
         }
 
@@ -477,8 +500,13 @@ void fighter::tick()
 
     update_sword_rot();
 
-    parts[bodypart::BODY].set_pos((parts[bodypart::LUPPERARM].pos + parts[bodypart::RUPPERARM].pos + rest_positions[bodypart::BODY]*3.f)/5.f);
+    parts[BODY].set_pos((parts[LUPPERARM].pos + parts[RUPPERARM].pos + rest_positions[BODY]*3.f)/5.f);
+
+    //parts[BODY].set_pos((parts[BODY].pos * 20 + parts[RUPPERLEG].pos + parts[LUPPERLEG].pos)/(20 + 2));
+
+    parts[HEAD].set_pos((parts[BODY].pos*2 + rest_positions[HEAD] * 32.f) / (32 + 2));
 }
+
 
 void fighter::walk(int which)
 {
@@ -526,6 +554,44 @@ int modulo_distance(int a, int b, int m)
     return std::min(abs(b - a), abs(m - b + a));
 }
 
+///gunna need to pass in max len here or will break if foot tries to move outside range
+/*std::vector<movement> mov(vec3f current_pos, vec3f start, vec3f fin, float time, int side, bodypart_t b)
+{
+    float up_dist = 50.f;
+
+    float stroke_time = 200.f;
+    float lift_time = 200.f;
+
+    float dist = (start - current_pos).length();
+
+    const float tol = 40.f;
+
+    if(dist < tol)
+    {
+        movement m;
+        m.load(side, fin, time, 1, b);
+
+        return {m};
+    }
+
+    std::vector<movement> ret;
+
+    vec3f up = {0, up_dist, 0};
+
+    movement m;
+
+    m.load(side, current_pos + up, lift_time, 1, b);
+    ret.push_back(m);
+
+    m.load(side, start + up, stroke_time, 1, b);
+    ret.push_back(m);
+
+    m.load(side, start, lift_time, 1, b);
+    ret.push_back(m);
+
+    return ret;
+}*/
+
 void fighter::walk_dir(vec2f dir)
 {
     using namespace bodypart;
@@ -563,10 +629,10 @@ void fighter::walk_dir(vec2f dir)
 
     std::vector<int> times
     {
-        lift_time,
         stroke_time,
         lift_time,
-        stroke_time
+        stroke_time,
+        lift_time
     };
 
     l_pos[0].v[0] += forwards.v[0];
@@ -605,30 +671,108 @@ void fighter::walk_dir(vec2f dir)
     {
         int d = modulo_distance(left_stage, right_stage, 4);
 
-        auto foot = LFOOT;
+        bool left = get_movement(left_id) == nullptr;
+        bool right = get_movement(right_id) == nullptr;
 
-        movement m;
-        m.load(0, l_pos[left_stage], times[left_stage], 1, LFOOT);
+        if(left)
+        {
+            movement m;
+            m.load(0, l_pos[left_stage], times[left_stage], 1, LFOOT);
 
-        moves.push_back(m);
+            if(left_stage == 0)
+                m.moves_character = true;
 
-        left_id = moves.back().id;
+            moves.push_back(m);
 
-        left_stage = (left_stage + 1) % 4;
+            left_stage = (left_stage + 1) % 4;
 
-        if(d == 2)
+            left_id = moves.back().id;
+        }
+
+        if(right && d == 2)
         {
             movement m;
             m.load(1, r_pos[right_stage], times[right_stage], 1, RFOOT);
 
+            if(right_stage == 0)
+                m.moves_character = true;
+
             moves.push_back(m);
-            right_id = moves.back().id;
 
             right_stage = (right_stage + 1) % 4;
+
+            right_id = moves.back().id;
         }
 
 
+        //right = right && left_full;
 
+        /*if(left)
+        {
+            if(times[left_stage] != lift_time)
+            {
+                auto vec = mov(parts[LFOOT].pos, l_pos[(left_stage + 3) % 4], l_pos[left_stage], times[left_stage], 0, LFOOT);
+
+                moves.insert(moves.end(), vec.begin(), vec.end());
+
+                if(vec.size() == 1)
+                {
+                    left_stage = (left_stage + 1) % 4;
+
+                    left_full = true;
+                }
+                else
+                {
+                    left_full = false;
+                }
+            }
+            else
+            {
+                movement m;
+                m.load(0, l_pos[left_stage], times[left_stage], 1, LFOOT);
+
+                moves.push_back(m);
+
+                left_stage = (left_stage + 1) % 4;
+
+                left_full = true;
+            }
+
+
+            left_id = moves.back().id;
+        }
+
+        printf("%i\n", d);
+
+
+        if(d == 2 && right)
+        {
+
+            if(times[right_stage] != lift_time)
+            {
+                auto vec = mov(parts[RFOOT].pos, r_pos[(right_stage + 3) % 4], r_pos[right_stage], times[right_stage], 1, RFOOT);
+
+                moves.insert(moves.end(), vec.begin(), vec.end());
+
+                if(vec.size() == 1)
+                {
+                    right_stage = (right_stage + 1) % 4;
+                }
+            }
+            else
+            {
+                movement m;
+                m.load(1, r_pos[right_stage], times[right_stage], 1, RFOOT);
+
+                moves.push_back(m);
+
+                right_stage = (right_stage + 1) % 4;
+            }
+
+
+            right_id = moves.back().id;
+
+        }*/
     }
 
 }
@@ -768,4 +912,10 @@ void fighter::update_render_positions()
     weapon.model.set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
     weapon.model.set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
     weapon.model.g_flush_objects();
+
+
+    for(int i=0; i<bodypart::COUNT; i++)
+    {
+        old_pos[i] = parts[i].pos;
+    }
 }
