@@ -71,6 +71,7 @@ int main(int argc, char *argv[])
     window.set_camera_pos({0,-85,-1000,0});
 
     fighter fight;
+    fight.load_files(0);
 
     obj_mem_manager::load_active_objects();
 

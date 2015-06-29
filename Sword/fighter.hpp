@@ -49,6 +49,7 @@ struct part
     void set_type(bodypart_t); ///sets me up in the default position
     void set_pos(vec3f pos);
     void set_rot(vec3f rot);
+    void load_file(int _side);
 
     part();
     part(bodypart_t);
@@ -148,6 +149,8 @@ struct sword
     void set_pos(vec3f _pos); //? model now has different pos to actual due to top down approach
     void set_rot(vec3f _rot);
 
+    void load_file(int _side);
+
     void scale();
 };
 
@@ -155,6 +158,8 @@ struct sword
 
 struct fighter
 {
+    int side;
+
     const vec3f* rest_positions;
 
     part parts[bodypart::COUNT];
@@ -204,6 +209,7 @@ struct fighter
     movement* get_movement(size_t id);
 
     void update_render_positions();
+    void load_files(int _side);
 
 private:
     size_t left_id;
@@ -213,6 +219,8 @@ private:
     int right_stage;
 
     bool left_full;
+
+    bool skip_stride(vec3f, vec3f, bodypart_t, bodypart_t);
 };
 
 

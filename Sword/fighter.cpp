@@ -50,13 +50,10 @@ void part::set_type(bodypart_t t)
     type = t;
 
     set_pos(bodypart::default_position[t]);
-
-    model.set_active(true);
 }
 
 part::part()
 {
-    model.set_file("../openclrenderer/objects/cylinder.obj");
     set_pos({0,0,0});
     set_rot({0,0,0});
 }
@@ -87,6 +84,20 @@ void part::set_rot(vec3f _rot)
     model.set_rot({rot.v[0], rot.v[1], rot.v[2]});
 
     model.g_flush_objects();
+}
+
+void part::load_file(int _side)
+{
+    if(_side == 0)
+    {
+        model.set_file("./Res/bodypart_red.obj");
+    }
+    else
+    {
+        model.set_file("./Res/bodypart_blue.obj");
+    }
+
+    model.set_active(true);
 }
 
 size_t movement::gid = 0;
@@ -139,11 +150,24 @@ movement::movement(int hand, vec3f end_pos, float time, int type, bodypart_t b) 
     load(hand, end_pos, time, type, b);
 }
 
+void sword::load_file(int _side)
+{
+    if(_side == 0)
+    {
+        model.set_file("./Res/sword_red.obj");
+
+    }
+    else
+    {
+        model.set_file("./Res/sword_blue.obj");
+    }
+
+    model.set_active(true);
+}
+
 sword::sword()
 {
-    model.set_file("res/sword.obj");
     model.set_pos({0, 0, -100});
-    model.set_active(true);
 }
 
 void sword::scale()
@@ -592,6 +616,29 @@ int modulo_distance(int a, int b, int m)
     return ret;
 }*/
 
+///skip a stride if its blatantly really much further than step, will fix side to side
+
+bool fighter::skip_stride(vec3f dest, vec3f current, bodypart_t high, bodypart_t low)
+{
+    vec3f hip = parts[high].pos;
+    vec3f foot = parts[low].pos;
+
+    vec3f def_hip = rest_positions[high];
+    vec3f def_foot = rest_positions[low];
+
+    float ndist = (def_hip - def_foot).length();
+
+    float req_dist = (def_hip - dest).length();
+
+    if(req_dist >= ndist * 1.2f)
+        return true;
+
+    if((current - dest).length() < 45.f)
+        return true;
+
+    return false;
+}
+
 void fighter::walk_dir(vec2f dir)
 {
     using namespace bodypart;
@@ -604,7 +651,7 @@ void fighter::walk_dir(vec2f dir)
     float up_dist = 50.f;
 
     float stroke_time = 400.f;
-    float lift_time = 200.f;
+    float lift_time = 100.f;
 
     vec2f forwards = {0, front_dist};
     forwards = forwards.rot(dir.angle());
@@ -627,11 +674,13 @@ void fighter::walk_dir(vec2f dir)
         {rest_positions[RFOOT].v[0], rest_positions[RFOOT].v[1], rest_positions[RFOOT].v[2]}
     };
 
+    int num = l_pos.size();
+
     std::vector<int> times
     {
         stroke_time,
         lift_time,
-        stroke_time,
+        stroke_time - lift_time*2, ///not *2, is not accurate, just shorter
         lift_time
     };
 
@@ -669,11 +718,18 @@ void fighter::walk_dir(vec2f dir)
     ///need to go idle
     if(get_movement(left_id) == nullptr && get_movement(right_id) == nullptr)
     {
-        int d = modulo_distance(left_stage, right_stage, 4);
+        int d = modulo_distance(left_stage, right_stage, num);
 
         bool left = get_movement(left_id) == nullptr;
         bool right = get_movement(right_id) == nullptr;
 
+        //printf("%i %i\n", left_stage, right_stage);
+
+        if(skip_stride(l_pos[left_stage], parts[LFOOT].pos, LUPPERLEG, LFOOT))
+        {
+            left_stage = (left_stage + 1) % num;
+        }
+        else
         if(left)
         {
             movement m;
@@ -684,11 +740,16 @@ void fighter::walk_dir(vec2f dir)
 
             moves.push_back(m);
 
-            left_stage = (left_stage + 1) % 4;
+            left_stage = (left_stage + 1) % num;
 
             left_id = moves.back().id;
         }
 
+        if(skip_stride(r_pos[right_stage], parts[RFOOT].pos, RUPPERLEG, RFOOT))
+        {
+            right_stage = (right_stage + 1) % num;
+        }
+        else
         if(right && d == 2)
         {
             movement m;
@@ -699,7 +760,7 @@ void fighter::walk_dir(vec2f dir)
 
             moves.push_back(m);
 
-            right_stage = (right_stage + 1) % 4;
+            right_stage = (right_stage + 1) % num;
 
             right_id = moves.back().id;
         }
@@ -918,4 +979,16 @@ void fighter::update_render_positions()
     {
         old_pos[i] = parts[i].pos;
     }
+}
+
+void fighter::load_files(int _side)
+{
+    side = _side;
+
+    for(auto& i : parts)
+    {
+        i.load_file(side);
+    }
+
+    weapon.load_file(side);
 }
