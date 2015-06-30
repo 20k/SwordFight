@@ -27,11 +27,12 @@ void physics::load()
 
 }
 
-void physics::add_objects_container(objects_container* obj, int _team)
+void physics::add_objects_container(objects_container* obj, part* _p, int _team)
 {
     physobj p;
     p.obj = obj;
     p.team = _team;
+    p.p = _p;
 
     vec3f tl = {FLT_MAX, FLT_MAX, FLT_MAX}, br = {FLT_MIN, FLT_MIN, FLT_MIN};
 
@@ -90,8 +91,14 @@ int physics::sword_collides(sword& w)
 
         for(int i=0; i<bodies.size(); i++)
         {
-            if(bodies[i].team != w.team && bodies[i].within(pos))
+            if(bodies[i].team != w.team && bodies[i].p->hp >= 0 && bodies[i].within(pos))
             {
+                bodypart_t type = (bodypart_t)(i % bodypart::COUNT);
+
+                if(type == bodypart::LHAND || type == bodypart::RHAND)
+                    continue;
+
+
                 return i;// % bodypart::COUNT;
             }
         }

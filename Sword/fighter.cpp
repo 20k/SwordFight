@@ -1,5 +1,6 @@
 #include "fighter.hpp"
 #include "physics.hpp"
+#include "../openclrenderer/obj_mem_manager.hpp"
 
 const vec3f* bodypart::init_default()
 {
@@ -55,6 +56,8 @@ void part::set_type(bodypart_t t)
 
 part::part()
 {
+    hp = 1.f;
+
     set_pos({0,0,0});
     set_rot({0,0,0});
 
@@ -103,6 +106,22 @@ void part::set_team(int _team)
     model.set_active(true);
 
     team = _team;
+}
+
+void part::damage(float dam)
+{
+    hp -= dam;
+
+    if(model.isactive && hp < 0.0001f)
+    {
+        printf("I blowed up %s\n", bodypart::names[type].c_str());
+        model.set_active(false);
+
+        obj_mem_manager::load_active_objects();
+        obj_mem_manager::g_arrange_mem();
+        obj_mem_manager::g_changeover();
+
+    }
 }
 
 size_t movement::gid = 0;
@@ -242,7 +261,7 @@ fighter::fighter()
 void fighter::scale()
 {
     for(size_t i=0; i<bodypart::COUNT; i++)
-        parts[i].model.scale(bodypart::scale/4.f);
+        parts[i].model.scale(bodypart::scale/3.f);
 
     weapon.scale();
 }
@@ -507,7 +526,10 @@ void fighter::tick()
 
                 if(i.hit_id != -1)
                 {
+                    phys->bodies[i.hit_id].p->damage(0.4f);
+
                     printf("%s\n", names[i.hit_id % COUNT].c_str());
+
                 }
             }
         }
@@ -1028,7 +1050,7 @@ void fighter::set_physics(physics* _phys)
 
     for(part& i : parts)
     {
-        phys->add_objects_container(&i.model, i.team);
+        phys->add_objects_container(&i.model, &i, i.team);
     }
 
 }

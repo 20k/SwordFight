@@ -3,6 +3,8 @@
 
 #include "vec.hpp"
 
+struct part;
+
 struct sword;
 
 struct objects_container;
@@ -10,6 +12,7 @@ struct objects_container;
 struct physobj
 {
     objects_container* obj;
+    part* p;
 
     vec3f min_pos, max_pos;
 
@@ -22,7 +25,7 @@ struct physics
 {
     std::vector<physobj> bodies;
 
-    void add_objects_container(objects_container* o, int team);
+    void add_objects_container(objects_container* o, part* p, int team);
 
     void load();
 

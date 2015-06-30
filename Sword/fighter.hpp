@@ -67,10 +67,13 @@ struct part
 
     int team;
 
+    float hp;
+
     void set_type(bodypart_t); ///sets me up in the default position
     void set_pos(vec3f pos);
     void set_rot(vec3f rot);
     void set_team(int _team);
+    void damage(float dam);
 
     part();
     part(bodypart_t);
