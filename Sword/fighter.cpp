@@ -967,7 +967,7 @@ void fighter::set_pos(vec3f _pos)
 {
     pos = _pos;
 }
-
++
 void fighter::set_rot(vec3f _rot)
 {
     rot = _rot;

@@ -148,7 +148,7 @@ static std::vector<movement> overhead =
 
 static std::vector<movement> recoil =
 {
-    {0, {-150, -0, -20}, 400, 0, bodypart::LHAND, false, false} ///recoiling doesnt block or damage
+    {0, {-150, -0, -20}, 800, 0, bodypart::LHAND, false, false} ///recoiling doesnt block or damage
 };
 
 static std::vector<movement> slash =
@@ -164,7 +164,7 @@ static std::vector<movement> rest =
 
 static std::vector<movement> block =
 {
-    {0, {-50, -80, -20}, 300, 1, bodypart::LHAND, false, true},
+    {0, {-50, -80, -20}, 300, 0, bodypart::LHAND, false, true},
     {0, {100, -150, -140}, 500, 0, bodypart::LHAND, false, false}
 };
 

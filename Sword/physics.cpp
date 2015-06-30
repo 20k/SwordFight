@@ -92,18 +92,20 @@ int physics::sword_collides(sword& w, fighter* my_parent)
             {
                 bodypart_t type = (bodypart_t)(i % bodypart::COUNT);
 
-                if(type == bodypart::LHAND || type == bodypart::RHAND)
-                    continue;
-
                 fighter* parent = bodies[i].parent;
 
                 ///if there is no current lhand or rhand movement in the map
                 ///movement default constructs does_block to false
                 ///this seems a bit.... hacky
+
+                ///this is THEIR current action
                 movement m1 = parent->action_map[bodypart::LHAND];
                 movement m2 = parent->action_map[bodypart::RHAND];
 
-                ///here we'd stop and recoil
+                movement y1 = my_parent->action_map[bodypart::LHAND];
+                movement y2 = my_parent->action_map[bodypart::RHAND];
+
+                ///recoil. Sword collides is only called for attacks that damage, so therefore this is fine
                 if(m1.does_block || m2.does_block)
                 {
                     ///need to find OUR parent and cancel
@@ -114,8 +116,11 @@ int physics::sword_collides(sword& w, fighter* my_parent)
                     return -1;
                 }
 
+                ///we still want to recoil even if we hit THEIR hand
+                if(type == bodypart::LHAND || type == bodypart::RHAND)
+                    continue;
 
-                return i;// % bodypart::COUNT;
+                return i;
             }
         }
     }
