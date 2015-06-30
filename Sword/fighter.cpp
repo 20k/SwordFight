@@ -1116,7 +1116,21 @@ void fighter::cancel(bodypart_t type)
     }
 }
 
+///i've taken damage. If im during the windup phase of an attack, recoil
 void fighter::damage(bodypart_t type, float d)
 {
+    using namespace bodypart;
+
     parts[type].damage(d);
+
+    movement lhand = action_map[LHAND];
+    movement rhand = action_map[RHAND];
+
+    if(lhand.does(mov::WINDUP) || rhand.does(mov::WINDUP))
+    {
+        cancel(LHAND);
+        cancel(RHAND);
+
+        queue_attack(attacks::RECOIL);
+    }
 }
