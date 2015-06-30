@@ -13,6 +13,8 @@
 
 #include "physics.hpp"
 
+#include "../openclrenderer/network.hpp"
+
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
 bool once()
@@ -61,7 +63,7 @@ bool once()
 int main(int argc, char *argv[])
 {
     objects_container c1;
-    c1.set_file("../openclrenderer/objects/cylinder.obj");
+    c1.set_file("./Res/bodypart_red.obj");
     c1.set_pos({0, 0, 0});
     c1.set_active(true);
 
@@ -127,6 +129,8 @@ int main(int argc, char *argv[])
 
     vec3f rest_position = {0, -200, -100};
 
+    fighter* my_fight = &fight;
+
     while(window.window.isOpen())
     {
         sf::Clock c;
@@ -183,22 +187,22 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::T>())
         {
-            fight.queue_attack(attacks::OVERHEAD);
+            my_fight->queue_attack(attacks::OVERHEAD);
         }
 
         if(once<sf::Keyboard::Y>())
         {
-            fight.queue_attack(attacks::SLASH);
+            my_fight->queue_attack(attacks::SLASH);
         }
 
         if(once<sf::Keyboard::G>())
         {
-            fight.queue_attack(attacks::REST);
+            my_fight->queue_attack(attacks::REST);
         }
 
         if(once<sf::Keyboard::R>())
         {
-            fight.queue_attack(attacks::BLOCK);
+            my_fight->queue_attack(attacks::BLOCK);
         }
 
         /*if(key.isKeyPressed(sf::Keyboard::I))
@@ -208,12 +212,54 @@ int main(int argc, char *argv[])
 
         if(key.isKeyPressed(sf::Keyboard::U))
         {
-            fight.rot.v[1] += 0.01f;
+            my_fight->rot.v[1] += 0.01f;
         }
 
         if(key.isKeyPressed(sf::Keyboard::O))
         {
-            fight.rot.v[1] -= 0.01f;
+            my_fight->rot.v[1] -= 0.01f;
+        }
+
+        if(once<sf::Keyboard::V>() && network::network_state == 0)
+        {
+            network::join("127.0.0.1");
+
+            for(auto& i : fight2.parts)
+            {
+                network::slave_object(&i.model);
+            }
+
+            network::slave_object(&fight2.weapon.model);
+
+
+            for(auto& i : fight.parts)
+            {
+                network::host_object(&i.model);
+            }
+
+            network::host_object(&fight.weapon.model);
+
+            fight.set_pos(fight2.pos);
+            fight.set_rot(fight2.rot);
+        }
+
+        if(once<sf::Keyboard::C>() && network::network_state == 0)
+        {
+            network::host();
+
+            for(auto& i : fight.parts)
+            {
+                network::host_object(&i.model);
+            }
+
+            network::host_object(&fight.weapon.model);
+
+            for(auto& i : fight2.parts)
+            {
+                network::slave_object(&i.model);
+            }
+
+            network::slave_object(&fight2.weapon.model);
         }
 
         /*if(once<sf::Keyboard::C>())
@@ -238,7 +284,7 @@ int main(int argc, char *argv[])
 
         if(walk_dir.v[0] != 0 || walk_dir.v[1] != 0)
         {
-            fight.walk_dir(walk_dir);
+            my_fight->walk_dir(walk_dir);
         }
 
         phys.tick();
@@ -257,16 +303,25 @@ int main(int argc, char *argv[])
 
         second_tick++;
 
-        if(second_tick % 200)
+
+        if(network::network_state == 0)
         {
-            fight2.queue_attack(attacks::SLASH);
+            if(second_tick % 200)
+            {
+                fight2.queue_attack(attacks::SLASH);
+            }
+
+            fight2.tick();
+
+            fight2.update_render_positions();
         }
 
         fight.tick();
-        fight2.tick();
+
+        network::tick();
 
         fight.update_render_positions();
-        fight2.update_render_positions();
+
 
         window.draw_bulk_objs_n();
 
