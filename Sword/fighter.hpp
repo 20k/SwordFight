@@ -81,6 +81,9 @@ struct part
 };
 
 ///one single movement
+
+///need a bool for does_damage
+///use a bitfield enum for stuff
 struct movement
 {
     ///don't really know where this should go. Id of the bodypart hit potentially with this move
@@ -102,8 +105,10 @@ struct movement
     bool going;
 
     bool moves_character;
+    bool does_damage;
+    bool does_block;
 
-    void load(int hand, vec3f end_pos, float time, int type, bodypart_t);
+    void load(int hand, vec3f end_pos, float time, int type, bodypart_t, bool damage = true, bool block = false);
 
     float get_frac();
 
@@ -112,7 +117,7 @@ struct movement
     bool finished();
 
     movement();
-    movement(int hand, vec3f end_pos, float time, int type, bodypart_t);
+    movement(int hand, vec3f end_pos, float time, int type, bodypart_t, bool damage = true, bool block = false);
 };
 
 namespace attacks
@@ -121,7 +126,9 @@ namespace attacks
     {
         SLASH,
         OVERHEAD,
-        REST
+        REST,
+        BLOCK,
+        COUNT
     };
 }
 
@@ -134,26 +141,33 @@ struct attack
 
 static std::vector<movement> overhead =
 {
-    {0, {-150, -0, -20}, 400, 0, bodypart::LHAND}, ///windup
+    {0, {-150, -0, -20}, 400, 0, bodypart::LHAND, false}, ///windup
     {0, {100, -150, -140}, 500, 1, bodypart::LHAND} ///attack
 };
 
 static std::vector<movement> slash =
 {
-    {0, {-150, -80, -40}, 350, 0, bodypart::LHAND}, ///windup
+    {0, {-150, -80, -40}, 350, 0, bodypart::LHAND, false}, ///windup
     {0, {100, -80, -140}, 450, 1, bodypart::LHAND} ///attack
 };
 
 static std::vector<movement> rest =
 {
-    {0, {0, -200, -100}, 500, 1, bodypart::LHAND}
+    {0, {0, -200, -100}, 500, 1, bodypart::LHAND, false}
+};
+
+static std::vector<movement> block =
+{
+    {0, {-50, -80, -20}, 300, 1, bodypart::LHAND, false, true},
+    {0, {100, -150, -140}, 500, 0, bodypart::LHAND, false, false}
 };
 
 static std::map<attack_t, attack> attack_list =
 {
     {attacks::OVERHEAD, {overhead}},
     {attacks::SLASH, {slash}},
-    {attacks::REST, {rest}}
+    {attacks::REST, {rest}},
+    {attacks::BLOCK, {block}}
 };
 
 

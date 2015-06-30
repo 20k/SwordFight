@@ -196,6 +196,11 @@ int main(int argc, char *argv[])
             fight.queue_attack(attacks::REST);
         }
 
+        if(once<sf::Keyboard::B>())
+        {
+            fight.queue_attack(attacks::BLOCK);
+        }
+
         /*if(key.isKeyPressed(sf::Keyboard::I))
         {
             //fight.pos.v[2] -= 0.3f;

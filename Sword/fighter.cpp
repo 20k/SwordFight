@@ -126,7 +126,7 @@ void part::damage(float dam)
 
 size_t movement::gid = 0;
 
-void movement::load(int _hand, vec3f _end_pos, float _time, int _type, bodypart_t b)
+void movement::load(int _hand, vec3f _end_pos, float _time, int _type, bodypart_t b, bool damage, bool block)
 {
     end_time = _time;
     fin = _end_pos;
@@ -134,6 +134,9 @@ void movement::load(int _hand, vec3f _end_pos, float _time, int _type, bodypart_
     hand = _hand;
 
     limb = b;
+
+    does_damage = damage;
+    does_block = block;
 }
 
 float movement::get_frac()
@@ -166,14 +169,17 @@ movement::movement()
     hand = 0;
     going = false;
 
+    does_damage = true;
+    does_block = false;
+
     moves_character = false;
 
     id = gid++;
 }
 
-movement::movement(int hand, vec3f end_pos, float time, int type, bodypart_t b) : movement()
+movement::movement(int hand, vec3f end_pos, float time, int type, bodypart_t b, bool damage, bool block) : movement()
 {
-    load(hand, end_pos, time, type, b);
+    load(hand, end_pos, time, type, b, damage, block);
 }
 
 void sword::set_team(int _team)
@@ -519,7 +525,7 @@ void fighter::tick()
 
             ///if the sword hits something, not again until the next move
             ///make me a function?
-            if(i.hit_id == -1)
+            if(i.hit_id == -1 && i.does_damage)
             {
                 ///returns -1 on miss
                 i.hit_id = phys->sword_collides(weapon);
