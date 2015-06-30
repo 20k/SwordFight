@@ -1,4 +1,5 @@
 #include "fighter.hpp"
+#include "physics.hpp"
 
 const vec3f* bodypart::init_default()
 {
@@ -137,6 +138,8 @@ bool movement::finished()
 
 movement::movement()
 {
+    hit_id = -1;
+
     end_time = 0.f;
     start = {0,0,0};
     fin = {0,0,0};
@@ -494,6 +497,19 @@ void fighter::tick()
         {
             IK_hand(i.hand, current_pos);
             IK_hand((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
+
+            ///if the sword hits something, not again until the next move
+            ///make me a function?
+            if(i.hit_id == -1)
+            {
+                ///returns -1 on miss
+                i.hit_id = phys->sword_collides(weapon);
+
+                if(i.hit_id != -1)
+                {
+                    printf("%s\n", names[i.hit_id % COUNT].c_str());
+                }
+            }
         }
 
         if(i.limb == LFOOT || i.limb == RFOOT)
@@ -539,6 +555,12 @@ void fighter::tick()
     //parts[BODY].set_pos((parts[BODY].pos * 20 + parts[RUPPERLEG].pos + parts[LUPPERLEG].pos)/(20 + 2));
 
     parts[HEAD].set_pos((parts[BODY].pos*2 + rest_positions[HEAD] * 32.f) / (32 + 2));
+
+
+    /*int collide_id = phys->sword_collides(weapon);
+
+    if(collide_id != -1)
+        printf("%s %i\n", bodypart::names[collide_id % bodypart::COUNT].c_str(), collide_id);*/
 }
 
 
@@ -998,4 +1020,15 @@ void fighter::set_team(int _team)
     }
 
     weapon.set_team(team);
+}
+
+void fighter::set_physics(physics* _phys)
+{
+    phys = _phys;
+
+    for(part& i : parts)
+    {
+        phys->add_objects_container(&i.model, i.team);
+    }
+
 }

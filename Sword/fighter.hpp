@@ -80,6 +80,9 @@ struct part
 ///one single movement
 struct movement
 {
+    ///don't really know where this should go. Id of the bodypart hit potentially with this move
+    int hit_id;
+
     size_t id;
     static size_t gid;
 
@@ -189,6 +192,8 @@ struct pos_rot
 
 pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f local_rot);
 
+struct physics;
+
 struct fighter
 {
     int side;
@@ -213,6 +218,8 @@ struct fighter
 
     vec3f pos;
     vec3f rot;
+
+    physics* phys;
 
     ///sigh, cant be on init because needs to be after object load
     void scale();
@@ -245,6 +252,8 @@ struct fighter
 
     void update_render_positions();
     void set_team(int _team);
+
+    void set_physics(physics* phys);
 
 private:
     size_t left_id;

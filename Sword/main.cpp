@@ -88,16 +88,16 @@ int main(int argc, char *argv[])
     fight.scale();
     fight2.scale();
 
+
+    fight.set_physics(&phys);
+    fight2.set_physics(&phys);
+
+
     c1.scale(0.001f);
 
 
     //phys.add_objects_container(&c1);
     //phys.add_objects_container(&c1);
-
-    for(part& i : fight2.parts)
-    {
-        phys.add_objects_container(&i.model, i.team);
-    }
 
 
     texture_manager::allocate_textures();
@@ -201,18 +201,15 @@ int main(int argc, char *argv[])
             //fight.pos.v[2] -= 0.3f;
         }*/
 
-        if(key.isKeyPressed(sf::Keyboard::Numpad4))
+        if(key.isKeyPressed(sf::Keyboard::U))
         {
             fight.rot.v[1] += 0.01f;
         }
 
-        if(key.isKeyPressed(sf::Keyboard::Numpad6))
+        if(key.isKeyPressed(sf::Keyboard::O))
         {
             fight.rot.v[1] -= 0.01f;
         }
-
-        fight.tick();
-
 
         if(once<sf::Keyboard::C>())
             fight.walk(0);
@@ -241,21 +238,22 @@ int main(int argc, char *argv[])
 
         phys.tick();
 
-        int collide_id = phys.sword_collides(fight.weapon);
+        /*int collide_id = phys.sword_collides(fight.weapon);
 
         if(collide_id != -1)
-            printf("%s %i\n", bodypart::names[collide_id].c_str(), collide_id);
+            printf("%s %i\n", bodypart::names[collide_id].c_str(), collide_id);*/
 
         vec3f v = phys.get_pos();
 
         c1.set_pos({v.v[0], v.v[1], v.v[2]});
         c1.g_flush_objects();
 
+
+        fight.tick();
         fight2.tick();
 
-        fight2.update_render_positions();
-
         fight.update_render_positions();
+        fight2.update_render_positions();
 
         window.draw_bulk_objs_n();
 

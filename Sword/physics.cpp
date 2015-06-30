@@ -57,7 +57,7 @@ void physics::add_objects_container(objects_container* obj, int _team)
 
 int physics::sword_collides(sword& w)
 {
-    vec3f s_rot = w.rot;
+    //vec3f s_rot = w.rot;
     vec3f s_pos = xyz_to_vec(w.model.pos);
 
     vec3f dir = (vec3f){0, 1, 0}.rot({0,0,0}, xyz_to_vec(w.model.rot));
@@ -92,11 +92,8 @@ int physics::sword_collides(sword& w)
         {
             if(bodies[i].team != w.team && bodies[i].within(pos))
             {
-                return i;
+                return i;// % bodypart::COUNT;
             }
-
-            if(bodies[i].team == w.team)
-                exit(1);
         }
     }
 
