@@ -7,6 +7,20 @@
 
 #include <SFML/Graphics.hpp>
 
+namespace mov
+{
+    enum movement_type : unsigned int
+    {
+        NONE = 0,
+        DAMAGING = 1,
+        BLOCKING = 2,
+        WINDUP = 4,
+        MOVES = 8 ///physically moves character
+    };
+}
+
+typedef mov::movement_type movement_t;
+
 namespace bodypart
 {
     enum bodypart : unsigned int
@@ -104,13 +118,13 @@ struct movement
 
     bool going;
 
-    bool moves_character;
-    bool does_damage;
-    bool does_block;
+    movement_t move_type;
 
+    bool does(movement_t t);
+    void set(movement_t t);
 
     ///swap me for an enum
-    void load(int hand, vec3f end_pos, float time, int type, bodypart_t, bool damage = true, bool block = false);
+    void load(int hand, vec3f end_pos, float time, int type, bodypart_t, movement_t move_type);
 
     float time_remaining();
 
@@ -121,7 +135,7 @@ struct movement
     bool finished();
 
     movement();
-    movement(int hand, vec3f end_pos, float time, int type, bodypart_t, bool damage = true, bool block = false);
+    movement(int hand, vec3f end_pos, float time, int type, bodypart_t, movement_t move_type);
 };
 
 namespace attacks
@@ -135,15 +149,8 @@ namespace attacks
         COUNT,
         RECOIL
     };
-
-    enum attack_type : unsigned int
-    {
-        NONE = 0,
-        DAMAGING = 1,
-        BLOCKING = 2,
-        WINDUP = 4
-    };
 }
+
 
 typedef attacks::attacks attack_t;
 
@@ -154,30 +161,30 @@ struct attack
 
 static std::vector<movement> overhead =
 {
-    {0, {-150, -0, -20}, 400, 0, bodypart::LHAND, false}, ///windup
-    {0, {100, -150, -140}, 500, 1, bodypart::LHAND} ///attack
+    {0, {-150, -0, -20}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
+    {0, {100, -150, -140}, 500, 1, bodypart::LHAND, mov::DAMAGING} ///attack
 };
 
 static std::vector<movement> recoil =
 {
-    {0, {-150, -0, -20}, 800, 0, bodypart::LHAND, false, false} ///recoiling doesnt block or damage
+    {0, {-150, -0, -20}, 800, 0, bodypart::LHAND, mov::NONE} ///recoiling doesnt block or damage
 };
 
 static std::vector<movement> slash =
 {
-    {0, {-150, -80, -40}, 350, 0, bodypart::LHAND, false}, ///windup
-    {0, {100, -80, -140}, 450, 1, bodypart::LHAND} ///attack
+    {0, {-150, -80, -40}, 350, 0, bodypart::LHAND, mov::WINDUP}, ///windup
+    {0, {100, -80, -140}, 450, 1, bodypart::LHAND, mov::DAMAGING} ///attack
 };
 
 static std::vector<movement> rest =
 {
-    {0, {0, -200, -100}, 500, 1, bodypart::LHAND, false}
+    {0, {0, -200, -100}, 500, 1, bodypart::LHAND, mov::NONE}
 };
 
 static std::vector<movement> block =
 {
-    {0, {-50, -80, -20}, 300, 0, bodypart::LHAND, false, true},
-    {0, {100, -150, -140}, 400, 0, bodypart::LHAND, false, false}
+    {0, {-50, -80, -20}, 300, 0, bodypart::LHAND, mov::BLOCKING},
+    {0, {100, -150, -140}, 400, 0, bodypart::LHAND, mov::NONE}
 };
 
 static std::map<attack_t, attack> attack_list =
@@ -204,8 +211,6 @@ struct sword
     vec3f pos;
     vec3f rot;
     vec3f dir;
-
-
 
     int team;
 
@@ -282,7 +287,7 @@ struct fighter
     void update_sword_rot();
 
     void tick();
-    void walk(int which); ///temp
+    //void walk(int which); ///temp
 
     void walk_dir(vec2f dir); ///z, x
 

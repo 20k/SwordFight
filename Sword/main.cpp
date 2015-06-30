@@ -216,11 +216,11 @@ int main(int argc, char *argv[])
             fight.rot.v[1] -= 0.01f;
         }
 
-        if(once<sf::Keyboard::C>())
+        /*if(once<sf::Keyboard::C>())
             fight.walk(0);
 
         if(once<sf::Keyboard::V>())
-            fight.walk(1);
+            fight.walk(1);*/
 
         vec2f walk_dir = {0,0};
 

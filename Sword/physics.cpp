@@ -106,7 +106,7 @@ int physics::sword_collides(sword& w, fighter* my_parent)
                 movement y2 = my_parent->action_map[bodypart::RHAND];
 
                 ///recoil. Sword collides is only called for attacks that damage, so therefore this is fine
-                if(m1.does_block || m2.does_block)
+                if(m1.does(mov::BLOCKING) || m2.does(mov::BLOCKING))
                 {
                     ///need to find OUR parent and cancel
                     my_parent->cancel(bodypart::LHAND);

@@ -124,7 +124,7 @@ void part::damage(float dam)
 
 size_t movement::gid = 0;
 
-void movement::load(int _hand, vec3f _end_pos, float _time, int _type, bodypart_t b, bool damage, bool block)
+void movement::load(int _hand, vec3f _end_pos, float _time, int _type, bodypart_t b, movement_t _move_type)
 {
     end_time = _time;
     fin = _end_pos;
@@ -133,8 +133,7 @@ void movement::load(int _hand, vec3f _end_pos, float _time, int _type, bodypart_
 
     limb = b;
 
-    does_damage = damage;
-    does_block = block;
+    move_type = _move_type;
 }
 
 float movement::time_remaining()
@@ -172,17 +171,29 @@ movement::movement()
     hand = 0;
     going = false;
 
-    does_damage = true;
+    /*does_damage = true;
     does_block = false;
 
-    moves_character = false;
+    moves_character = false;*/
+
+    move_type = mov::DAMAGING;
 
     id = gid++;
 }
 
-movement::movement(int hand, vec3f end_pos, float time, int type, bodypart_t b, bool damage, bool block) : movement()
+movement::movement(int hand, vec3f end_pos, float time, int type, bodypart_t b, movement_t _move_type) : movement()
 {
-    load(hand, end_pos, time, type, b, damage, block);
+    load(hand, end_pos, time, type, b, _move_type);
+}
+
+bool movement::does(movement_t t)
+{
+    return move_type & t;
+}
+
+void movement::set(movement_t t)
+{
+    move_type = (movement_t)(move_type | t);
 }
 
 void sword::set_team(int _team)
@@ -446,7 +457,7 @@ void fighter::linear_move(int hand, vec3f pos, float time, bodypart_t b)
 {
     movement m;
 
-    m.load(hand, pos, time, 0, b);
+    m.load(hand, pos, time, 0, b, mov::MOVES);
 
     moves.push_back(m);
 }
@@ -455,7 +466,7 @@ void fighter::spherical_move(int hand, vec3f pos, float time, bodypart_t b)
 {
     movement m;
 
-    m.load(hand, pos, time, 1, b);
+    m.load(hand, pos, time, 1, b, mov::MOVES);
 
     moves.push_back(m);
 }
@@ -511,7 +522,7 @@ void fighter::tick()
 
             ///if the sword hits something, not again until the next move
             ///make me a function?
-            if(i.hit_id == -1 && i.does_damage)
+            if(i.hit_id == -1 && i.does(mov::DAMAGING))
             {
                 ///returns -1 on miss
                 i.hit_id = phys->sword_collides(weapon, this);
@@ -535,7 +546,7 @@ void fighter::tick()
             //floor += 30.f;
 
             //if(parts[i.limb].pos.v[1] < floor)
-            if(i.moves_character)
+            if(i.does(mov::MOVES))
             {
                 vec3f diff = parts[i.limb].pos - old_pos[i.limb];
 
@@ -577,7 +588,7 @@ void fighter::tick()
         printf("%s %i\n", bodypart::names[collide_id % bodypart::COUNT].c_str(), collide_id);*/
 }
 
-
+#if 0
 void fighter::walk(int which)
 {
     using namespace bodypart;
@@ -618,6 +629,7 @@ void fighter::walk(int which)
     if(clk.getElapsedTime().asMilliseconds() > total_time)
         clk.restart();
 }
+#endif
 
 int modulo_distance(int a, int b, int m)
 {
@@ -781,10 +793,10 @@ void fighter::walk_dir(vec2f dir)
         if(left)
         {
             movement m;
-            m.load(0, l_pos[left_stage], times[left_stage], 1, LFOOT);
+            m.load(0, l_pos[left_stage], times[left_stage], 1, LFOOT, mov::NONE);
 
             if(left_stage == 0)
-                m.moves_character = true;
+                m.set(mov::MOVES);
 
             moves.push_back(m);
 
@@ -801,10 +813,10 @@ void fighter::walk_dir(vec2f dir)
         if(right && d == 2)
         {
             movement m;
-            m.load(1, r_pos[right_stage], times[right_stage], 1, RFOOT);
+            m.load(1, r_pos[right_stage], times[right_stage], 1, RFOOT, mov::NONE);
 
             if(right_stage == 0)
-                m.moves_character = true;
+                m.set(mov::MOVES);
 
             moves.push_back(m);
 
