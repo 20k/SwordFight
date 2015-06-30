@@ -108,6 +108,8 @@ struct movement
     bool does_damage;
     bool does_block;
 
+
+    ///swap me for an enum
     void load(int hand, vec3f end_pos, float time, int type, bodypart_t, bool damage = true, bool block = false);
 
     float time_remaining();
@@ -132,6 +134,14 @@ namespace attacks
         BLOCK,
         COUNT,
         RECOIL
+    };
+
+    enum attack_type : unsigned int
+    {
+        NONE = 0,
+        DAMAGING = 1,
+        BLOCKING = 2,
+        WINDUP = 4
     };
 }
 
@@ -167,7 +177,7 @@ static std::vector<movement> rest =
 static std::vector<movement> block =
 {
     {0, {-50, -80, -20}, 300, 0, bodypart::LHAND, false, true},
-    {0, {100, -150, -140}, 500, 0, bodypart::LHAND, false, false}
+    {0, {100, -150, -140}, 400, 0, bodypart::LHAND, false, false}
 };
 
 static std::map<attack_t, attack> attack_list =
