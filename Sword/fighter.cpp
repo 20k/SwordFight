@@ -891,9 +891,47 @@ void fighter::set_stance(int _stance)
     stance = _stance;
 }
 
+bool fighter::can_attack(bodypart_t type)
+{
+    ///find the last attack of the current type
+    ///if its going, and within x ms of finishing, then fine
+
+    int last_pos = -1;
+
+    for(int i=0; i<moves.size(); i++)
+    {
+        if(moves[i].limb == type)
+            last_pos = i;
+    }
+
+    if(last_pos == -1)
+        return true;
+
+    ///final move of this type not executed, probably cant attack
+    ///in the future we need to sum all the times, etc. Ie do it properly
+    if(!moves[last_pos].going)
+        return false;
+
+    float time_left = moves[last_pos].time_remaining();
+
+
+    const float threshold = 500;
+
+    if(time_left < threshold)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+///this function assumes that an attack movelist keeps a consistent bodypart
 void fighter::queue_attack(attack_t type)
 {
     attack a = attack_list[type];
+
+    if(!can_attack(a.moves.front().limb))
+        return;
 
     for(auto& i : a.moves)
     {

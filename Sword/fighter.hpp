@@ -288,6 +288,8 @@ struct fighter
 
     void cancel(bodypart_t type);
 
+    bool can_attack(bodypart_t type);
+
 private:
     size_t left_id;
     size_t right_id;
