@@ -110,6 +110,8 @@ struct movement
 
     void load(int hand, vec3f end_pos, float time, int type, bodypart_t, bool damage = true, bool block = false);
 
+    float time_remaining();
+
     float get_frac();
 
     void fire();

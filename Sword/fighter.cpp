@@ -137,6 +137,11 @@ void movement::load(int _hand, vec3f _end_pos, float _time, int _type, bodypart_
     does_block = block;
 }
 
+float movement::time_remaining()
+{
+    return std::max(end_time - clk.getElapsedTime().asMilliseconds(), 0.f);
+}
+
 float movement::get_frac()
 {
     return (float)clk.getElapsedTime().asMilliseconds() / end_time;
@@ -967,7 +972,7 @@ void fighter::set_pos(vec3f _pos)
 {
     pos = _pos;
 }
-+
+
 void fighter::set_rot(vec3f _rot)
 {
     rot = _rot;
