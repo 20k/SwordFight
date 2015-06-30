@@ -27,16 +27,17 @@ void physics::load()
 
 }
 
-void physics::add_objects_container(objects_container* obj, part* _p, int _team)
+void physics::add_objects_container(objects_container* _obj, part* _p, int _team, fighter* _parent)
 {
     physobj p;
-    p.obj = obj;
+    p.obj = _obj;
     p.team = _team;
     p.p = _p;
+    p.parent = _parent;
 
     vec3f tl = {FLT_MAX, FLT_MAX, FLT_MAX}, br = {FLT_MIN, FLT_MIN, FLT_MIN};
 
-    for(object& o : obj->objs)
+    for(object& o : _obj->objs)
     {
         for(triangle& t : o.tri_list)
         {
@@ -56,7 +57,8 @@ void physics::add_objects_container(objects_container* obj, part* _p, int _team)
     bodies.push_back(p);
 }
 
-int physics::sword_collides(sword& w)
+///this entire method seems like a hacky bunch of shite
+int physics::sword_collides(sword& w, fighter* my_parent)
 {
     //vec3f s_rot = w.rot;
     vec3f s_pos = xyz_to_vec(w.model.pos);
@@ -78,11 +80,6 @@ int physics::sword_collides(sword& w)
         }
     }
 
-    /*for(auto& i : bodies)
-    {
-        printf("%f %f %f\n", i.obj->pos.s[0], i.obj->pos.s[1], i.obj->pos.s[2]);
-    }*/
-
     float step = 1.f;
 
     for(float t = 0; t < sword_height; t += step)
@@ -98,6 +95,25 @@ int physics::sword_collides(sword& w)
                 if(type == bodypart::LHAND || type == bodypart::RHAND)
                     continue;
 
+                fighter* parent = bodies[i].parent;
+
+                ///if there is no current lhand or rhand movement in the map
+                ///movement default constructs does_block to false
+                ///this seems a bit.... hacky
+                movement m1 = parent->action_map[bodypart::LHAND];
+                movement m2 = parent->action_map[bodypart::RHAND];
+
+                ///here we'd stop and recoil
+                if(m1.does_block || m2.does_block)
+                {
+                    ///need to find OUR parent and cancel
+                    my_parent->cancel(bodypart::LHAND);
+                    my_parent->cancel(bodypart::RHAND);
+                    my_parent->queue_attack(attacks::RECOIL);
+
+                    return -1;
+                }
+
 
                 return i;// % bodypart::COUNT;
             }
@@ -109,8 +125,6 @@ int physics::sword_collides(sword& w)
     //printf("%f %f %f\n", s_pos.v[0], s_pos.v[1], s_pos.v[2]);
 
     return -1;
-
-    //vec3d dir = {0, }
 }
 
 void physics::tick()

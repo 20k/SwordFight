@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
             fight.queue_attack(attacks::REST);
         }
 
-        if(once<sf::Keyboard::B>())
+        if(once<sf::Keyboard::R>())
         {
             fight.queue_attack(attacks::BLOCK);
         }
@@ -253,6 +253,14 @@ int main(int argc, char *argv[])
         c1.set_pos({v.v[0], v.v[1], v.v[2]});
         c1.g_flush_objects();
 
+        static int second_tick = 0;
+
+        second_tick++;
+
+        if(second_tick % 200)
+        {
+            fight2.queue_attack(attacks::SLASH);
+        }
 
         fight.tick();
         fight2.tick();

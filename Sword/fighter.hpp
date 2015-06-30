@@ -128,7 +128,8 @@ namespace attacks
         OVERHEAD,
         REST,
         BLOCK,
-        COUNT
+        COUNT,
+        RECOIL
     };
 }
 
@@ -143,6 +144,11 @@ static std::vector<movement> overhead =
 {
     {0, {-150, -0, -20}, 400, 0, bodypart::LHAND, false}, ///windup
     {0, {100, -150, -140}, 500, 1, bodypart::LHAND} ///attack
+};
+
+static std::vector<movement> recoil =
+{
+    {0, {-150, -0, -20}, 400, 0, bodypart::LHAND, false, false} ///recoiling doesnt block or damage
 };
 
 static std::vector<movement> slash =
@@ -167,7 +173,8 @@ static std::map<attack_t, attack> attack_list =
     {attacks::OVERHEAD, {overhead}},
     {attacks::SLASH, {slash}},
     {attacks::REST, {rest}},
-    {attacks::BLOCK, {block}}
+    {attacks::BLOCK, {block}},
+    {attacks::RECOIL, {recoil}}
 };
 
 
@@ -185,6 +192,8 @@ struct sword
     vec3f pos;
     vec3f rot;
     vec3f dir;
+
+
 
     int team;
 
@@ -221,6 +230,9 @@ struct fighter
     vec3f old_pos[bodypart::COUNT];
 
     fighter();
+
+    ///ideally we want movements to be ptrs, then delete them on removal
+    std::map<bodypart_t, movement> action_map;
 
     std::vector<movement> moves;
 
@@ -271,6 +283,8 @@ struct fighter
     void set_team(int _team);
 
     void set_physics(physics* phys);
+
+    void cancel(bodypart_t type);
 
 private:
     size_t left_id;

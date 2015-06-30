@@ -8,8 +8,6 @@ const vec3f* bodypart::init_default()
 
     static vec3f pos[COUNT];
 
-    //vec3f* pos = new vec3f[COUNT];
-
     pos[HEAD] = {0,0,0};
 
     float x_arm_displacement = 1;
@@ -394,25 +392,6 @@ void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1
     const float leg_move_amount = 1/5.f;
 
     o_p1 = p1 + height * leg_move_amount;
-
-
-    /*printf("%f\n", height);
-
-    ///ah just fuck it
-    ///we need to fekin work this out properly
-    vec3f halfway = (o_p3 + p1) / 2.f;
-
-    halfway.v[1] -= height;
-
-    vec3f halfway_dir = (halfway - p1).norm();
-
-    o_p2 = p1 + halfway_dir * s2;*/
-
-
-
-    //const float shoulder_move_amount = s2/5.f;
-
-    //o_p1 = p1 + halfway_dir * shoulder_move_amount;
 }
 
 void fighter::IK_hand(int which_hand, vec3f pos)
@@ -490,6 +469,8 @@ void fighter::tick()
             continue;
         }
 
+        action_map[i.limb] = i;
+
         if(!i.going)
         {
             i.fire();
@@ -528,7 +509,7 @@ void fighter::tick()
             if(i.hit_id == -1 && i.does_damage)
             {
                 ///returns -1 on miss
-                i.hit_id = phys->sword_collides(weapon);
+                i.hit_id = phys->sword_collides(weapon, this);
 
                 if(i.hit_id != -1)
                 {
@@ -558,8 +539,6 @@ void fighter::tick()
                 pos.v[0] -= diff.v[0];
                 pos.v[2] -= diff.v[2];
             }
-
-            //IK_foot((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
         }
 
     }
@@ -568,6 +547,8 @@ void fighter::tick()
     {
         if(it->finished() >= 1.f)
         {
+            action_map.erase(it->limb);
+
             it = moves.erase(it);
         }
         else
@@ -678,6 +659,8 @@ int modulo_distance(int a, int b, int m)
 
 ///skip a stride if its blatantly really much further than step, will fix side to side
 
+
+///this function is a piece of crap and it knows it
 bool fighter::skip_stride(vec3f dest, vec3f current, bodypart_t high, bodypart_t low)
 {
     vec3f hip = parts[high].pos;
@@ -1056,7 +1039,21 @@ void fighter::set_physics(physics* _phys)
 
     for(part& i : parts)
     {
-        phys->add_objects_container(&i.model, &i, i.team);
+        phys->add_objects_container(&i.model, &i, i.team, this);
     }
+}
 
+void fighter::cancel(bodypart_t type)
+{
+    for(auto it = moves.begin(); it != moves.end();)
+    {
+        if(it->limb == type)
+        {
+            action_map.erase(it->limb);
+
+            it = moves.erase(it);
+        }
+        else
+            it++;
+    }
 }
