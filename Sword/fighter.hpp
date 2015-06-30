@@ -305,6 +305,8 @@ struct fighter
 
     bool can_attack(bodypart_t type);
 
+    void damage(bodypart_t type, float d);
+
 private:
     size_t left_id;
     size_t right_id;

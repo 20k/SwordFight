@@ -116,7 +116,7 @@ int physics::sword_collides(sword& w, fighter* my_parent)
                     return -1;
                 }
 
-                ///we still want to recoil even if we hit THEIR hand
+                ///we still want to recoil even if we hit THEIR hand, but no damage
                 if(type == bodypart::LHAND || type == bodypart::RHAND)
                     continue;
 

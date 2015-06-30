@@ -527,9 +527,12 @@ void fighter::tick()
                 ///returns -1 on miss
                 i.hit_id = phys->sword_collides(weapon, this);
 
+                ///if hit, need to signal the other fighter that its been hit with its hit id, relative to part num
                 if(i.hit_id != -1)
                 {
-                    phys->bodies[i.hit_id].p->damage(0.4f);
+                    fighter* their_parent = phys->bodies[i.hit_id].parent;
+
+                    their_parent->damage((bodypart_t)(i.hit_id % COUNT), 0.4f);
 
                     printf("%s\n", names[i.hit_id % COUNT].c_str());
 
@@ -1111,4 +1114,9 @@ void fighter::cancel(bodypart_t type)
         else
             it++;
     }
+}
+
+void fighter::damage(bodypart_t type, float d)
+{
+    parts[type].damage(d);
 }
