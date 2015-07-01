@@ -405,9 +405,12 @@ void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1
     o_p2 = half + height * d3;
 
 
-    const float leg_move_amount = 1/5.f;
 
-    o_p1 = p1 + height * leg_move_amount;
+    vec3f d = (o_p3 - p1).norm();
+
+    const float leg_move_amount = 10.f;
+
+    o_p1 = p1 + d.norm() * (vec3f){20.f, 4.f, 20.f};
 }
 
 void fighter::IK_hand(int which_hand, vec3f pos)
