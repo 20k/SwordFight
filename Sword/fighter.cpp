@@ -860,6 +860,7 @@ vec3f seek(vec3f cur, vec3f dest, float dist, float seek_time, float elapsed_tim
 ///do I want to do a proper dynamic timing synchronisation thing?
 void fighter::walk_dir(vec2f dir)
 {
+    #if 0
     using namespace bodypart;
 
     static float old_time;
@@ -907,17 +908,33 @@ void fighter::walk_dir(vec2f dir)
     static std::map<bodypart_t, float> end_time;
     static std::map<bodypart_t, float> travel_dist;
     static std::map<bodypart_t, vec3f> internal_positions = {{LFOOT, bodypart::default_position[LFOOT]}, {RFOOT, bodypart::default_position[RFOOT]}}; ///their positions as found by me!
-    static std::map<bodypart_t, int> stages;
+    static std::map<bodypart_t, int> stages = {{LFOOT, 0}, {RFOOT, 2}};
     static std::map<bodypart_t, vec3f> end_pos;
+    static std::map<bodypart_t, bool> going;
 
     bodypart_t bs[2] = {bodypart::LFOOT, bodypart::RFOOT};
+
+
+    if(stages[LFOOT] == 0 || stages[RFOOT] == 0)
+    {
+        vec2f ldir = dir.norm();
+
+        ldir.v[1] = -ldir.v[1];
+
+        pos.v[0] += ldir.rot(- rot.v[1]).v[1];
+        pos.v[2] += ldir.rot(- rot.v[1]).v[0];
+    }
+
 
     int num = leg_positions.size();
 
     for(auto& foot : bs)
     {
-        if(time < end_time[foot])
+        //if(time < end_time[foot])
+        if(going[foot])
             continue;
+
+        going[foot] = true;
 
         ///we can fire another action off now
         int stage = (stages[foot] + 1) % num;
@@ -947,16 +964,39 @@ void fighter::walk_dir(vec2f dir)
 
         IK_foot(which_foot, ret);
 
-
         float internal_dist = (ret - end_pos[foot]).length();
 
         if(internal_dist < 1.f)
+           going[foot] = false;
+        //    end_time[foot] = 0;
+
+        ///regulator
+        if(foot == RFOOT && stages[RFOOT] == 2 && stages[LFOOT] == 0 && end_time[LFOOT] != 0)
+        {
+            //end_time[foot] = end_time[LFOOT] + stage_times[2];
+        }
+
+        /*if(foot == RFOOT && (((stages[LFOOT] + 2) % num) != stages[RFOOT]) ||  && end_time[LFOOT] != 0)
+        {
             end_time[foot] = 0;
+        }*/
+
+        ///something gone wrong, fix
+        if(foot == RFOOT && stages[RFOOT] == stages[LFOOT] && end_time[LFOOT] != 0)
+        {
+            //end_time[foot] = 0;
+            going[foot] = false;
+        }
     }
+
+    //printf("%i %i\n", stages[LFOOT], stages[RFOOT]);
+
 
     ///do seeking behaviour here
 }
-    #if 0
+    #endif
+    ///try and fix the lex stiffening up a bit, but who cares
+    #if 1
     static sf::Clock clk;
 
     if(dir.v[0] == 0 && dir.v[1] == 0)
@@ -1196,7 +1236,7 @@ void fighter::walk_dir(vec2f dir)
 
     vec3f side = {sidestep.v[0], 0.f, sidestep.v[1]};
 
-    vec2f forwards = {0, front_dist};
+    vec2f forwards = {0, -front_dist};
     forwards = forwards.rot(dir.angle());
 
     vec3f along = {forwards.v[0], 0, forwards.v[1]};
