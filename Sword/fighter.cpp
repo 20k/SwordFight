@@ -267,8 +267,16 @@ fighter::fighter()
         old_pos[i] = parts[i].pos;
     }
 
-    IK_foot(0, parts[bodypart::LFOOT].pos);
-    IK_foot(1, parts[bodypart::RFOOT].pos);
+    for(int i=0; i<100; i++)
+    {
+        IK_foot(0, parts[bodypart::LFOOT].pos);
+        IK_foot(1, parts[bodypart::RFOOT].pos);
+
+        for(int i=0; i<bodypart::COUNT; i++)
+        {
+            old_pos[i] = parts[i].pos;
+        }
+    }
 
     weapon.set_pos({0, -200, -100});
 
@@ -373,8 +381,8 @@ void inverse_kinematic(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec
 void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec3f& o_p2, vec3f& o_p3)
 {
     float s1 = (p3 - p1).length();
-    float s2 = (p2 - p1).length() * 1.01f;
-    float s3 = (p3 - p2).length() * 1.01f;
+    float s2 = (p2 - p1).length();
+    float s3 = (p3 - p2).length();
 
     float joint_angle = M_PI + get_joint_angle_foot(pos, p1, s2, s3);
 
@@ -406,7 +414,6 @@ void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1
     vec3f half = (p1 + o_p3)/2.f;
 
     o_p2 = half + height * d3;
-
 
     vec3f d = (o_p3 - p1).norm();
 
@@ -454,7 +461,7 @@ void fighter::IK_foot(int which_foot, vec3f pos)
     //printf("%f\n", o2.v[2]);
 
     parts[upper].set_pos(o1);
-    parts[lower].set_pos(o2);
+    parts[lower].set_pos((o2 + old_pos[lower]*10)/11.f);
     parts[hand].set_pos(o3);
 }
 
