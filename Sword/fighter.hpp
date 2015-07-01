@@ -347,7 +347,7 @@ struct fighter
 
     void damage(bodypart_t type, float d);
 
-    int process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions);
+    int process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions, bool can_skip = true);
 
 private:
     size_t left_id;
@@ -359,6 +359,8 @@ private:
     bool left_full;
 
     bool skip_stride(vec3f, vec3f, bodypart_t, bodypart_t);
+
+    int idle_fired_first;
 };
 
 

@@ -246,6 +246,8 @@ void sword::set_rot(vec3f _rot)
 
 fighter::fighter()
 {
+    idle_fired_first = -1;
+
     idling = false;
 
     team = 0;
@@ -718,7 +720,7 @@ bool fighter::skip_stride(vec3f dest, vec3f current, bodypart_t high, bodypart_t
     return false;
 }
 
-int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions)
+int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions, bool can_skip)
 {
     float front_dist = -100.f;
 
@@ -735,6 +737,8 @@ int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::v
 
     float skip_dist = 81.f;
 
+    if(!can_skip)
+        skip_dist = -1.f;
 
     vec3f up = {0, up_dist, 0};
 
@@ -762,7 +766,7 @@ int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::v
     }
     if(stage == 1)
     {
-        vec3f dest = positions[2] + rest_positions[foot];
+        vec3f dest = positions[1] + rest_positions[foot];
 
         if(dir.v[0] == 0)
             dest = dest + d*side;
@@ -795,8 +799,22 @@ void fighter::walk_dir(vec2f dir)
         currently_idle = true;
     }
 
+    if((dir.v[0] != 0 || dir.v[1] != 0) && idling)
+    {
+        left_stage = (left_stage + 1) % 2;
+        right_stage = (right_stage + 1) % 2;
+    }
+
     if(dir.v[0] != 0 || dir.v[1] != 0)
+    {
+        idle_fired_first = -1;
+
+        idling = false;
+
+        currently_idle = false;
+
         idle.restart();
+    }
 
     if((!currently_idle || idling) && dir.v[0] == 0 && dir.v[1] == 0)
         return;
@@ -824,7 +842,7 @@ void fighter::walk_dir(vec2f dir)
     vec3f along = {forwards.v[0], 0, forwards.v[1]};
     vec3f behind = -along;
 
-    vec3f behind_up = behind + (vec3f){0, up_dist, 0};
+    //vec3f behind_up = behind + (vec3f){0, up_dist, 0};
 
     vec3f up = {0, up_dist, 0};
 
@@ -832,7 +850,7 @@ void fighter::walk_dir(vec2f dir)
     std::vector<vec3f> positions =
     {
         behind,
-        behind_up,
+        //behind_up,
         along
     };
 
@@ -847,7 +865,7 @@ void fighter::walk_dir(vec2f dir)
 
     int num = 2;
 
-    if(!busy[LFOOT] && !busy[RFOOT])
+    if(!currently_idle && !idling && !busy[LFOOT] && !busy[RFOOT])
     {
         auto foot = LFOOT;
 
@@ -866,6 +884,58 @@ void fighter::walk_dir(vec2f dir)
 
         if(!busy[LFOOT])
             left_stage = (left_stage + 1) % num;
+    }
+
+    std::vector<vec3f> idle_pos_l =
+    {
+        {0,0,0}, ///dont care about this one
+        along/2.f
+    };
+
+    std::vector<vec3f> idle_pos_r =
+    {
+        {0,0,0}, ///dont care about this one
+        -along/2.f
+    };
+
+    if(currently_idle && !idling && get_movement(left_id) == nullptr && get_movement(right_id) == nullptr)
+    {
+        printf("%i %i\n", left_stage, right_stage);
+
+        if(left_stage != right_stage)
+        {
+            left_id = process_foot(LFOOT, 1, {1, 1}, -1, idle_pos_l, false);
+        }
+
+        if(right_stage == left_stage)
+        {
+            right_id = process_foot(RFOOT, 1, {1, 1}, -1, idle_pos_r, false);
+        }
+
+        if(left_stage != right_stage)
+        {
+            if(!(idle_fired_first == 1))
+                idle_fired_first = 0;
+
+            left_stage = (left_stage + 1) % num;
+        }
+        else
+        {
+            if(!(idle_fired_first == 0))
+                idle_fired_first = 1;
+
+            right_stage = (right_stage + 1) % num;
+        }
+
+        //idling = true;
+    }
+
+    bool c1 = idle_fired_first == 0 && get_movement(right_id) != nullptr;
+    bool c2 = idle_fired_first == 1 && get_movement(left_id) != nullptr;
+
+    if(currently_idle && (c1 || c2))
+    {
+        idling = true;
     }
 }
 
