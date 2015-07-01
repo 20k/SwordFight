@@ -501,7 +501,7 @@ void fighter::tick()
         frac = clamp(frac, 0.f, 1.f);
 
         ///apply a bit of smoothing
-        frac = - frac * (frac - 2);
+        //frac = - frac * (frac - 2);
 
         vec3f current_pos;
 
@@ -509,7 +509,7 @@ void fighter::tick()
         {
             current_pos = mix(i.start, i.fin, frac);
         }
-        if(i.type == 1)
+        else //if(i.type == 1)
         {
             ///need to define this manually to confine it to one axis, slerp is not what i want
             current_pos = slerp(i.start, i.fin, parts[bodypart::BODY].pos, frac);
@@ -564,7 +564,7 @@ void fighter::tick()
 
     for(auto it = moves.begin(); it != moves.end();)
     {
-        if(it->finished() >= 1.f)
+        if(it->finished())
         {
             action_map.erase(it->limb);
 
@@ -702,6 +702,101 @@ bool fighter::skip_stride(vec3f dest, vec3f current, bodypart_t high, bodypart_t
     return false;
 }
 
+void fighter::walk_dir(vec2f dir)
+{
+    using namespace bodypart;
+
+    float front_dist = -100.f;
+    //float back_dist = -100.f;
+
+    float up_dist = 50.f;
+
+    float stroke_time = 400.f;
+    float lift_time = 100.f;
+
+    vec2f forwards = {0, front_dist};
+    forwards = forwards.rot(dir.angle());
+
+    vec3f along = {forwards.v[0], 0, forwards.v[1]};
+    vec3f behind = -along;
+
+    vec3f behind_up = behind + (vec3f){0, up_dist, 0};
+
+
+    std::vector<vec3f> positions =
+    {
+        behind,
+        behind_up,
+        along
+    };
+
+
+    std::map<bodypart_t, bool> busy;
+
+    busy[LFOOT] = get_movement(left_id) != nullptr;
+    busy[RFOOT] = get_movement(right_id) != nullptr;
+
+
+    int num = 2;
+
+    if(!busy[LFOOT] && !busy[RFOOT])
+    {
+        auto foot = LFOOT;
+
+        movement m;
+
+        if(left_stage == 0)
+        {
+            m.load(0, positions[0] + rest_positions[foot], stroke_time, 1, foot, mov::NONE);
+            m.set(mov::MOVES);
+            moves.push_back(m);
+
+            left_id = moves.back().id;
+        }
+        if(left_stage == 1)
+        {
+            m.load(0, positions[1] + rest_positions[foot], lift_time, 1, foot, mov::NONE);
+            moves.push_back(m);
+
+            m.load(0, positions[2] + rest_positions[foot], stroke_time - lift_time, 1, foot, mov::NONE);
+            moves.push_back(m);
+
+            left_id = moves.back().id;
+        }
+
+
+        foot = RFOOT;
+
+        if(left_stage != right_stage)
+        {
+            if(right_stage == 0)
+            {
+                m.load(1, positions[0] + rest_positions[foot], stroke_time, 1, foot, mov::NONE);
+                m.set(mov::MOVES);
+                moves.push_back(m);
+
+                right_id = moves.back().id;
+            }
+            if(right_stage == 1)
+            {
+                m.load(1, positions[1] + rest_positions[foot], lift_time, 1, foot, mov::NONE);
+                moves.push_back(m);
+
+                m.load(1, positions[2] + rest_positions[foot], stroke_time - lift_time, 1, foot, mov::NONE);
+                moves.push_back(m);
+
+                right_id = moves.back().id;
+            }
+
+            right_stage = (right_stage + 1) % num;
+        }
+
+        if(!busy[LFOOT])
+            left_stage = (left_stage + 1) % num;
+    }
+}
+
+#if 0
 void fighter::walk_dir(vec2f dir)
 {
     using namespace bodypart;
@@ -900,6 +995,7 @@ void fighter::walk_dir(vec2f dir)
     }
 
 }
+#endif
 
 void fighter::set_stance(int _stance)
 {
