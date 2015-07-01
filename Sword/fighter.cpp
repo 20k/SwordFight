@@ -885,19 +885,12 @@ void fighter::walk_dir(vec2f dir)
 
     if(left_stage == 0 || right_stage == 0)
     {
-        /*pos.v[0] += dir.rot(M_PI/2 - rot.v[1]).v[1];
-        pos.v[2] += dir.rot(M_PI/2 - rot.v[1]).v[0];*/
+        vec2f ldir = dir.norm();
 
-        //pos.v[0] += dir.rot(rot.v[1]).v[1];
-        //pos.v[2] += dir.rot(rot.v[1]).v[0];
+        ldir.v[1] = -ldir.v[1];
 
-        vec3f world_rot = rot;
-
-        vec3f world_vec = {dir.v[1], 0.f, dir.v[0]};
-
-        vec3f n_dir = world_vec.rot({0,0,0}, world_rot);
-
-        pos = pos + (vec3f){-n_dir.v[0], 0.f, n_dir.v[2]};
+        pos.v[0] += ldir.rot(- rot.v[1]).v[1];
+        pos.v[2] += ldir.rot(- rot.v[1]).v[0];
     }
 
     static std::map<bodypart_t, vec3f> up_pos;
@@ -924,7 +917,6 @@ void fighter::walk_dir(vec2f dir)
             up_pos[foot] = parts[foot].pos + (vec3f){0, up, 0.f};
     }
 
-    //if(right_stage == (left_stage + 1) % num)
     {
         int& stage = right_stage;
         float& frac = right_frac;
@@ -945,6 +937,56 @@ void fighter::walk_dir(vec2f dir)
         if(stage == 1 && frac == 0)
             up_pos[foot] = parts[foot].pos + (vec3f){0, up, 0.f};
     }
+
+    /*if(left_stage == 0)
+    {
+        float acceptable_dist = 17.f;
+
+        int& stage = left_stage;
+        float& frac = left_frac;
+
+        auto foot = bodypart::LFOOT;
+
+        vec3f seek = leg_positions[stage] + rest_positions[foot];
+
+        vec3f cur = parts[foot].pos;
+
+        float len = (seek - cur).length();
+
+        if(len < acceptable_dist)
+        {
+            left_stage = (left_stage + 1) % num;
+            left_frac = 0;
+
+            right_stage = (right_stage + 1) % num;
+            right_frac = 0;
+        }
+    }
+
+    if(right_stage == 0)
+    {
+        float acceptable_dist = 17.f;
+
+        int& stage = right_stage;
+        float& frac = right_frac;
+
+        auto foot = bodypart::RFOOT;
+
+        vec3f seek = leg_positions[stage] + rest_positions[foot];
+
+        vec3f cur = parts[foot].pos;
+
+        float len = (seek - cur).length();
+
+        if(len < acceptable_dist)
+        {
+            left_stage = (left_stage + 1) % num;
+            left_frac = 0;
+
+            right_stage = (right_stage + 1) % num;
+            right_frac = 0;
+        }
+    }*/
 
 
     left_frac += (time_elapsed) / stage_times[left_stage];

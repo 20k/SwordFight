@@ -99,16 +99,16 @@ void debug_controls(fighter* my_fight, engine& window)
     vec2f walk_dir = {0,0};
 
     if(key.isKeyPressed(sf::Keyboard::I))
-        walk_dir.v[0] = 1;
-
-    if(key.isKeyPressed(sf::Keyboard::K))
         walk_dir.v[0] = -1;
 
+    if(key.isKeyPressed(sf::Keyboard::K))
+        walk_dir.v[0] = 1;
+
     if(key.isKeyPressed(sf::Keyboard::J))
-        walk_dir.v[1] = 1;
+        walk_dir.v[1] = -1;
 
     if(key.isKeyPressed(sf::Keyboard::L))
-        walk_dir.v[1] = -1;
+        walk_dir.v[1] = 1;
 
     my_fight->walk_dir(walk_dir);
 }
