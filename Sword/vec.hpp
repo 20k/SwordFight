@@ -204,6 +204,20 @@ struct vec
     }
 };
 
+template<int N, typename T>
+bool operator<(const vec<N, T>& v1, const vec<N, T>& v2)
+{
+    for(int i=0; i<N; i++)
+    {
+        if(v1.v[i] < v2.v[i])
+            return true;
+        if(v1.v[i] > v2.v[i])
+            return false;
+    }
+
+    return false;
+}
+
 
 typedef vec<3, float> vec3f;
 typedef vec<2, float> vec2f;

@@ -1,6 +1,7 @@
 #include "fighter.hpp"
 #include "physics.hpp"
 #include "../openclrenderer/obj_mem_manager.hpp"
+#include <unordered_map>
 
 const vec3f* bodypart::init_default()
 {
@@ -819,7 +820,7 @@ void fighter::process_foot_g2(bodypart_t foot, vec2f dir, int& stage, float& fra
 
     float distance = (seek - prev).length();
 
-    float remaining = (seek - cur).length();
+    //float remaining = (seek - cur).length();
 
     float speed = distance / seek_time;
 
@@ -842,10 +843,120 @@ void fighter::process_foot_g2(bodypart_t foot, vec2f dir, int& stage, float& fra
     }
 }
 
+vec3f seek(vec3f cur, vec3f dest, float dist, float seek_time, float elapsed_time)
+{
+    float speed = elapsed_time * dist / seek_time;
+
+    vec3f dir = (dest - cur).norm();
+
+    float remaining = (cur - dest).length();
+
+    if(remaining < speed)
+        return dest;
+
+    return cur + speed * dir;
+}
 
 ///do I want to do a proper dynamic timing synchronisation thing?
 void fighter::walk_dir(vec2f dir)
 {
+    using namespace bodypart;
+
+    static float old_time;
+    static sf::Clock clk;
+
+    static float idle_time;
+
+    float time = clk.getElapsedTime().asMicroseconds() / 1000.f;
+
+    time -= idle_time;
+
+    float dt = time - old_time;
+    old_time = time;
+
+
+    if(dir.v[0] == 0 && dir.v[1] == 0)
+    {
+        idle_time += dt;
+        return;
+    }
+
+    float dist = 100.f;
+    float up = 50.f;
+
+    vec2f f = {0, dist};
+    f = f.rot(dir.angle());
+
+    float stroke_time = 400.f;
+    float up_time = 100.f;
+
+    std::vector<vec3f> leg_positions
+    {
+        -(vec3f){f.v[0], 0.f, f.v[1]},
+        -(vec3f){f.v[0], up, f.v[1]}, ///actually wants to just be current position
+        (vec3f){f.v[0], 0.f, f.v[1]}
+    };
+
+    std::vector<int> stage_times
+    {
+        stroke_time,
+        up_time,
+        stroke_time - up_time
+    };
+
+    static std::map<bodypart_t, float> end_time;
+    static std::map<bodypart_t, float> travel_dist;
+    static std::map<bodypart_t, vec3f> internal_positions = {{LFOOT, bodypart::default_position[LFOOT]}, {RFOOT, bodypart::default_position[RFOOT]}}; ///their positions as found by me!
+    static std::map<bodypart_t, int> stages;
+    static std::map<bodypart_t, vec3f> end_pos;
+
+    bodypart_t bs[2] = {bodypart::LFOOT, bodypart::RFOOT};
+
+    int num = leg_positions.size();
+
+    for(auto& foot : bs)
+    {
+        if(time < end_time[foot])
+            continue;
+
+        ///we can fire another action off now
+        int stage = (stages[foot] + 1) % num;
+
+        vec3f goal = leg_positions[stage] + rest_positions[foot];
+
+        if(stage == 1)
+            goal = parts[foot].pos + (vec3f){0, up, 0};
+
+        float dist = (goal - internal_positions[foot]).length();
+
+        float fin_time = time + stage_times[stage];
+
+        stages[foot] = stage;
+        travel_dist[foot] = dist;
+        end_time[foot] = fin_time;
+        end_pos[foot] = goal;
+    }
+
+    for(auto& foot : bs)
+    {
+        vec3f ret = seek(internal_positions[foot], end_pos[foot], travel_dist[foot], stage_times[stages[foot]], dt);
+
+        internal_positions[foot] = ret;
+
+        int which_foot = foot == RFOOT ? 1 : 0;
+
+        IK_foot(which_foot, ret);
+
+
+        float internal_dist = (ret - end_pos[foot]).length();
+
+        if(internal_dist < 1.f)
+            end_time[foot] = 0;
+    }
+
+    ///do seeking behaviour here
+}
+    #if 0
     static sf::Clock clk;
 
     if(dir.v[0] == 0 && dir.v[1] == 0)
@@ -1011,6 +1122,7 @@ void fighter::walk_dir(vec2f dir)
 
     clk.restart();
 }
+#endif
 
 #if 0
 
