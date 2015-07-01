@@ -500,18 +500,23 @@ void fighter::tick()
 
         frac = clamp(frac, 0.f, 1.f);
 
-        ///apply a bit of smoothing
-        //frac = - frac * (frac - 2);
-
         vec3f current_pos;
 
+        ///need to use a bitfield really, thisll get unmanageable
         if(i.type == 0)
         {
+            ///apply a bit of smoothing
+            frac = - frac * (frac - 2);
             current_pos = mix(i.start, i.fin, frac);
         }
-        else //if(i.type == 1)
+        else if(i.type == 1)
         {
             ///need to define this manually to confine it to one axis, slerp is not what i want
+            frac = - frac * (frac - 2);
+            current_pos = slerp(i.start, i.fin, parts[bodypart::BODY].pos, frac);
+        }
+        else
+        {
             current_pos = slerp(i.start, i.fin, parts[bodypart::BODY].pos, frac);
         }
 
@@ -755,7 +760,7 @@ void fighter::walk_dir(vec2f dir)
 
             if(to_dest > 30.f)
             {
-                m.load(0, positions[0] + rest_positions[foot], stroke_time, 1, foot, mov::NONE);
+                m.load(0, dest, stroke_time, 2, foot, mov::NONE);
                 m.set(mov::MOVES);
                 moves.push_back(m);
 
@@ -773,7 +778,7 @@ void fighter::walk_dir(vec2f dir)
                 m.load(0, parts[foot].pos + up, lift_time, 1, foot, mov::NONE);
                 moves.push_back(m);
 
-                m.load(0, positions[2] + rest_positions[foot], stroke_time - lift_time, 1, foot, mov::NONE);
+                m.load(0, dest, stroke_time - lift_time, 1, foot, mov::NONE);
                 moves.push_back(m);
 
                 left_id = moves.back().id;
@@ -793,7 +798,7 @@ void fighter::walk_dir(vec2f dir)
 
                 if(to_dest > 30.f)
                 {
-                    m.load(1, positions[0] + rest_positions[foot], stroke_time, 1, foot, mov::NONE);
+                    m.load(1, dest, stroke_time, 2, foot, mov::NONE);
                     m.set(mov::MOVES);
                     moves.push_back(m);
 
@@ -811,7 +816,7 @@ void fighter::walk_dir(vec2f dir)
                     m.load(1, parts[foot].pos + up, lift_time, 1, foot, mov::NONE);
                     moves.push_back(m);
 
-                    m.load(1, positions[2] + rest_positions[foot], stroke_time - lift_time, 1, foot, mov::NONE);
+                    m.load(1, dest, stroke_time - lift_time, 1, foot, mov::NONE);
                     moves.push_back(m);
 
                     right_id = moves.back().id;
