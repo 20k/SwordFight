@@ -714,12 +714,18 @@ void fighter::walk_dir(vec2f dir)
     using namespace bodypart;
 
     float front_dist = -100.f;
-    //float back_dist = -100.f;
 
     float up_dist = 50.f;
 
     float stroke_time = 400.f;
     float lift_time = 100.f;
+
+    float sidestep_dist = 40.f;
+
+    vec2f sidestep = {0.f, sidestep_dist};
+    //sidestep = sidestep.rot(dir.angle());
+
+    vec3f side = {sidestep.v[0], 0.f, sidestep.v[1]};
 
     vec2f forwards = {0, front_dist};
     forwards = forwards.rot(dir.angle());
@@ -746,6 +752,8 @@ void fighter::walk_dir(vec2f dir)
     busy[RFOOT] = get_movement(right_id) != nullptr;
 
 
+    float skip_dist = 81.f;
+
     int num = 2;
 
     if(!busy[LFOOT] && !busy[RFOOT])
@@ -758,9 +766,12 @@ void fighter::walk_dir(vec2f dir)
         {
             vec3f dest = positions[0] + rest_positions[foot];
 
+            if(dir.v[0] == 0)
+                dest = dest - side;
+
             float to_dest = (parts[foot].pos - dest).length();
 
-            if(to_dest > 30.f)
+            if(to_dest > skip_dist)
             {
                 m.load(0, dest, stroke_time, 2, foot, mov::NONE);
                 m.set(mov::MOVES);
@@ -773,9 +784,12 @@ void fighter::walk_dir(vec2f dir)
         {
             vec3f dest = positions[2] + rest_positions[foot];
 
+            if(dir.v[0] == 0)
+                dest = dest - side;
+
             float to_dest = (parts[foot].pos - dest).length();
 
-            if(to_dest > 30.f)
+            if(to_dest > skip_dist)
             {
                 m.load(0, parts[foot].pos + up, lift_time, 1, foot, mov::NONE);
                 moves.push_back(m);
@@ -796,9 +810,12 @@ void fighter::walk_dir(vec2f dir)
             {
                 vec3f dest = positions[0] + rest_positions[foot];
 
+                if(dir.v[0] == 0)
+                    dest = dest + side;
+
                 float to_dest = (parts[foot].pos - dest).length();
 
-                if(to_dest > 30.f)
+                if(to_dest > skip_dist)
                 {
                     m.load(1, dest, stroke_time, 2, foot, mov::NONE);
                     m.set(mov::MOVES);
@@ -811,9 +828,12 @@ void fighter::walk_dir(vec2f dir)
             {
                 vec3f dest = positions[2] + rest_positions[foot];
 
+                if(dir.v[0] == 0)
+                    dest = dest + side;
+
                 float to_dest = (parts[foot].pos - dest).length();
 
-                if(to_dest > 30.f)
+                if(to_dest > skip_dist)
                 {
                     m.load(1, parts[foot].pos + up, lift_time, 1, foot, mov::NONE);
                     moves.push_back(m);
