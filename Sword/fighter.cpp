@@ -267,6 +267,9 @@ fighter::fighter()
         old_pos[i] = parts[i].pos;
     }
 
+    IK_foot(0, parts[bodypart::LFOOT].pos);
+    IK_foot(1, parts[bodypart::RFOOT].pos);
+
     weapon.set_pos({0, -200, -100});
 
     IK_hand(0, weapon.pos);
