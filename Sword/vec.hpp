@@ -445,7 +445,7 @@ inline vec<N, T> slerp(const vec<N, T>& v1, const vec<N, T>& v2, float a)
 }*/
 
 template<int N, typename T>
-inline vec<N, T> slerp(const vec<N, T>& v1, const vec<N, T>& v2, const vec<N, T>& focus, float a)
+inline vec<N, T> slerp(const vec<N, T>& v1, const vec<N, T>& v2, float a)
 {
     vec<N, T> ret;
 
@@ -461,9 +461,6 @@ inline vec<N, T> slerp(const vec<N, T>& v1, const vec<N, T>& v2, const vec<N, T>
     ret = a1 * v1 + a2 * v2;
 
     return ret;
-
-
-
 }
 
 

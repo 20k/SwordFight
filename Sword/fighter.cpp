@@ -373,8 +373,8 @@ void inverse_kinematic(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec
 void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec3f& o_p2, vec3f& o_p3)
 {
     float s1 = (p3 - p1).length();
-    float s2 = (p2 - p1).length();
-    float s3 = (p3 - p2).length();
+    float s2 = (p2 - p1).length() * 1.01f;
+    float s3 = (p3 - p2).length() * 1.01f;
 
     float joint_angle = M_PI + get_joint_angle_foot(pos, p1, s2, s3);
 
@@ -406,7 +406,6 @@ void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1
     vec3f half = (p1 + o_p3)/2.f;
 
     o_p2 = half + height * d3;
-
 
 
     vec3f d = (o_p3 - p1).norm();
@@ -519,11 +518,11 @@ void fighter::tick()
         {
             ///need to define this manually to confine it to one axis, slerp is not what i want
             frac = - frac * (frac - 2);
-            current_pos = slerp(i.start, i.fin, parts[bodypart::BODY].pos, frac);
+            current_pos = slerp(i.start, i.fin, frac);
         }
         else
         {
-            current_pos = slerp(i.start, i.fin, parts[bodypart::BODY].pos, frac);
+            current_pos = slerp(i.start, i.fin, frac);
         }
 
         if(i.limb == LHAND || i.limb == RHAND)
