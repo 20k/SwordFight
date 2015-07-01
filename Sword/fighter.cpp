@@ -261,7 +261,7 @@ fighter::fighter()
     right_id = -1;
 
     left_stage = 0;
-    right_stage = 0;
+    right_stage = 1;
 
 
     left_fired = false;
@@ -810,8 +810,11 @@ int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::v
 }
 
 
-void fighter::process_foot_g2(bodypart_t foot, vec2f dir, vec3f seek, vec3f prev, float seek_time, float elapsed_time)
+void fighter::process_foot_g2(bodypart_t foot, vec2f dir, int& stage, float& frac, vec3f seek, vec3f prev, float seek_time, float elapsed_time)
 {
+    int which_foot = foot == bodypart::RFOOT ? 1 : 0;
+
+
     vec3f cur = parts[foot].pos;
 
     float distance = (seek - prev).length();
@@ -822,19 +825,25 @@ void fighter::process_foot_g2(bodypart_t foot, vec2f dir, vec3f seek, vec3f prev
 
     vec3f d = (seek - cur).norm();
 
-    IK_foot(0, cur + elapsed_time * speed * d);
+    IK_foot(which_foot, cur + elapsed_time * speed * d);
 
+    float acceptable_dist = 20.f;
 
-    float acceptable_dist = 50.f;
+    float len = (seek - cur).length();
 
-    if(left_frac >= 1 && (seek - cur).length() < acceptable_dist)
+    //printf("%i %f %f\n", stage, frac, len);
+
+    if(frac >= 1)//  && len < acceptable_dist)
     {
-        left_frac = 0;
-        left_stage = (left_stage + 1) % 2;
-    }
+        frac = 0;
+        stage = (stage + 1) % 3;
 
+        //printf("fin\n");
+    }
 }
 
+
+///do I want to do a proper dynamic timing synchronisation thing?
 void fighter::walk_dir(vec2f dir)
 {
     static sf::Clock clk;
@@ -876,22 +885,67 @@ void fighter::walk_dir(vec2f dir)
 
     if(left_stage == 0 || right_stage == 0)
     {
-        pos.v[0] += dir.v[1];
-        pos.v[2] -= dir.v[0];
+        /*pos.v[0] += dir.rot(M_PI/2 - rot.v[1]).v[1];
+        pos.v[2] += dir.rot(M_PI/2 - rot.v[1]).v[0];*/
+
+        //pos.v[0] += dir.rot(rot.v[1]).v[1];
+        //pos.v[2] += dir.rot(rot.v[1]).v[0];
+
+        vec3f world_rot = rot;
+
+        vec3f world_vec = {dir.v[1], 0.f, dir.v[0]};
+
+        vec3f n_dir = world_vec.rot({0,0,0}, world_rot);
+
+        pos = pos + (vec3f){-n_dir.v[0], 0.f, n_dir.v[2]};
     }
 
-    if(left_stage == 0)
+    static std::map<bodypart_t, vec3f> up_pos;
+
+    int prev_stage = left_stage;
+
+    //if(left_stage == 0)
     {
-        int stage = left_stage;
+        int& stage = left_stage;
+        float& frac = left_frac;
 
         auto foot = bodypart::LFOOT;
 
         vec3f seek = leg_positions[stage] + rest_positions[foot];
 
+        if(stage == 1)
+            seek = up_pos[foot];
+
         vec3f prev = leg_positions[(stage + num - 1) % num] + rest_positions[foot];
 
-        process_foot_g2(foot, dir, seek, prev, stage_times[stage], time_elapsed);
+        process_foot_g2(foot, dir, stage, frac, seek, prev, stage_times[stage], time_elapsed);
+
+        if(stage == 1 && frac == 0)
+            up_pos[foot] = parts[foot].pos + (vec3f){0, up, 0.f};
     }
+
+    //if(right_stage == (left_stage + 1) % num)
+    {
+        int& stage = right_stage;
+        float& frac = right_frac;
+
+        auto foot = bodypart::RFOOT;
+
+        vec3f seek = leg_positions[stage] + rest_positions[foot];
+
+        if(stage == 1)
+            seek = up_pos[foot];
+
+        vec3f prev = leg_positions[(stage + num - 1) % num] + rest_positions[foot];
+
+        float time = stage_times[stage];
+
+        process_foot_g2(foot, dir, stage, frac, seek, prev, time, time_elapsed);
+
+        if(stage == 1 && frac == 0)
+            up_pos[foot] = parts[foot].pos + (vec3f){0, up, 0.f};
+    }
+
 
     left_frac += (time_elapsed) / stage_times[left_stage];
     right_frac += (time_elapsed) / stage_times[right_stage];
@@ -903,11 +957,11 @@ void fighter::walk_dir(vec2f dir)
         left_stage = (left_stage + 1) % num;
     }*/
 
-    if(right_frac >= 1)
+    /*if(right_frac >= 1)
     {
         right_frac = 0;
         right_stage = (right_stage + 1) % num;
-    }
+    }*/
 
     clk.restart();
 }
