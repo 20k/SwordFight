@@ -123,16 +123,16 @@ void fps_controls(fighter* my_fight, engine& window)
     vec2f walk_dir = {0,0};
 
     if(key.isKeyPressed(sf::Keyboard::W))
-        walk_dir.v[0] = 1;
-
-    if(key.isKeyPressed(sf::Keyboard::S))
         walk_dir.v[0] = -1;
 
+    if(key.isKeyPressed(sf::Keyboard::S))
+        walk_dir.v[0] = 1;
+
     if(key.isKeyPressed(sf::Keyboard::A))
-        walk_dir.v[1] = 1;
+        walk_dir.v[1] = -1;
 
     if(key.isKeyPressed(sf::Keyboard::D))
-        walk_dir.v[1] = -1;
+        walk_dir.v[1] = 1;
 
     my_fight->walk_dir(walk_dir);
 

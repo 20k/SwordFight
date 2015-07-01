@@ -854,7 +854,11 @@ void fighter::walk_dir(vec2f dir)
         return;
     }
 
+    ///in ms
     float time_elapsed = clk.getElapsedTime().asMicroseconds() / 1000.f;
+
+    ///prevent feet going out of sync if there's a pause
+    time_elapsed = clamp(time_elapsed, 0.f, 67.f);
 
     float dist = 100.f;
 
