@@ -318,7 +318,16 @@ int main(int argc, char *argv[])
 
         fight.tick();
 
-        network::tick();
+        bool need_realloc = network::tick();
+
+        if(need_realloc)
+        {
+            printf("Reallocating\n");
+
+            obj_mem_manager::load_active_objects();
+            obj_mem_manager::g_arrange_mem();
+            obj_mem_manager::g_changeover();
+        }
 
         fight.update_render_positions();
 
