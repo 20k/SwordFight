@@ -282,10 +282,7 @@ int main(int argc, char *argv[])
         if(key.isKeyPressed(sf::Keyboard::L))
             walk_dir.v[1] = -1;
 
-        if(walk_dir.v[0] != 0 || walk_dir.v[1] != 0)
-        {
-            my_fight->walk_dir(walk_dir);
-        }
+        my_fight->walk_dir(walk_dir);
 
         phys.tick();
 

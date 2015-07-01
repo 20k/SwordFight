@@ -303,6 +303,10 @@ struct fighter
 
     physics* phys;
 
+    sf::Clock idle;
+
+    bool idling;
+
     ///sigh, cant be on init because needs to be after object load
     void scale();
 
@@ -342,6 +346,8 @@ struct fighter
     bool can_attack(bodypart_t type);
 
     void damage(bodypart_t type, float d);
+
+    int process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions);
 
 private:
     size_t left_id;

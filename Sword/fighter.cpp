@@ -246,6 +246,8 @@ void sword::set_rot(vec3f _rot)
 
 fighter::fighter()
 {
+    idling = false;
+
     team = 0;
 
     left_full = false;
@@ -267,6 +269,7 @@ fighter::fighter()
         old_pos[i] = parts[i].pos;
     }
 
+    ///this is a dirty, dirty hack to smooth the knee positions first time around
     for(int i=0; i<100; i++)
     {
         IK_foot(0, parts[bodypart::LFOOT].pos);
@@ -715,9 +718,91 @@ bool fighter::skip_stride(vec3f dest, vec3f current, bodypart_t high, bodypart_t
     return false;
 }
 
+int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions)
+{
+    float front_dist = -100.f;
+
+    float up_dist = 50.f;
+
+    float stroke_time = 400.f;
+    float lift_time = 100.f;
+
+    float sidestep_dist = 40.f;
+
+    vec2f sidestep = {0.f, sidestep_dist};
+
+    vec3f side = {sidestep.v[0], 0.f, sidestep.v[1]};
+
+    float skip_dist = 81.f;
+
+
+    vec3f up = {0, up_dist, 0};
+
+    int foot_side = foot == bodypart::LFOOT ? 0 : 1;
+
+    movement m;
+
+    if(stage == 0)
+    {
+        vec3f dest = positions[0] + rest_positions[foot];
+
+        if(dir.v[0] == 0)
+            dest = dest + d*side;
+
+        float to_dest = (parts[foot].pos - dest).length();
+
+        if(to_dest > skip_dist)
+        {
+            m.load(foot_side, dest, stroke_time, 2, foot, mov::NONE);
+            m.set(mov::MOVES);
+            moves.push_back(m);
+
+            return moves.back().id;
+        }
+    }
+    if(stage == 1)
+    {
+        vec3f dest = positions[2] + rest_positions[foot];
+
+        if(dir.v[0] == 0)
+            dest = dest + d*side;
+
+        float to_dest = (parts[foot].pos - dest).length();
+
+        if(to_dest > skip_dist)
+        {
+            m.load(foot_side, parts[foot].pos + up, lift_time, 1, foot, mov::NONE);
+            moves.push_back(m);
+
+            m.load(foot_side, dest, stroke_time - lift_time, 1, foot, mov::NONE);
+            moves.push_back(m);
+
+            return moves.back().id;
+        }
+    }
+}
+
 void fighter::walk_dir(vec2f dir)
 {
     using namespace bodypart;
+
+    const float idle_time = 1000.f;
+
+    bool currently_idle = false;
+
+    if(idle.getElapsedTime().asMilliseconds() > idle_time)
+    {
+        currently_idle = true;
+    }
+
+    if(dir.v[0] != 0 || dir.v[1] != 0)
+        idle.restart();
+
+    if((!currently_idle || idling) && dir.v[0] == 0 && dir.v[1] == 0)
+        return;
+
+    if(!currently_idle)
+        idle.restart();
 
     float front_dist = -100.f;
 
@@ -766,90 +851,15 @@ void fighter::walk_dir(vec2f dir)
     {
         auto foot = LFOOT;
 
-        movement m;
-
-        if(left_stage == 0)
-        {
-            vec3f dest = positions[0] + rest_positions[foot];
-
-            if(dir.v[0] == 0)
-                dest = dest - side;
-
-            float to_dest = (parts[foot].pos - dest).length();
-
-            if(to_dest > skip_dist)
-            {
-                m.load(0, dest, stroke_time, 2, foot, mov::NONE);
-                m.set(mov::MOVES);
-                moves.push_back(m);
-
-                left_id = moves.back().id;
-            }
-        }
-        if(left_stage == 1)
-        {
-            vec3f dest = positions[2] + rest_positions[foot];
-
-            if(dir.v[0] == 0)
-                dest = dest - side;
-
-            float to_dest = (parts[foot].pos - dest).length();
-
-            if(to_dest > skip_dist)
-            {
-                m.load(0, parts[foot].pos + up, lift_time, 1, foot, mov::NONE);
-                moves.push_back(m);
-
-                m.load(0, dest, stroke_time - lift_time, 1, foot, mov::NONE);
-                moves.push_back(m);
-
-                left_id = moves.back().id;
-            }
-        }
-
+        left_id = process_foot(LFOOT, left_stage, dir, -1, positions);
 
         foot = RFOOT;
 
+        movement m;
+
         if(left_stage != right_stage)
         {
-            if(right_stage == 0)
-            {
-                vec3f dest = positions[0] + rest_positions[foot];
-
-                if(dir.v[0] == 0)
-                    dest = dest + side;
-
-                float to_dest = (parts[foot].pos - dest).length();
-
-                if(to_dest > skip_dist)
-                {
-                    m.load(1, dest, stroke_time, 2, foot, mov::NONE);
-                    m.set(mov::MOVES);
-                    moves.push_back(m);
-
-                    right_id = moves.back().id;
-                }
-            }
-            if(right_stage == 1)
-            {
-                vec3f dest = positions[2] + rest_positions[foot];
-
-                if(dir.v[0] == 0)
-                    dest = dest + side;
-
-                float to_dest = (parts[foot].pos - dest).length();
-
-                if(to_dest > skip_dist)
-                {
-                    m.load(1, parts[foot].pos + up, lift_time, 1, foot, mov::NONE);
-                    moves.push_back(m);
-
-                    m.load(1, dest, stroke_time - lift_time, 1, foot, mov::NONE);
-                    moves.push_back(m);
-
-                    right_id = moves.back().id;
-                }
-            }
+            right_id = process_foot(RFOOT, right_stage, dir, 1, positions);
 
             right_stage = (right_stage + 1) % num;
         }
