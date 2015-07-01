@@ -42,6 +42,42 @@ namespace bodypart
         COUNT
     };
 
+    static int which_side[COUNT] =
+    {
+        2,
+        0,
+        0,
+        1,
+        1,
+        0,
+        1,
+        2,
+        0,
+        0,
+        1,
+        1,
+        0,
+        1
+    };
+
+    static float foot_modifiers[COUNT] =
+    {
+        1.f/12,
+        1.f/5,
+        1.f/12,
+        1.f/5,
+        1.f/12,
+        0,
+        0,
+        1.f/8.f,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    };
+
     static std::vector<std::string> names =
     {
         "HEAD",

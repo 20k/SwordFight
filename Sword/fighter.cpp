@@ -590,6 +590,17 @@ void fighter::tick()
     parts[HEAD].set_pos((parts[BODY].pos*2 + rest_positions[HEAD] * 32.f) / (32 + 2));
 
 
+
+    /*for(int i=0; i<COUNT; i++)
+    {
+        if(i == LFOOT || i == RFOOT || i == LHAND || i == RHAND)
+            continue;
+
+        parts[i].pos.v[1] += foot_height;
+    }*/
+
+
+
     /*int collide_id = phys->sword_collides(weapon);
 
     if(collide_id != -1)
@@ -1188,9 +1199,27 @@ pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f 
 ///note to self, make this not full of shit
 void fighter::update_render_positions()
 {
+    using namespace bodypart;
+
+    //float foot_height = (parts[LFOOT].pos.v[1] - rest_positions[LFOOT].v[1]) + (parts[RFOOT].pos.v[1] - rest_positions[RFOOT].v[1]) / 2.f;
+
+    std::map<int, float> foot_heights;
+
+
+    float r_bob = parts[LFOOT].pos.v[1] - rest_positions[LFOOT].v[1];
+    float l_bob = parts[RFOOT].pos.v[1] - rest_positions[RFOOT].v[1];
+
+    foot_heights[0] = l_bob * 0.7 + r_bob * 0.3;
+    foot_heights[1] = l_bob * 0.3 + r_bob * 0.7;
+    foot_heights[2] = (foot_heights[0] + foot_heights[1]) / 2.f;
+
     for(part& i : parts)
     {
-        auto r = to_world_space(pos, rot, i.pos, i.rot);
+        vec3f t_pos = i.pos;
+
+        t_pos.v[1] += foot_heights[which_side[i.type]] * foot_modifiers[i.type];
+
+        auto r = to_world_space(pos, rot, t_pos, i.rot);
 
         i.model.set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
         i.model.set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
