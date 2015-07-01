@@ -246,6 +246,9 @@ void sword::set_rot(vec3f _rot)
 
 fighter::fighter()
 {
+    left_frac = 0.f;
+    right_frac = 0.f;
+
     idle_fired_first = -1;
 
     idling = false;
@@ -572,12 +575,19 @@ void fighter::tick()
 
             if(i.does(mov::MOVES))
             {
+                ///bye bye physics :[
                 vec3f diff = parts[i.limb].pos - old_pos[i.limb];
 
                 diff = diff.rot({0,0,0}, rot);
 
                 pos.v[0] -= diff.v[0];
                 pos.v[2] -= diff.v[2];
+
+                /*vec2f real_dir = move_dir.rot(-rot.v[1] + M_PI/2);
+
+                pos.v[0] -= real_dir.v[0];
+                pos.v[2] -= real_dir.v[1];*/
+
             }
         }
 
@@ -730,7 +740,7 @@ int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::v
 
     float up_dist = 50.f;
 
-    float stroke_time = 400.f;
+    float stroke_time = 350.f;
     float lift_time = 100.f;
 
     float sidestep_dist = 40.f;
@@ -799,8 +809,114 @@ int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::v
     }
 }
 
+
+void fighter::process_foot_g2(bodypart_t foot, vec2f dir, vec3f seek, vec3f prev, float seek_time, float elapsed_time)
+{
+    vec3f cur = parts[foot].pos;
+
+    float distance = (seek - prev).length();
+
+    float remaining = (seek - cur).length();
+
+    float speed = distance / seek_time;
+
+    vec3f d = (seek - cur).norm();
+
+    IK_foot(0, cur + elapsed_time * speed * d);
+
+
+    float acceptable_dist = 50.f;
+
+    if(left_frac >= 1 && (seek - cur).length() < acceptable_dist)
+    {
+        left_frac = 0;
+        left_stage = (left_stage + 1) % 2;
+    }
+
+}
+
 void fighter::walk_dir(vec2f dir)
 {
+    static sf::Clock clk;
+
+    if(dir.v[0] == 0 && dir.v[1] == 0)
+    {
+        clk.restart();
+        return;
+    }
+
+    float time_elapsed = clk.getElapsedTime().asMicroseconds() / 1000.f;
+
+    float dist = 100.f;
+
+    vec2f f = {0, dist};
+    f = f.rot(dir.angle());
+
+    float up = 50.f;
+
+
+    float stroke_time = 400.f;
+    float up_time = 100.f;
+
+    std::vector<vec3f> leg_positions
+    {
+        -(vec3f){f.v[0], 0.f, f.v[1]},
+        -(vec3f){f.v[0], up, f.v[1]}, ///actually wants to just be current position
+        (vec3f){f.v[0], 0.f, f.v[1]}
+    };
+
+    std::vector<int> stage_times
+    {
+        stroke_time,
+        up_time,
+        stroke_time - up_time
+    };
+
+    int num = 3;
+
+    if(left_stage == 0 || right_stage == 0)
+    {
+        pos.v[0] += dir.v[1];
+        pos.v[2] -= dir.v[0];
+    }
+
+    if(left_stage == 0)
+    {
+        int stage = left_stage;
+
+        auto foot = bodypart::LFOOT;
+
+        vec3f seek = leg_positions[stage] + rest_positions[foot];
+
+        vec3f prev = leg_positions[(stage + num - 1) % num] + rest_positions[foot];
+
+        process_foot_g2(foot, dir, seek, prev, stage_times[stage], time_elapsed);
+    }
+
+    left_frac += (time_elapsed) / stage_times[left_stage];
+    right_frac += (time_elapsed) / stage_times[right_stage];
+
+
+    /*if(left_frac >= 1)
+    {
+        left_frac = 0;
+        left_stage = (left_stage + 1) % num;
+    }*/
+
+    if(right_frac >= 1)
+    {
+        right_frac = 0;
+        right_stage = (right_stage + 1) % num;
+    }
+
+    clk.restart();
+}
+
+#if 0
+
+///gen 1 foot tech
+    move_dir = dir;
+
     using namespace bodypart;
 
     const float idle_time = 5000.f;
@@ -1004,8 +1120,10 @@ void fighter::walk_dir(vec2f dir)
         idling = true;
     }
 }
+#endif
 
 #if 0
+///gen 0 foot tech
 void fighter::walk_dir(vec2f dir)
 {
     using namespace bodypart;

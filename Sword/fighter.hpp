@@ -350,6 +350,8 @@ struct fighter
 
     int process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions, float time_wasted = 0, bool can_skip = true, movement_t extra_tags = mov::NONE);
 
+    void process_foot_g2(bodypart_t foot, vec2f dir, vec3f seek_pos, vec3f prev, float seek_time, float elapsed_time);
+
 private:
     size_t left_id;
     size_t right_id;
@@ -362,9 +364,14 @@ private:
     bool left_fired;
     bool right_fired;
 
+    float left_frac;
+    float right_frac;
+
     bool skip_stride(vec3f, vec3f, bodypart_t, bodypart_t);
 
     int idle_fired_first;
+
+    vec2f move_dir;
 };
 
 

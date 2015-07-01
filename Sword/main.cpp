@@ -146,7 +146,6 @@ void fps_controls(fighter* my_fight, engine& window)
         my_fight->queue_attack(attacks::BLOCK);
 
 
-
     part* head = &my_fight->parts[bodypart::HEAD];
 
     vec3f pos = head->pos + my_fight->pos;
@@ -179,7 +178,6 @@ int main(int argc, char *argv[])
     engine window;
     window.load(1680,1050,1000, "SwordFight", "../openclrenderer/cl2.cl");
 
-    //window.set_camera_pos({0,-85,-1000,0});
     window.set_camera_pos({-1009.17, -94.6033, -317.804});
     window.set_camera_rot({0, 1.6817, 0});
 
@@ -205,10 +203,6 @@ int main(int argc, char *argv[])
 
 
     c1.scale(0.001f);
-
-
-    //phys.add_objects_container(&c1);
-    //phys.add_objects_container(&c1);
 
 
     texture_manager::allocate_textures();
