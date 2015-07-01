@@ -260,6 +260,10 @@ fighter::fighter()
     left_stage = 0;
     right_stage = 0;
 
+
+    left_fired = false;
+    right_fired = false;
+
     stance = 0;
 
     rest_positions = bodypart::init_default();
@@ -720,7 +724,7 @@ bool fighter::skip_stride(vec3f dest, vec3f current, bodypart_t high, bodypart_t
     return false;
 }
 
-int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions, bool can_skip)
+int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions, float time_wasted, bool can_skip, movement_t extra_tags)
 {
     float front_dist = -100.f;
 
@@ -758,7 +762,12 @@ int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::v
         if(to_dest > skip_dist)
         {
             m.load(foot_side, dest, stroke_time, 2, foot, mov::NONE);
+            m.set(extra_tags);
             m.set(mov::MOVES);
+
+            m.end_time -= time_wasted;
+            m.end_time = std::max(m.end_time, 10.f);
+
             moves.push_back(m);
 
             return moves.back().id;
@@ -776,9 +785,13 @@ int fighter::process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::v
         if(to_dest > skip_dist)
         {
             m.load(foot_side, parts[foot].pos + up, lift_time, 1, foot, mov::NONE);
+            m.set(extra_tags);
             moves.push_back(m);
 
             m.load(foot_side, dest, stroke_time - lift_time, 1, foot, mov::NONE);
+            m.set(extra_tags);
+            m.end_time -= time_wasted;
+            m.end_time = std::max(m.end_time, 10.f);
             moves.push_back(m);
 
             return moves.back().id;
@@ -790,7 +803,7 @@ void fighter::walk_dir(vec2f dir)
 {
     using namespace bodypart;
 
-    const float idle_time = 1000.f;
+    const float idle_time = 5000.f;
 
     bool currently_idle = false;
 
@@ -801,12 +814,31 @@ void fighter::walk_dir(vec2f dir)
 
     if((dir.v[0] != 0 || dir.v[1] != 0) && idling)
     {
-        left_stage = (left_stage + 1) % 2;
-        right_stage = (right_stage + 1) % 2;
+        if(left_fired)
+            left_stage = (left_stage + 1) % 2;
+        if(right_fired)
+            right_stage = (right_stage + 1) % 2;
+
+        if(left_fired && right_fired)
+        {
+            if(dir.v[0] > 0)
+            {
+                left_stage = 0;
+                right_stage = 1;
+            }
+            else
+            {
+                left_stage = 1;
+                right_stage = 0;
+            }
+        }
     }
 
     if(dir.v[0] != 0 || dir.v[1] != 0)
     {
+        left_fired = false;
+        right_fired = false;
+
         idle_fired_first = -1;
 
         idling = false;
@@ -850,12 +882,46 @@ void fighter::walk_dir(vec2f dir)
     std::vector<vec3f> positions =
     {
         behind,
-        //behind_up,
         along
     };
 
 
     std::map<bodypart_t, bool> busy;
+
+
+    movement* m1, *m2;
+
+    m1 = get_movement(left_id);
+    m2 = get_movement(right_id);
+
+    std::map<bodypart_t, float> time_wasted;
+
+    std::map<bodypart_t, bool> skippable;
+
+    if(m1 && !currently_idle)
+    {
+        if(m1->does(mov::CAN_STOP))
+        {
+            time_wasted[m1->limb] = m1->clk.getElapsedTime().asMilliseconds();
+
+            skippable[m1->limb] = true;
+
+            cancel(m1->limb);
+        }
+    }
+
+    if(m2 && !currently_idle)
+    {
+        if(m2->does(mov::CAN_STOP))
+        {
+            time_wasted[m2->limb] = m2->clk.getElapsedTime().asMilliseconds();
+
+            skippable[m2->limb] = true;
+
+            cancel(m2->limb);
+        }
+    }
+
 
     busy[LFOOT] = get_movement(left_id) != nullptr;
     busy[RFOOT] = get_movement(right_id) != nullptr;
@@ -900,22 +966,22 @@ void fighter::walk_dir(vec2f dir)
 
     if(currently_idle && !idling && get_movement(left_id) == nullptr && get_movement(right_id) == nullptr)
     {
-        printf("%i %i\n", left_stage, right_stage);
-
         if(left_stage != right_stage)
         {
-            left_id = process_foot(LFOOT, 1, {1, 1}, -1, idle_pos_l, false);
+            left_id = process_foot(LFOOT, 1, {1, 1}, -1, idle_pos_l, 200, false, mov::CAN_STOP);
         }
 
         if(right_stage == left_stage)
         {
-            right_id = process_foot(RFOOT, 1, {1, 1}, -1, idle_pos_r, false);
+            right_id = process_foot(RFOOT, 1, {1, 1}, -1, idle_pos_r, 200, false, mov::CAN_STOP);
         }
 
         if(left_stage != right_stage)
         {
             if(!(idle_fired_first == 1))
                 idle_fired_first = 0;
+
+            left_fired = true;
 
             left_stage = (left_stage + 1) % num;
         }
@@ -924,10 +990,10 @@ void fighter::walk_dir(vec2f dir)
             if(!(idle_fired_first == 0))
                 idle_fired_first = 1;
 
+            right_fired = true;
+
             right_stage = (right_stage + 1) % num;
         }
-
-        //idling = true;
     }
 
     bool c1 = idle_fired_first == 0 && get_movement(right_id) != nullptr;

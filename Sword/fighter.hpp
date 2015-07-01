@@ -15,7 +15,8 @@ namespace mov
         DAMAGING = 1,
         BLOCKING = 2,
         WINDUP = 4,
-        MOVES = 8 ///physically moves character
+        MOVES = 8, ///physically moves character
+        CAN_STOP = 16 ///movement can be interrupted
     };
 }
 
@@ -347,7 +348,7 @@ struct fighter
 
     void damage(bodypart_t type, float d);
 
-    int process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions, bool can_skip = true);
+    int process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions, float time_wasted = 0, bool can_skip = true, movement_t extra_tags = mov::NONE);
 
 private:
     size_t left_id;
@@ -357,6 +358,9 @@ private:
     int right_stage;
 
     bool left_full;
+
+    bool left_fired;
+    bool right_fired;
 
     bool skip_stride(vec3f, vec3f, bodypart_t, bodypart_t);
 

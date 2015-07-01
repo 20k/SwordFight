@@ -143,48 +143,6 @@ int main(int argc, char *argv[])
 
         window.input();
 
-        //seek_pos.v[2] -= 0.1f;
-
-        /*if(key.isKeyPressed(sf::Keyboard::O))
-            seek_pos.v[1] += 0.5f;
-
-        if(key.isKeyPressed(sf::Keyboard::U))
-            seek_pos.v[1] -= 0.5f;
-
-        if(key.isKeyPressed(sf::Keyboard::I))
-            seek_pos.v[2] += 0.5f;
-
-        if(key.isKeyPressed(sf::Keyboard::K))
-            seek_pos.v[2] -= 0.5f;
-
-        if(key.isKeyPressed(sf::Keyboard::J))
-            seek_pos.v[0] += 0.5f;
-
-        if(key.isKeyPressed(sf::Keyboard::L))
-            seek_pos.v[0] -= 0.5f;
-
-        fight.IK_foot(0, seek_pos);*/
-
-        /*if(once<sf::Keyboard::G>())
-        {
-            fight.linear_move(0, seek_pos, 400);
-        }
-
-        if(once<sf::Keyboard::H>())
-        {
-            fight.linear_move(0, original_pos, 400);
-        }
-
-        if(once<sf::Keyboard::J>())
-        {
-            fight.spherical_move(0, seek_pos, 400);
-        }
-
-        if(once<sf::Keyboard::K>())
-        {
-            fight.spherical_move(0, original_pos, 400);
-        }*/
-
         if(once<sf::Keyboard::T>())
         {
             my_fight->queue_attack(attacks::OVERHEAD);
@@ -204,11 +162,6 @@ int main(int argc, char *argv[])
         {
             my_fight->queue_attack(attacks::BLOCK);
         }
-
-        /*if(key.isKeyPressed(sf::Keyboard::I))
-        {
-            //fight.pos.v[2] -= 0.3f;
-        }*/
 
         if(key.isKeyPressed(sf::Keyboard::U))
         {
@@ -262,12 +215,6 @@ int main(int argc, char *argv[])
             network::slave_object(&fight2.weapon.model);
         }
 
-        /*if(once<sf::Keyboard::C>())
-            fight.walk(0);
-
-        if(once<sf::Keyboard::V>())
-            fight.walk(1);*/
-
         vec2f walk_dir = {0,0};
 
         if(key.isKeyPressed(sf::Keyboard::I))
@@ -286,11 +233,6 @@ int main(int argc, char *argv[])
 
         phys.tick();
 
-        /*int collide_id = phys.sword_collides(fight.weapon);
-
-        if(collide_id != -1)
-            printf("%s %i\n", bodypart::names[collide_id].c_str(), collide_id);*/
-
         vec3f v = phys.get_pos();
 
         c1.set_pos({v.v[0], v.v[1], v.v[2]});
@@ -299,7 +241,6 @@ int main(int argc, char *argv[])
         static int second_tick = 0;
 
         second_tick++;
-
 
         if(network::network_state == 0)
         {
