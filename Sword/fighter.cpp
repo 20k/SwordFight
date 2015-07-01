@@ -549,11 +549,6 @@ void fighter::tick()
         {
             IK_foot(i.hand, current_pos);
 
-            //float floor = rest_positions[i.limb].v[1];
-
-            //floor += 30.f;
-
-            //if(parts[i.limb].pos.v[1] < floor)
             if(i.does(mov::MOVES))
             {
                 vec3f diff = parts[i.limb].pos - old_pos[i.limb];
@@ -588,16 +583,6 @@ void fighter::tick()
     //parts[BODY].set_pos((parts[BODY].pos * 20 + parts[RUPPERLEG].pos + parts[LUPPERLEG].pos)/(20 + 2));
 
     parts[HEAD].set_pos((parts[BODY].pos*2 + rest_positions[HEAD] * 32.f) / (32 + 2));
-
-
-
-    /*for(int i=0; i<COUNT; i++)
-    {
-        if(i == LFOOT || i == RFOOT || i == LHAND || i == RHAND)
-            continue;
-
-        parts[i].pos.v[1] += foot_height;
-    }*/
 
 
 
@@ -1201,11 +1186,9 @@ void fighter::update_render_positions()
 {
     using namespace bodypart;
 
-    //float foot_height = (parts[LFOOT].pos.v[1] - rest_positions[LFOOT].v[1]) + (parts[RFOOT].pos.v[1] - rest_positions[RFOOT].v[1]) / 2.f;
-
     std::map<int, float> foot_heights;
 
-
+    ///bob OPPOSITE side of body
     float r_bob = parts[LFOOT].pos.v[1] - rest_positions[LFOOT].v[1];
     float l_bob = parts[RFOOT].pos.v[1] - rest_positions[RFOOT].v[1];
 
