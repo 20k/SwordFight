@@ -722,6 +722,8 @@ void fighter::walk_dir(vec2f dir)
 
     vec3f behind_up = behind + (vec3f){0, up_dist, 0};
 
+    vec3f up = {0, up_dist, 0};
+
 
     std::vector<vec3f> positions =
     {
@@ -747,21 +749,35 @@ void fighter::walk_dir(vec2f dir)
 
         if(left_stage == 0)
         {
-            m.load(0, positions[0] + rest_positions[foot], stroke_time, 1, foot, mov::NONE);
-            m.set(mov::MOVES);
-            moves.push_back(m);
+            vec3f dest = positions[0] + rest_positions[foot];
 
-            left_id = moves.back().id;
+            float to_dest = (parts[foot].pos - dest).length();
+
+            if(to_dest > 30.f)
+            {
+                m.load(0, positions[0] + rest_positions[foot], stroke_time, 1, foot, mov::NONE);
+                m.set(mov::MOVES);
+                moves.push_back(m);
+
+                left_id = moves.back().id;
+            }
         }
         if(left_stage == 1)
         {
-            m.load(0, positions[1] + rest_positions[foot], lift_time, 1, foot, mov::NONE);
-            moves.push_back(m);
+            vec3f dest = positions[2] + rest_positions[foot];
 
-            m.load(0, positions[2] + rest_positions[foot], stroke_time - lift_time, 1, foot, mov::NONE);
-            moves.push_back(m);
+            float to_dest = (parts[foot].pos - dest).length();
 
-            left_id = moves.back().id;
+            if(to_dest > 30.f)
+            {
+                m.load(0, parts[foot].pos + up, lift_time, 1, foot, mov::NONE);
+                moves.push_back(m);
+
+                m.load(0, positions[2] + rest_positions[foot], stroke_time - lift_time, 1, foot, mov::NONE);
+                moves.push_back(m);
+
+                left_id = moves.back().id;
+            }
         }
 
 
@@ -771,21 +787,35 @@ void fighter::walk_dir(vec2f dir)
         {
             if(right_stage == 0)
             {
-                m.load(1, positions[0] + rest_positions[foot], stroke_time, 1, foot, mov::NONE);
-                m.set(mov::MOVES);
-                moves.push_back(m);
+                vec3f dest = positions[0] + rest_positions[foot];
 
-                right_id = moves.back().id;
+                float to_dest = (parts[foot].pos - dest).length();
+
+                if(to_dest > 30.f)
+                {
+                    m.load(1, positions[0] + rest_positions[foot], stroke_time, 1, foot, mov::NONE);
+                    m.set(mov::MOVES);
+                    moves.push_back(m);
+
+                    right_id = moves.back().id;
+                }
             }
             if(right_stage == 1)
             {
-                m.load(1, positions[1] + rest_positions[foot], lift_time, 1, foot, mov::NONE);
-                moves.push_back(m);
+                vec3f dest = positions[2] + rest_positions[foot];
 
-                m.load(1, positions[2] + rest_positions[foot], stroke_time - lift_time, 1, foot, mov::NONE);
-                moves.push_back(m);
+                float to_dest = (parts[foot].pos - dest).length();
 
-                right_id = moves.back().id;
+                if(to_dest > 30.f)
+                {
+                    m.load(1, parts[foot].pos + up, lift_time, 1, foot, mov::NONE);
+                    moves.push_back(m);
+
+                    m.load(1, positions[2] + rest_positions[foot], stroke_time - lift_time, 1, foot, mov::NONE);
+                    moves.push_back(m);
+
+                    right_id = moves.back().id;
+                }
             }
 
             right_stage = (right_stage + 1) % num;
