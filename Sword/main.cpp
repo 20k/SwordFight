@@ -60,6 +60,115 @@ bool once()
     return false;
 }
 
+void debug_controls(fighter* my_fight, engine& window)
+{
+    sf::Keyboard key;
+
+    window.input();
+
+    if(once<sf::Keyboard::T>())
+    {
+        my_fight->queue_attack(attacks::OVERHEAD);
+    }
+
+    if(once<sf::Keyboard::Y>())
+    {
+        my_fight->queue_attack(attacks::SLASH);
+    }
+
+    if(once<sf::Keyboard::G>())
+    {
+        my_fight->queue_attack(attacks::REST);
+    }
+
+    if(once<sf::Keyboard::R>())
+    {
+        my_fight->queue_attack(attacks::BLOCK);
+    }
+
+    if(key.isKeyPressed(sf::Keyboard::U))
+    {
+        my_fight->rot.v[1] += 0.01f;
+    }
+
+    if(key.isKeyPressed(sf::Keyboard::O))
+    {
+        my_fight->rot.v[1] -= 0.01f;
+    }
+
+    vec2f walk_dir = {0,0};
+
+    if(key.isKeyPressed(sf::Keyboard::I))
+        walk_dir.v[0] = 1;
+
+    if(key.isKeyPressed(sf::Keyboard::K))
+        walk_dir.v[0] = -1;
+
+    if(key.isKeyPressed(sf::Keyboard::J))
+        walk_dir.v[1] = 1;
+
+    if(key.isKeyPressed(sf::Keyboard::L))
+        walk_dir.v[1] = -1;
+
+    my_fight->walk_dir(walk_dir);
+}
+
+void fps_controls(fighter* my_fight, engine& window)
+{
+    sf::Keyboard key;
+
+    if(key.isKeyPressed(sf::Keyboard::Escape))
+        exit(0);
+
+    vec2f walk_dir = {0,0};
+
+    if(key.isKeyPressed(sf::Keyboard::W))
+        walk_dir.v[0] = 1;
+
+    if(key.isKeyPressed(sf::Keyboard::S))
+        walk_dir.v[0] = -1;
+
+    if(key.isKeyPressed(sf::Keyboard::A))
+        walk_dir.v[1] = 1;
+
+    if(key.isKeyPressed(sf::Keyboard::D))
+        walk_dir.v[1] = -1;
+
+    my_fight->walk_dir(walk_dir);
+
+    if(once<sf::Mouse::Left>())
+        my_fight->queue_attack(attacks::SLASH);
+
+    if(once<sf::Mouse::Middle>())
+        my_fight->queue_attack(attacks::OVERHEAD);
+
+    if(once<sf::Mouse::Right>())
+        my_fight->queue_attack(attacks::BLOCK);
+
+
+
+    part* head = &my_fight->parts[bodypart::HEAD];
+
+    vec3f pos = head->pos + my_fight->pos;
+
+    window.set_camera_pos({pos.v[0], pos.v[1], pos.v[2]});
+
+    vec2f m;
+    m.v[0] = window.get_mouse_delta_x();
+    m.v[1] = window.get_mouse_delta_y();
+
+    vec3f* c_rot = &my_fight->rot;
+
+    c_rot->v[1] = c_rot->v[1] - m.v[0] / 100.f;
+
+    vec3f o_rot = xyz_to_vec(window.c_rot);
+
+    o_rot.v[1] = c_rot->v[1];
+    o_rot.v[0] += m.v[1] / 200.f;
+
+    window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
+}
+
 int main(int argc, char *argv[])
 {
     objects_container c1;
@@ -131,6 +240,11 @@ int main(int argc, char *argv[])
 
     fighter* my_fight = &fight;
 
+
+    ///debug;
+    int controls_state = 0;
+
+
     while(window.window.isOpen())
     {
         sf::Clock c;
@@ -141,37 +255,18 @@ int main(int argc, char *argv[])
                 window.window.close();
         }
 
-        window.input();
+        window.update_mouse();
 
-        if(once<sf::Keyboard::T>())
+        if(once<sf::Keyboard::X>())
         {
-            my_fight->queue_attack(attacks::OVERHEAD);
+            controls_state = (controls_state + 1) % 2;
         }
 
-        if(once<sf::Keyboard::Y>())
-        {
-            my_fight->queue_attack(attacks::SLASH);
-        }
 
-        if(once<sf::Keyboard::G>())
-        {
-            my_fight->queue_attack(attacks::REST);
-        }
-
-        if(once<sf::Keyboard::R>())
-        {
-            my_fight->queue_attack(attacks::BLOCK);
-        }
-
-        if(key.isKeyPressed(sf::Keyboard::U))
-        {
-            my_fight->rot.v[1] += 0.01f;
-        }
-
-        if(key.isKeyPressed(sf::Keyboard::O))
-        {
-            my_fight->rot.v[1] -= 0.01f;
-        }
+        if(controls_state == 0)
+            debug_controls(my_fight, window);
+        if(controls_state == 1)
+            fps_controls(my_fight, window);
 
         if(once<sf::Keyboard::V>() && network::network_state == 0)
         {
@@ -215,28 +310,12 @@ int main(int argc, char *argv[])
             network::slave_object(&fight2.weapon.model);
         }
 
-        vec2f walk_dir = {0,0};
-
-        if(key.isKeyPressed(sf::Keyboard::I))
-            walk_dir.v[0] = 1;
-
-        if(key.isKeyPressed(sf::Keyboard::K))
-            walk_dir.v[0] = -1;
-
-        if(key.isKeyPressed(sf::Keyboard::J))
-            walk_dir.v[1] = 1;
-
-        if(key.isKeyPressed(sf::Keyboard::L))
-            walk_dir.v[1] = -1;
-
-        my_fight->walk_dir(walk_dir);
-
-        phys.tick();
+        /*phys.tick();
 
         vec3f v = phys.get_pos();
 
         c1.set_pos({v.v[0], v.v[1], v.v[2]});
-        c1.g_flush_objects();
+        c1.g_flush_objects();*/
 
         static int second_tick = 0;
 

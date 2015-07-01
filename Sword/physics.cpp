@@ -132,7 +132,7 @@ int physics::sword_collides(sword& w, fighter* my_parent)
     return -1;
 }
 
-void physics::tick()
+/*void physics::tick()
 {
 
 }
@@ -140,4 +140,4 @@ void physics::tick()
 vec3f physics::get_pos()
 {
 
-}
+};*/

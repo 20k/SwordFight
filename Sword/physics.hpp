@@ -30,11 +30,11 @@ struct physics
 
     void load();
 
-    void tick();
+    //void tick();
 
     int sword_collides(sword& w, fighter* parent);
 
-    vec3f get_pos();
+    //vec3f get_pos();
 };
 
 #endif // PHYSICS_HPP_INCLUDED
