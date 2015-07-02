@@ -4,6 +4,8 @@
 #include <cmath>
 #include <algorithm>
 
+#define M_PIf ((float)M_PI)
+
 template<int N, typename T>
 struct vec
 {

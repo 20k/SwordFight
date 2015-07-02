@@ -316,6 +316,8 @@ struct fighter
 
     sf::Clock idle;
 
+    vec3f look;
+
     bool idling;
 
     ///sigh, cant be on init because needs to be after object load
@@ -369,6 +371,9 @@ struct fighter
     void respawn(vec2f pos = {0,0});
     void die();
 
+    ///rotation
+    void set_look(vec3f look);
+
 private:
     size_t left_id;
     size_t right_id;
@@ -389,6 +394,13 @@ private:
     int idle_fired_first;
 
     vec2f move_dir;
+
+    vec3f look_displacement;
+
+    sf::Clock walk_clock;
+    std::map<bodypart_t, vec3f> up_pos;
+
+    bool need_look_displace;
 };
 
 

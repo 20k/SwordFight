@@ -254,6 +254,10 @@ void sword::set_rot(vec3f _rot)
 
 fighter::fighter()
 {
+    need_look_displace = false;
+
+    look = {0,0,0};
+
     left_frac = 0.f;
     right_frac = 0.f;
 
@@ -311,6 +315,10 @@ fighter::fighter()
 
 void fighter::respawn(vec2f _pos)
 {
+    need_look_displace = false;
+
+    look = {0,0,0};
+
     net.dead = false;
 
     left_frac = 0.f;
@@ -401,6 +409,22 @@ void fighter::scale()
         parts[i].model.scale(bodypart::scale/3.f);
 
     weapon.scale();
+}
+
+void fighter::set_look(vec3f _look)
+{
+    vec3f cur_look = _look;
+
+    cur_look = clamp(cur_look, -M_PIf/8.f, M_PIf/8.f);
+
+    const float displacement = (rest_positions[bodypart::LHAND] - rest_positions[bodypart::LUPPERARM]).length();
+
+    float height = displacement * sin(cur_look.v[0]);
+    float width = displacement * sin(cur_look.v[1]);
+
+    look_displacement = (vec3f){width, height, 0.f};
+
+    need_look_displace = true;
 }
 
 ///s2 and s3 define the shoulder -> elbow, and elbow -> hand length
@@ -545,7 +569,13 @@ void fighter::IK_hand(int which_hand, vec3f pos)
 
     inverse_kinematic(pos, rest_positions[upper], rest_positions[lower], rest_positions[hand], o1, o2, o3);
 
+    //o1 = o1 + look_displacement;
+    //o2 = o2 + look_displacement;
+    //o3 = o3 + look_displacement;
+
     //printf("%f\n", o2.v[2]);
+
+    //printf("%f\n", look_displacement.v[0]);
 
     parts[upper].set_pos(o1);
     parts[lower].set_pos(o2);
@@ -602,6 +632,8 @@ void fighter::tick()
     ///will be set to true if a move is currently doing a blocking action
     net.is_blocking = 0;
 
+    bool just_hand = false; ///it was this frame!
+
     for(auto& i : moves)
     {
         if(std::find(busy_list.begin(), busy_list.end(), i.limb) != busy_list.end())
@@ -616,6 +648,9 @@ void fighter::tick()
             i.fire();
 
             i.start = parts[i.limb].pos;
+
+            if(i.limb == LHAND || i.limb == RHAND)
+                i.start = focus_pos;
         }
 
         busy_list.push_back(i.limb);
@@ -646,9 +681,15 @@ void fighter::tick()
 
         if(i.limb == LHAND || i.limb == RHAND)
         {
-            IK_hand(i.hand, current_pos);
-            IK_hand((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
+            need_look_displace = true;
+            just_hand = true;
 
+            //IK_hand(i.hand, current_pos);
+            //IK_hand((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
+
+            focus_pos = current_pos;
+
+            ///losing a frame currently, FIXME
             ///if the sword hits something, not again until the next move
             ///make me a function?
             if(i.hit_id == -1 && i.does(mov::DAMAGING))
@@ -674,7 +715,7 @@ void fighter::tick()
             }
         }
 
-        if(i.limb == LFOOT || i.limb == RFOOT)
+        /*if(i.limb == LFOOT || i.limb == RFOOT)
         {
             IK_foot(i.hand, current_pos);
 
@@ -688,14 +729,13 @@ void fighter::tick()
                 pos.v[0] -= diff.v[0];
                 pos.v[2] -= diff.v[2];
 
-                /*vec2f real_dir = move_dir.rot(-rot.v[1] + M_PI/2);
-
-                pos.v[0] -= real_dir.v[0];
-                pos.v[2] -= real_dir.v[1];*/
+//                /*vec2f real_dir = move_dir.rot(-rot.v[1] + M_PI/2);
+//
+//                pos.v[0] -= real_dir.v[0];
+//                pos.v[2] -= real_dir.v[1];
 
             }
-        }
-
+        }*/
     }
 
     for(auto it = moves.begin(); it != moves.end();)
@@ -709,6 +749,10 @@ void fighter::tick()
         else
             it++;
     }
+
+    IK_hand(0, focus_pos + look_displacement);
+    IK_hand(1, focus_pos + look_displacement);
+
 
     weapon.set_pos(parts[bodypart::LHAND].pos);
 
@@ -1124,16 +1168,14 @@ void fighter::walk_dir(vec2f dir)
     #endif
     ///try and fix the lex stiffening up a bit, but who cares
     #if 1
-    static sf::Clock clk;
-
     if(dir.v[0] == 0 && dir.v[1] == 0)
     {
-        clk.restart();
+        walk_clock.restart();
         return;
     }
 
     ///in ms
-    float time_elapsed = clk.getElapsedTime().asMicroseconds() / 1000.f;
+    float time_elapsed = walk_clock.getElapsedTime().asMicroseconds() / 1000.f;
 
     ///prevent feet going out of sync if there's a pause
     time_elapsed = clamp(time_elapsed, 0.f, 67.f);
@@ -1174,8 +1216,6 @@ void fighter::walk_dir(vec2f dir)
         pos.v[0] += ldir.rot(- rot.v[1]).v[1] * time_elapsed/2.f;
         pos.v[2] += ldir.rot(- rot.v[1]).v[0] * time_elapsed/2.f;
     }
-
-    static std::map<bodypart_t, vec3f> up_pos;
 
     int prev_stage = left_stage;
 
@@ -1323,7 +1363,7 @@ void fighter::walk_dir(vec2f dir)
         right_stage = (right_stage + 1) % num;
     }*/
 
-    clk.restart();
+    walk_clock.restart();
 }
 #endif
 

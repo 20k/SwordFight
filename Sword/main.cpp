@@ -96,6 +96,20 @@ void debug_controls(fighter* my_fight, engine& window)
         my_fight->rot.v[1] -= 0.01f;
     }
 
+    static float look_height = 0.f;
+
+    if(key.isKeyPressed(sf::Keyboard::N))
+    {
+        look_height += 0.01f;
+    }
+
+    if(key.isKeyPressed(sf::Keyboard::M))
+    {
+        look_height += -0.01f;
+    }
+
+    my_fight->set_look({look_height, 0.f, 0.f});
+
     vec2f walk_dir = {0,0};
 
     if(key.isKeyPressed(sf::Keyboard::I))
@@ -144,6 +158,12 @@ void fps_controls(fighter* my_fight, engine& window)
 
     if(once<sf::Mouse::Right>())
         my_fight->queue_attack(attacks::BLOCK);
+
+    //static vec3f old_rot = xyz_to_vec(window.c_rot);
+
+    //vec3f diff = xyz_to_vec(window.c_rot) - old_rot;
+
+    my_fight->set_look({-window.c_rot.s[0], 0, 0});
 
 
     part* head = &my_fight->parts[bodypart::HEAD];
@@ -319,6 +339,13 @@ int main(int argc, char *argv[])
             my_fight->respawn();
         }
 
+        //static float debug_look = 0;
+
+        //my_fight->set_look({sin(debug_look), 0, 0});
+
+        //debug_look += 0.1f;
+
+
         /*phys.tick();
 
         vec3f v = phys.get_pos();
@@ -337,7 +364,7 @@ int main(int argc, char *argv[])
                 fight2.queue_attack(attacks::SLASH);
             }
 
-            fight2.tick();
+            //fight2.tick();
 
             fight2.update_render_positions();
         }

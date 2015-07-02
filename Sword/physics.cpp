@@ -123,6 +123,7 @@ int physics::sword_collides(sword& w, fighter* my_parent)
                 if(type == bodypart::LHAND || type == bodypart::RHAND)
                 {
                     them->checked_recoil();
+
                     continue;
                 }
 
