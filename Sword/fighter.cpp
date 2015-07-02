@@ -649,7 +649,10 @@ void fighter::tick()
 
             i.start = parts[i.limb].pos;
 
-            if(i.limb == LHAND || i.limb == RHAND)
+            if((i.limb == LHAND || i.limb == RHAND) && !i.does(mov::START_INDEPENDENT))
+                i.start = focus_pos;
+
+            if((i.limb == LHAND || i.limb == RHAND) && i.does(mov::START_INDEPENDENT))
                 i.start = focus_pos;
         }
 
@@ -661,22 +664,29 @@ void fighter::tick()
 
         vec3f current_pos;
 
+        vec3f actual_finish = i.fin;
+
+        if(i.does(mov::FINISH_INDEPENDENT))
+        {
+            actual_finish = actual_finish - look_displacement;
+        }
+
         ///need to use a bitfield really, thisll get unmanageable
         if(i.type == 0)
         {
             ///apply a bit of smoothing
             frac = - frac * (frac - 2);
-            current_pos = mix(i.start, i.fin, frac);
+            current_pos = mix(i.start, actual_finish, frac);
         }
         else if(i.type == 1)
         {
             ///need to define this manually to confine it to one axis, slerp is not what i want
             frac = - frac * (frac - 2);
-            current_pos = slerp(i.start, i.fin, frac);
+            current_pos = slerp(i.start, actual_finish, frac);
         }
         else
         {
-            current_pos = slerp(i.start, i.fin, frac);
+            current_pos = slerp(i.start, actual_finish, frac);
         }
 
         if(i.limb == LHAND || i.limb == RHAND)

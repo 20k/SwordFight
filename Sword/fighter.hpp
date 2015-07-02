@@ -16,7 +16,11 @@ namespace mov
         BLOCKING = 2,
         WINDUP = 4,
         MOVES = 8, ///physically moves character
-        CAN_STOP = 16 ///movement can be interrupted
+        CAN_STOP = 16, ///movement can be interrupted
+        FINISH_INDEPENDENT = 32, ///for hand movements, are they independent of the view
+        START_INDEPENDENT = 64 ///for hand movements, are they independent of the view
+        ///as a consequence of the animation system, start_independent is not necessary. I might keep it for clarity however
+
     };
 }
 
@@ -222,8 +226,8 @@ static std::vector<movement> rest =
 
 static std::vector<movement> block =
 {
-    {0, {-50, -80, -20}, 300, 0, bodypart::LHAND, mov::BLOCKING},
-    {0, {100, -150, -140}, 400, 0, bodypart::LHAND, mov::NONE}
+    {0, {-50, -80, -20}, 300, 0, bodypart::LHAND, (movement_t)(mov::BLOCKING | mov::FINISH_INDEPENDENT)},
+    {0, {100, -150, -140}, 400, 0, bodypart::LHAND, mov::START_INDEPENDENT}
 };
 
 static std::map<attack_t, attack> attack_list =
