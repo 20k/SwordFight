@@ -60,6 +60,12 @@ void physics::add_objects_container(objects_container* _obj, part* _p, int _team
 ///this entire method seems like a hacky bunch of shite
 int physics::sword_collides(sword& w, fighter* my_parent)
 {
+    if(my_parent->net.dead)
+        return -1;
+
+    if(w.model.isactive == false)
+        return -1;
+
     //vec3f s_rot = w.rot;
     vec3f s_pos = xyz_to_vec(w.model.pos);
 
