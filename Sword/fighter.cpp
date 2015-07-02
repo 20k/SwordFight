@@ -1047,7 +1047,7 @@ void fighter::walk_dir(vec2f dir)
 
     int num = 3;
 
-    if(left_stage == 0 || right_stage == 0)
+    //if(left_stage == 0 || right_stage == 0)
     {
         vec2f ldir = dir.norm();
 
@@ -1128,6 +1128,7 @@ void fighter::walk_dir(vec2f dir)
 
 
 
+    ///I no longer have a complete understanding of how this section works
     float l_r = 1 - left_frac;
     l_r *= stage_times[left_stage];
 
@@ -1160,12 +1161,6 @@ void fighter::walk_dir(vec2f dir)
 
         if(len <= acceptable_dist)
         {
-            //left_stage = (left_stage + 1) % num;
-            //left_frac = 1;
-
-            //right_stage = (right_stage + 1) % num;
-            //right_frac = 1;
-
             left_frac += l_a;
             right_frac += r_a;
         }
@@ -1188,12 +1183,6 @@ void fighter::walk_dir(vec2f dir)
 
         if(len <= acceptable_dist)
         {
-            //left_stage = (left_stage + 1) % num;
-            //left_frac = 1;
-
-            //right_stage = (right_stage + 1) % num;
-            //right_frac = 1;
-
             left_frac += l_a;
             right_frac += r_a;
         }
