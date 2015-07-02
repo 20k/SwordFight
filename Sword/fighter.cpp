@@ -818,7 +818,6 @@ void fighter::process_foot_g2(bodypart_t foot, vec2f dir, int& stage, float& fra
 {
     int which_foot = foot == bodypart::RFOOT ? 1 : 0;
 
-
     vec3f cur = parts[foot].pos;
 
     float distance = (seek - prev).length();
@@ -838,7 +837,7 @@ void fighter::process_foot_g2(bodypart_t foot, vec2f dir, int& stage, float& fra
 
     IK_foot(which_foot, cur + speed * d);
 
-    float acceptable_dist = 20.f;
+    //float acceptable_dist = 20.f;
 
     //float len = (seek - cur).length();
 
@@ -1103,9 +1102,50 @@ void fighter::walk_dir(vec2f dir)
             up_pos[foot] = parts[foot].pos + (vec3f){0, up, 0.f};
     }
 
-    /*if(left_stage == 0)
+    /*bool already_done = false;
+
     {
-        float acceptable_dist = 17.f;
+        int& stage = right_stage;
+        float& frac = right_frac;
+
+        auto foot = bodypart::RFOOT;
+
+        vec3f seek = leg_positions[stage] + rest_positions[foot];
+
+        vec3f cur = parts[foot].pos;
+
+        float len = (seek - cur).length();
+
+        if(frac > 0.8 && len < 1.f)
+        {
+            left_stage = (left_stage + 1) % num;
+            left_frac = 0;
+
+            right_stage = (right_stage + 1) % num;
+            right_frac = 0;
+        }
+    }*/
+
+
+
+    float l_r = 1 - left_frac;
+    l_r *= stage_times[left_stage];
+
+    float r_r = 1 - right_frac;
+    r_r *= stage_times[right_stage];
+
+    float max_time = std::min(l_r, r_r) - time_elapsed;
+    max_time = std::max(max_time, 0.f);
+
+    max_time *= 0.1f;
+
+    float l_a = max_time / stage_times[left_stage];
+    float r_a = max_time / stage_times[right_stage];
+
+
+    if(left_stage == 0)
+    {
+        float acceptable_dist = 0.f;
 
         int& stage = left_stage;
         float& frac = left_frac;
@@ -1118,19 +1158,22 @@ void fighter::walk_dir(vec2f dir)
 
         float len = (seek - cur).length();
 
-        if(len < acceptable_dist)
+        if(len <= acceptable_dist)
         {
-            left_stage = (left_stage + 1) % num;
-            left_frac = 0;
+            //left_stage = (left_stage + 1) % num;
+            //left_frac = 1;
 
-            right_stage = (right_stage + 1) % num;
-            right_frac = 0;
+            //right_stage = (right_stage + 1) % num;
+            //right_frac = 1;
+
+            left_frac += l_a;
+            right_frac += r_a;
         }
     }
 
     if(right_stage == 0)
     {
-        float acceptable_dist = 17.f;
+        float acceptable_dist = 0.f;
 
         int& stage = right_stage;
         float& frac = right_frac;
@@ -1143,15 +1186,18 @@ void fighter::walk_dir(vec2f dir)
 
         float len = (seek - cur).length();
 
-        if(len < acceptable_dist)
+        if(len <= acceptable_dist)
         {
-            left_stage = (left_stage + 1) % num;
-            left_frac = 0;
+            //left_stage = (left_stage + 1) % num;
+            //left_frac = 1;
 
-            right_stage = (right_stage + 1) % num;
-            right_frac = 0;
+            //right_stage = (right_stage + 1) % num;
+            //right_frac = 1;
+
+            left_frac += l_a;
+            right_frac += r_a;
         }
-    }*/
+    }
 
 
     left_frac += (time_elapsed) / stage_times[left_stage];
