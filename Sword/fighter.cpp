@@ -1970,6 +1970,17 @@ void fighter::cancel(bodypart_t type)
     }
 }
 
+void fighter::checked_recoil()
+{
+    movement lhand = action_map[bodypart::LHAND];
+    movement rhand = action_map[bodypart::RHAND];
+
+    if(lhand.does(mov::WINDUP) || rhand.does(mov::WINDUP))
+    {
+        recoil();
+    }
+}
+
 void fighter::recoil()
 {
     cancel(bodypart::LHAND);
@@ -1985,14 +1996,6 @@ void fighter::damage(bodypart_t type, float d)
 
     parts[type].damage(d);
 
-    movement lhand = action_map[LHAND];
-    movement rhand = action_map[RHAND];
-
-    if(lhand.does(mov::WINDUP) || rhand.does(mov::WINDUP))
-    {
-        cancel(LHAND);
-        cancel(RHAND);
-
-        queue_attack(attacks::RECOIL);
-    }
+    ///conditional recoil if we need to
+    checked_recoil();
 }

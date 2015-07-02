@@ -357,6 +357,7 @@ struct fighter
     bool can_attack(bodypart_t type);
 
     void recoil();
+    void checked_recoil(); ///if we're hit, do a recoil if we're in windup
 
     void damage(bodypart_t type, float d);
 
