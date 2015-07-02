@@ -506,6 +506,9 @@ void fighter::tick()
 
     std::vector<bodypart_t> busy_list;
 
+    ///will be set to true if a move is currently doing a blocking action
+    net.is_blocking = 0;
+
     for(auto& i : moves)
     {
         if(std::find(busy_list.begin(), busy_list.end(), i.limb) != busy_list.end())
@@ -570,6 +573,11 @@ void fighter::tick()
                     printf("%s\n", names[i.hit_id % COUNT].c_str());
 
                 }
+            }
+
+            if(i.does(mov::BLOCKING))
+            {
+                net.is_blocking = 1;
             }
         }
 
@@ -1053,8 +1061,8 @@ void fighter::walk_dir(vec2f dir)
 
         ldir.v[1] = -ldir.v[1];
 
-        pos.v[0] += ldir.rot(- rot.v[1]).v[1];
-        pos.v[2] += ldir.rot(- rot.v[1]).v[0];
+        pos.v[0] += ldir.rot(- rot.v[1]).v[1] * time_elapsed/2.f;
+        pos.v[2] += ldir.rot(- rot.v[1]).v[0] * time_elapsed/2.f;
     }
 
     static std::map<bodypart_t, vec3f> up_pos;
@@ -1851,6 +1859,14 @@ void fighter::cancel(bodypart_t type)
             it++;
     }
 }
+
+void fighter::recoil()
+{
+    cancel(bodypart::LHAND);
+    cancel(bodypart::RHAND);
+    queue_attack(attacks::RECOIL);
+}
+
 
 ///i've taken damage. If im during the windup phase of an attack, recoil
 void fighter::damage(bodypart_t type, float d)

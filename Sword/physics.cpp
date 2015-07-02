@@ -92,26 +92,23 @@ int physics::sword_collides(sword& w, fighter* my_parent)
             {
                 bodypart_t type = (bodypart_t)(i % bodypart::COUNT);
 
-                fighter* parent = bodies[i].parent;
+                fighter* them = bodies[i].parent;
 
                 ///if there is no current lhand or rhand movement in the map
                 ///movement default constructs does_block to false
                 ///this seems a bit.... hacky
 
                 ///this is THEIR current action
-                movement m1 = parent->action_map[bodypart::LHAND];
-                movement m2 = parent->action_map[bodypart::RHAND];
+                movement m1 = them->action_map[bodypart::LHAND];
+                movement m2 = them->action_map[bodypart::RHAND];
 
                 movement y1 = my_parent->action_map[bodypart::LHAND];
                 movement y2 = my_parent->action_map[bodypart::RHAND];
 
                 ///recoil. Sword collides is only called for attacks that damage, so therefore this is fine
-                if(m1.does(mov::BLOCKING) || m2.does(mov::BLOCKING))
+                if(m1.does(mov::BLOCKING) || m2.does(mov::BLOCKING) || them->net.is_blocking)
                 {
-                    ///need to find OUR parent and cancel
-                    my_parent->cancel(bodypart::LHAND);
-                    my_parent->cancel(bodypart::RHAND);
-                    my_parent->queue_attack(attacks::RECOIL);
+                    my_parent->recoil();
 
                     return -1;
                 }

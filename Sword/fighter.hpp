@@ -274,8 +274,15 @@ pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f 
 
 struct physics;
 
+struct networked_components
+{
+    int is_blocking = 0;
+};
+
 struct fighter
 {
+    networked_components net;
+
     int side;
 
     const vec3f* rest_positions;
@@ -345,6 +352,8 @@ struct fighter
     void cancel(bodypart_t type);
 
     bool can_attack(bodypart_t type);
+
+    void recoil();
 
     void damage(bodypart_t type, float d);
 

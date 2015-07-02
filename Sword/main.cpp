@@ -176,7 +176,9 @@ int main(int argc, char *argv[])
     c1.set_active(true);
 
     engine window;
-    window.load(1680,1050,1000, "SwordFight", "../openclrenderer/cl2.cl");
+    window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl");
+
+    printf("loaded\n");
 
     window.set_camera_pos({-1009.17, -94.6033, -317.804});
     window.set_camera_rot({0, 1.6817, 0});
@@ -264,7 +266,7 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::V>() && network::network_state == 0)
         {
-            network::join("127.0.0.1");
+            network::join("192.168.1.55");
 
             for(auto& i : fight2.parts)
             {
@@ -273,6 +275,8 @@ int main(int argc, char *argv[])
 
             network::slave_object(&fight2.weapon.model);
 
+            network::slave_var(&fight2.net.is_blocking);
+
 
             for(auto& i : fight.parts)
             {
@@ -280,6 +284,8 @@ int main(int argc, char *argv[])
             }
 
             network::host_object(&fight.weapon.model);
+
+            network::host_var(&fight.net.is_blocking);
 
             fight.set_pos(fight2.pos);
             fight.set_rot(fight2.rot);
@@ -296,12 +302,16 @@ int main(int argc, char *argv[])
 
             network::host_object(&fight.weapon.model);
 
+            network::host_var(&fight.net.is_blocking);
+
             for(auto& i : fight2.parts)
             {
                 network::slave_object(&i.model);
             }
 
             network::slave_object(&fight2.weapon.model);
+
+            network::slave_var(&fight2.net.is_blocking);
         }
 
         /*phys.tick();
