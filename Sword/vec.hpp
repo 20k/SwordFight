@@ -1,7 +1,7 @@
 #ifndef VEC_HPP_INCLUDED
 #define VEC_HPP_INCLUDED
 
-#include <math.h>
+#include <cmath>
 #include <algorithm>
 
 template<int N, typename T>
@@ -132,13 +132,22 @@ struct vec
 
     float length() const
     {
-        return sqrtf(squared_length());
+        float l = squared_length();
+
+        float val = sqrtf(l);
+
+        return val;
     }
 
 
     vec<N, T> norm() const
     {
-        return (*this) / length();
+        float len = length();
+
+        if(len < 0.00001f)
+            return {0.f};
+
+        return (*this) / len;
     }
 
     ///only makes sense for a vec3f

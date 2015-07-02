@@ -823,17 +823,24 @@ void fighter::process_foot_g2(bodypart_t foot, vec2f dir, int& stage, float& fra
 
     float distance = (seek - prev).length();
 
-    //float remaining = (seek - cur).length();
+    float remaining = (seek - cur).length();
 
-    float speed = distance / seek_time;
+    float speed = elapsed_time * distance / seek_time;
+
+    if(remaining < speed)
+    {
+        speed = remaining;
+    }
+
+    //printf("%f\n", distance);
 
     vec3f d = (seek - cur).norm();
 
-    IK_foot(which_foot, cur + elapsed_time * speed * d);
+    IK_foot(which_foot, cur + speed * d);
 
     float acceptable_dist = 20.f;
 
-    float len = (seek - cur).length();
+    //float len = (seek - cur).length();
 
     //printf("%i %f %f\n", stage, frac, len);
 
