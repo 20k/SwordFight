@@ -126,6 +126,8 @@ struct part
     void set_team(int _team);
     void damage(float dam);
 
+    bool alive();
+
     part();
     part(bodypart_t);
     ~part();
@@ -277,6 +279,7 @@ struct physics;
 struct networked_components
 {
     int is_blocking = 0;
+    int dead = 0;
 };
 
 struct fighter
@@ -360,6 +363,10 @@ struct fighter
     int process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions, float time_wasted = 0, bool can_skip = true, movement_t extra_tags = mov::NONE);
 
     void process_foot_g2(bodypart_t foot, vec2f dir, int& stage, float& frac, vec3f seek, vec3f prev, float seek_time, float elapsed_time);
+
+    ///resets all vars
+    void respawn(vec2f pos = {0,0});
+    void die();
 
 private:
     size_t left_id;

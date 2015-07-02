@@ -88,7 +88,7 @@ int physics::sword_collides(sword& w, fighter* my_parent)
 
         for(int i=0; i<bodies.size(); i++)
         {
-            if(bodies[i].team != w.team && bodies[i].p->hp >= 0 && bodies[i].within(pos))
+            if(bodies[i].team != w.team && bodies[i].p->alive() && bodies[i].within(pos))
             {
                 bodypart_t type = (bodypart_t)(i % bodypart::COUNT);
 

@@ -314,6 +314,11 @@ int main(int argc, char *argv[])
             network::slave_var(&fight2.net.is_blocking);
         }
 
+        if(once<sf::Keyboard::B>())
+        {
+            my_fight->respawn();
+        }
+
         /*phys.tick();
 
         vec3f v = phys.get_pos();

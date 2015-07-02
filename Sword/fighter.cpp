@@ -51,6 +51,8 @@ void part::set_type(bodypart_t t)
     type = t;
 
     set_pos(bodypart::default_position[t]);
+
+    hp = 1.f;
 }
 
 part::part()
@@ -121,6 +123,11 @@ void part::damage(float dam)
         obj_mem_manager::g_changeover();
 
     }
+}
+
+bool part::alive()
+{
+    return (hp > 0) && model.isactive;
 }
 
 size_t movement::gid = 0;
@@ -300,6 +307,92 @@ fighter::fighter()
 
     pos = {0,0,0};
     rot = {0,0,0};
+}
+
+void fighter::respawn(vec2f _pos)
+{
+    net.dead = false;
+
+    left_frac = 0.f;
+    right_frac = 0.f;
+
+    idle_fired_first = -1;
+
+    idling = false;
+
+    team = 0;
+
+    left_full = false;
+
+    left_id = -1;
+    right_id = -1;
+
+    left_stage = 0;
+    right_stage = 1;
+
+
+    left_fired = false;
+    right_fired = false;
+
+    stance = 0;
+
+    //rest_positions = bodypart::init_default();
+
+    for(size_t i=0; i<bodypart::COUNT; i++)
+    {
+        parts[i].set_type((bodypart_t)i);
+        old_pos[i] = parts[i].pos;
+    }
+
+    ///this is a dirty, dirty hack to smooth the knee positions first time around
+    for(int i=0; i<100; i++)
+    {
+        IK_foot(0, parts[bodypart::LFOOT].pos);
+        IK_foot(1, parts[bodypart::RFOOT].pos);
+
+        for(int i=0; i<bodypart::COUNT; i++)
+        {
+            old_pos[i] = parts[i].pos;
+        }
+    }
+
+    weapon.set_pos({0, -200, -100});
+
+    IK_hand(0, weapon.pos);
+    IK_hand(1, weapon.pos);
+
+    focus_pos = weapon.pos;
+
+    ///need to randomise this really
+    pos = {_pos.v[0],0,_pos.v[1]};
+    rot = {0,0,0};
+
+    for(auto& i : parts)
+    {
+        i.model.set_active(true);
+    }
+
+    weapon.model.set_active(true);
+
+    obj_mem_manager::load_active_objects();
+    obj_mem_manager::g_arrange_mem();
+    obj_mem_manager::g_changeover();
+}
+
+void fighter::die()
+{
+    net.dead = true;
+
+    for(auto& i : parts)
+    {
+        i.model.set_active(false);
+    }
+
+    weapon.model.set_active(false);
+
+    obj_mem_manager::load_active_objects();
+    obj_mem_manager::g_arrange_mem();
+    obj_mem_manager::g_changeover();
 }
 
 void fighter::scale()
@@ -627,6 +720,23 @@ void fighter::tick()
 
     parts[HEAD].set_pos((parts[BODY].pos*2 + rest_positions[HEAD] * 32.f) / (32 + 2));
 
+
+    ///process death
+
+    const int num_destroyed_to_die = 3;
+
+    int num_destroyed = 0;
+
+    for(auto& i : parts)
+    {
+        if(i.hp <= 0)
+        {
+            num_destroyed++;
+        }
+    }
+
+    if(num_destroyed >= num_destroyed_to_die && !net.dead)
+        die();
 
 
     /*int collide_id = phys->sword_collides(weapon);
