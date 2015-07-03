@@ -88,12 +88,12 @@ void debug_controls(fighter* my_fight, engine& window)
 
     if(key.isKeyPressed(sf::Keyboard::U))
     {
-        my_fight->rot.v[1] += 0.01f;
+        my_fight->rot.v[1] += 0.01f * window.get_frametime()/2.f;
     }
 
     if(key.isKeyPressed(sf::Keyboard::O))
     {
-        my_fight->rot.v[1] -= 0.01f;
+        my_fight->rot.v[1] -= 0.01f * window.get_frametime()/2.f;
     }
 
     static float look_height = 0.f;
@@ -263,8 +263,6 @@ int main(int argc, char *argv[])
 
     while(window.window.isOpen())
     {
-        float ftime = window.get_frametime();
-
         sf::Clock c;
 
         if(window.window.pollEvent(Event))

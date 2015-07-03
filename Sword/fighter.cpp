@@ -739,6 +739,7 @@ void fighter::tick()
             ///make me a function?
             if(i.hit_id == -1 && i.does(mov::DAMAGING))
             {
+                ///pass direction vector into here, then do the check
                 ///returns -1 on miss
                 i.hit_id = phys->sword_collides(weapon, this);
 
@@ -759,28 +760,6 @@ void fighter::tick()
                 net.is_blocking = 1;
             }
         }
-
-        /*if(i.limb == LFOOT || i.limb == RFOOT)
-        {
-            IK_foot(i.hand, current_pos);
-
-            if(i.does(mov::MOVES))
-            {
-                ///bye bye physics :[
-                vec3f diff = parts[i.limb].pos - old_pos[i.limb];
-
-                diff = diff.rot({0,0,0}, rot);
-
-                pos.v[0] -= diff.v[0];
-                pos.v[2] -= diff.v[2];
-
-//                /*vec2f real_dir = move_dir.rot(-rot.v[1] + M_PI/2);
-//
-//                pos.v[0] -= real_dir.v[0];
-//                pos.v[2] -= real_dir.v[1];
-
-            }
-        }*/
     }
 
     for(auto it = moves.begin(); it != moves.end();)
