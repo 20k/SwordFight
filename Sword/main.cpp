@@ -98,12 +98,12 @@ void debug_controls(fighter* my_fight, engine& window)
 
     static float look_height = 0.f;
 
-    if(key.isKeyPressed(sf::Keyboard::N))
+    if(key.isKeyPressed(sf::Keyboard::Comma))
     {
         look_height += 0.01f;
     }
 
-    if(key.isKeyPressed(sf::Keyboard::M))
+    if(key.isKeyPressed(sf::Keyboard::Period))
     {
         look_height += -0.01f;
     }
@@ -263,6 +263,8 @@ int main(int argc, char *argv[])
 
     while(window.window.isOpen())
     {
+        float ftime = window.get_frametime();
+
         sf::Clock c;
 
         if(window.window.pollEvent(Event))
@@ -391,6 +393,6 @@ int main(int argc, char *argv[])
 
         window.display();
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

@@ -254,6 +254,10 @@ void sword::set_rot(vec3f _rot)
 
 fighter::fighter()
 {
+    frametime = 0;
+
+    my_time = 0;
+
     need_look_displace = false;
 
     look = {0,0,0};
@@ -315,6 +319,12 @@ fighter::fighter()
 
 void fighter::respawn(vec2f _pos)
 {
+    frametime = 0;
+
+    my_time = 0;
+
+    frame_clock.restart();
+
     need_look_displace = false;
 
     look = {0,0,0};
@@ -413,18 +423,36 @@ void fighter::scale()
 
 void fighter::set_look(vec3f _look)
 {
-    vec3f cur_look = _look;
+    vec3f current_look = look;
 
-    cur_look = clamp(cur_look, -M_PIf/8.f, M_PIf/8.f);
+    vec3f new_look = _look;
+
+    vec3f origin = parts[bodypart::BODY].pos;
+
+    vec3f c2b = current_look - origin;
+    vec3f n2b = new_look - origin;
+
+    float angle_constraint = 0.004f * frametime;
+
+    float angle = dot(c2b.norm(), n2b.norm());
+
+    if(fabs(angle) >= angle_constraint)
+    {
+        new_look = mix(current_look, new_look, angle_constraint);
+    }
+
+    new_look = clamp(new_look, -M_PIf/8.f, M_PIf/8.f);
 
     const float displacement = (rest_positions[bodypart::LHAND] - rest_positions[bodypart::LUPPERARM]).length();
 
-    float height = displacement * sin(cur_look.v[0]);
-    float width = displacement * sin(cur_look.v[1]);
+    float height = displacement * sin(new_look.v[0]);
+    float width = displacement * sin(new_look.v[1]);
 
     look_displacement = (vec3f){width, height, 0.f};
 
     need_look_displace = true;
+
+    look = new_look;
 }
 
 ///s2 and s3 define the shoulder -> elbow, and elbow -> hand length
@@ -625,6 +653,13 @@ void fighter::spherical_move(int hand, vec3f pos, float time, bodypart_t b)
 ///we want the hands to be slightly offset on the sword
 void fighter::tick()
 {
+    float cur_time = frame_clock.getElapsedTime().asMicroseconds() / 1000.f;
+
+    frametime = cur_time - my_time;
+
+    my_time = cur_time;
+
+
     using namespace bodypart;
 
     std::vector<bodypart_t> busy_list;

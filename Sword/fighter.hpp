@@ -288,6 +288,11 @@ struct networked_components
 
 struct fighter
 {
+    float frametime;
+    float my_time;
+
+    sf::Clock frame_clock;
+
     networked_components net;
 
     int side;
