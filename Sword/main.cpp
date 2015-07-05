@@ -88,12 +88,12 @@ void debug_controls(fighter* my_fight, engine& window)
 
     if(key.isKeyPressed(sf::Keyboard::U))
     {
-        my_fight->rot.v[1] += 0.01f * window.get_frametime()/2.f;
+        my_fight->rot.v[1] += 0.01f * window.get_frametime()/2000.f;
     }
 
     if(key.isKeyPressed(sf::Keyboard::O))
     {
-        my_fight->rot.v[1] -= 0.01f * window.get_frametime()/2.f;
+        my_fight->rot.v[1] -= 0.01f * window.get_frametime()/2000.f;
     }
 
     static float look_height = 0.f;
@@ -362,9 +362,10 @@ int main(int argc, char *argv[])
             if(second_tick % 200)
             {
                 fight2.queue_attack(attacks::SLASH);
+                //fight2.queue_attack(attacks::BLOCK);
             }
 
-            //fight2.tick();
+            fight2.tick();
 
             fight2.update_render_positions();
         }

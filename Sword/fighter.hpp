@@ -253,7 +253,7 @@ struct sword
 
     vec3f pos;
     vec3f rot;
-    vec3f dir;
+    vec3f dir; ///look dir
 
     int team;
 
@@ -383,6 +383,8 @@ struct fighter
     ///rotation
     void set_look(vec3f look);
 
+    vec3f look_displacement;
+
 private:
     size_t left_id;
     size_t right_id;
@@ -403,8 +405,6 @@ private:
     int idle_fired_first;
 
     vec2f move_dir;
-
-    vec3f look_displacement;
 
     sf::Clock walk_clock;
     std::map<bodypart_t, vec3f> up_pos;

@@ -58,7 +58,7 @@ void physics::add_objects_container(objects_container* _obj, part* _p, int _team
 }
 
 ///this entire method seems like a hacky bunch of shite
-int physics::sword_collides(sword& w, fighter* my_parent)
+int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
 {
     if(my_parent->net.dead)
         return -1;
@@ -71,6 +71,8 @@ int physics::sword_collides(sword& w, fighter* my_parent)
 
     vec3f dir = (vec3f){0, 1, 0}.rot({0,0,0}, xyz_to_vec(w.model.rot));
     dir = dir.norm();
+
+    vec3f world_move_dir = sword_move_dir.rot({0,0,0}, xyz_to_vec(w.model.rot));
 
     ///sword height FROM HANDLE FOCUS GRIP POINT
     float sword_height = FLT_MIN;
@@ -86,10 +88,13 @@ int physics::sword_collides(sword& w, fighter* my_parent)
         }
     }
 
+    const float block_half_angle = M_PI/3;
+
     float step = 1.f;
 
     for(float t = 0; t < sword_height; t += step)
     {
+        ///world pos
         vec3f pos = s_pos + t * dir;
 
         for(int i=0; i<bodies.size(); i++)
@@ -99,6 +104,50 @@ int physics::sword_collides(sword& w, fighter* my_parent)
                 bodypart_t type = (bodypart_t)(i % bodypart::COUNT);
 
                 fighter* them = bodies[i].parent;
+
+                float arm_length = (them->rest_positions[bodypart::LUPPERARM] - them->rest_positions[bodypart::LHAND]).length();
+
+                ///these are also very likely working as extrinsic rotations
+                float their_x = sin(them->look_displacement.v[1] / arm_length);
+                float their_y = them->rot.v[1];
+
+                /*vec3f forwards = sword_move_dir.rot({0,0,0}, my_parent->rot);
+                forwards = forwards.norm();
+
+                ///does this need to be rotated around body?
+                vec3f angle = forwards.rot({0,0,0}, {their_x, their_y, 0.f});
+
+                float diff = dot(angle.norm(), forwards.norm());*/
+
+                ///this is very likely correct!
+                vec3f rotated_sword_dir = sword_move_dir.rot({0,0,0}, my_parent->rot);
+
+                ///its - because the up angle for look is positive, and the down is negative
+                ///but adding a negative would make it go up, and adding a positive would make it look down
+                ///bad! so we have to subtract to cancel that shit right out
+                ///this is probably correct too!
+
+                ///rotations must be separate because they  dont work otherwise
+                ///this one is local
+                vec3f t_look = (vec3f){0, 0, -1}.rot({0,0,0}, -(vec3f){their_x, 0.f, 0.f});
+
+                ///this one transforms the rotation into global rotation space
+                t_look = t_look.rot({0,0,0}, them->rot);
+
+                ///angle between look and sword direction
+                ///we want the opposite direction for one of these components
+                ///as the peon is look AT the attack direction, not along it
+                float angle = dot(t_look.norm(), -rotated_sword_dir.norm());
+                angle = acos(angle);
+
+                //printf("%f\n", 360 * angle / (2*M_PI));
+
+
+                //printf("%f %f %f\n", t_look.v[0], t_look.v[1], t_look.v[2]);
+
+                //printf("%f\n", diff);
+
+                bool can_block = angle < block_half_angle && angle >= -block_half_angle;
 
                 ///if there is no current lhand or rhand movement in the map
                 ///movement default constructs does_block to false
@@ -112,7 +161,7 @@ int physics::sword_collides(sword& w, fighter* my_parent)
                 movement y2 = my_parent->action_map[bodypart::RHAND];
 
                 ///recoil. Sword collides is only called for attacks that damage, so therefore this is fine
-                if(m1.does(mov::BLOCKING) || m2.does(mov::BLOCKING) || them->net.is_blocking)
+                if((m1.does(mov::BLOCKING) || m2.does(mov::BLOCKING) || them->net.is_blocking) && can_block)
                 {
                     my_parent->recoil();
 

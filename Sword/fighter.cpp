@@ -732,6 +732,8 @@ void fighter::tick()
             //IK_hand(i.hand, current_pos);
             //IK_hand((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
 
+            ///focus pos is relative to player, but does NOT include look_displacement OR world anything
+            vec3f old_pos = focus_pos;
             focus_pos = current_pos;
 
             ///losing a frame currently, FIXME
@@ -739,9 +741,12 @@ void fighter::tick()
             ///make me a function?
             if(i.hit_id == -1 && i.does(mov::DAMAGING))
             {
+                ///this is the GLOBAL move dir, current_pos could be all over the place due to interpolation, lag etc
+                vec3f move_dir = (focus_pos - old_pos).norm();
+
                 ///pass direction vector into here, then do the check
                 ///returns -1 on miss
-                i.hit_id = phys->sword_collides(weapon, this);
+                i.hit_id = phys->sword_collides(weapon, this, move_dir);
 
                 ///if hit, need to signal the other fighter that its been hit with its hit id, relative to part num
                 if(i.hit_id != -1)
@@ -751,7 +756,6 @@ void fighter::tick()
                     their_parent->damage((bodypart_t)(i.hit_id % COUNT), 0.4f);
 
                     printf("%s\n", names[i.hit_id % COUNT].c_str());
-
                 }
             }
 
@@ -2034,6 +2038,7 @@ void fighter::cancel(bodypart_t type)
     }
 }
 
+///wont recoil more than once, because recoil is not a kind of windup
 void fighter::checked_recoil()
 {
     movement lhand = action_map[bodypart::LHAND];
