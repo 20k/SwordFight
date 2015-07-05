@@ -188,6 +188,42 @@ void fps_controls(fighter* my_fight, engine& window)
     window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
 }
 
+void net_host(fighter& fight)
+{
+    for(auto& i : fight.parts)
+    {
+        network::host_object(&i.model);
+    }
+
+    network::host_object(&fight.weapon.model);
+
+    network::host_var(&fight.net.is_blocking);
+}
+
+void net_slave(fighter& fight)
+{
+    for(auto& i : fight.parts)
+    {
+        network::slave_object(&i.model);
+    }
+
+    network::slave_object(&fight.weapon.model);
+
+    network::slave_var(&fight.net.is_blocking);
+}
+
+void make_host(fighter& fight)
+{
+    for(auto& i : fight.parts)
+    {
+        network::transform_host_object(&i.model);
+    }
+
+    network::transform_host_object(&fight.weapon.model);
+
+    network::transform_host_var(&fight.net.is_blocking);
+}
+
 int main(int argc, char *argv[])
 {
     objects_container c1;
@@ -211,6 +247,19 @@ int main(int argc, char *argv[])
     fight2.set_pos({0, 0, -600});
     fight2.set_rot({0, M_PI, 0});
 
+
+    std::vector<fighter*> net_fighters;
+
+    ///tmp
+    for(int i=0; i<10; i++)
+    {
+        net_fighters.push_back(new fighter);
+        net_fighters[i]->set_team(1);
+        net_fighters[i]->set_pos({0, 0, -3000});
+        net_fighters[i]->set_rot({0, 0, 0});
+    }
+
+
     physics phys;
     phys.load();
 
@@ -222,6 +271,16 @@ int main(int argc, char *argv[])
 
     fight.set_physics(&phys);
     fight2.set_physics(&phys);
+
+    for(auto& i : net_fighters)
+    {
+        i->scale();
+        i->set_physics(&phys);
+
+        net_slave(*i);
+
+        i->update_render_positions();
+    }
 
 
     c1.scale(0.001f);
@@ -307,13 +366,22 @@ int main(int argc, char *argv[])
 
             network::host_var(&fight.net.is_blocking);*/
 
-            fight.set_pos(fight2.pos);
-            fight.set_rot(fight2.rot);
+            network::ping();
         }
 
         if(once<sf::Keyboard::C>() && network::network_state == 0)
         {
             network::host();
+
+            net_host(*net_fighters[0]);
+
+            my_fight = net_fighters[0];
+
+            my_fight->set_pos({0,0,0});
+            my_fight->set_team(0);
+
+            fight.die();
+            fight2.die();
 
             /*for(auto& i : fight.parts)
             {
@@ -375,7 +443,7 @@ int main(int argc, char *argv[])
         if(hit_p != -1)
             printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
 
-        fight.tick();
+        my_fight->tick();
 
         bool need_realloc = network::tick();
 
@@ -388,7 +456,32 @@ int main(int argc, char *argv[])
             obj_mem_manager::g_changeover();
         }
 
-        fight.update_render_positions();
+
+        ///we've joined the game!
+        if(network::join_id != -1 && !network::loaded)
+        {
+            if(network::join_id < 10)
+            {
+                my_fight = net_fighters[network::join_id];
+
+                my_fight->set_pos(fight2.pos);
+                my_fight->set_rot(fight2.rot);
+
+                make_host(*my_fight);
+
+                fight.die();
+                fight2.die();
+            }
+            else
+            {
+                printf("Full (temp)\n");
+            }
+
+            network::loaded = true;
+        }
+
+
+        my_fight->update_render_positions();
 
 
         window.draw_bulk_objs_n();
