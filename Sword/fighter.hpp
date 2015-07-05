@@ -204,7 +204,7 @@ struct attack
 
 static std::vector<movement> overhead =
 {
-    {0, {-150, -0, -20}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
+    {0, {-150, -0, -40}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
     {0, {100, -150, -140}, 500, 1, bodypart::LHAND, mov::DAMAGING} ///attack
 };
 
