@@ -110,6 +110,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
             min_dist = dist;
     }
 
+    /// we have one factor of /2 because we only want the half width,
+    ///and another factor of two because a bbox check adds and subtracts this, we do not want to double add
     min_dist = min_dist / 4.f;
 
     ///we want to do the below check for all 4 corners and centre
@@ -139,14 +141,6 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
                 float their_x = sin(them->look_displacement.v[1] / arm_length);
                 float their_y = them->rot.v[1];
 
-                /*vec3f forwards = sword_move_dir.rot({0,0,0}, my_parent->rot);
-                forwards = forwards.norm();
-
-                ///does this need to be rotated around body?
-                vec3f angle = forwards.rot({0,0,0}, {their_x, their_y, 0.f});
-
-                float diff = dot(angle.norm(), forwards.norm());*/
-
                 ///this is very likely correct!
                 vec3f rotated_sword_dir = sword_move_dir.rot({0,0,0}, my_parent->rot);
 
@@ -167,13 +161,6 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
                 ///as the peon is look AT the attack direction, not along it
                 float angle = dot(t_look.norm(), -rotated_sword_dir.norm());
                 angle = acos(angle);
-
-                //printf("%f\n", 360 * angle / (2*M_PI));
-
-
-                //printf("%f %f %f\n", t_look.v[0], t_look.v[1], t_look.v[2]);
-
-                //printf("%f\n", diff);
 
                 bool can_block = angle < block_half_angle && angle >= -block_half_angle;
 

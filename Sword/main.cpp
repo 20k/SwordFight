@@ -365,10 +365,15 @@ int main(int argc, char *argv[])
                 //fight2.queue_attack(attacks::BLOCK);
             }
 
-            fight2.tick();
+            //fight2.tick();
 
             fight2.update_render_positions();
         }
+
+        /*int hit_p = phys.sword_collides(fight.weapon, &fight, {0, 0, -1});
+
+        if(hit_p != -1)
+            printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
 
         fight.tick();
 
