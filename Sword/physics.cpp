@@ -75,7 +75,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
         return -1;
 
     //vec3f s_rot = w.rot;
-    vec3f s_pos = xyz_to_vec(w.model.pos);
+    vec3f s_pos = xyz_to_vec(w.model.pos); ///this is its worldspace position
 
     vec3f dir = (vec3f){0, 1, 0}.rot({0,0,0}, xyz_to_vec(w.model.rot));
     dir = dir.norm();
@@ -139,7 +139,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
 
                 ///these are also very likely working as extrinsic rotations
                 float their_x = sin(them->look_displacement.v[1] / arm_length);
-                float their_y = them->rot.v[1];
+                float their_y = them->parts[bodypart::BODY].model.rot.s[1];
 
                 ///this is very likely correct!
                 vec3f rotated_sword_dir = sword_move_dir.rot({0,0,0}, my_parent->rot);
@@ -154,7 +154,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
                 vec3f t_look = (vec3f){0, 0, -1}.rot({0,0,0}, -(vec3f){their_x, 0.f, 0.f});
 
                 ///this one transforms the rotation into global rotation space
-                t_look = t_look.rot({0,0,0}, them->rot);
+                t_look = t_look.rot({0,0,0}, xyz_to_vec(them->parts[bodypart::BODY].model.rot));
 
                 ///angle between look and sword direction
                 ///we want the opposite direction for one of these components
@@ -167,6 +167,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
                 ///if there is no current lhand or rhand movement in the map
                 ///movement default constructs does_block to false
                 ///this seems a bit.... hacky
+
+                //printf("%i\n", them->net.is_blocking);
 
                 ///this is THEIR current action
                 movement m1 = them->action_map[bodypart::LHAND];
@@ -202,13 +204,3 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
 
     return -1;
 }
-
-/*void physics::tick()
-{
-
-}
-
-vec3f physics::get_pos()
-{
-
-};*/

@@ -365,7 +365,7 @@ int main(int argc, char *argv[])
                 //fight2.queue_attack(attacks::BLOCK);
             }
 
-            //fight2.tick();
+            fight2.tick();
 
             fight2.update_render_positions();
         }
