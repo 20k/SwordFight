@@ -49,11 +49,10 @@ bbox get_bbox(objects_container* obj)
 }
 
 
-void physics::add_objects_container(objects_container* _obj, part* _p, int _team, fighter* _parent)
+void physics::add_objects_container(objects_container* _obj, part* _p, fighter* _parent)
 {
     physobj p;
     p.obj = _obj;
-    p.team = _team;
     p.p = _p;
     p.parent = _parent;
 
@@ -129,7 +128,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
 
         for(int i=0; i<bodies.size(); i++)
         {
-            if(bodies[i].team != w.team && bodies[i].p->alive() && bodies[i].within(pos, {min_dist, min_dist, min_dist}))
+            if(bodies[i].p->team != w.team && bodies[i].p->alive() && bodies[i].within(pos, {min_dist, min_dist, min_dist}))
             {
                 bodypart_t type = (bodypart_t)(i % bodypart::COUNT);
 

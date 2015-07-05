@@ -104,6 +104,8 @@ void part::set_team(int _team)
         model.set_file("./Res/bodypart_blue.obj");
     }
 
+    model.unload();
+
     model.set_active(true);
 
     team = _team;
@@ -215,6 +217,8 @@ void sword::set_team(int _team)
     {
         model.set_file("./Res/sword_blue.obj");
     }
+
+    model.unload();
 
     model.set_active(true);
 
@@ -2021,7 +2025,7 @@ void fighter::set_physics(physics* _phys)
 
     for(part& i : parts)
     {
-        phys->add_objects_container(&i.model, &i, i.team, this);
+        phys->add_objects_container(&i.model, &i, this);
     }
 }
 

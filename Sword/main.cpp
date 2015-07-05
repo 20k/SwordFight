@@ -383,6 +383,13 @@ int main(int argc, char *argv[])
             fight.die();
             fight2.die();
 
+            obj_mem_manager::load_active_objects();
+
+            my_fight->scale();
+
+            obj_mem_manager::g_arrange_mem();
+            obj_mem_manager::g_changeover();
+
             /*for(auto& i : fight.parts)
             {
                 network::host_object(&i.model);
@@ -466,6 +473,7 @@ int main(int argc, char *argv[])
 
                 my_fight->set_pos(fight2.pos);
                 my_fight->set_rot(fight2.rot);
+                my_fight->set_team(0);
 
                 make_host(*my_fight);
 
@@ -476,6 +484,13 @@ int main(int argc, char *argv[])
             {
                 printf("Full (temp)\n");
             }
+
+            obj_mem_manager::load_active_objects();
+
+            my_fight->scale();
+
+            obj_mem_manager::g_arrange_mem();
+            obj_mem_manager::g_changeover();
 
             network::loaded = true;
         }
