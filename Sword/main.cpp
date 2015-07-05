@@ -288,7 +288,7 @@ int main(int argc, char *argv[])
         {
             network::join("192.168.1.55");
 
-            for(auto& i : fight2.parts)
+            /*for(auto& i : fight2.parts)
             {
                 network::slave_object(&i.model);
             }
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
 
             network::host_object(&fight.weapon.model);
 
-            network::host_var(&fight.net.is_blocking);
+            network::host_var(&fight.net.is_blocking);*/
 
             fight.set_pos(fight2.pos);
             fight.set_rot(fight2.rot);
@@ -315,7 +315,7 @@ int main(int argc, char *argv[])
         {
             network::host();
 
-            for(auto& i : fight.parts)
+            /*for(auto& i : fight.parts)
             {
                 network::host_object(&i.model);
             }
@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
 
             network::slave_object(&fight2.weapon.model);
 
-            network::slave_var(&fight2.net.is_blocking);
+            network::slave_var(&fight2.net.is_blocking);*/
         }
 
         if(once<sf::Keyboard::B>())
