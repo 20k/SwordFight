@@ -2,6 +2,7 @@
 #define PHYSICS_HPP_INCLUDED
 
 #include "vec.hpp"
+#include "bbox.hpp"
 
 struct part;
 struct sword;
@@ -19,8 +20,13 @@ struct physobj
 
     int team;
 
-    bool within(vec3f pos);
+    ///min_pos - fudge, max_pos + fudge
+    ///pos is worldspace
+    bool within(vec3f pos, vec3f fudge = {0,0,0});
 };
+
+
+bbox get_bbox(objects_container* obj);
 
 struct physics
 {

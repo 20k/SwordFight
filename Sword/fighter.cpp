@@ -232,6 +232,8 @@ sword::sword()
 void sword::scale()
 {
     model.scale(50.f);
+
+    bound = get_bbox(&model);
 }
 
 void sword::set_pos(vec3f _pos)

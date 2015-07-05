@@ -7,6 +7,8 @@
 
 #include <SFML/Graphics.hpp>
 
+#include "bbox.hpp"
+
 namespace mov
 {
     enum movement_type : unsigned int
@@ -256,6 +258,8 @@ struct sword
     vec3f dir; ///look dir
 
     int team;
+
+    bbox bound;
 
     sword();
 

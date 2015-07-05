@@ -8,14 +8,14 @@
 
 #include "fighter.hpp"
 
-bool physobj::within(vec3f pos)
+bool physobj::within(vec3f pos, vec3f fudge)
 {
     for(int i=0; i<3; i++)
-        if(pos.v[i] < min_pos.v[i] + obj->pos.s[i]) ///lower than minimum point, not inside cube
+        if(pos.v[i] < min_pos.v[i] + obj->pos.s[i] - fudge.v[i]) ///lower than minimum point, not inside cube
             return false;
 
     for(int i=0; i<3; i++)
-        if(pos.v[i] >= max_pos.v[i] + obj->pos.s[i]) ///greater than maximum point, not inside cube
+        if(pos.v[i] >= max_pos.v[i] + obj->pos.s[i] + fudge.v[i]) ///greater than maximum point, not inside cube
             return false;
 
     ///must be within cube
@@ -27,17 +27,11 @@ void physics::load()
 
 }
 
-void physics::add_objects_container(objects_container* _obj, part* _p, int _team, fighter* _parent)
+bbox get_bbox(objects_container* obj)
 {
-    physobj p;
-    p.obj = _obj;
-    p.team = _team;
-    p.p = _p;
-    p.parent = _parent;
-
     vec3f tl = {FLT_MAX, FLT_MAX, FLT_MAX}, br = {FLT_MIN, FLT_MIN, FLT_MIN};
 
-    for(object& o : _obj->objs)
+    for(object& o : obj->objs)
     {
         for(triangle& t : o.tri_list)
         {
@@ -51,8 +45,22 @@ void physics::add_objects_container(objects_container* _obj, part* _p, int _team
         }
     }
 
-    p.min_pos = tl;
-    p.max_pos = br;
+    return {tl, br};
+}
+
+
+void physics::add_objects_container(objects_container* _obj, part* _p, int _team, fighter* _parent)
+{
+    physobj p;
+    p.obj = _obj;
+    p.team = _team;
+    p.p = _p;
+    p.parent = _parent;
+
+    bbox b = get_bbox(_obj);
+
+    p.min_pos = b.min;
+    p.max_pos = b.max;
 
     bodies.push_back(p);
 }
@@ -88,6 +96,26 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
         }
     }
 
+    bbox bound = w.bound;
+
+
+    ///im a lazy programmer, and this is the thickness of the sword
+    float min_dist = FLT_MAX;
+
+    for(int i=0; i<3; i++)
+    {
+        float dist = (bound.max.v[i] - bound.min.v[i]);
+
+        if(dist < min_dist)
+            min_dist = dist;
+    }
+
+    min_dist = min_dist / 4.f;
+
+    ///we want to do the below check for all 4 corners and centre
+    ///i am bad at programming
+    ///if we fudge the cylinders aabb box hitbox by the width of the sword, that is the same as making the sword larger
+
     const float block_half_angle = M_PI/3;
 
     float step = 1.f;
@@ -99,7 +127,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
 
         for(int i=0; i<bodies.size(); i++)
         {
-            if(bodies[i].team != w.team && bodies[i].p->alive() && bodies[i].within(pos))
+            if(bodies[i].team != w.team && bodies[i].p->alive() && bodies[i].within(pos, {min_dist, min_dist, min_dist}))
             {
                 bodypart_t type = (bodypart_t)(i % bodypart::COUNT);
 
