@@ -373,9 +373,9 @@ int main(int argc, char *argv[])
         {
             network::host();
 
-            net_host(*net_fighters[0]);
-
             my_fight = net_fighters[0];
+
+            make_host(*my_fight);
 
             my_fight->set_pos({0,0,0});
             my_fight->set_team(0);
@@ -467,8 +467,12 @@ int main(int argc, char *argv[])
         ///we've joined the game!
         if(network::join_id != -1 && !network::loaded)
         {
+            printf("In load func\n");
+
             if(network::join_id < 10)
             {
+                printf("Joining game\n");
+
                 my_fight = net_fighters[network::join_id];
 
                 my_fight->set_pos(fight2.pos);
@@ -479,18 +483,18 @@ int main(int argc, char *argv[])
 
                 fight.die();
                 fight2.die();
+
+                obj_mem_manager::load_active_objects();
+
+                my_fight->scale();
+
+                obj_mem_manager::g_arrange_mem();
+                obj_mem_manager::g_changeover();
             }
             else
             {
                 printf("Full (temp)\n");
             }
-
-            obj_mem_manager::load_active_objects();
-
-            my_fight->scale();
-
-            obj_mem_manager::g_arrange_mem();
-            obj_mem_manager::g_changeover();
 
             network::loaded = true;
         }
