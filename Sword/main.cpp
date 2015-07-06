@@ -347,25 +347,6 @@ int main(int argc, char *argv[])
         {
             network::join("192.168.1.55");
 
-            /*for(auto& i : fight2.parts)
-            {
-                network::slave_object(&i.model);
-            }
-
-            network::slave_object(&fight2.weapon.model);
-
-            network::slave_var(&fight2.net.is_blocking);
-
-
-            for(auto& i : fight.parts)
-            {
-                network::host_object(&i.model);
-            }
-
-            network::host_object(&fight.weapon.model);
-
-            network::host_var(&fight.net.is_blocking);*/
-
             network::ping();
         }
 
@@ -389,24 +370,6 @@ int main(int argc, char *argv[])
 
             obj_mem_manager::g_arrange_mem();
             obj_mem_manager::g_changeover();
-
-            /*for(auto& i : fight.parts)
-            {
-                network::host_object(&i.model);
-            }
-
-            network::host_object(&fight.weapon.model);
-
-            network::host_var(&fight.net.is_blocking);
-
-            for(auto& i : fight2.parts)
-            {
-                network::slave_object(&i.model);
-            }
-
-            network::slave_object(&fight2.weapon.model);
-
-            network::slave_var(&fight2.net.is_blocking);*/
         }
 
         if(once<sf::Keyboard::B>())
