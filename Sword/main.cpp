@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
     c1.set_active(true);
 
     engine window;
-    window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl");
+    window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
 
     printf("loaded\n");
 
@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::V>() && network::network_state == 0)
         {
-            network::join("192.168.1.55");
+            network::join("82.44.152.73");
 
             network::ping();
         }
