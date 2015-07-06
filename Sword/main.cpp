@@ -345,7 +345,7 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::V>() && network::network_state == 0)
         {
-            network::join("82.44.152.73");
+            network::join("192.168.1.55");
 
             network::ping();
         }
