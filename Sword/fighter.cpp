@@ -801,13 +801,21 @@ void fighter::tick()
 
     ///process death
 
+    ///nope. DO THIS PROPERLY
+    /*///propagate network model destruction
+    for(auto& p : parts)
+    {
+        if(p.model.isactive == false)
+            p.hp = 0;
+    }*/
+
     const int num_destroyed_to_die = 3;
 
     int num_destroyed = 0;
 
-    for(auto& i : parts)
+    for(auto& p : parts)
     {
-        if(i.hp <= 0)
+        if(p.hp <= 0)
         {
             num_destroyed++;
         }
