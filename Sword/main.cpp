@@ -188,28 +188,33 @@ void fps_controls(fighter* my_fight, engine& window)
     window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
 }
 
-void net_host(fighter& fight)
+///a fighter we own has its hp determined by someone else?
+
+///slave i.hp
+/*void net_host(fighter& fight)
 {
     for(auto& i : fight.parts)
     {
         network::host_object(&i.model);
+        network::slave_var(&i.hp); ///nobody owns HP
     }
 
     network::host_object(&fight.weapon.model);
 
-    network::host_var(&fight.net.is_blocking);
-}
+    //network::host_var(&fight.net.is_blocking);
+}*/
 
 void net_slave(fighter& fight)
 {
     for(auto& i : fight.parts)
     {
         network::slave_object(&i.model);
+        network::slave_var(&i.hp); ///this is not an error, hp transmission is handled when hp takes damage
     }
 
     network::slave_object(&fight.weapon.model);
 
-    network::slave_var(&fight.net.is_blocking);
+    //network::slave_var(&fight.net.is_blocking);
 }
 
 void make_host(fighter& fight)
@@ -217,11 +222,12 @@ void make_host(fighter& fight)
     for(auto& i : fight.parts)
     {
         network::transform_host_object(&i.model);
+        ///no need to touch hp here as its always a slave variable
     }
 
     network::transform_host_object(&fight.weapon.model);
 
-    network::transform_host_var(&fight.net.is_blocking);
+    //network::transform_host_var(&fight.net.is_blocking);
 }
 
 int main(int argc, char *argv[])

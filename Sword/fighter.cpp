@@ -2,6 +2,7 @@
 #include "physics.hpp"
 #include "../openclrenderer/obj_mem_manager.hpp"
 #include <unordered_map>
+#include "../openclrenderer/network.hpp"
 
 const vec3f* bodypart::init_default()
 {
@@ -52,7 +53,7 @@ void part::set_type(bodypart_t t)
 
     set_pos(bodypart::default_position[t]);
 
-    hp = 1.f;
+    set_hp(1.f);
 }
 
 part::part()
@@ -111,9 +112,13 @@ void part::set_team(int _team)
     team = _team;
 }
 
+///a network transmission of damage will get swollowed if you are hit between the time you spawn, and the time it takes to transmit
+///the hp stat to the destination. This is probably acceptable
 void part::damage(float dam)
 {
     hp -= dam;
+
+    printf("%f\n", hp);
 
     if(model.isactive && hp < 0.0001f)
     {
@@ -123,13 +128,27 @@ void part::damage(float dam)
         obj_mem_manager::load_active_objects();
         obj_mem_manager::g_arrange_mem();
         obj_mem_manager::g_changeover();
-
     }
+
+    network_hp();
+}
+
+void part::set_hp(float h)
+{
+    hp = h;
+
+    network_hp();
+}
+
+void part::network_hp()
+{
+    network::host_update(&hp);
 }
 
 bool part::alive()
 {
-    return (hp > 0) && model.isactive;
+    ///hp now networked, dont need to hodge podge this with model active status
+    return (hp > 0);// && model.isactive;
 }
 
 size_t movement::gid = 0;
@@ -364,7 +383,7 @@ void fighter::respawn(vec2f _pos)
 
     for(size_t i=0; i<bodypart::COUNT; i++)
     {
-        parts[i].set_type((bodypart_t)i);
+        parts[i].set_type((bodypart_t)i); ///resets hp, and networks it
         old_pos[i] = parts[i].pos;
     }
 
@@ -817,9 +836,13 @@ void fighter::tick()
     {
         if(p.hp <= 0)
         {
+            //printf("%s\n", names[p.type].c_str());
+
             num_destroyed++;
         }
     }
+
+    //printf("%i\n", num_destroyed);
 
     if(num_destroyed >= num_destroyed_to_die && !net.dead)
         die();

@@ -128,7 +128,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
 
         for(int i=0; i<bodies.size(); i++)
         {
-            if(bodies[i].p->team != w.team && bodies[i].p->alive() && bodies[i].within(pos, {min_dist, min_dist, min_dist}))
+            if(bodies[i].p->team != w.team && bodies[i].p->alive() && bodies[i].within(pos, {min_dist, min_dist, min_dist}) && bodies[i].p->model.isactive)
             {
                 bodypart_t type = (bodypart_t)(i % bodypart::COUNT);
 

@@ -131,12 +131,16 @@ struct part
     void set_rot(vec3f rot);
     void set_team(int _team);
     void damage(float dam);
+    void set_hp(float h);
 
-    bool alive();
+    bool alive(); ///if the model is inactive, its considered dead
 
     part();
     part(bodypart_t);
     ~part();
+
+private:
+    void network_hp();
 };
 
 ///one single movement
