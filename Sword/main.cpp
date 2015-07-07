@@ -214,7 +214,7 @@ void net_slave(fighter& fight)
 
     network::slave_object(&fight.weapon.model);
 
-    //network::slave_var(&fight.net.is_blocking);
+    network::slave_var(&fight.net.is_blocking);
 }
 
 void make_host(fighter& fight)
@@ -227,7 +227,7 @@ void make_host(fighter& fight)
 
     network::transform_host_object(&fight.weapon.model);
 
-    //network::transform_host_var(&fight.net.is_blocking);
+    network::transform_host_var(&fight.net.is_blocking);
 }
 
 int main(int argc, char *argv[])

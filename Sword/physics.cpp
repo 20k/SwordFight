@@ -65,6 +65,8 @@ void physics::add_objects_container(objects_container* _obj, part* _p, fighter* 
 }
 
 ///this entire method seems like a hacky bunch of shite
+///REMEMBER, DEAD OBJECTS ARE STILL CHECKED AGAINST. This is bad for performance (although who cares), but moreover its producing BUGS
+///FIXME
 int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
 {
     if(my_parent->net.dead)
