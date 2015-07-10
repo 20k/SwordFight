@@ -118,7 +118,7 @@ void part::damage(float dam)
 {
     hp -= dam;
 
-    printf("%f\n", hp);
+    //printf("%f\n", hp);
 
     if(model.isactive && hp < 0.0001f)
     {
@@ -780,7 +780,7 @@ void fighter::tick()
 
                     their_parent->damage((bodypart_t)(i.hit_id % COUNT), 0.4f);
 
-                    printf("%s\n", names[i.hit_id % COUNT].c_str());
+                    //printf("%s\n", names[i.hit_id % COUNT].c_str());
                 }
             }
 
@@ -2092,6 +2092,25 @@ void fighter::recoil()
     cancel(bodypart::LHAND);
     cancel(bodypart::RHAND);
     queue_attack(attacks::RECOIL);
+}
+
+void fighter::try_feint()
+{
+    const float unfeintable_time = 100.f;
+
+    movement lhand = action_map[bodypart::LHAND];
+    movement rhand = action_map[bodypart::RHAND];
+
+    bool lfeint = lhand.does(mov::WINDUP) && (lhand.time_remaining() > unfeintable_time);
+    bool rfeint = rhand.does(mov::WINDUP) && (rhand.time_remaining() > unfeintable_time);
+
+    if(lfeint || rfeint)
+    {
+        cancel(bodypart::LHAND);
+        cancel(bodypart::RHAND);
+
+        queue_attack(attacks::FEINT);
+    }
 }
 
 

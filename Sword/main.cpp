@@ -86,6 +86,11 @@ void debug_controls(fighter* my_fight, engine& window)
         my_fight->queue_attack(attacks::BLOCK);
     }
 
+    if(once<sf::Keyboard::H>())
+    {
+        my_fight->try_feint();
+    }
+
     if(key.isKeyPressed(sf::Keyboard::U))
     {
         my_fight->rot.v[1] += 0.01f * window.get_frametime()/2000.f;
@@ -158,6 +163,9 @@ void fps_controls(fighter* my_fight, engine& window)
 
     if(once<sf::Mouse::Right>())
         my_fight->queue_attack(attacks::BLOCK);
+
+    if(once<sf::Keyboard::Q>())
+        my_fight->try_feint();
 
     //static vec3f old_rot = xyz_to_vec(window.c_rot);
 

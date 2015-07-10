@@ -196,7 +196,8 @@ namespace attacks
         REST,
         BLOCK,
         COUNT,
-        RECOIL
+        RECOIL,
+        FEINT
     };
 }
 
@@ -236,13 +237,21 @@ static std::vector<movement> block =
     {0, {100, -150, -140}, 400, 0, bodypart::LHAND, mov::START_INDEPENDENT}
 };
 
+
+static std::vector<movement> feint =
+{
+    //{0, {-150, -80, -40}, 350, 0, bodypart::LHAND, mov::NONE}
+     {0, {0, -200, -100}, 500, 1, bodypart::LHAND, mov::NONE}
+};
+
 static std::map<attack_t, attack> attack_list =
 {
     {attacks::OVERHEAD, {overhead}},
     {attacks::SLASH, {slash}},
     {attacks::REST, {rest}},
     {attacks::BLOCK, {block}},
-    {attacks::RECOIL, {recoil}}
+    {attacks::RECOIL, {recoil}},
+    {attacks::FEINT, {feint}}
 };
 
 
@@ -377,6 +386,7 @@ struct fighter
 
     void recoil();
     void checked_recoil(); ///if we're hit, do a recoil if we're in windup
+    void try_feint();
 
     void damage(bodypart_t type, float d);
 
