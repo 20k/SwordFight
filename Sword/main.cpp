@@ -60,6 +60,87 @@ bool once()
     return false;
 }
 
+struct cloth
+{
+    compute::buffer px[2], py[2], pz[2];
+    int which;
+    int which_not;
+
+    int w, h, d;
+
+    cloth()
+    {
+        w = 100;
+        h = 100;
+        d = 1;
+
+        for(int i=0; i<2; i++)
+        {
+            px[i] = compute::buffer(cl::context, sizeof(float)*w*h*d, CL_MEM_READ_WRITE, nullptr);
+            py[i] = compute::buffer(cl::context, sizeof(float)*w*h*d, CL_MEM_READ_WRITE, nullptr);
+            pz[i] = compute::buffer(cl::context, sizeof(float)*w*h*d, CL_MEM_READ_WRITE, nullptr);
+        }
+
+        float* xm = new float[w*h*d]();
+        float* ym = new float[w*h*d]();
+        float* zm = new float[w*h*d]();
+
+        const float rest_distance = 8.f;
+
+        for(int k=0; k<d; k++)
+        {
+            for(int j=0; j<h; j++)
+            {
+                for(int i=0; i<w; i++)
+                {
+                    xm[i + j*w + k*w*h] = i * rest_distance;
+                    ym[i + j*w + k*w*h] = j * rest_distance;
+                    zm[i + j*w + k*w*h] = k * rest_distance;
+                }
+            }
+        }
+
+        ///Performs a copy to pcie, should really map the buffer instead
+        cl::cqueue.enqueue_write_buffer(px[0], 0, sizeof(float)*w*h*d, xm);
+        cl::cqueue.enqueue_write_buffer(py[0], 0, sizeof(float)*w*h*d, ym);
+        cl::cqueue.enqueue_write_buffer(pz[0], 0, sizeof(float)*w*h*d, zm);
+
+        delete [] xm;
+        delete [] ym;
+        delete [] zm;
+
+
+        which = 0;
+        which_not = (which + 1) % 2;
+    }
+
+    compute::buffer cur(int dim)
+    {
+        if(dim == 0)
+            return px[which];
+        if(dim == 1)
+            return py[which];
+        if(dim == 2)
+            return pz[which];
+    }
+
+    compute::buffer next(int dim)
+    {
+        if(dim == 0)
+            return px[which_not];
+        if(dim == 1)
+            return py[which_not];
+        if(dim == 2)
+            return pz[which_not];
+    }
+
+    void swap()
+    {
+        which_not = which;
+        which = (which + 1) % 2;
+    }
+};
+
 void debug_controls(fighter* my_fight, engine& window)
 {
     sf::Keyboard key;
@@ -333,6 +414,8 @@ int main(int argc, char *argv[])
     ///debug;
     int controls_state = 0;
 
+    cloth cloth;
+
 
     while(window.window.isOpen())
     {
@@ -481,6 +564,8 @@ int main(int argc, char *argv[])
 
 
         window.draw_bulk_objs_n();
+        window.draw_cloth(cloth.cur(0), cloth.cur(1), cloth.cur(2), cloth.next(0), cloth.next(1), cloth.next(2), cloth.w, cloth.h, cloth.d);
+        cloth.swap();
 
         window.render_buffers();
 

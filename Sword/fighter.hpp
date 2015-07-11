@@ -241,7 +241,7 @@ static std::vector<movement> block =
 static std::vector<movement> feint =
 {
     //{0, {-150, -80, -40}, 350, 0, bodypart::LHAND, mov::NONE}
-     {0, {0, -200, -100}, 500, 1, bodypart::LHAND, mov::NONE}
+     {0, {0, -200, -100}, 300, 1, bodypart::LHAND, mov::NONE}
 };
 
 static std::map<attack_t, attack> attack_list =
