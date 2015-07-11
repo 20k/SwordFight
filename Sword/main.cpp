@@ -63,6 +63,7 @@ bool once()
 struct cloth
 {
     compute::buffer px[2], py[2], pz[2];
+    compute::buffer defx, defy, defz;
     int which;
     int which_not;
 
@@ -70,8 +71,8 @@ struct cloth
 
     cloth()
     {
-        w = 100;
-        h = 100;
+        w = 10;
+        h = 30;
         d = 1;
 
         for(int i=0; i<2; i++)
@@ -85,7 +86,8 @@ struct cloth
         float* ym = new float[w*h*d]();
         float* zm = new float[w*h*d]();
 
-        const float rest_distance = 8.f;
+        const float pretend_rest = 20.f;
+        const float real_rest = 10.f;
 
         for(int k=0; k<d; k++)
         {
@@ -93,9 +95,9 @@ struct cloth
             {
                 for(int i=0; i<w; i++)
                 {
-                    xm[i + j*w + k*w*h] = i * rest_distance;
-                    ym[i + j*w + k*w*h] = j * rest_distance;
-                    zm[i + j*w + k*w*h] = k * rest_distance;
+                    xm[i + j*w + k*w*h] = i * pretend_rest;
+                    ym[i + j*w + k*w*h] = j * pretend_rest;
+                    zm[i + j*w + k*w*h] = k * pretend_rest;
                 }
             }
         }
@@ -109,9 +111,57 @@ struct cloth
         delete [] ym;
         delete [] zm;
 
+        defx = compute::buffer(cl::context, sizeof(float)*w, CL_MEM_READ_WRITE, nullptr);
+        defy = compute::buffer(cl::context, sizeof(float)*w, CL_MEM_READ_WRITE, nullptr);
+        defz = compute::buffer(cl::context, sizeof(float)*w, CL_MEM_READ_WRITE, nullptr);
+
+        cl_float* xmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defx.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
+        cl_float* ymap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defy.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
+        cl_float* zmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defz.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
+
+        for(int i=0; i<w; i++)
+        {
+            xmap[i] = i * real_rest;
+            ymap[i] = (h-1) * real_rest;
+            zmap[i] = 0;
+        }
+
+        clEnqueueUnmapMemObject(cl::cqueue.get(), defx.get(), xmap, 0, NULL, NULL);
+        clEnqueueUnmapMemObject(cl::cqueue.get(), defy.get(), ymap, 0, NULL, NULL);
+        clEnqueueUnmapMemObject(cl::cqueue.get(), defz.get(), zmap, 0, NULL, NULL);
+
+        ///mypos = (float3){x * rest_dist, (height-1) * rest_dist, 0};
 
         which = 0;
         which_not = (which + 1) % 2;
+    }
+
+    void fighter_to_fixed(vec3f l, vec3f m, vec3f r)
+    {
+        vec3f dir = r - l;
+
+        int len = w;
+
+        vec3f step = dir / (float)len;
+
+        vec3f cur = l;
+
+        cl_float* xmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defx.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
+        cl_float* ymap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defy.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
+        cl_float* zmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defz.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
+
+        for(int i=0; i < len; i ++)
+        {
+            xmap[i] = cur.v[0];
+            ymap[i] = cur.v[1];
+            zmap[i] = cur.v[2];
+
+            cur = cur + step;
+        }
+
+        clEnqueueUnmapMemObject(cl::cqueue.get(), defx.get(), xmap, 0, NULL, NULL);
+        clEnqueueUnmapMemObject(cl::cqueue.get(), defy.get(), ymap, 0, NULL, NULL);
+        clEnqueueUnmapMemObject(cl::cqueue.get(), defz.get(), zmap, 0, NULL, NULL);
     }
 
     compute::buffer cur(int dim)
@@ -562,9 +612,13 @@ int main(int argc, char *argv[])
 
         my_fight->update_render_positions();
 
+        cloth.fighter_to_fixed(xyz_to_vec(my_fight->parts[bodypart::LUPPERARM].model.pos),
+                               xyz_to_vec(my_fight->parts[bodypart::BODY].model.pos),
+                               xyz_to_vec(my_fight->parts[bodypart::RUPPERARM].model.pos)
+                               );
 
         window.draw_bulk_objs_n();
-        window.draw_cloth(cloth.cur(0), cloth.cur(1), cloth.cur(2), cloth.next(0), cloth.next(1), cloth.next(2), cloth.w, cloth.h, cloth.d);
+        window.draw_cloth(cloth.cur(0), cloth.cur(1), cloth.cur(2), cloth.next(0), cloth.next(1), cloth.next(2), cloth.defx, cloth.defy, cloth.defz, cloth.w, cloth.h, cloth.d);
         cloth.swap();
 
         window.render_buffers();
