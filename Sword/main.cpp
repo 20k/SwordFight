@@ -136,15 +136,30 @@ struct cloth
         which_not = (which + 1) % 2;
     }
 
-    void fighter_to_fixed(vec3f l, vec3f m, vec3f r)
+    void fighter_to_fixed(objects_container* l, objects_container* m, objects_container* r)
     {
-        vec3f dir = r - l;
+        vec3f position = xyz_to_vec(m->pos);
+        vec3f rotation = xyz_to_vec(m->rot);
+
+        vec3f lpos = xyz_to_vec(l->pos);
+        vec3f rpos = xyz_to_vec(r->pos);
+
+        bbox lbbox = get_bbox(l);
+        bbox rbbox = get_bbox(r);
+
+        float ldepth = lbbox.max.v[2] - lbbox.min.v[2];
+        float rdepth = rbbox.max.v[2] - rbbox.min.v[2];
+
+        lpos = lpos + (vec3f){0, 0, ldepth}.rot({0,0,0}, rotation);
+        rpos = rpos + (vec3f){0, 0, rdepth}.rot({0,0,0}, rotation);
+
+        vec3f dir = rpos - lpos;
 
         int len = w;
 
         vec3f step = dir / (float)len;
 
-        vec3f cur = l;
+        vec3f cur = lpos;
 
         cl_float* xmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defx.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
         cl_float* ymap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defy.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
@@ -612,9 +627,9 @@ int main(int argc, char *argv[])
 
         my_fight->update_render_positions();
 
-        cloth.fighter_to_fixed(xyz_to_vec(my_fight->parts[bodypart::LUPPERARM].model.pos),
-                               xyz_to_vec(my_fight->parts[bodypart::BODY].model.pos),
-                               xyz_to_vec(my_fight->parts[bodypart::RUPPERARM].model.pos)
+        cloth.fighter_to_fixed(&my_fight->parts[bodypart::LUPPERARM].model,
+                               &my_fight->parts[bodypart::BODY].model,
+                               &my_fight->parts[bodypart::RUPPERARM].model
                                );
 
         window.draw_bulk_objs_n();
