@@ -111,9 +111,9 @@ struct cloth
         delete [] ym;
         delete [] zm;
 
-        defx = compute::buffer(cl::context, sizeof(float)*w, CL_MEM_READ_WRITE, nullptr);
-        defy = compute::buffer(cl::context, sizeof(float)*w, CL_MEM_READ_WRITE, nullptr);
-        defz = compute::buffer(cl::context, sizeof(float)*w, CL_MEM_READ_WRITE, nullptr);
+        defx = compute::buffer(cl::context, sizeof(cl_float)*w, CL_MEM_READ_WRITE, nullptr);
+        defy = compute::buffer(cl::context, sizeof(cl_float)*w, CL_MEM_READ_WRITE, nullptr);
+        defz = compute::buffer(cl::context, sizeof(cl_float)*w, CL_MEM_READ_WRITE, nullptr);
 
         cl_float* xmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defx.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
         cl_float* ymap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defy.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
@@ -159,7 +159,7 @@ struct cloth
 
         vec3f step = dir / (float)len;
 
-        vec3f cur = lpos;
+        vec3f current = lpos;
 
         cl_float* xmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defx.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
         cl_float* ymap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defy.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
@@ -167,16 +167,17 @@ struct cloth
 
         for(int i=0; i < len; i ++)
         {
-            xmap[i] = cur.v[0];
-            ymap[i] = cur.v[1];
-            zmap[i] = cur.v[2];
+            xmap[i] = current.v[0];
+            ymap[i] = current.v[1];
+            zmap[i] = current.v[2];
 
-            cur = cur + step;
+            current = current + step;
         }
 
         clEnqueueUnmapMemObject(cl::cqueue.get(), defx.get(), xmap, 0, NULL, NULL);
         clEnqueueUnmapMemObject(cl::cqueue.get(), defy.get(), ymap, 0, NULL, NULL);
         clEnqueueUnmapMemObject(cl::cqueue.get(), defz.get(), zmap, 0, NULL, NULL);
+
     }
 
     compute::buffer cur(int dim)
@@ -627,12 +628,13 @@ int main(int argc, char *argv[])
 
         my_fight->update_render_positions();
 
+        window.draw_bulk_objs_n();
+
         cloth.fighter_to_fixed(&my_fight->parts[bodypart::LUPPERARM].model,
                                &my_fight->parts[bodypart::BODY].model,
                                &my_fight->parts[bodypart::RUPPERARM].model
                                );
 
-        window.draw_bulk_objs_n();
         window.draw_cloth(cloth.cur(0), cloth.cur(1), cloth.cur(2), cloth.next(0), cloth.next(1), cloth.next(2), cloth.defx, cloth.defy, cloth.defz, cloth.w, cloth.h, cloth.d);
         cloth.swap();
 
