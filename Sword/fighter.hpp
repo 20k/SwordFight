@@ -9,6 +9,8 @@
 
 #include "bbox.hpp"
 
+#include "cape.hpp"
+
 namespace mov
 {
     enum movement_type : unsigned int
@@ -345,6 +347,8 @@ struct fighter
     vec3f look;
 
     bool idling;
+
+    cape my_cape;
 
     ///sigh, cant be on init because needs to be after object load
     void scale();
