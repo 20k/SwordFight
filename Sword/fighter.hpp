@@ -323,6 +323,7 @@ struct networked_components
 {
     int is_blocking = 0;
     int dead = 0;
+    int recoil = 0;
 };
 
 struct fighter

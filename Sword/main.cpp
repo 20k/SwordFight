@@ -224,6 +224,8 @@ void net_slave(fighter& fight)
     network::slave_object(&fight.weapon.model);
 
     network::slave_var(&fight.net.is_blocking);
+
+    network::slave_var(&fight.net.recoil);
 }
 
 void make_host(fighter& fight)

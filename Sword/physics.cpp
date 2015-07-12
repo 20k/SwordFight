@@ -13,6 +13,7 @@
 
 #include "text.hpp"
 #include "sound.hpp"
+#include "../openclrenderer/network.hpp"
 
 bool physobj::within(vec3f pos, vec3f fudge)
 {
@@ -202,6 +203,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 movement y2 = my_parent->action_map[bodypart::RHAND];
 
                 ///recoil. Sword collides is only called for attacks that damage, so therefore this is fine
+                ///blocking recoil IS handled over the network currently
                 if((m1.does(mov::BLOCKING) || m2.does(mov::BLOCKING) || them->net.is_blocking) && can_block)
                 {
                     if(is_player)
@@ -217,17 +219,25 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 }
 
                 ///we still want to recoil even if we hit THEIR hand, but no damage
+                ///this doesn't get networked...?
                 if((type == bodypart::LHAND || type == bodypart::RHAND))
                 {
                     if(m1.does(mov::WINDUP) || m2.does(mov::WINDUP))
                     {
-                        //text::add("Clang", time, {scr.x, scr.y});
-
                         hand_scr = scr;
 
                         caused_hand_recoil = true;
 
+                        ///technically this and the check below makes recoil happen twice, but its not important
+                        ///as this only affects the ai
                         them->recoil();
+
+                        ///want to network them recoiling
+                        if(is_player)
+                        {
+                            them->net.recoil = 1;
+                            network::host_update(&them->net.recoil);
+                        }
                     }
 
                     continue;

@@ -698,6 +698,14 @@ void fighter::tick(bool is_player)
     ///will be set to true if a move is currently doing a blocking action
     net.is_blocking = 0;
 
+
+    if(net.recoil)
+    {
+        recoil();
+        net.recoil = 0;
+    }
+
+
     bool just_hand = false; ///it was this frame!
 
     for(movement& i : moves)

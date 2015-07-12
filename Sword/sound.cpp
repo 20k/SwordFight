@@ -23,12 +23,10 @@ void sound::add(int type, vec3f pos)
 
     sounds.push_back(sound);
 
-
     sf::Sound& sd = sounds.back();
 
-
     sd.setBuffer(s[type]);
-    sd.setPitch(randf(0.75f, 1.25f));
+    sd.setPitch(randf(0.8f, 1.20f));
     sd.setRelativeToListener(true);
     sd.setAttenuation(0.005f);
     sd.setVolume(randf(80, 100));
@@ -38,7 +36,6 @@ void sound::add(int type, vec3f pos)
     //printf("%f %f %f\n", -pos.v[0], pos.v[1], pos.v[2]);
 
     sd.play();
-
 
     ///sfml is probably 3d opengl
     ///which means my z is backwards to theirs
