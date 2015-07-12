@@ -426,6 +426,15 @@ int main(int argc, char *argv[])
             fight2.tick();
 
             fight2.update_render_positions();
+
+            if(once<sf::Keyboard::N>())
+            {
+                vec3f loc = xyz_to_vec(fight2.parts[bodypart::BODY].model.pos);
+                vec3f rot = xyz_to_vec(fight2.parts[bodypart::BODY].model.rot);
+
+                fight2.respawn({loc.v[0], loc.v[2]});
+                fight2.set_rot(rot);
+            }
         }
 
         /*int hit_p = phys.sword_collides(fight.weapon, &fight, {0, 0, -1});

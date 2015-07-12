@@ -131,6 +131,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
     bool caused_hand_recoil = false;
     cl_float4 hand_scr = {0,0,0,0};
+    vec3f rel = {0,0,0};
 
 
     const float block_half_angle = M_PI/3;
@@ -183,6 +184,9 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 ///movement default constructs does_block to false
                 ///this seems a bit.... hacky
 
+                rel = pos - xyz_to_vec(my_parent->parts[bodypart::BODY].model.pos);
+                rel = rel.back_rot({0,0,0}, xyz_to_vec(my_parent->parts[bodypart::BODY].model.rot));
+
                 cl_float4 scr;
 
                 if(is_player)
@@ -205,7 +209,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     else
                         text::add_random("Clang!", time);
 
-                    sound::add(1);
+                    sound::add(1, rel);
 
                     my_parent->recoil();
 
@@ -234,7 +238,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 else
                     text::add_random(std::string("Crikey!") + " My " + bodypart::ui_names[i % bodypart::COUNT] + "!", time);
 
-                sound::add(0);
+                sound::add(0, rel);
 
                 return i;
             }
@@ -249,7 +253,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
         else
             text::add_random("MY HAND!", time);
 
-        sound::add(0);
+        sound::add(0, rel);
     }
 
     //vec3f end = s_pos + sword_height*dir;
