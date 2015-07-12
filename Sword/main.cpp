@@ -249,7 +249,11 @@ int main(int argc, char *argv[])
     engine window;
     window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
 
+    window.window.setFramerateLimit(120);
+
     printf("loaded\n");
+
+    text::set_renderwindow(window.window);
 
     window.set_camera_pos({-1009.17, -94.6033, -317.804});
     window.set_camera_rot({0, 1.6817, 0});
@@ -270,7 +274,7 @@ int main(int argc, char *argv[])
     {
         net_fighters.push_back(new fighter);
         net_fighters[i]->set_team(1);
-        net_fighters[i]->set_pos({0, 0, -3000});
+        net_fighters[i]->set_pos({0, 0, -3000000});
         net_fighters[i]->set_rot({0, 0, 0});
     }
 
@@ -432,7 +436,7 @@ int main(int argc, char *argv[])
         if(hit_p != -1)
             printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
 
-        my_fight->tick();
+        my_fight->tick(true);
 
         bool need_realloc = network::tick();
 
@@ -501,11 +505,10 @@ int main(int argc, char *argv[])
         //cloth.swap();
 
         window.render_buffers();
-        text::draw(window.window);
-
+        text::draw();
 
         window.display();
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

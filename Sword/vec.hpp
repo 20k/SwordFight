@@ -6,6 +6,11 @@
 
 #define M_PIf ((float)M_PI)
 
+inline float randf()
+{
+    return (float)rand() / (RAND_MAX + 1.f);
+}
+
 template<int N, typename T>
 struct vec
 {

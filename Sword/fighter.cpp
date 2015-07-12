@@ -122,7 +122,7 @@ void part::damage(float dam)
 
     if(model.isactive && hp < 0.0001f)
     {
-        printf("I blowed up %s\n", bodypart::names[type].c_str());
+        //printf("I blowed up %s\n", bodypart::names[type].c_str());
         model.set_active(false);
 
         obj_mem_manager::load_active_objects();
@@ -167,12 +167,16 @@ void movement::load(int _hand, vec3f _end_pos, float _time, int _type, bodypart_
 
 float movement::time_remaining()
 {
-    return std::max(end_time - clk.getElapsedTime().asMilliseconds(), 0.f);
+    float time = clk.getElapsedTime().asMicroseconds() / 1000.f;
+
+    return std::max(end_time - time, 0.f);
 }
 
 float movement::get_frac()
 {
-    return (float)clk.getElapsedTime().asMilliseconds() / end_time;
+    float time = clk.getElapsedTime().asMicroseconds() / 1000.f;
+
+    return (float)time / end_time;
 }
 
 void movement::fire()
@@ -676,7 +680,7 @@ void fighter::spherical_move(int hand, vec3f pos, float time, bodypart_t b)
 }
 
 ///we want the hands to be slightly offset on the sword
-void fighter::tick()
+void fighter::tick(bool is_player)
 {
     float cur_time = frame_clock.getElapsedTime().asMicroseconds() / 1000.f;
 
@@ -719,6 +723,8 @@ void fighter::tick()
         busy_list.push_back(i.limb);
 
         float frac = i.get_frac();
+
+        //printf("%f\n", frac);
 
         frac = clamp(frac, 0.f, 1.f);
 
@@ -771,7 +777,7 @@ void fighter::tick()
 
                 ///pass direction vector into here, then do the check
                 ///returns -1 on miss
-                i.hit_id = phys->sword_collides(weapon, this, move_dir);
+                i.hit_id = phys->sword_collides(weapon, this, move_dir, is_player);
 
                 ///if hit, need to signal the other fighter that its been hit with its hit id, relative to part num
                 if(i.hit_id != -1)

@@ -106,6 +106,26 @@ namespace bodypart
         "COUNT"
     };
 
+    ///the body is backwards... i really need to fix this
+    static std::vector<std::string> ui_names =
+    {
+        "head",
+        "right shoulder",
+        "right elbow",
+        "left shoulder",
+        "left elbow",
+        "right hand",
+        "left hand",
+        "chest",
+        "right hip",
+        "right knee",
+        "left hip",
+        "left knee",
+        "right foot",
+        "left foot",
+        "Uh oh, something broke"
+    };
+
     static float scale = 100.f;
 
     ///internal storage
@@ -342,8 +362,6 @@ struct fighter
 
     physics* phys;
 
-    sf::Clock idle;
-
     vec3f look;
 
     bool idling;
@@ -369,7 +387,7 @@ struct fighter
 
     void update_sword_rot();
 
-    void tick();
+    void tick(bool is_player = false);
     //void walk(int which); ///temp
 
     void walk_dir(vec2f dir); ///z, x

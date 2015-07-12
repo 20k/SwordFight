@@ -72,7 +72,7 @@ void physics::add_objects_container(objects_container* _obj, part* _p, fighter* 
 ///this entire method seems like a hacky bunch of shite
 ///REMEMBER, DEAD OBJECTS ARE STILL CHECKED AGAINST. This is bad for performance (although who cares), but moreover its producing BUGS
 ///FIXME
-int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
+int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, bool is_player)
 {
     if(my_parent->net.dead)
         return -1;
@@ -182,7 +182,10 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
                 ///movement default constructs does_block to false
                 ///this seems a bit.... hacky
 
-                cl_float4 scr = engine::project({pos.v[0], pos.v[1], pos.v[2]});
+                cl_float4 scr;
+
+                if(is_player)
+                    scr = engine::project({pos.v[0], pos.v[1], pos.v[2]});
 
                 //printf("%i\n", them->net.is_blocking);
 
@@ -196,7 +199,10 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
                 ///recoil. Sword collides is only called for attacks that damage, so therefore this is fine
                 if((m1.does(mov::BLOCKING) || m2.does(mov::BLOCKING) || them->net.is_blocking) && can_block)
                 {
-                    text::add("Clang!", time, {scr.x, scr.y});
+                    if(is_player)
+                        text::add("Clang!", time, {scr.x, scr.y});
+                    else
+                        text::add_random("Clang!", time);
 
                     my_parent->recoil();
 
@@ -220,7 +226,10 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
                     continue;
                 }
 
-                text::add("Hrrk!", time, {scr.x, scr.y});
+                if(is_player)
+                    text::add("Hrrk!", time, {scr.x, scr.y});
+                else
+                    text::add_random(std::string("Crikey!") + " My " + bodypart::ui_names[i % bodypart::COUNT] + "!", time);
 
                 return i;
             }
@@ -230,7 +239,10 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
     ///did not do a real hit
     if(caused_hand_recoil)
     {
-        text::add("MY HAND!", time, {hand_scr.x, hand_scr.y});
+        if(is_player)
+            text::add("Smack!", time, {hand_scr.x, hand_scr.y});
+        else
+            text::add_random("MY HAND!", time);
     }
 
     //vec3f end = s_pos + sword_height*dir;
