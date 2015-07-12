@@ -11,6 +11,13 @@ inline float randf()
     return (float)rand() / (RAND_MAX + 1.f);
 }
 
+///both of these functions are stolen shamelessly off stackoverflow
+///https://stackoverflow.com/questions/686353/c-random-float-number-generation
+inline float randf(float M, float N)
+{
+    return M + (rand() / ( RAND_MAX / (N-M) ) ) ;
+}
+
 template<int N, typename T>
 struct vec
 {

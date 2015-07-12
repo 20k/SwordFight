@@ -249,8 +249,6 @@ int main(int argc, char *argv[])
     engine window;
     window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
 
-    //window.window.setFramerateLimit(120);
-
     printf("loaded\n");
 
     text::set_renderwindow(window.window);
@@ -265,7 +263,6 @@ int main(int argc, char *argv[])
     fight2.set_team(1);
     fight2.set_pos({0, 0, -600});
     fight2.set_rot({0, M_PI, 0});
-
 
     std::vector<fighter*> net_fighters;
 

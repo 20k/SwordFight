@@ -12,6 +12,7 @@
 #include "../openclrenderer/engine.hpp"
 
 #include "text.hpp"
+#include "sound.hpp"
 
 bool physobj::within(vec3f pos, vec3f fudge)
 {
@@ -204,6 +205,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     else
                         text::add_random("Clang!", time);
 
+                    sound::add(1);
+
                     my_parent->recoil();
 
                     return -1;
@@ -231,6 +234,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 else
                     text::add_random(std::string("Crikey!") + " My " + bodypart::ui_names[i % bodypart::COUNT] + "!", time);
 
+                sound::add(0);
+
                 return i;
             }
         }
@@ -243,6 +248,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
             text::add("Smack!", time, {hand_scr.x, hand_scr.y});
         else
             text::add_random("MY HAND!", time);
+
+        sound::add(0);
     }
 
     //vec3f end = s_pos + sword_height*dir;
