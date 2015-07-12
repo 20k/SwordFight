@@ -482,7 +482,7 @@ inline vec<N, T> slerp(const vec<N, T>& v1, const vec<N, T>& v2, float a)
     ///im sure you can convert the cos of a number to the sign, rather than doing this
     float angle = acos(dot(v1, v2) / (v1.length() * v2.length()));
 
-    if(angle < 0.0001f && angle >= -0.0001f)
+    if(angle < 0.00001f && angle >= -0.00001f)
         return mix(v1, v2, a);
 
     float a1 = sin((1 - a) * angle) / sin(angle);

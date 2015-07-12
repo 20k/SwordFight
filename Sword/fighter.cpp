@@ -682,6 +682,8 @@ void fighter::spherical_move(int hand, vec3f pos, float time, bodypart_t b)
 ///we want the hands to be slightly offset on the sword
 void fighter::tick(bool is_player)
 {
+    static float sanity = 0;
+
     float cur_time = frame_clock.getElapsedTime().asMicroseconds() / 1000.f;
 
     frametime = cur_time - my_time;
@@ -698,7 +700,7 @@ void fighter::tick(bool is_player)
 
     bool just_hand = false; ///it was this frame!
 
-    for(auto& i : moves)
+    for(movement& i : moves)
     {
         if(std::find(busy_list.begin(), busy_list.end(), i.limb) != busy_list.end())
         {
@@ -718,13 +720,19 @@ void fighter::tick(bool is_player)
 
             if((i.limb == LHAND || i.limb == RHAND) && i.does(mov::START_INDEPENDENT))
                 i.start = focus_pos;
+
+            sanity = 0;
         }
 
         busy_list.push_back(i.limb);
 
         float frac = i.get_frac();
 
-        //printf("%f\n", frac);
+        sanity += 0.02f;
+
+        frac = sanity;
+
+        printf("%f\n", frac);
 
         frac = clamp(frac, 0.f, 1.f);
 
