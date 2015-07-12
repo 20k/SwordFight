@@ -802,6 +802,9 @@ void fighter::tick(bool is_player)
 
                     their_parent->damage((bodypart_t)(i.hit_id % COUNT), 0.4f);
 
+                    their_parent->net.recoil = 1;
+                    network::host_update(&their_parent->net.recoil);
+
                     //printf("%s\n", names[i.hit_id % COUNT].c_str());
                 }
             }
