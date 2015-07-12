@@ -8,6 +8,11 @@
 
 #include "fighter.hpp"
 
+#include <CL/cl.h> ///sigh
+#include "../openclrenderer/engine.hpp"
+
+#include "text.hpp"
+
 bool physobj::within(vec3f pos, vec3f fudge)
 {
     for(int i=0; i<3; i++)
@@ -119,6 +124,14 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
     ///i am bad at programming
     ///if we fudge the cylinders aabb box hitbox by the width of the sword, that is the same as making the sword larger
 
+
+    const float time = 500.f;
+
+
+    bool caused_hand_recoil = false;
+    cl_float4 hand_scr = {0,0,0,0};
+
+
     const float block_half_angle = M_PI/3;
 
     float step = 1.f;
@@ -169,6 +182,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
                 ///movement default constructs does_block to false
                 ///this seems a bit.... hacky
 
+                cl_float4 scr = engine::project({pos.v[0], pos.v[1], pos.v[2]});
+
                 //printf("%i\n", them->net.is_blocking);
 
                 ///this is THEIR current action
@@ -181,22 +196,41 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir)
                 ///recoil. Sword collides is only called for attacks that damage, so therefore this is fine
                 if((m1.does(mov::BLOCKING) || m2.does(mov::BLOCKING) || them->net.is_blocking) && can_block)
                 {
+                    text::add("Clang!", time, {scr.x, scr.y});
+
                     my_parent->recoil();
 
                     return -1;
                 }
 
                 ///we still want to recoil even if we hit THEIR hand, but no damage
-                if(type == bodypart::LHAND || type == bodypart::RHAND)
+                if((type == bodypart::LHAND || type == bodypart::RHAND))
                 {
-                    them->checked_recoil();
+                    if(m1.does(mov::WINDUP) || m2.does(mov::WINDUP))
+                    {
+                        //text::add("Clang", time, {scr.x, scr.y});
+
+                        hand_scr = scr;
+
+                        caused_hand_recoil = true;
+
+                        them->recoil();
+                    }
 
                     continue;
                 }
 
+                text::add("Hrrk!", time, {scr.x, scr.y});
+
                 return i;
             }
         }
+    }
+
+    ///did not do a real hit
+    if(caused_hand_recoil)
+    {
+        text::add("MY HAND!", time, {hand_scr.x, hand_scr.y});
     }
 
     //vec3f end = s_pos + sword_height*dir;

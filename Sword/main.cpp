@@ -10,7 +10,7 @@
 #include "../openclrenderer/ui_manager.hpp"
 
 #include "fighter.hpp"
-
+#include "text.hpp"
 #include "physics.hpp"
 
 #include "../openclrenderer/network.hpp"
@@ -347,7 +347,7 @@ int main(int argc, char *argv[])
         if(controls_state == 0)
             window.update_mouse();
         if(controls_state == 1)
-            window.update_mouse(400.f, 400.f, true, true);
+            window.update_mouse(window.width/2, window.height/2, true, true);
 
         sf::Mouse mouse;
 
@@ -501,9 +501,11 @@ int main(int argc, char *argv[])
         //cloth.swap();
 
         window.render_buffers();
+        text::draw(window.window);
+
 
         window.display();
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }
