@@ -344,7 +344,12 @@ int main(int argc, char *argv[])
                 window.window.close();
         }
 
-        window.update_mouse();
+        if(controls_state == 0)
+            window.update_mouse();
+        if(controls_state == 1)
+            window.update_mouse(400.f, 400.f, true, true);
+
+        sf::Mouse mouse;
 
         if(once<sf::Keyboard::X>())
         {
