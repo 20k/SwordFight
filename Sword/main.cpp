@@ -362,7 +362,6 @@ int main(int argc, char *argv[])
             window.update_mouse(window.width/2, window.height/2, true, true);
         }
 
-
         if(controls_state == 0)
             debug_controls(my_fight, window);
         if(controls_state == 1)

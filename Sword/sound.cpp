@@ -32,9 +32,10 @@ void sound::add(int type, vec3f pos)
     sd.setRelativeToListener(true);
     sd.setAttenuation(0.005f);
     sd.setVolume(randf(80, 100));
-    //sd.setPosition(pos.v[0], pos.v[1], -pos.v[2]); ///sfml is probably opengl coords. X may be backwards
 
-    //printf("%f %f %f\n", pos.v[0], pos.v[1], pos.v[2]);
+    sd.setPosition(-pos.v[0], pos.v[1], -pos.v[2]); ///sfml is probably opengl coords. X may be backwards
+
+    //printf("%f %f %f\n", -pos.v[0], pos.v[1], pos.v[2]);
 
     sd.play();
 
