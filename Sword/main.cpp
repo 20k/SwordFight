@@ -244,7 +244,7 @@ int main(int argc, char *argv[])
     objects_container c1;
     c1.set_file("./Res/bodypart_red.obj");
     c1.set_pos({0, 0, 0});
-    c1.set_active(true);
+    //c1.set_active(true);
 
     engine window;
     window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
@@ -302,7 +302,7 @@ int main(int argc, char *argv[])
     }
 
 
-    c1.scale(0.001f);
+    //c1.scale(0.001f);
 
 
     texture_manager::allocate_textures();
@@ -358,6 +358,11 @@ int main(int argc, char *argv[])
         if(once<sf::Keyboard::X>())
         {
             controls_state = (controls_state + 1) % 2;
+
+            ///call once to reset mouse to centre
+            window.update_mouse(window.width/2, window.height/2, true, true);
+            ///call again to reset mouse dx and dy to 0
+            window.update_mouse(window.width/2, window.height/2, true, true);
         }
 
 
@@ -401,16 +406,11 @@ int main(int argc, char *argv[])
         }
 
         //static float debug_look = 0;
-
         //my_fight->set_look({sin(debug_look), 0, 0});
-
         //debug_look += 0.1f;
 
-
         /*phys.tick();
-
         vec3f v = phys.get_pos();
-
         c1.set_pos({v.v[0], v.v[1], v.v[2]});
         c1.g_flush_objects();*/
 
@@ -432,7 +432,6 @@ int main(int argc, char *argv[])
         }
 
         /*int hit_p = phys.sword_collides(fight.weapon, &fight, {0, 0, -1});
-
         if(hit_p != -1)
             printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
 
@@ -494,15 +493,6 @@ int main(int argc, char *argv[])
         //                       &my_fight->parts[bodypart::BODY].model,
         //                       &my_fight->parts[bodypart::RUPPERARM].model
         //                        );
-
-
-        /*cloth.fighter_to_fixed(&my_fight->parts[bodypart::LUPPERARM].model,
-                               &my_fight->parts[bodypart::BODY].model,
-                               &my_fight->parts[bodypart::RUPPERARM].model
-                               );*/
-
-        //window.draw_cloth(cloth.cur(0), cloth.cur(1), cloth.cur(2), cloth.next(0), cloth.next(1), cloth.next(2), cloth.defx, cloth.defy, cloth.defz, cloth.w, cloth.h, cloth.d);
-        //cloth.swap();
 
         window.render_buffers();
         text::draw();
