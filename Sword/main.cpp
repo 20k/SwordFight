@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
     engine window;
     window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
 
-    window.window.setFramerateLimit(120);
+    //window.window.setFramerateLimit(120);
 
     printf("loaded\n");
 
