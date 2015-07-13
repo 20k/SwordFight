@@ -228,16 +228,14 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                         caused_hand_recoil = true;
 
-                        ///technically this and the check below makes recoil happen twice, but its not important
-                        ///as this only affects the ai
-                        them->recoil();
-
                         ///want to network them recoiling
-                        if(is_player)
+                        //if(is_player)
                         {
                             them->net.recoil = 1;
                             network::host_update(&them->net.recoil);
                         }
+
+                        them->cancel_hands(); ///will recoil
                     }
 
                     continue;

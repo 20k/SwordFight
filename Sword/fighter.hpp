@@ -323,7 +323,7 @@ struct networked_components
 {
     int is_blocking = 0;
     int dead = 0;
-    int recoil = 0;
+    int recoil = 0; ///this is a recoil request, not necessarily saying i AM(?)
 };
 
 struct fighter
@@ -407,7 +407,9 @@ struct fighter
 
     bool can_attack(bodypart_t type);
 
+    void cancel_hands();
     void recoil();
+    bool can_recoil();
     void checked_recoil(); ///if we're hit, do a recoil if we're in windup
     void try_feint();
 

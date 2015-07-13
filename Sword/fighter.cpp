@@ -701,7 +701,9 @@ void fighter::tick(bool is_player)
 
     if(net.recoil)
     {
+        //if(can_recoil())
         recoil();
+
         net.recoil = 0;
     }
 
@@ -801,9 +803,6 @@ void fighter::tick(bool is_player)
                     fighter* their_parent = phys->bodies[i.hit_id].parent;
 
                     their_parent->damage((bodypart_t)(i.hit_id % COUNT), 0.4f);
-
-                    their_parent->net.recoil = 1;
-                    network::host_update(&their_parent->net.recoil);
 
                     //printf("%s\n", names[i.hit_id % COUNT].c_str());
                 }
@@ -2100,6 +2099,12 @@ void fighter::cancel(bodypart_t type)
     }
 }
 
+void fighter::cancel_hands()
+{
+    cancel(bodypart::LHAND);
+    cancel(bodypart::RHAND);
+}
+
 ///wont recoil more than once, because recoil is not a kind of windup
 void fighter::checked_recoil()
 {
@@ -2110,6 +2115,19 @@ void fighter::checked_recoil()
     {
         recoil();
     }
+}
+
+bool fighter::can_recoil()
+{
+    movement lhand = action_map[bodypart::LHAND];
+    movement rhand = action_map[bodypart::RHAND];
+
+    if(lhand.does(mov::WINDUP) || rhand.does(mov::WINDUP))
+    {
+        return true;
+    }
+
+    return false;
 }
 
 void fighter::recoil()
@@ -2146,6 +2164,11 @@ void fighter::damage(bodypart_t type, float d)
 
     parts[type].damage(d);
 
-    ///conditional recoil if we need to
-    checked_recoil();
+    if(can_recoil())
+    {
+        net.recoil = 1;
+        network::host_update(&net.recoil);
+
+        cancel_hands();
+    }
 }
