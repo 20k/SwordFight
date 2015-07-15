@@ -126,7 +126,6 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     ///i am bad at programming
     ///if we fudge the cylinders aabb box hitbox by the width of the sword, that is the same as making the sword larger
 
-
     const float time = 500.f;
 
 
@@ -185,8 +184,10 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 ///movement default constructs does_block to false
                 ///this seems a bit.... hacky
 
-                rel = pos - xyz_to_vec(my_parent->parts[bodypart::BODY].model.pos);
-                rel = rel.back_rot({0,0,0}, xyz_to_vec(my_parent->parts[bodypart::BODY].model.rot));
+                //rel = pos - xyz_to_vec(my_parent->parts[bodypart::BODY].model.pos);
+                //rel = rel.back_rot({0,0,0}, xyz_to_vec(my_parent->parts[bodypart::BODY].model.rot));
+
+                rel = pos;
 
                 cl_float4 scr;
 

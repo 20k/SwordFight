@@ -15,6 +15,8 @@
 
 #include "../openclrenderer/network.hpp"
 
+#include "sound.hpp"
+
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
 bool once()
@@ -493,6 +495,9 @@ int main(int argc, char *argv[])
 
 
         my_fight->update_render_positions();
+
+        ///ergh
+        sound::set_listener(xyz_to_vec(my_fight->parts[bodypart::BODY].model.pos), xyz_to_vec(my_fight->parts[bodypart::BODY].model.rot));
 
         window.draw_bulk_objs_n();
 
