@@ -212,6 +212,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     else
                         text::add_random("Clang!", time);
 
+
+                    network::send_audio(1, rel.v[0], rel.v[1], rel.v[2]);
                     sound::add(1, rel);
 
                     my_parent->recoil();
@@ -244,6 +246,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 else
                     text::add_random(std::string("Crikey!") + " My " + bodypart::ui_names[i % bodypart::COUNT] + "!", time);
 
+                network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
                 sound::add(0, rel);
 
                 return i;
@@ -259,6 +262,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
         else
             text::add_random("MY HAND!", time);
 
+        ///did someone say "horrible coupling"?
+        network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
         sound::add(0, rel);
     }
 

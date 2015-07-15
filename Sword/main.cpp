@@ -457,6 +457,13 @@ int main(int argc, char *argv[])
             obj_mem_manager::g_changeover();
         }
 
+        audio_packet pack;
+
+        while(network::pop_audio(pack))
+        {
+            sound::add(pack.type, {pack.x, pack.y, pack.z});
+        }
+
 
         ///we've joined the game!
         if(network::join_id != -1 && !network::loaded)
