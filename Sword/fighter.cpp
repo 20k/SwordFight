@@ -887,94 +887,11 @@ void fighter::tick(bool is_player)
         printf("%s %i\n", bodypart::names[collide_id % bodypart::COUNT].c_str(), collide_id);*/
 }
 
-#if 0
-void fighter::walk(int which)
-{
-    using namespace bodypart;
-
-    float total_time = 1000.f;
-
-    static sf::Clock clk;
-
-    float frac = total_time / clk.getElapsedTime().asMilliseconds();
-
-    auto foot = which ? RFOOT : LFOOT;
-
-    std::vector<vec3f> positions =
-    {
-        {rest_positions[foot].v[0], rest_positions[foot].v[1], rest_positions[foot].v[2] + 100},
-        {rest_positions[foot].v[0], rest_positions[foot].v[1] + 50, rest_positions[foot].v[2] + 100},
-        {rest_positions[foot].v[0], rest_positions[foot].v[1] + 50, rest_positions[foot].v[2] - 100},
-        {rest_positions[foot].v[0], rest_positions[foot].v[1], rest_positions[foot].v[2] - 100}
-    };
-
-    float air_time = 400.f;
-    float short_time = 200.f;
-
-    movement m;
-    m.load(which, positions[0], short_time, 1, foot);
-    moves.push_back(m);
-
-    m.load(which, positions[1], air_time, 1, foot);
-    moves.push_back(m);
-
-    m.load(which, positions[2], short_time, 1, foot);
-    moves.push_back(m);
-
-    m.load(which, positions[3], air_time, 1, foot);
-    moves.push_back(m);
-
-
-    if(clk.getElapsedTime().asMilliseconds() > total_time)
-        clk.restart();
-}
-#endif
 
 int modulo_distance(int a, int b, int m)
 {
     return std::min(abs(b - a), abs(m - b + a));
 }
-
-///gunna need to pass in max len here or will break if foot tries to move outside range
-/*std::vector<movement> mov(vec3f current_pos, vec3f start, vec3f fin, float time, int side, bodypart_t b)
-{
-    float up_dist = 50.f;
-
-    float stroke_time = 200.f;
-    float lift_time = 200.f;
-
-    float dist = (start - current_pos).length();
-
-    const float tol = 40.f;
-
-    if(dist < tol)
-    {
-        movement m;
-        m.load(side, fin, time, 1, b);
-
-        return {m};
-    }
-
-    std::vector<movement> ret;
-
-    vec3f up = {0, up_dist, 0};
-
-    movement m;
-
-    m.load(side, current_pos + up, lift_time, 1, b);
-    ret.push_back(m);
-
-    m.load(side, start + up, stroke_time, 1, b);
-    ret.push_back(m);
-
-    m.load(side, start, lift_time, 1, b);
-    ret.push_back(m);
-
-    return ret;
-}*/
-
-///skip a stride if its blatantly really much further than step, will fix side to side
-
 
 ///this function is a piece of crap and it knows it
 bool fighter::skip_stride(vec3f dest, vec3f current, bodypart_t high, bodypart_t low)
