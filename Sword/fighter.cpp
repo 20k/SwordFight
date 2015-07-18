@@ -1046,9 +1046,7 @@ vec3f seek(vec3f cur, vec3f dest, float dist, float seek_time, float elapsed_tim
 ///do I want to do a proper dynamic timing synchronisation thing?
 void fighter::walk_dir(vec2f dir)
 {
-    #endif
     ///try and fix the lex stiffening up a bit, but who cares
-    #if 1
     if(dir.v[0] == 0 && dir.v[1] == 0)
     {
         walk_clock.restart();
