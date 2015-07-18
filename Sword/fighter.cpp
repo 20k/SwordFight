@@ -281,8 +281,11 @@ void sword::set_rot(vec3f _rot)
     //model.g_flush_objects();
 }
 
+///need to only maintain 1 copy of this, I'm just a muppet
 fighter::fighter()
 {
+    rot_diff = {0,0,0};
+
     look_displacement = {0,0,0};
 
     frametime = 0;
@@ -350,6 +353,8 @@ fighter::fighter()
 
 void fighter::respawn(vec2f _pos)
 {
+    rot_diff = {0,0,0};
+
     look_displacement = {0,0,0};
 
     frametime = 0;
@@ -1999,7 +2004,15 @@ void fighter::set_pos(vec3f _pos)
 
 void fighter::set_rot(vec3f _rot)
 {
+    rot_diff = _rot - rot;
+
     rot = _rot;
+}
+
+void fighter::set_rot_diff(vec3f diff)
+{
+    rot_diff = diff;
+    rot = rot + diff;
 }
 
 movement* fighter::get_movement(size_t id)

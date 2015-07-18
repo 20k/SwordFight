@@ -358,8 +358,9 @@ struct fighter
 
     int team;
 
-    vec3f pos;
+    vec3f pos; ///need to swap references to body->rot and body->pos to these (unless i explicitly need them)
     vec3f rot;
+    vec3f rot_diff;
 
     physics* phys;
 
@@ -395,6 +396,7 @@ struct fighter
 
     void set_pos(vec3f);
     void set_rot(vec3f);
+    void set_rot_diff(vec3f diff);
 
     movement* get_movement(size_t id);
 

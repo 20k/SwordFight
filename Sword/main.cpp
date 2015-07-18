@@ -94,15 +94,19 @@ void debug_controls(fighter* my_fight, engine& window)
         my_fight->try_feint();
     }
 
+    float y_diff = 0;
+
     if(key.isKeyPressed(sf::Keyboard::U))
     {
-        my_fight->rot.v[1] += 0.01f * window.get_frametime()/2000.f;
+        y_diff = 0.01f * window.get_frametime()/2000.f;
     }
 
     if(key.isKeyPressed(sf::Keyboard::O))
     {
-        my_fight->rot.v[1] -= 0.01f * window.get_frametime()/2000.f;
+        y_diff = -0.01f * window.get_frametime()/2000.f;
     }
+
+    my_fight->set_rot_diff({0, y_diff, 0});
 
     static float look_height = 0.f;
 
@@ -187,13 +191,11 @@ void fps_controls(fighter* my_fight, engine& window)
     m.v[0] = window.get_mouse_delta_x();
     m.v[1] = window.get_mouse_delta_y();
 
-    vec3f* c_rot = &my_fight->rot;
-
-    c_rot->v[1] = c_rot->v[1] - m.v[0] / 100.f;
+    my_fight->set_rot_diff({0, -m.v[0] / 100.f, 0.f});
 
     vec3f o_rot = xyz_to_vec(window.c_rot);
 
-    o_rot.v[1] = c_rot->v[1];
+    o_rot.v[1] = my_fight->rot.v[1];
     o_rot.v[0] += m.v[1] / 200.f;
 
     window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
@@ -354,8 +356,6 @@ int main(int argc, char *argv[])
         if(controls_state == 1)
             window.update_mouse(window.width/2, window.height/2, true, true);
 
-        sf::Mouse mouse;
-
         if(once<sf::Keyboard::X>())
         {
             controls_state = (controls_state + 1) % 2;
@@ -414,17 +414,10 @@ int main(int argc, char *argv[])
         c1.set_pos({v.v[0], v.v[1], v.v[2]});
         c1.g_flush_objects();*/
 
-        static int second_tick = 0;
-
-        second_tick++;
-
         if(network::network_state == 0)
         {
-            //if((second_tick % 200) == 0)
-            {
-                fight2.queue_attack(attacks::SLASH);
-                //fight2.queue_attack(attacks::BLOCK);
-            }
+            fight2.queue_attack(attacks::SLASH);
+            //fight2.queue_attack(attacks::BLOCK);
 
             fight2.tick();
 
