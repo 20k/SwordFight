@@ -180,7 +180,6 @@ void fps_controls(fighter* my_fight, engine& window)
 
     my_fight->set_look({-window.c_rot.s[0], 0, 0});
 
-
     part* head = &my_fight->parts[bodypart::HEAD];
 
     vec3f pos = head->pos + my_fight->pos;
