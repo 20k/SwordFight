@@ -427,7 +427,6 @@ struct fighter
 
     ///rotation
     void set_look(vec3f look);
-    void decay_look();
 
     vec3f look_displacement;
 

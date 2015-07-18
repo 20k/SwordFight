@@ -461,6 +461,10 @@ void fighter::set_look(vec3f _look)
 
     vec3f new_look = _look;
 
+    vec3f clamps = {M_PI/8.f, M_PI/12.f, M_PI/8.f};
+    new_look = clamp(new_look, -clamps, clamps);
+
+
     vec3f origin = parts[bodypart::BODY].pos;
 
     vec3f c2b = current_look - origin;
@@ -475,9 +479,7 @@ void fighter::set_look(vec3f _look)
         new_look = mix(current_look, new_look, angle_constraint);
     }
 
-    vec3f clamps = {M_PI/8.f, M_PI/32.f, M_PI/8.f};
-
-    new_look = clamp(new_look, -M_PIf/8.f, M_PIf/8.f);
+    new_look = clamp(new_look, -clamps, clamps);
 
     const float displacement = (rest_positions[bodypart::LHAND] - rest_positions[bodypart::LUPPERARM]).length();
 
@@ -487,18 +489,6 @@ void fighter::set_look(vec3f _look)
     look_displacement = (vec3f){width, height, 0.f};
 
     look = new_look;
-}
-
-void fighter::decay_look()
-{
-    /*look.v[1] /= 1.001f;// * clamp(frametime, 1.f, 100.f);
-
-    const float displacement = (rest_positions[bodypart::LHAND] - rest_positions[bodypart::LUPPERARM]).length();
-
-    float height = displacement * sin(look.v[0]);
-    float width = displacement * sin(look.v[1]);
-
-    look_displacement = (vec3f){width, height, 0.f};*/
 }
 
 ///s2 and s3 define the shoulder -> elbow, and elbow -> hand length
@@ -885,8 +875,6 @@ void fighter::tick(bool is_player)
 
     if(num_destroyed >= num_destroyed_to_die && !net.dead)
         die();
-
-    decay_look();
 
     /*int collide_id = phys->sword_collides(weapon);
 
