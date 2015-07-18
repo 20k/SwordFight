@@ -178,7 +178,7 @@ void fps_controls(fighter* my_fight, engine& window)
 
     //vec3f diff = xyz_to_vec(window.c_rot) - old_rot;
 
-    my_fight->set_look({-window.c_rot.s[0], 0, 0});
+    my_fight->set_look({-window.c_rot.s[0], window.get_mouse_delta_x() / 1.f, 0});
 
     part* head = &my_fight->parts[bodypart::HEAD];
 

@@ -263,6 +263,22 @@ vec<N, T> clamp(vec<N, T> v1, T p1, T p2)
     return v1;
 }
 
+template<int N, typename T>
+inline
+vec<N, T> clamp(const vec<N, T>& v1, const vec<N, T>& p1, const vec<N, T>& p2)
+{
+    vec<N, T> ret;
+
+    for(int i=0; i<N; i++)
+    {
+        ret.v[i] = v1.v[i] < p1.v[i] ? p1.v[i] : v1.v[i];
+        ret.v[i] = ret.v[i] > p2.v[i] ? p2.v[i] : ret.v[i];
+    }
+
+    return ret;
+}
+
+
 template<typename T>
 inline
 T clamp(T v1, T p1, T p2)

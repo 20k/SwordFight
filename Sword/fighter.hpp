@@ -427,6 +427,7 @@ struct fighter
 
     ///rotation
     void set_look(vec3f look);
+    void decay_look();
 
     vec3f look_displacement;
 
@@ -453,8 +454,6 @@ private:
 
     sf::Clock walk_clock;
     std::map<bodypart_t, vec3f> up_pos;
-
-    bool need_look_displace;
 };
 
 
