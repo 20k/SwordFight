@@ -283,6 +283,8 @@ void sword::set_rot(vec3f _rot)
 
 fighter::fighter()
 {
+    look_displacement = {0,0,0};
+
     frametime = 0;
 
     my_time = 0;
@@ -348,6 +350,8 @@ fighter::fighter()
 
 void fighter::respawn(vec2f _pos)
 {
+    look_displacement = {0,0,0};
+
     frametime = 0;
 
     my_time = 0;
