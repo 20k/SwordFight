@@ -420,7 +420,7 @@ int main(int argc, char *argv[])
 
         if(network::network_state == 0)
         {
-            if((second_tick % 200) == 0)
+            //if((second_tick % 200) == 0)
             {
                 fight2.queue_attack(attacks::SLASH);
                 //fight2.queue_attack(attacks::BLOCK);
