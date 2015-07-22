@@ -152,10 +152,11 @@ void part::damage(float dam)
 
     //printf("%f\n", hp);
 
-    if(model.isactive && hp < 0.0001f)
+    if(is_active && hp < 0.0001f)
     {
         //printf("I blowed up %s\n", bodypart::names[type].c_str());
-        model.set_active(false);
+        //model.set_active(false);
+        set_active(false);
 
         obj_mem_manager::load_active_objects();
         obj_mem_manager::g_arrange_mem();
@@ -298,19 +299,11 @@ void sword::scale()
 void sword::set_pos(vec3f _pos)
 {
     pos = _pos;
-
-    //model.set_pos({pos.v[0], pos.v[1], pos.v[2]});
-
-    //model.g_flush_objects();
 }
 
 void sword::set_rot(vec3f _rot)
 {
     rot = _rot;
-
-    //model.set_rot({rot.v[0], rot.v[1], rot.v[2]});
-
-    //model.g_flush_objects();
 }
 
 ///need to only maintain 1 copy of this, I'm just a muppet
