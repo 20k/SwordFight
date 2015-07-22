@@ -1297,51 +1297,17 @@ void fighter::update_sword_rot()
 
         weapon.dir = avg.norm();
 
-
-        /*float x = atan2(avg.v[1], avg.v[2]) - M_PI/2.f;
-        float y = atan2(avg.v[2], avg.v[0]);
-        float z = atan2(avg.v[1], avg.v[0]);
-
-        weapon.set_rot({0, y, x});*/
-
         float angle2 = acos(dot((vec3f){0, 1, 0}, avg.norm()));
 
         float y = atan2(avg.v[2], avg.v[0]);
 
-        vec3f rot = {0,y,angle2};
-
-
-        //weapon.set_rot({rx, ry, rz});
+        vec3f rot = {0, y, angle2};
 
         weapon.set_rot({0, y, angle2});
 
         parts[LHAND].set_rot({0, y, angle2});
         parts[RHAND].set_rot({0, y, angle2});
 
-        /*mat3f m;
-
-        m.from_dir(avg.norm());
-
-        float a11, a12, a13, a21, a22, a23, a31, a32, a33;
-
-        a11 = m.v[0][0];
-        a12 = m.v[0][1];
-        a13 = m.v[0][2];
-
-        a21 = m.v[1][0];
-        a22 = m.v[1][1];
-        a23 = m.v[1][2];
-
-        a31 = m.v[2][0];
-        a32 = m.v[2][1];
-        a33 = m.v[2][2];
-
-
-        float x = atan2(a32, a33);
-        float y = atan2(-a31, sqrtf(a32*a32 + a33*a33));
-        float z = atan2(a21, a11);*/
-
-        //weapon.set_rot({z, y, x});
     }
 }
 
