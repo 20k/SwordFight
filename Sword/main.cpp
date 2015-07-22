@@ -174,10 +174,6 @@ void fps_controls(fighter* my_fight, engine& window)
     if(once<sf::Keyboard::Q>())
         my_fight->try_feint();
 
-    //static vec3f old_rot = xyz_to_vec(window.c_rot);
-
-    //vec3f diff = xyz_to_vec(window.c_rot) - old_rot;
-
     my_fight->set_look({-window.c_rot.s[0], window.get_mouse_delta_x() / 1.f, 0});
 
     part* head = &my_fight->parts[bodypart::HEAD];
@@ -220,7 +216,7 @@ void net_slave(fighter& fight)
 {
     for(auto& i : fight.parts)
     {
-        network::slave_object(&i.model);
+        network::slave_object(i.obj());
         network::slave_var(&i.hp); ///this is not an error, hp transmission is handled when hp takes damage
     }
 
@@ -235,7 +231,7 @@ void make_host(fighter& fight)
 {
     for(auto& i : fight.parts)
     {
-        network::transform_host_object(&i.model);
+        network::transform_host_object(i.obj());
         ///no need to touch hp here as its always a slave variable
     }
 
@@ -424,8 +420,8 @@ int main(int argc, char *argv[])
 
             if(once<sf::Keyboard::N>())
             {
-                vec3f loc = xyz_to_vec(fight2.parts[bodypart::BODY].model.pos);
-                vec3f rot = xyz_to_vec(fight2.parts[bodypart::BODY].model.rot);
+                vec3f loc = fight2.parts[bodypart::BODY].global_pos;
+                vec3f rot = fight2.parts[bodypart::BODY].global_rot;
 
                 fight2.respawn({loc.v[0], loc.v[2]});
                 fight2.set_rot(rot);
@@ -496,7 +492,7 @@ int main(int argc, char *argv[])
         my_fight->update_render_positions();
 
         ///ergh
-        sound::set_listener(xyz_to_vec(my_fight->parts[bodypart::BODY].model.pos), xyz_to_vec(my_fight->parts[bodypart::BODY].model.rot));
+        sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
 
         window.draw_bulk_objs_n();
 

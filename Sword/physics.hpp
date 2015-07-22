@@ -12,7 +12,6 @@ struct objects_container;
 
 struct physobj
 {
-    objects_container* obj;
     part* p;
     fighter* parent;
 
@@ -30,7 +29,7 @@ struct physics
 {
     std::vector<physobj> bodies;
 
-    void add_objects_container(objects_container* o, part* p, fighter* parent);
+    void add_objects_container(part* p, fighter* parent);
 
     void load();
 

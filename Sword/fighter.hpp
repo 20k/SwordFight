@@ -9,7 +9,7 @@
 
 #include "bbox.hpp"
 
-#include "cape.hpp"
+//#include "cape.hpp"
 
 namespace mov
 {
@@ -142,7 +142,10 @@ struct part
     bodypart_t type;
     vec3f pos;
     vec3f rot;
-    objects_container model;
+    vec3f global_pos;
+    vec3f global_rot;
+
+    bool is_active;
 
     int team;
 
@@ -151,6 +154,10 @@ struct part
     void set_type(bodypart_t); ///sets me up in the default position
     void set_pos(vec3f pos);
     void set_rot(vec3f rot);
+    void set_global_pos(vec3f global_pos);
+    void set_global_rot(vec3f global_rot);
+    void update_model();
+
     void set_team(int _team);
     void damage(float dam);
     void set_hp(float h);
@@ -161,8 +168,14 @@ struct part
     part(bodypart_t);
     ~part();
 
+    void set_active(bool);
+    void scale(float);
+
+    objects_container* obj();
+
 private:
     void network_hp();
+    objects_container model;
 };
 
 ///one single movement
@@ -368,7 +381,7 @@ struct fighter
 
     bool idling;
 
-    cape my_cape;
+    //cape my_cape;
 
     ///sigh, cant be on init because needs to be after object load
     void scale();

@@ -58,10 +58,15 @@ void part::set_type(bodypart_t t)
 
 part::part()
 {
+    is_active = false;
+
     hp = 1.f;
 
     set_pos({0,0,0});
     set_rot({0,0,0});
+
+    set_global_pos({0,0,0});
+    set_global_rot({0,0,0});
 
     model.set_file("./Res/bodypart_red.obj");
 }
@@ -76,22 +81,49 @@ part::~part()
     model.set_active(false);
 }
 
+void part::set_active(bool active)
+{
+    model.set_active(active);
+
+    is_active = active;
+}
+
+void part::scale(float amount)
+{
+    model.scale(amount);
+}
+
+objects_container* part::obj()
+{
+    return &model;
+}
+
 void part::set_pos(vec3f _pos)
 {
     pos = _pos;
-
-    //model.set_pos({pos.v[0], pos.v[1], pos.v[2]});
-
-   // model.g_flush_objects();
 }
 
 void part::set_rot(vec3f _rot)
 {
     rot = _rot;
+}
 
-    //model.set_rot({rot.v[0], rot.v[1], rot.v[2]});
+void part::set_global_pos(vec3f _global_pos)
+{
+    global_pos = _global_pos;
+}
 
-    //model.g_flush_objects();
+void part::set_global_rot(vec3f _global_rot)
+{
+    global_rot = _global_rot;
+}
+
+void part::update_model()
+{
+    model.set_pos({global_pos.v[0], global_pos.v[1], global_pos.v[2]});
+    model.set_rot({global_rot.v[0], global_rot.v[1], global_rot.v[2]});
+
+    model.g_flush_objects();
 }
 
 void part::set_team(int _team)
@@ -107,7 +139,7 @@ void part::set_team(int _team)
 
     model.unload();
 
-    model.set_active(true);
+    set_active(true);
 
     team = _team;
 }
@@ -421,7 +453,7 @@ void fighter::respawn(vec2f _pos)
 
     for(auto& i : parts)
     {
-        i.model.set_active(true);
+        i.set_active(true);
     }
 
     weapon.model.set_active(true);
@@ -437,7 +469,7 @@ void fighter::die()
 
     for(auto& i : parts)
     {
-        i.model.set_active(false);
+        i.set_active(false);
     }
 
     weapon.model.set_active(false);
@@ -450,7 +482,7 @@ void fighter::die()
 void fighter::scale()
 {
     for(size_t i=0; i<bodypart::COUNT; i++)
-        parts[i].model.scale(bodypart::scale/3.f);
+        parts[i].scale(bodypart::scale/3.f);
 
     weapon.scale();
 }
@@ -688,8 +720,6 @@ void fighter::spherical_move(int hand, vec3f pos, float time, bodypart_t b)
 ///we want the hands to be slightly offset on the sword
 void fighter::tick(bool is_player)
 {
-    //static float sanity = 0;
-
     float cur_time = frame_clock.getElapsedTime().asMicroseconds() / 1000.f;
 
     frametime = cur_time - my_time;
@@ -707,14 +737,10 @@ void fighter::tick(bool is_player)
 
     if(net.recoil)
     {
-        //if(can_recoil())
         recoil();
 
         net.recoil = 0;
     }
-
-
-    bool just_hand = false; ///it was this frame!
 
     for(movement& i : moves)
     {
@@ -736,19 +762,11 @@ void fighter::tick(bool is_player)
 
             if((i.limb == LHAND || i.limb == RHAND) && i.does(mov::START_INDEPENDENT))
                 i.start = focus_pos;
-
-            //sanity = 0;
         }
 
         busy_list.push_back(i.limb);
 
         float frac = i.get_frac();
-
-        //sanity += 0.02f;
-
-        //frac = sanity;
-
-        //printf("%f\n", frac);
 
         frac = clamp(frac, 0.f, 1.f);
 
@@ -781,11 +799,6 @@ void fighter::tick(bool is_player)
 
         if(i.limb == LHAND || i.limb == RHAND)
         {
-            just_hand = true;
-
-            //IK_hand(i.hand, current_pos);
-            //IK_hand((i.hand + 1) % 2, parts[i.limb].pos); ///for the moment we just bruteforce IK both hands
-
             ///focus pos is relative to player, but does NOT include look_displacement OR world anything
             vec3f old_pos = focus_pos;
             focus_pos = current_pos;
@@ -1397,9 +1410,9 @@ void fighter::update_render_positions()
 
         auto r = to_world_space(pos, rot, t_pos, i.rot);
 
-        i.model.set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
-        i.model.set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
-        i.model.g_flush_objects();
+        i.set_global_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
+        i.set_global_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
+        i.update_model();
     }
 
     auto r = to_world_space(pos, rot, weapon.pos, weapon.rot);
@@ -1433,7 +1446,7 @@ void fighter::set_physics(physics* _phys)
 
     for(part& i : parts)
     {
-        phys->add_objects_container(&i.model, &i, this);
+        phys->add_objects_container(&i, this);
     }
 }
 

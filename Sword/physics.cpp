@@ -18,11 +18,11 @@
 bool physobj::within(vec3f pos, vec3f fudge)
 {
     for(int i=0; i<3; i++)
-        if(pos.v[i] < min_pos.v[i] + obj->pos.s[i] - fudge.v[i]) ///lower than minimum point, not inside cube
+        if(pos.v[i] < min_pos.v[i] + p->global_pos.v[i] - fudge.v[i]) ///lower than minimum point, not inside cube
             return false;
 
     for(int i=0; i<3; i++)
-        if(pos.v[i] >= max_pos.v[i] + obj->pos.s[i] + fudge.v[i]) ///greater than maximum point, not inside cube
+        if(pos.v[i] >= max_pos.v[i] + p->global_pos.v[i] + fudge.v[i]) ///greater than maximum point, not inside cube
             return false;
 
     ///must be within cube
@@ -56,14 +56,13 @@ bbox get_bbox(objects_container* obj)
 }
 
 
-void physics::add_objects_container(objects_container* _obj, part* _p, fighter* _parent)
+void physics::add_objects_container(part* _p, fighter* _parent)
 {
     physobj p;
-    p.obj = _obj;
     p.p = _p;
     p.parent = _parent;
 
-    bbox b = get_bbox(_obj);
+    bbox b = get_bbox(p.p->obj());
 
     p.min_pos = b.min;
     p.max_pos = b.max;
@@ -145,7 +144,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
         for(int i=0; i<bodies.size(); i++)
         {
-            if(bodies[i].p->team != w.team && bodies[i].p->alive() && bodies[i].within(pos, {min_dist, min_dist, min_dist}) && bodies[i].p->model.isactive)
+            if(bodies[i].p->team != w.team && bodies[i].p->alive() && bodies[i].within(pos, {min_dist, min_dist, min_dist}) && bodies[i].p->is_active)
             {
                 bodypart_t type = (bodypart_t)(i % bodypart::COUNT);
 
@@ -155,7 +154,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                 ///these are also very likely working as extrinsic rotations
                 float their_x = sin(them->look_displacement.v[1] / arm_length);
-                float their_y = them->parts[bodypart::BODY].model.rot.s[1];
+                float their_y = them->parts[bodypart::BODY].global_rot.v[1];
 
                 ///this is very likely correct!
                 vec3f rotated_sword_dir = sword_move_dir.rot({0,0,0}, my_parent->rot);
@@ -170,7 +169,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 vec3f t_look = (vec3f){0, 0, -1}.rot({0,0,0}, -(vec3f){their_x, 0.f, 0.f});
 
                 ///this one transforms the rotation into global rotation space
-                t_look = t_look.rot({0,0,0}, xyz_to_vec(them->parts[bodypart::BODY].model.rot));
+                t_look = t_look.rot({0,0,0}, them->parts[bodypart::BODY].global_rot);
 
                 ///angle between look and sword direction
                 ///we want the opposite direction for one of these components
