@@ -464,7 +464,6 @@ void fighter::set_look(vec3f _look)
     vec3f clamps = {M_PI/8.f, M_PI/12.f, M_PI/8.f};
     new_look = clamp(new_look, -clamps, clamps);
 
-
     vec3f origin = parts[bodypart::BODY].pos;
 
     vec3f c2b = current_look - origin;
@@ -479,7 +478,7 @@ void fighter::set_look(vec3f _look)
         new_look = mix(current_look, new_look, angle_constraint);
     }
 
-    new_look = clamp(new_look, -clamps, clamps);
+    new_look = clamp(new_look, -clamps, clamps); /// just in case for some reason the old current_look was oob
 
     const float displacement = (rest_positions[bodypart::LHAND] - rest_positions[bodypart::LUPPERARM]).length();
 
