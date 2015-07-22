@@ -219,6 +219,23 @@ struct vec
         return atan2(v[1], v[0]);
     }
 
+    vec<3, T> get_euler()
+    {
+        static_assert(N == 3, "Can only convert 3 element vectors into euler angles");
+
+        vec<3, T> dir = *this;
+
+        float cangle = dot((vec<3, T>){0, 1, 0}, dir.norm());
+
+        float angle2 = acos(cangle);
+
+        float y = atan2(dir.v[2], dir.v[0]);
+
+        vec<3, T> rot = {0, y, angle2};
+
+        return rot;
+    }
+
     operator float() const
     {
         static_assert(N == 1, "Implicit float can conversion only be used on vec<1,T> types");

@@ -341,6 +341,8 @@ struct networked_components
 
 struct fighter
 {
+    std::vector<objects_container> joint_links;
+
     float frametime;
     float my_time;
 
@@ -356,6 +358,7 @@ struct fighter
     vec3f old_pos[bodypart::COUNT];
 
     fighter();
+    void load();
 
     ///ideally we want movements to be ptrs, then delete them on removal
     std::map<bodypart_t, movement> action_map;

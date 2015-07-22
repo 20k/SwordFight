@@ -309,6 +309,14 @@ void sword::set_rot(vec3f _rot)
 ///need to only maintain 1 copy of this, I'm just a muppet
 fighter::fighter()
 {
+    load();
+
+    pos = {0,0,0};
+    rot = {0,0,0};
+}
+
+void fighter::load()
+{
     rot_diff = {0,0,0};
 
     look_displacement = {0,0,0};
@@ -369,76 +377,11 @@ fighter::fighter()
     IK_hand(1, weapon.pos);
 
     focus_pos = weapon.pos;
-
-    pos = {0,0,0};
-    rot = {0,0,0};
 }
 
 void fighter::respawn(vec2f _pos)
 {
-    rot_diff = {0,0,0};
-
-    look_displacement = {0,0,0};
-
-    frametime = 0;
-
-    my_time = 0;
-
-    frame_clock.restart();
-
-    look = {0,0,0};
-
-    net.dead = false;
-
-    left_frac = 0.f;
-    right_frac = 0.f;
-
-    idle_fired_first = -1;
-
-    idling = false;
-
-    team = 0;
-
-    left_full = false;
-
-    left_id = -1;
-    right_id = -1;
-
-    left_stage = 0;
-    right_stage = 1;
-
-
-    left_fired = false;
-    right_fired = false;
-
-    stance = 0;
-
-    //rest_positions = bodypart::init_default();
-
-    for(size_t i=0; i<bodypart::COUNT; i++)
-    {
-        parts[i].set_type((bodypart_t)i); ///resets hp, and networks it
-        old_pos[i] = parts[i].pos;
-    }
-
-    ///this is a dirty, dirty hack to smooth the knee positions first time around
-    for(int i=0; i<100; i++)
-    {
-        IK_foot(0, parts[bodypart::LFOOT].pos);
-        IK_foot(1, parts[bodypart::RFOOT].pos);
-
-        for(int i=0; i<bodypart::COUNT; i++)
-        {
-            old_pos[i] = parts[i].pos;
-        }
-    }
-
-    weapon.set_pos({0, -200, -100});
-
-    IK_hand(0, weapon.pos);
-    IK_hand(1, weapon.pos);
-
-    focus_pos = weapon.pos;
+    load();
 
     ///need to randomise this really
     pos = {_pos.v[0],0,_pos.v[1]};
@@ -1297,17 +1240,12 @@ void fighter::update_sword_rot()
 
         weapon.dir = avg.norm();
 
-        float angle2 = acos(dot((vec3f){0, 1, 0}, avg.norm()));
+        vec3f rot = avg.get_euler();
 
-        float y = atan2(avg.v[2], avg.v[0]);
+        weapon.set_rot(rot);
 
-        vec3f rot = {0, y, angle2};
-
-        weapon.set_rot({0, y, angle2});
-
-        parts[LHAND].set_rot({0, y, angle2});
-        parts[RHAND].set_rot({0, y, angle2});
-
+        parts[LHAND].set_rot(rot);
+        parts[RHAND].set_rot(rot);
     }
 }
 
