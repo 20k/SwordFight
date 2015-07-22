@@ -1421,6 +1421,22 @@ void fighter::update_render_positions()
     }
 }
 
+void fighter::overwrite_parts_from_model()
+{
+    for(part& i : parts)
+    {
+        cl_float4 pos = i.obj()->pos;
+        cl_float4 rot = i.obj()->rot;
+
+        i.set_global_pos(xyz_to_vec(pos));
+        i.set_global_rot(xyz_to_vec(rot));
+
+        i.update_model();
+    }
+
+    ///do not need to update weapon because it does not currently have a global position stored (not a part)
+}
+
 void fighter::set_team(int _team)
 {
     team = _team;

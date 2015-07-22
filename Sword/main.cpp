@@ -491,6 +491,12 @@ int main(int argc, char *argv[])
 
         my_fight->update_render_positions();
 
+
+        for(auto& i : net_fighters)
+            ///this copies the model positions back to the part global positions so that it works with the physics
+            ///ideally we'd want a net.pos and net.rot for them, would be less cumbersome?
+            i->overwrite_parts_from_model();
+
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
 
@@ -506,6 +512,6 @@ int main(int argc, char *argv[])
 
         window.display();
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }
