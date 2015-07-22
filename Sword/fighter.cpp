@@ -730,7 +730,8 @@ void fighter::tick(bool is_player)
 
     if(net.recoil)
     {
-        recoil();
+        if(can_recoil())
+            recoil();
 
         net.recoil = 0;
     }
@@ -1297,19 +1298,25 @@ void fighter::update_sword_rot()
         weapon.dir = avg.norm();
 
 
-        float x = atan2(avg.v[1], avg.v[2]) - M_PI/2.f;
+        /*float x = atan2(avg.v[1], avg.v[2]) - M_PI/2.f;
         float y = atan2(avg.v[2], avg.v[0]);
         float z = atan2(avg.v[1], avg.v[0]);
 
+        weapon.set_rot({0, y, x});*/
 
-        //static float xy = 0.f;
+        float angle2 = acos(dot((vec3f){0, 1, 0}, avg.norm()));
 
-        //xy += 0.01f;
+        float y = atan2(avg.v[2], avg.v[0]);
 
-        weapon.set_rot({0, y, x});
+        vec3f rot = {0,y,angle2};
 
-        parts[LHAND].set_rot({0, y, x});
-        parts[RHAND].set_rot({0, y, x});
+
+        //weapon.set_rot({rx, ry, rz});
+
+        weapon.set_rot({0, y, angle2});
+
+        parts[LHAND].set_rot({0, y, angle2});
+        parts[RHAND].set_rot({0, y, angle2});
 
         /*mat3f m;
 
@@ -1539,11 +1546,6 @@ void fighter::damage(bodypart_t type, float d)
 
     parts[type].damage(d);
 
-    if(can_recoil())
-    {
-        net.recoil = 1;
-        network::host_update(&net.recoil);
-
-        cancel_hands();
-    }
+    net.recoil = 1;
+    network::host_update(&net.recoil);
 }

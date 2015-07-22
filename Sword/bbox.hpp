@@ -8,5 +8,4 @@ struct bbox
     vec3f max;
 };
 
-
 #endif // BBOX_HPP_INCLUDED

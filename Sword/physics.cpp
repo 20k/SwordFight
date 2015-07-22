@@ -222,6 +222,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                 ///we still want to recoil even if we hit THEIR hand, but no damage
                 ///this doesn't get networked...?
+                ///networking has no idea what move they're currently doing
+                ///always send them a recoil regardless, and they can work it out
                 if((type == bodypart::LHAND || type == bodypart::RHAND))
                 {
                     if(m1.does(mov::WINDUP) || m2.does(mov::WINDUP))
@@ -230,12 +232,12 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                         caused_hand_recoil = true;
 
-                        ///want to network them recoiling
-                        them->net.recoil = 1;
-                        network::host_update(&them->net.recoil);
-
-                        them->cancel_hands(); ///will recoil
                     }
+
+                    ///want to network them recoiling
+                    ///their client will figure out whether or not it makes any sense
+                    them->net.recoil = 1;
+                    network::host_update(&them->net.recoil);
 
                     continue;
                 }
@@ -254,6 +256,10 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     }
 
     ///did not do a real hit
+    ///this will not send sound over the network currently, no way to tell if they've actually recoiled or not
+    ///this wont get triggered on a net client
+    ///then again, do we need hands to be treated separately? could just always do damage noise on them, but then again
+    ///breaks flow a little
     if(caused_hand_recoil)
     {
         if(is_player)
