@@ -150,6 +150,9 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                 fighter* them = bodies[i].parent;
 
+                if(them->net.dead)
+                    continue;
+
                 float arm_length = (them->rest_positions[bodypart::LUPPERARM] - them->rest_positions[bodypart::LHAND]).length();
 
                 ///these are also very likely working as extrinsic rotations
