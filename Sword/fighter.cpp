@@ -163,6 +163,12 @@ void part::damage(float dam)
     {
         //printf("I blowed up %s\n", bodypart::names[type].c_str());
         //model.set_active(false);
+
+        particle_effect e;
+
+        e.make(1300, global_pos, 100.f, 10);
+        e.push();
+
         set_active(false);
 
         obj_mem_manager::load_active_objects();
@@ -489,7 +495,9 @@ void fighter::die()
 
     {
         vec3f weapon_pos = xyz_to_vec(weapon.model.pos);
-        vec3f weapon_dir = weapon.dir;
+        vec3f weapon_rot = xyz_to_vec(weapon.model.rot);
+
+        vec3f weapon_dir = (vec3f){0, 1, 0}.rot({0,0,0}, weapon_rot);
 
         float sword_height = FLT_MIN;
 
@@ -514,7 +522,6 @@ void fighter::die()
             e.push();
         }
     }
-
 
     obj_mem_manager::load_active_objects();
     obj_mem_manager::g_arrange_mem();
