@@ -26,12 +26,12 @@ void text::add_random(const std::string& str, int time)
 {
     vec2f centre = (vec2f){width/2.f, height/2.f};
 
-    vec2f ran = (vec2f){randf(), randf()};
+    vec2f ran = (vec2f){randf<1, float>(), randf<1, float>()};
 
     ran = ran - 0.5f;
     ran = ran * 0.4f;
 
-    ran = ran * height;
+    ran = ran * (float)height;
 
     //printf("%f %f\n", ran.v[0], ran.v[1]);
 

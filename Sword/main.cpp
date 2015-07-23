@@ -18,6 +18,7 @@
 #include "sound.hpp"
 
 #include "object_cube.hpp"
+#include "particle_effect.hpp"
 
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
@@ -94,6 +95,11 @@ void debug_controls(fighter* my_fight, engine& window)
     if(once<sf::Keyboard::H>())
     {
         my_fight->try_feint();
+    }
+
+    if(once<sf::Keyboard::SemiColon>())
+    {
+        my_fight->die();
     }
 
     float y_diff = 0;
@@ -506,6 +512,8 @@ int main(int argc, char *argv[])
 
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
+
+        particle_effect::tick();
 
         window.draw_bulk_objs_n();
 

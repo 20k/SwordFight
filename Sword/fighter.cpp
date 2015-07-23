@@ -6,6 +6,8 @@
 
 #include "object_cube.hpp"
 
+#include "particle_effect.hpp"
+
 const vec3f* bodypart::init_default()
 {
     using namespace bodypart;
@@ -462,6 +464,10 @@ void fighter::die()
     }
 
     ///spawn in some kind of swanky effect here
+
+    particle_effect e;
+    e.make(1000, pos, 100.f);
+    e.push();
 
     obj_mem_manager::load_active_objects();
     obj_mem_manager::g_arrange_mem();

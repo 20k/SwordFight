@@ -6,17 +6,6 @@
 
 #define M_PIf ((float)M_PI)
 
-inline float randf()
-{
-    return (float)rand() / (RAND_MAX + 1.f);
-}
-
-///both of these functions are stolen shamelessly off stackoverflow
-///https://stackoverflow.com/questions/686353/c-random-float-number-generation
-inline float randf(float M, float N)
-{
-    return M + (rand() / ( RAND_MAX / (N-M) ) ) ;
-}
 
 template<int N, typename T>
 struct vec
@@ -266,6 +255,45 @@ typedef vec<3, int> vec3i;
 typedef vec<2, int> vec2i;
 
 
+inline float randf_s()
+{
+    return (float)rand() / (RAND_MAX + 1.f);
+}
+
+///both of these functions are stolen shamelessly off stackoverflow
+///https://stackoverflow.com/questions/686353/c-random-float-number-generation
+inline float randf_s(float M, float N)
+{
+    return M + (rand() / ( RAND_MAX / (N-M) ) ) ;
+}
+
+template<int N, typename T>
+inline
+vec<N, T> randf(float M, float MN)
+{
+    vec<N, T> ret;
+
+    for(int i=0; i<N; i++)
+    {
+        ret.v[i] = randf_s(M, MN);
+    }
+
+    return ret;
+}
+
+template<int N, typename T>
+inline
+vec<N, T> randf()
+{
+    vec<N, T> ret;
+
+    for(int i=0; i<N; i++)
+    {
+        ret.v[i] = randf_s();
+    }
+
+    return ret;
+}
 
 template<int N, typename T>
 inline

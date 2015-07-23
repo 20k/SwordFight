@@ -41,10 +41,10 @@ void sound::add(int type, vec3f pos)
     sf::Sound& sd = sounds.back();
 
     sd.setBuffer(s[type]);
-    sd.setPitch(randf(0.8f, 1.20f));
+    sd.setPitch(randf_s(0.8f, 1.20f));
     sd.setRelativeToListener(true);
     sd.setAttenuation(0.005f);
-    sd.setVolume(randf(80, 100));
+    sd.setVolume(randf_s(80, 100));
 
     sd.setPosition(-rel.v[0], rel.v[1], -rel.v[2]); ///sfml is probably opengl coords. X may be backwards
 
