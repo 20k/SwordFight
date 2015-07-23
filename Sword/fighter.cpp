@@ -329,8 +329,8 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
 
     l.obj = o;
 
-    l.start = &p1->global_pos;
-    l.fin = &p2->global_pos;
+    l.p1 = p1;
+    l.p2 = p2;
 
     l.offset = offset;
 
@@ -418,7 +418,11 @@ void fighter::load()
 
 void fighter::respawn(vec2f _pos)
 {
+    int old_team = team;
+
     load();
+
+    team = old_team;
 
     ///need to randomise this really
     pos = {_pos.v[0],0,_pos.v[1]};
@@ -431,7 +435,12 @@ void fighter::respawn(vec2f _pos)
 
     weapon.model.set_active(true);
 
+    set_team(team);
+
     obj_mem_manager::load_active_objects();
+
+    scale();
+
     obj_mem_manager::g_arrange_mem();
     obj_mem_manager::g_changeover();
 }
@@ -446,6 +455,13 @@ void fighter::die()
     }
 
     weapon.model.set_active(false);
+
+    for(auto& i : joint_links)
+    {
+        i.obj.set_active(false);
+    }
+
+    ///spawn in some kind of swanky effect here
 
     obj_mem_manager::load_active_objects();
     obj_mem_manager::g_arrange_mem();
@@ -1364,10 +1380,12 @@ void fighter::update_render_positions()
 
     for(auto& i : joint_links)
     {
+        bool active = i.p1->is_active && i.p2->is_active;
+
         objects_container* obj = &i.obj;
 
-        vec3f start = *i.start;
-        vec3f fin = *i.fin;
+        vec3f start = i.p1->global_pos;
+        vec3f fin = i.p2->global_pos;
 
         start = start + i.offset;
         fin = fin + i.offset;
@@ -1416,6 +1434,13 @@ void fighter::set_team(int _team)
 
     weapon.set_team(team);
 
+    for(auto& i : joint_links)
+    {
+        i.obj.set_active(false);
+    }
+
+    joint_links.clear();
+
     ///now we know the team, we can add the joint parts
     using namespace bodypart;
 
@@ -1445,6 +1470,7 @@ void fighter::set_team(int _team)
 
     joint_links.push_back(make_link(&parts[LLOWERLEG], &parts[LFOOT], team, 0.1f));
     joint_links.push_back(make_link(&parts[RLOWERLEG], &parts[RFOOT], team, 0.1f));
+
 
     for(auto& i : joint_links)
     {

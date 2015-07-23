@@ -341,8 +341,8 @@ struct networked_components
 
 struct link
 {
-    vec3f* start;
-    vec3f* fin;
+    part* p1;
+    part* p2;
 
     objects_container obj;
 
