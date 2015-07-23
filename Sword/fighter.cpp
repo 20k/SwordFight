@@ -466,12 +466,38 @@ void fighter::die()
     ///spawn in some kind of swanky effect here
 
     particle_effect e;
-    e.make(1000, pos, 100.f);
+    e.make(1300, parts[bodypart::BODY].global_pos, 250.f);
     e.push();
 
     obj_mem_manager::load_active_objects();
     obj_mem_manager::g_arrange_mem();
     obj_mem_manager::g_changeover();
+}
+
+void fighter::checked_death()
+{
+    const int num_destroyed_to_die = 3;
+
+    int num_destroyed = 0;
+
+    for(auto& p : parts)
+    {
+        if(p.hp <= 0)
+        {
+            //printf("%s\n", names[p.type].c_str());
+
+            num_destroyed++;
+        }
+    }
+
+    //printf("%i\n", num_destroyed);
+
+    if(num_destroyed >= num_destroyed_to_die && !net.dead)
+        die();
+    else if(num_destroyed < num_destroyed && net.dead)
+        die();
+
+    network::host_update(&net.dead);
 }
 
 void fighter::scale()
@@ -816,7 +842,10 @@ void fighter::tick(bool is_player)
                 {
                     fighter* their_parent = phys->bodies[i.hit_id].parent;
 
+                    ///this is the only time damage is applied to anything, ever
                     their_parent->damage((bodypart_t)(i.hit_id % COUNT), 0.4f);
+
+                    their_parent->checked_death();
 
                     //printf("%s\n", names[i.hit_id % COUNT].c_str());
                 }
@@ -857,6 +886,10 @@ void fighter::tick(bool is_player)
 
     ///process death
 
+    ///rip
+    checked_death();
+
+
     ///nope. DO THIS PROPERLY
     /*///propagate network model destruction
     for(auto& p : parts)
@@ -865,7 +898,7 @@ void fighter::tick(bool is_player)
             p.hp = 0;
     }*/
 
-    const int num_destroyed_to_die = 3;
+    /*const int num_destroyed_to_die = 3;
 
     int num_destroyed = 0;
 
@@ -883,6 +916,8 @@ void fighter::tick(bool is_player)
 
     if(num_destroyed >= num_destroyed_to_die && !net.dead)
         die();
+    else if(num_destroyed < num_destroyed && net.dead)
+        die();*/
 
     /*int collide_id = phys->sword_collides(weapon);
 

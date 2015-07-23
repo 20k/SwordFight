@@ -454,6 +454,7 @@ struct fighter
     ///resets all vars
     void respawn(vec2f pos = {0,0});
     void die();
+    void checked_death(); ///only die if we should
 
     ///rotation
     void set_look(vec3f look);

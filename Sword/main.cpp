@@ -233,6 +233,8 @@ void net_slave(fighter& fight)
     network::slave_var(&fight.net.is_blocking);
 
     network::slave_var(&fight.net.recoil);
+
+    network::slave_var(&fight.net.dead);
 }
 
 void make_host(fighter& fight)

@@ -231,7 +231,6 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                         hand_scr = scr;
 
                         caused_hand_recoil = true;
-
                     }
 
                     ///want to network them recoiling
