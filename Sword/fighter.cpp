@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include "../openclrenderer/network.hpp"
 
+#include "object_cube.hpp"
+
 const vec3f* bodypart::init_default()
 {
     using namespace bodypart;
@@ -90,7 +92,10 @@ void part::set_active(bool active)
 
 void part::scale(float amount)
 {
-    model.scale(amount);
+    if(type != bodypart::HEAD)
+        model.scale(amount);
+    else
+        model.scale(amount);
 }
 
 objects_container* part::obj()
@@ -306,6 +311,34 @@ void sword::set_rot(vec3f _rot)
     rot = _rot;
 }
 
+link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thickness = 18.f, vec3f offset = {0,0,0})
+{
+    vec3f dir = (p2->pos - p1->pos);
+
+    std::string tex = "./res/red.png";
+
+    ///should really define this in a header somewhere, rather than here in shit code
+    if(team == 1)
+        tex = "./res/blue.png";
+
+    objects_container o;
+    o.set_load_func(std::bind(load_object_cube, std::placeholders::_1, p1->pos + dir * squish, p2->pos - dir * squish, thickness, tex));
+    o.cache = false;
+
+    link l;
+
+    l.obj = o;
+
+    l.start = &p1->global_pos;
+    l.fin = &p2->global_pos;
+
+    l.offset = offset;
+
+    l.squish_frac = squish;
+
+    return l;
+}
+
 ///need to only maintain 1 copy of this, I'm just a muppet
 fighter::fighter()
 {
@@ -317,6 +350,10 @@ fighter::fighter()
 
 void fighter::load()
 {
+    net.dead = false;
+    net.recoil = false;
+    net.is_blocking = false;
+
     rot_diff = {0,0,0};
 
     look_displacement = {0,0,0};
@@ -553,7 +590,7 @@ void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1
 
     float to_target = (pos - p1).length();
 
-    float len = std::min(max_len, to_target);
+    //float len = std::min(max_len, to_target);
 
     vec3f dir = (pos - p1).norm();
 
@@ -1325,6 +1362,26 @@ void fighter::update_render_positions()
     weapon.model.set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
     weapon.model.g_flush_objects();
 
+    for(auto& i : joint_links)
+    {
+        objects_container* obj = &i.obj;
+
+        vec3f start = *i.start;
+        vec3f fin = *i.fin;
+
+        start = start + i.offset;
+        fin = fin + i.offset;
+
+        vec3f rot = (fin - start).get_euler();
+
+        vec3f dir = (fin - start);
+
+        start = start + dir * i.squish_frac;
+
+        obj->set_pos({start.v[0], start.v[1], start.v[2]});
+        obj->set_rot({rot.v[0], rot.v[1], rot.v[2]});
+        obj->g_flush_objects();
+    }
 
     for(int i=0; i<bodypart::COUNT; i++)
     {
@@ -1358,6 +1415,41 @@ void fighter::set_team(int _team)
     }
 
     weapon.set_team(team);
+
+    ///now we know the team, we can add the joint parts
+    using namespace bodypart;
+
+    joint_links.push_back(make_link(&parts[LUPPERARM], &parts[LLOWERARM], team, 0.1f));
+    joint_links.push_back(make_link(&parts[LLOWERARM], &parts[LHAND], team, 0.1f));
+
+    joint_links.push_back(make_link(&parts[RUPPERARM], &parts[RLOWERARM], team, 0.1f));
+    joint_links.push_back(make_link(&parts[RLOWERARM], &parts[RHAND], team, 0.1f));
+
+    joint_links.push_back(make_link(&parts[LUPPERARM], &parts[BODY], team, 0.1f));
+    joint_links.push_back(make_link(&parts[RUPPERARM], &parts[BODY], team, 0.1f));
+
+    /*joint_links.push_back(make_link(&parts[LUPPERARM], &parts[RUPPERARM], 0.1f, 25.f, {0, -bodypart::scale * 0.2, 0}));
+    joint_links.push_back(make_link(&parts[LUPPERARM], &parts[RUPPERARM], 0.1f, 23.f, {0, -bodypart::scale * 0.8, 0}));
+    joint_links.push_back(make_link(&parts[LUPPERLEG], &parts[RUPPERLEG], -0.2f, 21.f, {0, bodypart::scale * 0.2, 0}));*/
+
+    //joint_links.push_back(make_link(&parts[LUPPERARM], &parts[BODY], 0.2f, {0, -bodypart::scale * 0.75f, 0}));
+    //joint_links.push_back(make_link(&parts[RUPPERARM], &parts[BODY], 0.2f, {0, -bodypart::scale * 0.75f, 0}));
+
+    //joint_links.push_back(make_link(&parts[LUPPERARM], &parts[BODY], 0.2f, {0, -bodypart::scale * 1.5f, 0}));
+    //joint_links.push_back(make_link(&parts[RUPPERARM], &parts[BODY], 0.2f, {0, -bodypart::scale * 1.5f, 0}));
+
+    /*joint_links.push_back(make_link(&parts[LUPPERLEG], &parts[RUPPERLEG], 0.2f));*/
+
+    joint_links.push_back(make_link(&parts[LUPPERLEG], &parts[LLOWERLEG], team, 0.1f));
+    joint_links.push_back(make_link(&parts[RUPPERLEG], &parts[RLOWERLEG], team, 0.1f));
+
+    joint_links.push_back(make_link(&parts[LLOWERLEG], &parts[LFOOT], team, 0.1f));
+    joint_links.push_back(make_link(&parts[RLOWERLEG], &parts[RFOOT], team, 0.1f));
+
+    for(auto& i : joint_links)
+    {
+        i.obj.set_active(true);
+    }
 }
 
 void fighter::set_physics(physics* _phys)

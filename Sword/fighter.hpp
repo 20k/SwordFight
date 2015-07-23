@@ -339,9 +339,21 @@ struct networked_components
     int recoil = 0; ///this is a recoil request, not necessarily saying i AM(?)
 };
 
+struct link
+{
+    vec3f* start;
+    vec3f* fin;
+
+    objects_container obj;
+
+    vec3f offset;
+
+    float squish_frac;
+};
+
 struct fighter
 {
-    std::vector<objects_container> joint_links;
+    std::vector<link> joint_links;
 
     float frametime;
     float my_time;

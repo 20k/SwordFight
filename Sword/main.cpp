@@ -244,7 +244,7 @@ void make_host(fighter& fight)
 
 int main(int argc, char *argv[])
 {
-    objects_container c1;
+    /*objects_container c1;
     c1.set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0, 0, 0}, (vec3f){0, 100, -100}, 20.f));
     c1.cache = false;
     c1.set_active(true);
@@ -252,7 +252,7 @@ int main(int argc, char *argv[])
     objects_container c2;
     c2.set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0, 0, 0}, (vec3f){100, -100, 100}, 20.f));
     c1.cache = false;
-    c2.set_active(true);
+    c2.set_active(true);*/
 
     engine window;
     window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
