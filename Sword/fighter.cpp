@@ -465,9 +465,56 @@ void fighter::die()
 
     ///spawn in some kind of swanky effect here
 
-    particle_effect e;
+    /*particle_effect e;
     e.make(1300, parts[bodypart::BODY].global_pos, 250.f);
     e.push();
+    e.make(1300, parts[bodypart::BODY].global_pos, 150.f);
+    e.push();
+    e.make(1300, parts[bodypart::BODY].global_pos, 100.f);
+    e.push();
+    e.make(1300, parts[bodypart::BODY].global_pos, 50.f);
+    e.push();*/
+
+    /*particle_effect e;
+    e.make(1300, parts[bodypart::BODY].global_pos, 50.f);
+    e.push();*/
+
+    for(auto& i : parts)
+    {
+        particle_effect e;
+
+        e.make(1300, i.global_pos, 50.f, 10);
+        e.push();
+    }
+
+    {
+        vec3f weapon_pos = xyz_to_vec(weapon.model.pos);
+        vec3f weapon_dir = weapon.dir;
+
+        float sword_height = FLT_MIN;
+
+        for(triangle& t : weapon.model.objs[0].tri_list)
+        {
+            for(vertex& v : t.vertices)
+            {
+                vec3f pos = xyz_to_vec(v.get_pos());
+
+                if(pos.v[1] > sword_height)
+                    sword_height = pos.v[1];
+            }
+        }
+
+        for(float i = 0; i < sword_height; i += 20.f)
+        {
+            vec3f pos = weapon_pos + i * weapon_dir.norm();
+
+            particle_effect e;
+
+            e.make(1300, pos, 50.f, 5);
+            e.push();
+        }
+    }
+
 
     obj_mem_manager::load_active_objects();
     obj_mem_manager::g_arrange_mem();
