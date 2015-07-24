@@ -159,7 +159,7 @@ struct part
     void update_model();
 
     void set_team(int _team);
-    void damage(float dam);
+    void damage(float dam, bool do_effect = true);
     void set_hp(float h);
 
     bool alive(); ///if the model is inactive, its considered dead
@@ -463,6 +463,8 @@ struct fighter
     ///resets all vars
     void respawn(vec2f pos = {0,0});
     void die();
+    bool should_die();
+    int num_dead();
     void checked_death(); ///only die if we should
 
     ///rotation

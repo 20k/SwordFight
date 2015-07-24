@@ -262,13 +262,13 @@ int main(int argc, char *argv[])
     c2.cache = false;
     c2.set_active(true);*/
 
-    /*objects_container floor;
+    objects_container floor;
     floor.set_load_func(std::bind(load_object_cube, std::placeholders::_1,
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0},
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0},
                                   3000.f, "./res/gray.png"));
     floor.cache = false;
-    floor.set_active(true);*/
+    floor.set_active(true);
 
     engine window;
     window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl", true);

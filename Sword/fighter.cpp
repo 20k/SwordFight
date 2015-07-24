@@ -155,7 +155,7 @@ void part::set_team(int _team)
 
 ///a network transmission of damage will get swollowed if you are hit between the time you spawn, and the time it takes to transmit
 ///the hp stat to the destination. This is probably acceptable
-void part::damage(float dam)
+void part::damage(float dam, bool do_effect)
 {
     hp -= dam;
 
@@ -164,12 +164,14 @@ void part::damage(float dam)
     if(is_active && hp < 0.0001f)
     {
         //printf("I blowed up %s\n", bodypart::names[type].c_str());
-        //model.set_active(false);
 
-        particle_effect e;
+        if(do_effect)
+        {
+            particle_effect e;
 
-        e.make(1300, global_pos, 100.f, 10);
-        e.push();
+            e.make(1300, global_pos, 100.f, 10);
+            e.push();
+        }
 
         set_active(false);
 
@@ -474,6 +476,8 @@ void fighter::respawn(vec2f _pos)
 
     obj_mem_manager::g_arrange_mem();
     obj_mem_manager::g_changeover();
+
+    network::host_update(&net.dead);
 }
 
 void fighter::die()
@@ -508,11 +512,13 @@ void fighter::die()
     e.make(1300, parts[bodypart::BODY].global_pos, 50.f);
     e.push();*/
 
+    const float death_time = 2000;
+
     for(auto& i : parts)
     {
         particle_effect e;
 
-        e.make(1300, i.global_pos, 50.f, 10);
+        e.make(death_time, i.global_pos, 50.f, 10);
         e.push();
     }
 
@@ -530,7 +536,7 @@ void fighter::die()
 
             particle_effect e;
 
-            e.make(1300, pos, 50.f, 5);
+            e.make(death_time, pos, 50.f, 5);
             e.push();
         }
     }
@@ -540,10 +546,8 @@ void fighter::die()
     obj_mem_manager::g_changeover();
 }
 
-void fighter::checked_death()
+int fighter::num_dead()
 {
-    const int num_destroyed_to_die = 3;
-
     int num_destroyed = 0;
 
     for(auto& p : parts)
@@ -556,12 +560,31 @@ void fighter::checked_death()
         }
     }
 
+    return num_destroyed;
+}
+
+bool fighter::should_die()
+{
+    const int num_destroyed_to_die = 3;
+
+    int num_destroyed = num_dead();
+
     //printf("%i\n", num_destroyed);
 
     if(num_destroyed >= num_destroyed_to_die && !net.dead)
-        die();
+        return true;
     else if(num_destroyed < num_destroyed && net.dead)
+        return true;
+
+    return false;
+}
+
+void fighter::checked_death()
+{
+    if(fighter::should_die())
+    {
         die();
+    }
 
     network::host_update(&net.dead);
 }
@@ -1686,7 +1709,9 @@ void fighter::damage(bodypart_t type, float d)
 {
     using namespace bodypart;
 
-    parts[type].damage(d);
+    bool do_explode_effect = num_dead() < 2;
+
+    parts[type].damage(d, do_explode_effect);
 
     net.recoil = 1;
     network::host_update(&net.recoil);
