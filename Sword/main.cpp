@@ -266,7 +266,7 @@ int main(int argc, char *argv[])
     floor.set_load_func(std::bind(load_object_cube, std::placeholders::_1,
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0},
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0},
-                                  3000.f, "./res/blue.png"));
+                                  3000.f, "./res/gray.png"));
     floor.cache = false;
     floor.set_active(true);
 
@@ -336,8 +336,8 @@ int main(int argc, char *argv[])
     light l;
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
-    l.set_brightness(1);
-    l.set_pos({0, -100, -300, 0});
+    l.set_brightness(0.0);
+    l.set_pos({0, 1000, -300, 0});
 
     window.add_light(&l);
 
@@ -539,6 +539,6 @@ int main(int argc, char *argv[])
 
         window.display();
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

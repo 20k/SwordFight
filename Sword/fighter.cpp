@@ -309,6 +309,21 @@ void sword::scale()
     model.scale(50.f);
 
     bound = get_bbox(&model);
+
+    float sword_height = FLT_MIN;
+
+    for(triangle& t : model.objs[0].tri_list)
+    {
+        for(vertex& v : t.vertices)
+        {
+            vec3f pos = xyz_to_vec(v.get_pos());
+
+            if(pos.v[1] > sword_height)
+                sword_height = pos.v[1];
+        }
+    }
+
+    length = sword_height;
 }
 
 void sword::set_pos(vec3f _pos)
@@ -354,6 +369,8 @@ fighter::fighter()
 {
     light l1;
 
+    my_lights.push_back(light::add_light(&l1));
+    my_lights.push_back(light::add_light(&l1));
     my_lights.push_back(light::add_light(&l1));
 
     load();
@@ -505,18 +522,7 @@ void fighter::die()
 
         vec3f weapon_dir = (vec3f){0, 1, 0}.rot({0,0,0}, weapon_rot);
 
-        float sword_height = FLT_MIN;
-
-        for(triangle& t : weapon.model.objs[0].tri_list)
-        {
-            for(vertex& v : t.vertices)
-            {
-                vec3f pos = xyz_to_vec(v.get_pos());
-
-                if(pos.v[1] > sword_height)
-                    sword_height = pos.v[1];
-            }
-        }
+        float sword_height = weapon.length;
 
         for(float i = 0; i < sword_height; i += 40.f)
         {
@@ -1486,15 +1492,34 @@ void fighter::update_render_positions()
 
     vec3f lpos = (parts[bodypart::LFOOT].global_pos + parts[bodypart::RFOOT].global_pos) / 2.f;
 
-    my_lights[0]->set_pos({lpos.v[0], lpos.v[1], lpos.v[2]});
-    my_lights[0]->set_radius(1000.f);
-    my_lights[0]->set_shadow_casting(0);
-    my_lights[0]->set_brightness(1.);
+    my_lights[0]->set_pos({lpos.v[0], lpos.v[1] + 20.f, lpos.v[2]});
 
-    if(team == 0)
-        my_lights[0]->set_col({1.f, 1.f, 1.f, 0.f});
-    else
-        my_lights[0]->set_col({1.f, 1.f, 1.f, 0.f});
+    vec3f bpos = (vec3f){0, parts[bodypart::BODY].pos.v[1], -100.f}.rot({0,0,0}, rot) + pos;
+
+    my_lights[1]->set_pos({bpos.v[0], bpos.v[1], bpos.v[2]});
+
+    vec3f sword_tip = xyz_to_vec(weapon.model.pos) + (vec3f){0, weapon.length, 0}.rot({0,0,0}, xyz_to_vec(weapon.model.rot));
+
+    my_lights[2]->set_pos({sword_tip.v[0], sword_tip.v[1], sword_tip.v[2]});
+
+    for(auto& i : my_lights)
+    {
+        i->set_radius(1000.f);
+        i->set_shadow_casting(0);
+        i->set_brightness(1.f);
+    }
+
+    my_lights[1]->set_radius(500.f);
+    my_lights[2]->set_radius(400.f);
+
+    for(auto& i : my_lights)
+    {
+        if(team == 0)
+            i->set_col({1.f, 0.f, 0.f, 0.f});
+        else
+            i->set_col({0.f, 0.f, 1.f, 0.f});
+    }
+
 }
 
 void fighter::overwrite_parts_from_model()

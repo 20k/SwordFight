@@ -87,21 +87,10 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     vec3f dir = (vec3f){0, 1, 0}.rot({0,0,0}, xyz_to_vec(w.model.rot));
     dir = dir.norm();
 
-    vec3f world_move_dir = sword_move_dir.rot({0,0,0}, xyz_to_vec(w.model.rot));
+    //vec3f world_move_dir = sword_move_dir.rot({0,0,0}, xyz_to_vec(w.model.rot));
 
     ///sword height FROM HANDLE FOCUS GRIP POINT
-    float sword_height = FLT_MIN;
-
-    for(triangle& t : w.model.objs[0].tri_list)
-    {
-        for(vertex& v : t.vertices)
-        {
-            vec3f pos = xyz_to_vec(v.get_pos());
-
-            if(pos.v[1] > sword_height)
-                sword_height = pos.v[1];
-        }
-    }
+    float sword_height = w.length;
 
     bbox bound = w.bound;
 

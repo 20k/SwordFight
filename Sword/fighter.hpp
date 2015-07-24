@@ -299,11 +299,15 @@ static std::map<attack_t, attack> attack_list =
 
 struct sword
 {
+    ///if you want global, you have to poke around in here ( sadface )
     objects_container model;
 
+    ///everything here is *local*,
     vec3f pos;
     vec3f rot;
     vec3f dir; ///look dir
+
+    float length; ///from centre to end
 
     int team;
 
