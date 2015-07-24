@@ -263,7 +263,10 @@ int main(int argc, char *argv[])
     c2.set_active(true);*/
 
     objects_container floor;
-    floor.set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0}, (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0}, 600.f, "./res/blue.png"));
+    floor.set_load_func(std::bind(load_object_cube, std::placeholders::_1,
+                                  (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0},
+                                  (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0},
+                                  3000.f, "./res/blue.png"));
     floor.cache = false;
     floor.set_active(true);
 
@@ -453,6 +456,9 @@ int main(int argc, char *argv[])
 
         my_fight->tick(true);
 
+        ///about 0.2ms slower than not doing this
+        engine::realloc_light_gmem();
+
         bool need_realloc = network::tick();
 
         if(need_realloc)
@@ -533,6 +539,6 @@ int main(int argc, char *argv[])
 
         window.display();
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

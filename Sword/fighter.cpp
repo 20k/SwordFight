@@ -8,6 +8,8 @@
 
 #include "particle_effect.hpp"
 
+#include "../openclrenderer/light.hpp"
+
 const vec3f* bodypart::init_default()
 {
     using namespace bodypart;
@@ -350,6 +352,10 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
 ///need to only maintain 1 copy of this, I'm just a muppet
 fighter::fighter()
 {
+    light l1;
+
+    my_lights.push_back(light::add_light(&l1));
+
     load();
 
     pos = {0,0,0};
@@ -943,36 +949,6 @@ void fighter::tick(bool is_player)
     ///rip
     checked_death();
 
-
-    ///nope. DO THIS PROPERLY
-    /*///propagate network model destruction
-    for(auto& p : parts)
-    {
-        if(p.model.isactive == false)
-            p.hp = 0;
-    }*/
-
-    /*const int num_destroyed_to_die = 3;
-
-    int num_destroyed = 0;
-
-    for(auto& p : parts)
-    {
-        if(p.hp <= 0)
-        {
-            //printf("%s\n", names[p.type].c_str());
-
-            num_destroyed++;
-        }
-    }
-
-    //printf("%i\n", num_destroyed);
-
-    if(num_destroyed >= num_destroyed_to_die && !net.dead)
-        die();
-    else if(num_destroyed < num_destroyed && net.dead)
-        die();*/
-
     /*int collide_id = phys->sword_collides(weapon);
 
     if(collide_id != -1)
@@ -1401,6 +1377,13 @@ void fighter::update_sword_rot()
 void fighter::set_pos(vec3f _pos)
 {
     pos = _pos;
+
+    ///stash the lights somewhere
+    ///pos only gets set if we're being forcobly moved
+    for(auto& i : my_lights)
+    {
+        i->set_pos({pos.v[0], pos.v[1], pos.v[2]});
+    }
 }
 
 void fighter::set_rot(vec3f _rot)
@@ -1500,6 +1483,18 @@ void fighter::update_render_positions()
     {
         old_pos[i] = parts[i].pos;
     }
+
+    vec3f lpos = (parts[bodypart::LFOOT].global_pos + parts[bodypart::RFOOT].global_pos) / 2.f;
+
+    my_lights[0]->set_pos({lpos.v[0], lpos.v[1], lpos.v[2]});
+    my_lights[0]->set_radius(1000.f);
+    my_lights[0]->set_shadow_casting(0);
+    my_lights[0]->set_brightness(1.);
+
+    if(team == 0)
+        my_lights[0]->set_col({1.f, 1.f, 1.f, 0.f});
+    else
+        my_lights[0]->set_col({1.f, 1.f, 1.f, 0.f});
 }
 
 void fighter::overwrite_parts_from_model()

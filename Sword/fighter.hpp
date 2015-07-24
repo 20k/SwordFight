@@ -351,8 +351,12 @@ struct link
     float squish_frac;
 };
 
+struct light;
+
 struct fighter
 {
+    std::vector<light*> my_lights;
+
     std::vector<link> joint_links;
 
     float frametime;
