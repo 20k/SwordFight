@@ -262,13 +262,13 @@ int main(int argc, char *argv[])
     c2.cache = false;
     c2.set_active(true);*/
 
-    objects_container floor;
+    /*objects_container floor;
     floor.set_load_func(std::bind(load_object_cube, std::placeholders::_1,
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0},
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0},
                                   3000.f, "./res/gray.png"));
     floor.cache = false;
-    floor.set_active(true);
+    floor.set_active(true);*/
 
     engine window;
     window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
@@ -303,11 +303,14 @@ int main(int argc, char *argv[])
     physics phys;
     phys.load();
 
+    printf("preload\n");
+
     obj_mem_manager::load_active_objects();
+
+    printf("postload\n");
 
     fight.scale();
     fight2.scale();
-
 
     fight.set_physics(&phys);
     fight2.set_physics(&phys);
@@ -322,14 +325,16 @@ int main(int argc, char *argv[])
         i->update_render_positions();
     }
 
-
-    //c1.scale(0.001f);
-
+    printf("loaded net fighters\n");
 
     texture_manager::allocate_textures();
 
+    printf("textures\n");
+
     obj_mem_manager::g_arrange_mem();
     obj_mem_manager::g_changeover();
+
+    printf("loaded memory\n");
 
     sf::Event Event;
 
@@ -340,6 +345,8 @@ int main(int argc, char *argv[])
     l.set_pos({0, 1000, -300, 0});
 
     window.add_light(&l);
+
+    printf("light\n");
 
 
     sf::Mouse mouse;
@@ -357,6 +364,8 @@ int main(int argc, char *argv[])
 
     ///debug;
     int controls_state = 0;
+
+    printf("loop\n");
 
     while(window.window.isOpen())
     {
@@ -439,6 +448,7 @@ int main(int argc, char *argv[])
             fight2.tick();
 
             fight2.update_render_positions();
+            fight2.update_lights();
 
             if(once<sf::Keyboard::N>())
             {
@@ -515,12 +525,19 @@ int main(int argc, char *argv[])
 
 
         my_fight->update_render_positions();
+        my_fight->update_lights();
 
 
         for(auto& i : net_fighters)
+        {
+            if(my_fight == i)
+                continue;
+
             ///this copies the model positions back to the part global positions so that it works with the physics
             ///ideally we'd want a net.pos and net.rot for them, would be less cumbersome?
             i->overwrite_parts_from_model();
+            i->update_lights();
+        }
 
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
@@ -539,6 +556,6 @@ int main(int argc, char *argv[])
 
         window.display();
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

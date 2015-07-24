@@ -1489,12 +1489,15 @@ void fighter::update_render_positions()
     {
         old_pos[i] = parts[i].pos;
     }
+}
 
+void fighter::update_lights()
+{
     vec3f lpos = (parts[bodypart::LFOOT].global_pos + parts[bodypart::RFOOT].global_pos) / 2.f;
 
     my_lights[0]->set_pos({lpos.v[0], lpos.v[1] + 20.f, lpos.v[2]});
 
-    vec3f bpos = (vec3f){0, parts[bodypart::BODY].pos.v[1], -100.f}.rot({0,0,0}, rot) + pos;
+    vec3f bpos = (vec3f){0, parts[bodypart::BODY].global_pos.v[1], -100.f}.rot({0,0,0}, rot) + pos;
 
     my_lights[1]->set_pos({bpos.v[0], bpos.v[1], bpos.v[2]});
 
@@ -1519,7 +1522,6 @@ void fighter::update_render_positions()
         else
             i->set_col({0.f, 0.f, 1.f, 0.f});
     }
-
 }
 
 void fighter::overwrite_parts_from_model()
@@ -1534,6 +1536,9 @@ void fighter::overwrite_parts_from_model()
 
         i.update_model();
     }
+
+    pos = parts[bodypart::BODY].global_pos;
+    rot = parts[bodypart::BODY].global_rot;
 
     ///do not need to update weapon because it does not currently have a global position stored (not a part)
 }

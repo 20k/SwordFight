@@ -437,6 +437,7 @@ struct fighter
     movement* get_movement(size_t id);
 
     void update_render_positions();
+    void update_lights();
     void overwrite_parts_from_model();
 
     void set_team(int _team);
