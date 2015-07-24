@@ -512,7 +512,7 @@ void fighter::die()
             }
         }
 
-        for(float i = 0; i < sword_height; i += 20.f)
+        for(float i = 0; i < sword_height; i += 40.f)
         {
             vec3f pos = weapon_pos + i * weapon_dir.norm();
 

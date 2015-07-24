@@ -259,8 +259,13 @@ int main(int argc, char *argv[])
 
     objects_container c2;
     c2.set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0, 0, 0}, (vec3f){100, -100, 100}, 20.f));
-    c1.cache = false;
+    c2.cache = false;
     c2.set_active(true);*/
+
+    objects_container floor;
+    floor.set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0}, (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0}, 600.f, "./res/blue.png"));
+    floor.cache = false;
+    floor.set_active(true);
 
     engine window;
     window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
@@ -329,8 +334,7 @@ int main(int argc, char *argv[])
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
     l.set_brightness(1);
-    l.set_pos({100, 350, -300, 0});
-    l.shadow=0;
+    l.set_pos({0, -100, -300, 0});
 
     window.add_light(&l);
 
@@ -529,6 +533,6 @@ int main(int argc, char *argv[])
 
         window.display();
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }
