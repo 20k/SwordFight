@@ -4,7 +4,7 @@
 
 std::vector<particle_effect> particle_effect::effects;
 
-void particle_effect::make(float duration, vec3f _pos, float _scale, int _num)
+void particle_effect::make(float duration, vec3f _pos, float _scale, int _team, int _num)
 {
     objects.clear();
 
@@ -24,7 +24,12 @@ void particle_effect::make(float duration, vec3f _pos, float _scale, int _num)
 
         vec3f p2 = p1 + (vec3f){0, 0, len};
 
-        std::string tex = "./res/red.png";
+        std::string tex;
+
+        if(_team == 0)
+            tex = "./res/red.png";
+        else
+            tex = "./res/blue.png";
 
         objects_container o;
         o.set_load_func(std::bind(load_object_cube, std::placeholders::_1, p1, p2, len/2, tex));

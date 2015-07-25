@@ -169,7 +169,7 @@ void part::damage(float dam, bool do_effect)
         {
             particle_effect e;
 
-            e.make(1300, global_pos, 100.f, 10);
+            e.make(1300, global_pos, 100.f, team, 10);
             e.push();
         }
 
@@ -518,7 +518,7 @@ void fighter::die()
     {
         particle_effect e;
 
-        e.make(death_time, i.global_pos, 50.f, 10);
+        e.make(death_time, i.global_pos, 50.f, team, 10);
         e.push();
     }
 
@@ -536,14 +536,16 @@ void fighter::die()
 
             particle_effect e;
 
-            e.make(death_time, pos, 50.f, 5);
+            e.make(death_time, pos, 50.f, team, 5);
             e.push();
         }
     }
 
+    network::host_update(&net.dead);
+
     obj_mem_manager::load_active_objects();
     obj_mem_manager::g_arrange_mem();
-    obj_mem_manager::g_changeover();
+    obj_mem_manager::g_changeover(); ///maybe clfinish here
 }
 
 int fighter::num_dead()
@@ -585,8 +587,6 @@ void fighter::checked_death()
     {
         die();
     }
-
-    network::host_update(&net.dead);
 }
 
 void fighter::scale()

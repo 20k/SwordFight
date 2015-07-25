@@ -19,7 +19,7 @@ struct particle_effect
 
     std::vector<objects_container> objects;
 
-    void make(float duration, vec3f _pos, float _scale, int _num = 40);
+    void make(float duration, vec3f _pos, float _scale, int _team, int _num);
     void push();
 
     static std::vector<particle_effect> effects;
