@@ -1199,7 +1199,7 @@ void fighter::walk_dir(vec2f dir)
 
     ldir.v[1] = -ldir.v[1];
 
-    time_elapsed = time_elapsed * 1.5f;
+    time_elapsed = time_elapsed;
 
     vec3f global_dir = {ldir.rot(- rot.v[1]).v[1] * time_elapsed/2.f, 0.f, ldir.rot(- rot.v[1]).v[0] * time_elapsed/2.f};
 
@@ -1214,24 +1214,75 @@ void fighter::walk_dir(vec2f dir)
 
     vec3f current_dir = (vec3f){ldir.v[1], 0.f, ldir.v[0]} * time_elapsed/2.f;
 
+    vec3f fin = (vec3f){ldir.v[1], 0.f, ldir.v[0]}.norm() * dist;
+
     //vec3f current_dir = global_dir;
 
-
+    ///1 is push, 0 is air
     static float lmod = 1.f;
     static float frac = 0.f;
 
     auto foot = bodypart::LFOOT;
+    auto ofoot = bodypart::RFOOT;
 
-    frac = frac + time_elapsed / 100.f;
+    //frac = frac + time_elapsed / 100.f;
+
+    vec3f lrp = {parts[foot].pos.v[0], 0.f, parts[foot].pos.v[2]};
+    vec3f rrp = {parts[ofoot].pos.v[0], 0.f, parts[ofoot].pos.v[2]};
+
+
+    float lfrac = (fin - lrp).length() / (dist * 2);
+    float rfrac = (fin - rrp).length() / (dist * 2);
+
+    lfrac -= 0.2f;
+    rfrac -= 0.2f;
 
     IK_foot(0, parts[foot].pos - lmod * current_dir);
     IK_foot(1, parts[bodypart::RFOOT].pos + lmod * current_dir);
 
+    lfrac = clamp(lfrac, 0.f, 1.f);
+    rfrac = clamp(rfrac, 0.f, 1.f);
+
+    printf("%f %f\n", lfrac, rfrac);
+    //printf("%f %f %f\n", fin.v[0], fin.v[1], fin.v[2]);
+
+    if(lmod < 0)
+    {
+        /*if(lfrac > 0.5f)
+            parts[foot].pos.v[1] += 1.f;
+        if(lfrac <= 0.5f)
+            parts[foot].pos.v[1] -= 1.f;*/
+
+        //if(lfrac > 0.6)
+        //    parts[foot].pos.v[1] += 5.f;
+
+        float h = 120.f;
+
+        float xv = -lfrac * (lfrac - 1);
+
+        parts[foot].pos.v[1] = h * xv + rest_positions[foot].v[1];
+    }
+    if(lmod > 0)
+    {
+        /*if(rfrac > 0.5f)
+            parts[ofoot].pos.v[1] += 1.f;
+        if(rfrac <= 0.5f)
+            parts[ofoot].pos.v[1] -= 1.f;*/
+
+        //if(rfrac > 0.7f)
+        //    parts[ofoot].pos.v[1] += 5.f;
+
+        float h = 120.f;
+
+        float xv = -rfrac * (rfrac - 1);
+
+        parts[ofoot].pos.v[1] = h * xv + rest_positions[ofoot].v[1];
+    }
 
     current_dir = current_dir.norm();
 
-    printf("%f %f %f\n", current_dir.v[0], current_dir.v[1], current_dir.v[2]);
-    printf("%f %f %f\n", parts[foot].pos.v[0], parts[foot].pos.v[1], parts[foot].pos.v[2]);
+    //printf("%f %f %f\n", current_dir.v[0], current_dir.v[1], current_dir.v[2]);
+    //printf("%f %f %f\n", parts[foot].pos.v[0], parts[foot].pos.v[1], parts[foot].pos.v[2]);
 
     float real_weight = 5.f;
 
@@ -1259,15 +1310,27 @@ void fighter::walk_dir(vec2f dir)
     }
 
 
+    vec3f without_up = {parts[foot].pos.v[0], 0.f, parts[foot].pos.v[2]};
+    vec3f without_up_rest = {rest_positions[foot].v[0], 0.f, rest_positions[foot].v[2]};
+
+    foot = bodypart::LFOOT;
+
     ///current dir is the direction we are going in
 
-    if((parts[foot].pos - rest_positions[foot]).length() > dist)
+    if((without_up - without_up_rest).length() > dist)
     {
-        vec3f d = rest_positions[foot] - parts[foot].pos;
+        //vec3f d = rest_positions[foot] - parts[foot].pos;
+        //d = d.norm();
+
+        vec3f d = without_up_rest - without_up;
         d = d.norm();
 
-        float excess = (parts[foot].pos - rest_positions[foot]).length() - dist;
-        excess *= 1.01f;
+        float excess = (without_up_rest - without_up).length() - dist;
+
+        //float excess = (parts[foot].pos - rest_positions[foot]).length() - dist;
+        //excess *= 1.2f;
+
+
 
         parts[foot].pos = parts[foot].pos + d * excess;
 
