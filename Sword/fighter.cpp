@@ -1163,7 +1163,7 @@ void fighter::walk_dir(vec2f dir)
     float time_elapsed = walk_clock.getElapsedTime().asMicroseconds() / 1000.f;
 
     ///prevent feet going out of sync if there's a pause
-    time_elapsed = clamp(time_elapsed, 0.f, 67.f);
+    //time_elapsed = clamp(time_elapsed, 0.f, 67.f);
 
     float dist = 100.f;
 
@@ -1201,6 +1201,15 @@ void fighter::walk_dir(vec2f dir)
         pos.v[0] += ldir.rot(- rot.v[1]).v[1] * time_elapsed/2.f;
         pos.v[2] += ldir.rot(- rot.v[1]).v[0] * time_elapsed/2.f;
     }
+
+    ///there's been a pause, the animations will be screwed so just don't
+    if(time_elapsed > 66.f)
+    {
+        walk_clock.restart();
+
+        return;
+    }
+
 
     int prev_stage = left_stage;
 
