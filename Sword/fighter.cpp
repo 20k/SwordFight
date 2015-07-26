@@ -64,6 +64,8 @@ void part::set_type(bodypart_t t)
 
 part::part()
 {
+    //performed_death = false;
+
     is_active = false;
 
     hp = 1.f;
@@ -182,6 +184,17 @@ void part::damage(float dam, bool do_effect)
 
     network_hp();
 }
+
+/*void part::tick()
+{
+    if(hp < 0.0001f && !performed_death)
+    {
+
+
+
+        performed_death = true;
+    }
+}*/
 
 void part::set_hp(float h)
 {
@@ -979,7 +992,7 @@ void fighter::tick(bool is_player)
 
     //parts[BODY].set_pos((parts[BODY].pos * 20 + parts[RUPPERLEG].pos + parts[LUPPERLEG].pos)/(20 + 2));
 
-    parts[HEAD].set_pos((parts[BODY].pos*2 + rest_positions[HEAD] * 32.f) / (32 + 2));
+    parts[HEAD].set_pos((parts[BODY].pos*2.f + rest_positions[HEAD] * 32.f) / (32 + 2));
 
 
     ///process death
@@ -1114,24 +1127,14 @@ void fighter::process_foot_g2(bodypart_t foot, vec2f dir, int& stage, float& fra
         speed = remaining;
     }
 
-    //printf("%f\n", distance);
-
     vec3f d = (seek - cur).norm();
 
     IK_foot(which_foot, cur + speed * d);
 
-    //float acceptable_dist = 20.f;
-
-    //float len = (seek - cur).length();
-
-    //printf("%i %f %f\n", stage, frac, len);
-
-    if(frac >= 1)//  && len < acceptable_dist)
+    if(frac >= 1)
     {
         frac = 0;
         stage = (stage + 1) % 3;
-
-        //printf("fin\n");
     }
 }
 
@@ -1153,12 +1156,12 @@ vec3f seek(vec3f cur, vec3f dest, float dist, float seek_time, float elapsed_tim
 void fighter::walk_dir(vec2f dir)
 {
     ///try and fix the lex stiffening up a bit, but who cares
+    ///make feet average out with the ground
     if(dir.v[0] == 0 && dir.v[1] == 0)
     {
         walk_clock.restart();
         return;
     }
-
     ///in ms
     float time_elapsed = walk_clock.getElapsedTime().asMicroseconds() / 1000.f;
 
@@ -1192,15 +1195,89 @@ void fighter::walk_dir(vec2f dir)
 
     int num = 3;
 
-    //if(left_stage == 0 || right_stage == 0)
+    vec2f ldir = dir.norm();
+
+    ldir.v[1] = -ldir.v[1];
+
+    time_elapsed = time_elapsed * 1.5f;
+
+    vec3f global_dir = {ldir.rot(- rot.v[1]).v[1] * time_elapsed/2.f, 0.f, ldir.rot(- rot.v[1]).v[0] * time_elapsed/2.f};
+
+    //pos.v[0] += ldir.rot(- rot.v[1]).v[1] * time_elapsed/2.f;
+    //pos.v[2] += ldir.rot(- rot.v[1]).v[0] * time_elapsed/2.f;
+
+    pos = pos + global_dir;
+
+
+    //vec3f current_dir = {f.v[0], 0.f, f.v[1]};
+    //current_dir = current_dir.norm() * dist;
+
+    vec3f current_dir = (vec3f){ldir.v[1], 0.f, ldir.v[0]} * time_elapsed/2.f;
+
+    //vec3f current_dir = global_dir;
+
+
+    static float lmod = 1.f;
+    static float frac = 0.f;
+
+    auto foot = bodypart::LFOOT;
+
+    frac = frac + time_elapsed / 100.f;
+
+    IK_foot(0, parts[foot].pos - lmod * current_dir);
+    IK_foot(1, parts[bodypart::RFOOT].pos + lmod * current_dir);
+
+
+    current_dir = current_dir.norm();
+
+    printf("%f %f %f\n", current_dir.v[0], current_dir.v[1], current_dir.v[2]);
+    printf("%f %f %f\n", parts[foot].pos.v[0], parts[foot].pos.v[1], parts[foot].pos.v[2]);
+
+    float real_weight = 5.f;
+
+    ///adjust foot so that it sits on the 'correct' line
     {
-        vec2f ldir = dir.norm();
+        foot = bodypart::LFOOT;
 
-        ldir.v[1] = -ldir.v[1];
+        vec3f rest = rest_positions[foot];
+        vec3f shortest_dir = point2line_shortest(rest_positions[foot], current_dir, parts[foot].pos);
 
-        pos.v[0] += ldir.rot(- rot.v[1]).v[1] * time_elapsed/2.f;
-        pos.v[2] += ldir.rot(- rot.v[1]).v[0] * time_elapsed/2.f;
+        vec3f line_point = shortest_dir + parts[foot].pos;
+
+        IK_foot(0, (line_point + parts[foot].pos * real_weight) / (1.f + real_weight));
     }
+
+    {
+        foot = bodypart::RFOOT;
+
+        vec3f rest = rest_positions[foot];
+        vec3f shortest_dir = point2line_shortest(rest_positions[foot], current_dir, parts[foot].pos);
+
+        vec3f line_point = shortest_dir + parts[foot].pos;
+
+        IK_foot(1, (line_point + parts[foot].pos * real_weight) / (1.f + real_weight));
+    }
+
+
+    ///current dir is the direction we are going in
+
+    if((parts[foot].pos - rest_positions[foot]).length() > dist)
+    {
+        vec3f d = rest_positions[foot] - parts[foot].pos;
+        d = d.norm();
+
+        float excess = (parts[foot].pos - rest_positions[foot]).length() - dist;
+        excess *= 1.01f;
+
+        parts[foot].pos = parts[foot].pos + d * excess;
+
+        lmod = -lmod;
+    }
+
+
+    walk_clock.restart();
+
+    #if 0
 
     ///there's been a pause, the animations will be screwed so just don't
     if(time_elapsed > 66.f)
@@ -1269,11 +1346,10 @@ void fighter::walk_dir(vec2f dir)
     float l_a = max_time / stage_times[left_stage];
     float r_a = max_time / stage_times[right_stage];
 
+    float acceptable_dist = 0.f;
 
     if(left_stage == 0)
     {
-        float acceptable_dist = 0.f;
-
         int& stage = left_stage;
         float& frac = left_frac;
 
@@ -1294,8 +1370,6 @@ void fighter::walk_dir(vec2f dir)
 
     if(right_stage == 0)
     {
-        float acceptable_dist = 0.f;
-
         int& stage = right_stage;
         float& frac = right_frac;
 
@@ -1314,24 +1388,11 @@ void fighter::walk_dir(vec2f dir)
         }
     }
 
-
     left_frac += (time_elapsed) / stage_times[left_stage];
     right_frac += (time_elapsed) / stage_times[right_stage];
 
-
-    /*if(left_frac >= 1)
-    {
-        left_frac = 0;
-        left_stage = (left_stage + 1) % num;
-    }*/
-
-    /*if(right_frac >= 1)
-    {
-        right_frac = 0;
-        right_stage = (right_stage + 1) % num;
-    }*/
-
     walk_clock.restart();
+    #endif
 }
 
 void fighter::set_stance(int _stance)
@@ -1465,6 +1526,12 @@ pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f 
     vec3f total_rot = world_rot + local_rot;
 
     vec3f n_pos = relative_pos + world_pos;
+
+    /*vec3f relative_pos = local_pos.back_rot({0,0,0}, local_rot);
+
+    vec3f n_pos = relative_pos.back_rot(world_pos, world_rot);
+
+    vec3f total_rot = world_rot + local_rot;*/
 
     return {n_pos, total_rot};
 }

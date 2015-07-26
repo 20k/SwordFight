@@ -233,7 +233,21 @@ struct vec
     }
 };
 
+///rename this function
 template<int N, typename T>
+inline
+vec<N, T> point2line_shortest(const vec<N, T>& lp, const vec<N, T>& ldir, const vec<N, T>& p)
+{
+    vec<N, T> ret;
+
+    auto n = ldir.norm();
+
+    ret = (lp - p) - dot(lp - p, n) * n;
+
+    return ret;
+}
+
+/*template<int N, typename T>
 bool operator<(const vec<N, T>& v1, const vec<N, T>& v2)
 {
     for(int i=0; i<N; i++)
@@ -245,6 +259,36 @@ bool operator<(const vec<N, T>& v1, const vec<N, T>& v2)
     }
 
     return false;
+}*/
+
+template<int N, typename T>
+bool operator<(const vec<N, T>& v1, const vec<N, T>& v2)
+{
+    for(int i=0; i<N; i++)
+        if(v1.v[i] >= v2.v[i])
+            return false;
+
+    return true;
+}
+
+template<int N, typename T>
+bool operator>(const vec<N, T>& v1, const vec<N, T>& v2)
+{
+    for(int i=0; i<N; i++)
+        if(v1.v[i] <= v2.v[i])
+            return false;
+
+    return true;
+}
+
+template<int N, typename T>
+bool operator== (const vec<N, T>& v1, const vec<N, T>& v2)
+{
+    for(int i=0; i<N; i++)
+        if(v1.v[i] != v2.v[i])
+            return false;
+
+    return true;
 }
 
 

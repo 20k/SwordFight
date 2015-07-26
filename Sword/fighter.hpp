@@ -151,6 +151,8 @@ struct part
 
     float hp;
 
+    //bool performed_death;
+
     void set_type(bodypart_t); ///sets me up in the default position
     void set_pos(vec3f pos);
     void set_rot(vec3f rot);
@@ -163,6 +165,8 @@ struct part
     void set_hp(float h);
 
     bool alive(); ///if the model is inactive, its considered dead
+
+    //void tick();
 
     part();
     part(bodypart_t);
