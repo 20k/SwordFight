@@ -383,7 +383,8 @@ fighter::fighter()
 
 void fighter::load()
 {
-    net.dead = false;
+    performed_death = false;
+
     net.recoil = false;
     net.is_blocking = false;
 
@@ -477,16 +478,14 @@ void fighter::respawn(vec2f _pos)
     obj_mem_manager::g_arrange_mem();
     obj_mem_manager::g_changeover();
 
-    network::host_update(&net.dead);
-
-    performed_death = false;
+    //network::host_update(&net.dead);
 }
 
 void fighter::die()
 {
     performed_death = true;
 
-    net.dead = true;
+    //net.dead = true;
 
     for(auto& i : parts)
     {
@@ -545,7 +544,7 @@ void fighter::die()
         }
     }
 
-    network::host_update(&net.dead);
+    //network::host_update(&net.dead);
 
     obj_mem_manager::load_active_objects();
     obj_mem_manager::g_arrange_mem();
@@ -569,9 +568,15 @@ int fighter::num_dead()
     return num_destroyed;
 }
 
+///this is an awful piece of i dont even know what
+int fighter::num_needed_to_die()
+{
+    return 3;
+}
+
 bool fighter::should_die()
 {
-    const int num_destroyed_to_die = 3;
+    const int num_destroyed_to_die = num_needed_to_die();
 
     int num_destroyed = num_dead();
 
@@ -579,8 +584,8 @@ bool fighter::should_die()
 
     if(num_destroyed >= num_destroyed_to_die && !performed_death)
         return true;
-    if(net.dead && !performed_death)
-        return true;
+    //if(net.dead && !performed_death)
+    //    return true;
 
     return false;
 }
@@ -1551,6 +1556,7 @@ void fighter::update_lights()
     }
 }
 
+///net-fighters ONLY
 void fighter::overwrite_parts_from_model()
 {
     for(part& i : parts)
@@ -1568,6 +1574,16 @@ void fighter::overwrite_parts_from_model()
 
     pos = parts[bodypart::BODY].global_pos;
     rot = parts[bodypart::BODY].global_rot;
+
+    ///this is so that if the remote fighter is actually alive but we don't know
+    ///it can die again
+    ///we could avoid this by networking the death state
+    ///but that requries more networking. We already have the info, so do it clientside
+    ///hp for parts are also 'reliably' delivered (every frame)
+    if(!should_die())
+    {
+        performed_death = false;
+    }
 
     ///do not need to update weapon because it does not currently have a global position stored (not a part)
 }
@@ -1715,7 +1731,7 @@ void fighter::damage(bodypart_t type, float d)
 {
     using namespace bodypart;
 
-    bool do_explode_effect = num_dead() < 2;
+    bool do_explode_effect = num_dead() < num_needed_to_die() - 1;
 
     parts[type].damage(d, do_explode_effect);
 

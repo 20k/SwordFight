@@ -75,7 +75,7 @@ void physics::add_objects_container(part* _p, fighter* _parent)
 ///FIXME
 int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, bool is_player)
 {
-    if(my_parent->net.dead)
+    if(my_parent->num_dead() >= my_parent->num_needed_to_die())
         return -1;
 
     if(w.model.isactive == false)
@@ -139,7 +139,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                 fighter* them = bodies[i].parent;
 
-                if(them->net.dead)
+                if(them->num_dead() >= them->num_needed_to_die())
                     continue;
 
                 float arm_length = (them->rest_positions[bodypart::LUPPERARM] - them->rest_positions[bodypart::LHAND]).length();

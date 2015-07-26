@@ -339,7 +339,7 @@ struct physics;
 struct networked_components
 {
     int is_blocking = 0;
-    int dead = 0; ///networked status of killing, can be updated remotely
+    //int dead = 0; ///networked status of killing, can be updated remotely
     int recoil = 0; ///this is a recoil request, not necessarily saying i AM(?)
 };
 
@@ -466,6 +466,7 @@ struct fighter
     void die();
     bool should_die();
     int num_dead();
+    int num_needed_to_die();
     void checked_death(); ///only die if we should
 
     ///rotation
