@@ -478,10 +478,14 @@ void fighter::respawn(vec2f _pos)
     obj_mem_manager::g_changeover();
 
     network::host_update(&net.dead);
+
+    performed_death = false;
 }
 
 void fighter::die()
 {
+    performed_death = true;
+
     net.dead = true;
 
     for(auto& i : parts)
@@ -573,9 +577,9 @@ bool fighter::should_die()
 
     //printf("%i\n", num_destroyed);
 
-    if(num_destroyed >= num_destroyed_to_die && !net.dead)
+    if(num_destroyed >= num_destroyed_to_die && !performed_death)
         return true;
-    else if(num_destroyed < num_destroyed && net.dead)
+    if(net.dead && !performed_death)
         return true;
 
     return false;
@@ -1556,6 +1560,8 @@ void fighter::overwrite_parts_from_model()
 
         i.set_global_pos(xyz_to_vec(pos));
         i.set_global_rot(xyz_to_vec(rot));
+
+        i.set_active(i.obj()->isactive);
 
         i.update_model();
     }

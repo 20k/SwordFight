@@ -339,7 +339,7 @@ struct physics;
 struct networked_components
 {
     int is_blocking = 0;
-    int dead = 0;
+    int dead = 0; ///networked status of killing, can be updated remotely
     int recoil = 0; ///this is a recoil request, not necessarily saying i AM(?)
 };
 
@@ -403,6 +403,7 @@ struct fighter
     vec3f look;
 
     bool idling;
+    bool performed_death; ///have i done my death stuff locally
 
     //cape my_cape;
 

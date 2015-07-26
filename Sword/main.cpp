@@ -487,7 +487,6 @@ int main(int argc, char *argv[])
             sound::add(pack.type, {pack.x, pack.y, pack.z});
         }
 
-
         ///we've joined the game!
         if(network::join_id != -1 && !network::loaded)
         {
