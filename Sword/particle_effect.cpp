@@ -2,9 +2,9 @@
 #include "../openclrenderer/objects_container.hpp"
 #include "object_cube.hpp"
 
-std::vector<particle_effect> particle_effect::effects;
+std::vector<effect*> particle_effect::effects;
 
-void particle_effect::make(float duration, vec3f _pos, float _scale, int _team, int _num)
+void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int _num)
 {
     objects.clear();
 
@@ -45,23 +45,25 @@ void particle_effect::make(float duration, vec3f _pos, float _scale, int _team, 
     }
 }
 
-void particle_effect::push()
+void cube_effect::push()
 {
-    effects.push_back(*this);
+    cube_effect* e = new cube_effect(*this);
 
-    for(auto& i : effects.back().objects)
+    particle_effect::effects.push_back(e);
+
+    for(auto& i : e->objects)
     {
         i.set_active(true);
     }
 }
 
-void particle_effect::tick()
+void cube_effect::tick()
 {
-    for(int i=0; i<effects.size(); i++)
+    //for(int i=0; i<effects.size(); i++)
     {
         ///move all particles away from centre slowly, based on duration_ms
 
-        particle_effect& e = effects[i];
+        cube_effect& e = *this;
 
         float time = e.elapsed_time.getElapsedTime().asMicroseconds() / 1000.f;
 
@@ -113,17 +115,36 @@ void particle_effect::tick()
                     o.set_pos({0, 0, -30000000});
                     o.g_flush_objects();
                     o.set_active(false);
+
+                    finished = true;
                 }
 
-                effects.erase(effects.begin() + i);
-                i--;
-                continue;
+                //effects.erase(effects.begin() + i);
+                //i--;
+                //continue;
             }
         }
 
         for(auto& o : e.objects)
         {
             o.g_flush_objects();
+        }
+    }
+}
+
+void particle_effect::tick()
+{
+    //for(auto& i : effects)
+    for(int i=0; i<effects.size(); i++)
+    {
+        effects[i]->tick();
+
+        if(effects[i]->finished)
+        {
+            delete effects[i];
+
+            effects.erase(effects.begin() + i);
+            i--;
         }
     }
 }

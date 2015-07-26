@@ -169,7 +169,7 @@ void part::damage(float dam, bool do_effect)
 
         if(do_effect)
         {
-            particle_effect e;
+            cube_effect e;
 
             e.make(1300, global_pos, 100.f, team, 10);
             e.push();
@@ -532,7 +532,7 @@ void fighter::die()
 
     for(auto& i : parts)
     {
-        particle_effect e;
+        cube_effect e;
 
         e.make(death_time, i.global_pos, 50.f, team, 10);
         e.push();
@@ -550,7 +550,7 @@ void fighter::die()
         {
             vec3f pos = weapon_pos + i * weapon_dir.norm();
 
-            particle_effect e;
+            cube_effect e;
 
             e.make(death_time, pos, 50.f, team, 5);
             e.push();
@@ -1246,19 +1246,11 @@ void fighter::walk_dir(vec2f dir)
     lfrac = clamp(lfrac, 0.f, 1.f);
     rfrac = clamp(rfrac, 0.f, 1.f);
 
-    printf("%f %f\n", lfrac, rfrac);
+    //printf("%f %f\n", lfrac, rfrac);
     //printf("%f %f %f\n", fin.v[0], fin.v[1], fin.v[2]);
 
     if(lmod < 0)
     {
-        /*if(lfrac > 0.5f)
-            parts[foot].pos.v[1] += 1.f;
-        if(lfrac <= 0.5f)
-            parts[foot].pos.v[1] -= 1.f;*/
-
-        //if(lfrac > 0.6)
-        //    parts[foot].pos.v[1] += 5.f;
-
         float h = 120.f;
 
         float xv = -lfrac * (lfrac - 1);
@@ -1267,14 +1259,6 @@ void fighter::walk_dir(vec2f dir)
     }
     if(lmod > 0)
     {
-        /*if(rfrac > 0.5f)
-            parts[ofoot].pos.v[1] += 1.f;
-        if(rfrac <= 0.5f)
-            parts[ofoot].pos.v[1] -= 1.f;*/
-
-        //if(rfrac > 0.7f)
-        //    parts[ofoot].pos.v[1] += 5.f;
-
         float h = 120.f;
 
         float xv = -rfrac * (rfrac - 1);
