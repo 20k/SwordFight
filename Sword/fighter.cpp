@@ -1240,6 +1240,9 @@ void fighter::walk_dir(vec2f dir)
     IK_foot(0, parts[foot].pos - lmod * current_dir);
     IK_foot(1, parts[bodypart::RFOOT].pos + lmod * current_dir);
 
+    lfrac /= 0.8f;
+    rfrac /= 0.8f;
+
     lfrac = clamp(lfrac, 0.f, 1.f);
     rfrac = clamp(rfrac, 0.f, 1.f);
 
@@ -1310,33 +1313,46 @@ void fighter::walk_dir(vec2f dir)
     }
 
 
-    vec3f without_up = {parts[foot].pos.v[0], 0.f, parts[foot].pos.v[2]};
-    vec3f without_up_rest = {rest_positions[foot].v[0], 0.f, rest_positions[foot].v[2]};
-
-    foot = bodypart::LFOOT;
-
-    ///current dir is the direction we are going in
-
-    if((without_up - without_up_rest).length() > dist)
     {
-        //vec3f d = rest_positions[foot] - parts[foot].pos;
-        //d = d.norm();
+        foot = bodypart::LFOOT;
 
-        vec3f d = without_up_rest - without_up;
-        d = d.norm();
+        vec3f without_up = {parts[foot].pos.v[0], 0.f, parts[foot].pos.v[2]};
+        vec3f without_up_rest = {rest_positions[foot].v[0], 0.f, rest_positions[foot].v[2]};
 
-        float excess = (without_up_rest - without_up).length() - dist;
+        ///current dir is the direction we are going in
 
-        //float excess = (parts[foot].pos - rest_positions[foot]).length() - dist;
-        //excess *= 1.2f;
+        if((without_up - without_up_rest).length() > dist)
+        {
+            vec3f d = without_up_rest - without_up;
+            d = d.norm();
 
+            float excess = (without_up_rest - without_up).length() - dist;
 
+            parts[foot].pos = parts[foot].pos + d * excess;
 
-        parts[foot].pos = parts[foot].pos + d * excess;
-
-        lmod = -lmod;
+            lmod = -lmod;
+        }
     }
 
+
+    {
+        foot = bodypart::RFOOT;
+
+        vec3f without_up = {parts[foot].pos.v[0], 0.f, parts[foot].pos.v[2]};
+        vec3f without_up_rest = {rest_positions[foot].v[0], 0.f, rest_positions[foot].v[2]};
+
+        ///current dir is the direction we are going in
+
+        if((without_up - without_up_rest).length() > dist)
+        {
+            vec3f d = without_up_rest - without_up;
+            d = d.norm();
+
+            float excess = (without_up_rest - without_up).length() - dist;
+
+            parts[foot].pos = parts[foot].pos + d * excess;
+        }
+    }
 
     walk_clock.restart();
 
