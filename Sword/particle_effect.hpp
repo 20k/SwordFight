@@ -7,6 +7,8 @@
 
 struct objects_container;
 
+struct light;
+
 struct effect
 {
     float duration_ms = 0;
@@ -15,6 +17,7 @@ struct effect
     bool finished = false;
 
     virtual void tick() = 0;
+    virtual void activate() {};
 
     virtual ~effect() = default;
 };
@@ -29,18 +32,22 @@ struct cube_effect : effect
     std::vector<objects_container> objects;
 
     void tick();
-
     void make(float duration, vec3f _pos, float _scale, int _team, int _num);
-    void push();
+    void activate();
 
     ~cube_effect() = default;
 };
 
 struct light_effect : effect
 {
-    void tick();
+    vec3f pos;
+    light* l;
 
-    ~light_effect();
+    void tick();
+    void make(float duration, light* _l);
+    //void activate();
+
+    ~light_effect() = default;
 };
 
 struct particle_effect
@@ -48,8 +55,15 @@ struct particle_effect
     static std::vector<effect*> effects;
     static void tick();
 
-    //particle_effect();
-    //~particle_effect();
+    template<typename T>
+    static void push(const T& thing)
+    {
+        effect* e = new T(thing);
+
+        particle_effect::effects.push_back(e);
+
+        e->activate();
+    }
 };
 
 #endif // PARTICLE_EFFECT_HPP_INCLUDED

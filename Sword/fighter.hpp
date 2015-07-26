@@ -472,6 +472,7 @@ struct fighter
     int num_dead();
     int num_needed_to_die();
     void checked_death(); ///only die if we should
+    bool dead();
 
     ///rotation
     void set_look(vec3f look);

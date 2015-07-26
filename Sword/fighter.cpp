@@ -172,7 +172,7 @@ void part::damage(float dam, bool do_effect)
             cube_effect e;
 
             e.make(1300, global_pos, 100.f, team, 10);
-            e.push();
+            particle_effect::push(e);
         }
 
         set_active(false);
@@ -535,7 +535,7 @@ void fighter::die()
         cube_effect e;
 
         e.make(death_time, i.global_pos, 50.f, team, 10);
-        e.push();
+        particle_effect::push(e);
     }
 
     {
@@ -553,8 +553,17 @@ void fighter::die()
             cube_effect e;
 
             e.make(death_time, pos, 50.f, team, 5);
-            e.push();
+            particle_effect::push(e);
         }
+    }
+
+    update_lights();
+
+    for(auto& i : my_lights)
+    {
+        light_effect l;
+        l.make(6000.f, i);
+        particle_effect::push(l);
     }
 
     //network::host_update(&net.dead);
@@ -597,8 +606,6 @@ bool fighter::should_die()
 
     if(num_destroyed >= num_destroyed_to_die && !performed_death)
         return true;
-    //if(net.dead && !performed_death)
-    //    return true;
 
     return false;
 }
@@ -609,6 +616,11 @@ void fighter::checked_death()
     {
         die();
     }
+}
+
+bool fighter::dead()
+{
+    return (num_dead() > num_needed_to_die()) || performed_death;
 }
 
 void fighter::scale()

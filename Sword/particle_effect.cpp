@@ -1,6 +1,7 @@
 #include "particle_effect.hpp"
 #include "../openclrenderer/objects_container.hpp"
 #include "object_cube.hpp"
+#include "../openclrenderer/light.hpp"
 
 std::vector<effect*> particle_effect::effects;
 
@@ -45,13 +46,9 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
     }
 }
 
-void cube_effect::push()
+void cube_effect::activate()
 {
-    cube_effect* e = new cube_effect(*this);
-
-    particle_effect::effects.push_back(e);
-
-    for(auto& i : e->objects)
+    for(auto& i : objects)
     {
         i.set_active(true);
     }
@@ -118,10 +115,6 @@ void cube_effect::tick()
 
                     finished = true;
                 }
-
-                //effects.erase(effects.begin() + i);
-                //i--;
-                //continue;
             }
         }
 
@@ -132,9 +125,29 @@ void cube_effect::tick()
     }
 }
 
+void light_effect::make(float duration, light* _l)
+{
+    l = _l;
+
+    pos = xyz_to_vec(l->pos);
+
+    duration_ms = duration;
+}
+
+void light_effect::tick()
+{
+    float time = elapsed_time.getElapsedTime().asMicroseconds() / 1000.f;
+
+    if(time > duration_ms)
+        finished = true;
+
+    pos.v[1] += 1.1f;
+
+    l->set_pos({pos.v[0], pos.v[1], pos.v[2]});
+}
+
 void particle_effect::tick()
 {
-    //for(auto& i : effects)
     for(int i=0; i<effects.size(); i++)
     {
         effects[i]->tick();

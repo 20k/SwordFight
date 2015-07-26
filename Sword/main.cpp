@@ -525,7 +525,9 @@ int main(int argc, char *argv[])
 
 
         my_fight->update_render_positions();
-        my_fight->update_lights();
+
+        if(!my_fight->dead())
+            my_fight->update_lights();
 
 
         for(auto& i : net_fighters)
@@ -536,7 +538,9 @@ int main(int argc, char *argv[])
             ///this copies the model positions back to the part global positions so that it works with the physics
             ///ideally we'd want a net.pos and net.rot for them, would be less cumbersome?
             i->overwrite_parts_from_model();
-            i->update_lights();
+
+            if(!i->dead())
+                i->update_lights();
         }
 
         ///ergh
