@@ -1680,7 +1680,7 @@ void fighter::update_lights()
 
     my_lights[0]->set_pos({lpos.v[0], lpos.v[1] + 20.f, lpos.v[2]});
 
-    vec3f bpos = (vec3f){0, parts[bodypart::BODY].global_pos.v[1], -100.f}.rot({0,0,0}, rot) + pos;
+    vec3f bpos = (vec3f){0, parts[bodypart::BODY].global_pos.v[1] + 50.f, -150.f}.rot({0,0,0}, rot) + pos;
 
     my_lights[1]->set_pos({bpos.v[0], bpos.v[1], bpos.v[2]});
 
@@ -1692,10 +1692,11 @@ void fighter::update_lights()
     {
         i->set_radius(1000.f);
         i->set_shadow_casting(0);
-        i->set_brightness(1.f);
+        i->set_brightness(1.0f);
+        i->set_diffuse(1.0f);
     }
 
-    my_lights[1]->set_radius(500.f);
+    my_lights[1]->set_radius(700.f);
     my_lights[2]->set_radius(400.f);
 
     for(auto& i : my_lights)

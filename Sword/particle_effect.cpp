@@ -134,16 +134,17 @@ void light_effect::make(float duration, light* _l)
     duration_ms = duration;
 }
 
+///need to make this frametime independent
 void light_effect::tick()
 {
     float time = elapsed_time.getElapsedTime().asMicroseconds() / 1000.f;
 
-    if(time > duration_ms)
-        finished = true;
-
     pos.v[1] += 1.1f;
 
     l->set_pos({pos.v[0], pos.v[1], pos.v[2]});
+
+    if(time > duration_ms)
+        finished = true;
 }
 
 void particle_effect::tick()
