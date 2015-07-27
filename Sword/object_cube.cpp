@@ -25,10 +25,15 @@ triangle points_to_tri(cl_float4 in[3], float size)
         t.vertices[i].set_pos(in[i]);
 
 
+    ///should probs fix this being slightly wrong, could eliminate edge boundaries
+    ///and then just use the twice sized texture
     for(int i=0; i<3; i++)
     {
-        float mx = in[i].x / size;
-        float mz = in[i].z / size;
+        float mx = in[i].x / (size * 2);
+        float mz = in[i].z / (size * 2);
+
+        mx += 0.5f;
+        mz += 0.5f;
 
         t.vertices[i].set_vt({mx, mz});
     }

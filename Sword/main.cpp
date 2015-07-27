@@ -332,7 +332,7 @@ int main(int argc, char *argv[])
     printf("loaded net fighters\n");
 
     floor.set_specular(0.9f);
-    floor.set_diffuse(1.f);
+    floor.set_diffuse(8.f);
 
     texture_manager::allocate_textures();
 
@@ -349,9 +349,9 @@ int main(int argc, char *argv[])
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
-    l.set_brightness(0.f);
-    l.set_diffuse(0.f);
-    l.set_pos({0, 1000, -300, 0});
+    l.set_brightness(0.01f);
+    l.set_diffuse(1.f);
+    l.set_pos({0, 10000, -300, 0});
 
     window.add_light(&l);
 
