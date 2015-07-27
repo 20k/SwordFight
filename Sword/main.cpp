@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
 
     printf("loaded net fighters\n");
 
-    floor.set_specular(0.02f);
+    floor.set_specular(0.2f);
 
     texture_manager::allocate_textures();
 
@@ -342,7 +342,8 @@ int main(int argc, char *argv[])
     sf::Event Event;
 
     light l;
-    l.set_col({1.0, 1.0, 1.0, 0});
+    //l.set_col({1.0, 1.0, 1.0, 0});
+    l.set_col({1.0, 0.0, 1.0, 0});
     l.set_shadow_casting(0);
     l.set_brightness(0.0);
     l.set_pos({0, 1000, -300, 0});

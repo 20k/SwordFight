@@ -1678,7 +1678,7 @@ void fighter::update_lights()
 {
     vec3f lpos = (parts[bodypart::LFOOT].global_pos + parts[bodypart::RFOOT].global_pos) / 2.f;
 
-    my_lights[0]->set_pos({lpos.v[0], lpos.v[1] + 20.f, lpos.v[2]});
+    my_lights[0]->set_pos({lpos.v[0], lpos.v[1] + 40.f, lpos.v[2]});
 
     vec3f bpos = (vec3f){0, parts[bodypart::BODY].global_pos.v[1] + 50.f, -150.f}.rot({0,0,0}, rot) + pos;
 
