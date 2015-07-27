@@ -131,6 +131,8 @@ void light_effect::make(float duration, light* _l)
 
     pos = xyz_to_vec(l->pos);
 
+    start = pos;
+
     duration_ms = duration;
 }
 
@@ -139,7 +141,9 @@ void light_effect::tick()
 {
     float time = elapsed_time.getElapsedTime().asMicroseconds() / 1000.f;
 
-    pos.v[1] += 1.1f;
+    //pos.v[1] += 1.1f;
+
+    pos = start + (vec3f){0, 0.2f, 0} * time;
 
     l->set_pos({pos.v[0], pos.v[1], pos.v[2]});
 

@@ -563,7 +563,7 @@ void fighter::die()
     for(auto& i : my_lights)
     {
         light_effect l;
-        l.make(6000.f, i);
+        l.make(5000.f, i);
         particle_effect::push(l);
     }
 
@@ -1185,12 +1185,6 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         time_elapsed *= 1.3f;
         h *= 1.2f;
     }
-
-    //if(sprint)
-    //    time_elapsed = time_elapsed * 1.3f;
-
-    ///prevent feet going out of sync if there's a pause
-    //time_elapsed = clamp(time_elapsed, 0.f, 67.f);
 
     float dist = 100.f;
 

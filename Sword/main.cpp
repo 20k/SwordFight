@@ -560,15 +560,13 @@ int main(int argc, char *argv[])
                 i->update_lights();
         }
 
+        particle_effect::tick();
 
         ///about 0.2ms slower than not doing this
         engine::realloc_light_gmem();
 
-
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
-
-        particle_effect::tick();
 
         window.draw_bulk_objs_n();
 
