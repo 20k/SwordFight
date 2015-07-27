@@ -146,7 +146,9 @@ void debug_controls(fighter* my_fight, engine& window)
     if(key.isKeyPressed(sf::Keyboard::L))
         walk_dir.v[1] = 1;
 
-    my_fight->walk_dir(walk_dir);
+    bool sprint = key.isKeyPressed(sf::Keyboard::LShift);
+
+    my_fight->walk_dir(walk_dir, sprint);
 }
 
 void fps_controls(fighter* my_fight, engine& window)
@@ -170,7 +172,9 @@ void fps_controls(fighter* my_fight, engine& window)
     if(key.isKeyPressed(sf::Keyboard::D))
         walk_dir.v[1] = 1;
 
-    my_fight->walk_dir(walk_dir);
+    bool sprint = key.isKeyPressed(sf::Keyboard::LShift);
+
+    my_fight->walk_dir(walk_dir, sprint);
 
     if(once<sf::Mouse::Left>())
         my_fight->queue_attack(attacks::SLASH);

@@ -1166,7 +1166,7 @@ vec3f seek(vec3f cur, vec3f dest, float dist, float seek_time, float elapsed_tim
 }
 
 ///do I want to do a proper dynamic timing synchronisation thing?
-void fighter::walk_dir(vec2f dir)
+void fighter::walk_dir(vec2f dir, bool sprint)
 {
     ///try and fix the lex stiffening up a bit, but who cares
     ///make feet average out with the ground
@@ -1177,6 +1177,17 @@ void fighter::walk_dir(vec2f dir)
     }
     ///in ms
     float time_elapsed = walk_clock.getElapsedTime().asMicroseconds() / 1000.f;
+
+    float h = 120.f;
+
+    if(dir.v[0] == -1 && sprint)
+    {
+        time_elapsed *= 1.3f;
+        h *= 1.2f;
+    }
+
+    //if(sprint)
+    //    time_elapsed = time_elapsed * 1.3f;
 
     ///prevent feet going out of sync if there's a pause
     //time_elapsed = clamp(time_elapsed, 0.f, 67.f);
@@ -1264,16 +1275,12 @@ void fighter::walk_dir(vec2f dir)
 
     if(lmod < 0)
     {
-        float h = 120.f;
-
         float xv = -lfrac * (lfrac - 1);
 
         parts[foot].pos.v[1] = h * xv + rest_positions[foot].v[1];
     }
     if(lmod > 0)
     {
-        float h = 120.f;
-
         float xv = -rfrac * (rfrac - 1);
 
         parts[ofoot].pos.v[1] = h * xv + rest_positions[ofoot].v[1];

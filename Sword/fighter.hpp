@@ -433,7 +433,7 @@ struct fighter
     void tick(bool is_player = false);
     //void walk(int which); ///temp
 
-    void walk_dir(vec2f dir); ///z, x
+    void walk_dir(vec2f dir, bool sprint = false); ///z, x
 
     void set_pos(vec3f);
     void set_rot(vec3f);
