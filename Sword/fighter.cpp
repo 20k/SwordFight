@@ -1709,6 +1709,23 @@ void fighter::update_lights()
 
         //i->set_col({1.f, 1.f, 1.f});
     }
+
+    for(auto& i : my_lights)
+    {
+        vec3f pos = xyz_to_vec(i->pos);
+
+        ///dirty hack of course
+        ///ideally we'd use the alive status for this
+        ///but that'd break the death effects
+        if(pos.length() > 10000.f)
+        {
+            i->set_active(false);
+        }
+        else
+        {
+            i->set_active(true);
+        }
+    }
 }
 
 ///net-fighters ONLY
