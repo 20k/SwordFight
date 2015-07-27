@@ -125,4 +125,6 @@ void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float siz
     pobj->set_rot({rot.v[0], rot.v[1], rot.v[2]});
 
     pobj->isloaded = true;
+
+    pobj->set_specular(0.9f);
 }

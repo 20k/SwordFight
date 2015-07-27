@@ -1705,6 +1705,8 @@ void fighter::update_lights()
             i->set_col({1.f, 0.f, 0.f, 0.f});
         else
             i->set_col({0.f, 0.f, 1.f, 0.f});
+
+        //i->set_col({1.f, 1.f, 1.f});
     }
 }
 

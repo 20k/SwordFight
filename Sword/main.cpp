@@ -328,6 +328,8 @@ int main(int argc, char *argv[])
 
     printf("loaded net fighters\n");
 
+    floor.set_specular(0.02f);
+
     texture_manager::allocate_textures();
 
     printf("textures\n");
@@ -449,7 +451,9 @@ int main(int argc, char *argv[])
             fight2.tick();
 
             fight2.update_render_positions();
-            fight2.update_lights();
+
+            if(!fight2.dead())
+                fight2.update_lights();
 
             if(once<sf::Keyboard::N>())
             {
@@ -466,9 +470,6 @@ int main(int argc, char *argv[])
             printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
 
         my_fight->tick(true);
-
-        ///about 0.2ms slower than not doing this
-        engine::realloc_light_gmem();
 
         bool need_realloc = network::tick();
 
@@ -543,6 +544,11 @@ int main(int argc, char *argv[])
                 i->update_lights();
         }
 
+
+        ///about 0.2ms slower than not doing this
+        engine::realloc_light_gmem();
+
+
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
 
@@ -560,6 +566,6 @@ int main(int argc, char *argv[])
 
         window.display();
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }
