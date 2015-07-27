@@ -20,6 +20,8 @@
 #include "object_cube.hpp"
 #include "particle_effect.hpp"
 
+#include "../openclrenderer/settings_loader.hpp"
+
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
 bool once()
@@ -273,8 +275,12 @@ int main(int argc, char *argv[])
     floor.cache = false;
     floor.set_active(true);
 
+    settings s;
+    s.load("./res/settings.txt");
+
     engine window;
-    window.load(1465,865,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
+    window.load(s.width,s.height,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
+
     //window.window.setFramerateLimit(24.f);
 
     printf("loaded\n");
@@ -371,11 +377,6 @@ int main(int argc, char *argv[])
     fighter* my_fight = &fight;
 
 
-    for(auto& i : net_fighters)
-    {
-        //i->die();
-    }
-
     ///debug;
     int controls_state = 0;
 
@@ -413,7 +414,7 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::V>() && network::network_state == 0)
         {
-            network::join("192.168.1.55");
+            network::join(s.ip);
 
             network::ping();
         }
