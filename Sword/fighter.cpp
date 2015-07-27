@@ -326,7 +326,7 @@ void sword::scale()
 
     bound = get_bbox(&model);
 
-    float sword_height = FLT_MIN;
+    float sword_height = 0;
 
     for(triangle& t : model.objs[0].tri_list)
     {
