@@ -267,6 +267,9 @@ int main(int argc, char *argv[])
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0},
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0},
                                   3000.f, "./res/gray.png"));
+
+    ///need to extend this to textures as well
+    floor.set_normal("./res/norm.png");
     floor.cache = false;
     floor.set_active(true);
 

@@ -6,6 +6,8 @@
 
 #define M_PIf ((float)M_PI)
 
+///bad, only for temporary debugging
+#define EXPAND_3(vec) vec.v[0], vec.v[1], vec.v[2]
 
 template<int N, typename T>
 struct vec

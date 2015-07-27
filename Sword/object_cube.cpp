@@ -111,13 +111,25 @@ void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float siz
     tex.set_texture_location(tex_name.c_str());
     tex.push();
 
+    texture normal;
+
+    if(pobj->normal_map != "")
+    {
+        normal.type = 0;
+        normal.set_texture_location(pobj->normal_map.c_str());
+        normal.push();
+    }
+
     object obj;
     obj.tri_list = tris;
 
     obj.tri_num = obj.tri_list.size();
     obj.tid = tex.id;
     obj.bid = -1;
+    obj.rid = normal.id;
     obj.has_bump = 0;
+
+    printf("%i\n", obj.rid);
 
     pobj->objs.push_back(obj);
 
