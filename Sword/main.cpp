@@ -120,12 +120,12 @@ void debug_controls(fighter* my_fight, engine& window)
 
     if(key.isKeyPressed(sf::Keyboard::Comma))
     {
-        look_height += 0.01f;
+        look_height += 0.01f * window.get_frametime() / 8000.f;
     }
 
     if(key.isKeyPressed(sf::Keyboard::Period))
     {
-        look_height += -0.01f;
+        look_height += -0.01f * window.get_frametime() / 8000.f;
     }
 
     my_fight->set_look({look_height, 0.f, 0.f});
@@ -274,7 +274,7 @@ int main(int argc, char *argv[])
     floor.set_active(true);
 
     engine window;
-    window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
+    window.load(1465,865,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
     //window.window.setFramerateLimit(24.f);
 
     printf("loaded\n");
@@ -370,6 +370,11 @@ int main(int argc, char *argv[])
 
     fighter* my_fight = &fight;
 
+
+    for(auto& i : net_fighters)
+    {
+        //i->die();
+    }
 
     ///debug;
     int controls_state = 0;
