@@ -17,7 +17,7 @@ void rect_to_tris(std::array<cl_float4, 4> p, cl_float4 out[2][3])
     out[1][2] = p[3];
 }
 
-triangle points_to_tri(cl_float4 in[3])
+triangle points_to_tri(cl_float4 in[3], float size)
 {
     triangle t;
 
@@ -26,7 +26,13 @@ triangle points_to_tri(cl_float4 in[3])
 
 
     for(int i=0; i<3; i++)
-        t.vertices[i].set_vt({in[i].x, in[i].z});
+    {
+        float mx = in[i].x / size;
+        float mz = in[i].z / size;
+
+        t.vertices[i].set_vt({mx, mz});
+    }
+
 
     for(int i=0; i<3; i++)
         t.vertices[i].set_normal(cross(sub(in[1], in[0]), sub(in[2], in[0])));
@@ -74,37 +80,37 @@ void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float siz
 
     rect_to_tris({p[3], p[2], p[1], p[0]}, out);
 
-    tris.push_back(points_to_tri(out[0]));
-    tris.push_back(points_to_tri(out[1]));
+    tris.push_back(points_to_tri(out[0], size));
+    tris.push_back(points_to_tri(out[1], size));
 
     rect_to_tris({p[4], p[5], p[6], p[7]}, out);
 
-    tris.push_back(points_to_tri(out[0]));
-    tris.push_back(points_to_tri(out[1]));
+    tris.push_back(points_to_tri(out[0], size));
+    tris.push_back(points_to_tri(out[1], size));
 
     ///left
     rect_to_tris({p[0], p[4], p[7], p[3]}, out);
 
-    tris.push_back(points_to_tri(out[0]));
-    tris.push_back(points_to_tri(out[1]));
+    tris.push_back(points_to_tri(out[0], size));
+    tris.push_back(points_to_tri(out[1], size));
 
     ///right
     rect_to_tris({p[2], p[6], p[5], p[1]}, out);
 
-    tris.push_back(points_to_tri(out[0]));
-    tris.push_back(points_to_tri(out[1]));
+    tris.push_back(points_to_tri(out[0], size));
+    tris.push_back(points_to_tri(out[1], size));
 
     ///forward
     rect_to_tris({p[0], p[1], p[5], p[4]}, out);
 
-    tris.push_back(points_to_tri(out[0]));
-    tris.push_back(points_to_tri(out[1]));
+    tris.push_back(points_to_tri(out[0], size));
+    tris.push_back(points_to_tri(out[1], size));
 
     ///back
     rect_to_tris({p[2], p[3], p[7], p[6]}, out);
 
-    tris.push_back(points_to_tri(out[0]));
-    tris.push_back(points_to_tri(out[1]));
+    tris.push_back(points_to_tri(out[0], size));
+    tris.push_back(points_to_tri(out[1], size));
 
     texture tex;
     tex.type = 0;
@@ -128,8 +134,6 @@ void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float siz
     obj.bid = -1;
     obj.rid = normal.id;
     obj.has_bump = 0;
-
-    printf("%i\n", obj.rid);
 
     pobj->objs.push_back(obj);
 

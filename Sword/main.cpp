@@ -331,7 +331,8 @@ int main(int argc, char *argv[])
 
     printf("loaded net fighters\n");
 
-    floor.set_specular(0.2f);
+    floor.set_specular(0.9f);
+    floor.set_diffuse(1.f);
 
     texture_manager::allocate_textures();
 
@@ -346,9 +347,10 @@ int main(int argc, char *argv[])
 
     light l;
     //l.set_col({1.0, 1.0, 1.0, 0});
-    l.set_col({1.0, 0.0, 1.0, 0});
+    l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
-    l.set_brightness(0.0);
+    l.set_brightness(0.f);
+    l.set_diffuse(0.f);
     l.set_pos({0, 1000, -300, 0});
 
     window.add_light(&l);
@@ -570,6 +572,6 @@ int main(int argc, char *argv[])
 
         window.display();
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }
