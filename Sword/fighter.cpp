@@ -322,6 +322,7 @@ sword::sword()
 void sword::scale()
 {
     model.scale(50.f);
+    model.set_specular(0.4f);
 
     bound = get_bbox(&model);
 
