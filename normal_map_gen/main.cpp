@@ -25,7 +25,7 @@ void plop(int x, int y, vec3f* r, int width)
             int xv = (x + i + width) % width;
             int yv = (y + j + width) % width;
 
-            r[IX(xv, yv)] = r[IX(xv, yv)] + (vec3f){i, 0, j};
+            r[IX(xv, yv)] = r[IX(xv, yv)] + (vec3f){i, 1, j};
         }
     }
 }
@@ -50,12 +50,12 @@ typedef setting_list::setting_list setting_t;
 std::map<setting_t, setting> options =
 {
     {setting_list::FLOOR, {2048, 2048, 10000000}},
-    {setting_list::BODYPART, {1024, 1024, 10000000/4}}
+    {setting_list::BODYPART, {1024, 1024, 10000000*40}}
 };
 
 int main()
 {
-    setting_t type = setting_list::FLOOR;
+    setting_t type = setting_list::BODYPART;
 
     setting s = options[type];
 
@@ -87,7 +87,7 @@ int main()
     }*/
 
     for(uint32_t i=0; i<width*height; i++)
-        r[i] = {0,0,0};
+        r[i] = {0,1,0};
 
 
     /*for(int z=0; z<depth; z++)
@@ -176,7 +176,7 @@ int main()
         }
     }*/
 
-    img.saveToFile("norm.png");
+    img.saveToFile("norm_body.png");
 
     return 0;
 }
