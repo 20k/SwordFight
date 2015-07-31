@@ -25,45 +25,72 @@ void plop(int x, int y, vec3f* r, int width)
             int xv = (x + i + width) % width;
             int yv = (y + j + width) % width;
 
-            r[IX(xv, yv)] = r[IX(xv, yv)] + (vec3f){i, 1, j};
+            r[IX(xv, yv)] = r[IX(xv, yv)] + (vec3f){i, 0, j};
         }
     }
 }
 
+struct setting
+{
+    int width, height, num;
+};
+
+namespace setting_list
+{
+    enum setting_list
+    {
+        FLOOR,
+        BODYPART,
+        COUNT
+    };
+}
+
+typedef setting_list::setting_list setting_t;
+
+std::map<setting_t, setting> options =
+{
+    {setting_list::FLOOR, {2048, 2048, 10000000}},
+    {setting_list::BODYPART, {1024, 1024, 10000000/4}}
+};
+
 int main()
 {
-    int width = 2048;
-    int height = 2048;
+    setting_t type = setting_list::FLOOR;
+
+    setting s = options[type];
+
+    int width = s.width;
+    int height = s.height;
     int depth = 3;
 
-    float* tw1, *tw2, *tw3;
+    /*float* tw1, *tw2, *tw3;
 
     ///needs to be nw, nh, nd
     tw1 = new float[width*height*depth];
     tw2 = new float[width*height*depth];
-    tw3 = new float[width*height*depth];
+    tw3 = new float[width*height*depth];*/
 
-    cl_float3* out;
+    //cl_float3* out;
 
     ///needs to be nw, nh, nd
-    out = new cl_float3[width*height*depth];
+    //out = new cl_float3[width*height*depth];
 
 
     vec3f* r = new vec3f[width*height];
 
-    for(unsigned int i = 0; i<width*height*depth; i++)
+    /*for(unsigned int i = 0; i<width*height*depth; i++)
     {
         //tw1[i] = randf_s();
         //tw2[i] = randf_s();
         //tw3[i] = randf_s();
 
-    }
+    }*/
 
     for(uint32_t i=0; i<width*height; i++)
-        r[i] = {0,1,0};
+        r[i] = {0,0,0};
 
 
-    for(int z=0; z<depth; z++)
+    /*for(int z=0; z<depth; z++)
         for(int y=0; y<height; y++)
             for(int x=0; x<width; x++)
     {
@@ -77,19 +104,9 @@ int main()
         //out[z*width*height + y*width + x] = val;
 
         out[pos] = {tw1[pos], tw2[pos], tw3[pos]};
-    }
-
-    int z = 1;
-
-    /*for(int y=1; y<height-1; y += 13)
-    {
-        for(int x=1; x<width-1; x += 13)
-        {
-
-        }
     }*/
 
-    int num = 10000000;
+    int num = s.num;
 
     for(int i=0; i<num; i++)
     {
