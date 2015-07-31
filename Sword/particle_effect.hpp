@@ -40,6 +40,7 @@ struct cube_effect : effect
 
 struct light_effect : effect
 {
+    vec3f start;
     vec3f pos;
     light* l;
 

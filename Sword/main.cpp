@@ -20,6 +20,8 @@
 #include "object_cube.hpp"
 #include "particle_effect.hpp"
 
+#include "../openclrenderer/settings_loader.hpp"
+
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
 bool once()
@@ -120,12 +122,12 @@ void debug_controls(fighter* my_fight, engine& window)
 
     if(key.isKeyPressed(sf::Keyboard::Comma))
     {
-        look_height += 0.01f;
+        look_height += 0.01f * window.get_frametime() / 8000.f;
     }
 
     if(key.isKeyPressed(sf::Keyboard::Period))
     {
-        look_height += -0.01f;
+        look_height += -0.01f * window.get_frametime() / 8000.f;
     }
 
     my_fight->set_look({look_height, 0.f, 0.f});
@@ -144,7 +146,9 @@ void debug_controls(fighter* my_fight, engine& window)
     if(key.isKeyPressed(sf::Keyboard::L))
         walk_dir.v[1] = 1;
 
-    my_fight->walk_dir(walk_dir);
+    bool sprint = key.isKeyPressed(sf::Keyboard::LShift);
+
+    my_fight->walk_dir(walk_dir, sprint);
 }
 
 void fps_controls(fighter* my_fight, engine& window)
@@ -168,7 +172,9 @@ void fps_controls(fighter* my_fight, engine& window)
     if(key.isKeyPressed(sf::Keyboard::D))
         walk_dir.v[1] = 1;
 
-    my_fight->walk_dir(walk_dir);
+    bool sprint = key.isKeyPressed(sf::Keyboard::LShift);
+
+    my_fight->walk_dir(walk_dir, sprint);
 
     if(once<sf::Mouse::Left>())
         my_fight->queue_attack(attacks::SLASH);
@@ -273,8 +279,12 @@ int main(int argc, char *argv[])
     floor.cache = false;
     floor.set_active(true);
 
+    settings s;
+    s.load("./res/settings.txt");
+
     engine window;
-    window.load(1365,765,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
+    window.load(s.width,s.height,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
+
     //window.window.setFramerateLimit(24.f);
 
     printf("loaded\n");
@@ -349,7 +359,7 @@ int main(int argc, char *argv[])
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
-    l.set_brightness(0.01f);
+    l.set_brightness(0.02f);
     l.set_diffuse(1.f);
     l.set_pos({0, 10000, -300, 0});
 
@@ -408,7 +418,7 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::V>() && network::network_state == 0)
         {
-            network::join("192.168.1.55");
+            network::join(s.ip);
 
             network::ping();
         }
@@ -550,15 +560,13 @@ int main(int argc, char *argv[])
                 i->update_lights();
         }
 
+        particle_effect::tick();
 
         ///about 0.2ms slower than not doing this
         engine::realloc_light_gmem();
 
-
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
-
-        particle_effect::tick();
 
         window.draw_bulk_objs_n();
 
@@ -572,6 +580,6 @@ int main(int argc, char *argv[])
 
         window.display();
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

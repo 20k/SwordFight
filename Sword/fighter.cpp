@@ -326,7 +326,7 @@ void sword::scale()
 
     bound = get_bbox(&model);
 
-    float sword_height = FLT_MIN;
+    float sword_height = 0;
 
     for(triangle& t : model.objs[0].tri_list)
     {
@@ -563,7 +563,7 @@ void fighter::die()
     for(auto& i : my_lights)
     {
         light_effect l;
-        l.make(6000.f, i);
+        l.make(5000.f, i);
         particle_effect::push(l);
     }
 
@@ -1166,7 +1166,7 @@ vec3f seek(vec3f cur, vec3f dest, float dist, float seek_time, float elapsed_tim
 }
 
 ///do I want to do a proper dynamic timing synchronisation thing?
-void fighter::walk_dir(vec2f dir)
+void fighter::walk_dir(vec2f dir, bool sprint)
 {
     ///try and fix the lex stiffening up a bit, but who cares
     ///make feet average out with the ground
@@ -1178,8 +1178,13 @@ void fighter::walk_dir(vec2f dir)
     ///in ms
     float time_elapsed = walk_clock.getElapsedTime().asMicroseconds() / 1000.f;
 
-    ///prevent feet going out of sync if there's a pause
-    //time_elapsed = clamp(time_elapsed, 0.f, 67.f);
+    float h = 120.f;
+
+    if(dir.v[0] == -1 && sprint)
+    {
+        time_elapsed *= 1.3f;
+        h *= 1.2f;
+    }
 
     float dist = 100.f;
 
@@ -1264,16 +1269,12 @@ void fighter::walk_dir(vec2f dir)
 
     if(lmod < 0)
     {
-        float h = 120.f;
-
         float xv = -lfrac * (lfrac - 1);
 
         parts[foot].pos.v[1] = h * xv + rest_positions[foot].v[1];
     }
     if(lmod > 0)
     {
-        float h = 120.f;
-
         float xv = -rfrac * (rfrac - 1);
 
         parts[ofoot].pos.v[1] = h * xv + rest_positions[ofoot].v[1];
@@ -1708,6 +1709,23 @@ void fighter::update_lights()
             i->set_col({0.f, 0.f, 1.f, 0.f});
 
         //i->set_col({1.f, 1.f, 1.f});
+    }
+
+    for(auto& i : my_lights)
+    {
+        vec3f pos = xyz_to_vec(i->pos);
+
+        ///dirty hack of course
+        ///ideally we'd use the alive status for this
+        ///but that'd break the death effects
+        if(pos.length() > 10000.f)
+        {
+            i->set_active(false);
+        }
+        else
+        {
+            i->set_active(true);
+        }
     }
 }
 
