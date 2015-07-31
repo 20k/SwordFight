@@ -148,6 +148,8 @@ void part::set_team(int _team)
         model.set_file("./Res/bodypart_blue.obj");
     }
 
+    model.set_normal("res/norm_body.png");
+
     model.unload();
 
     set_active(true);
@@ -316,7 +318,6 @@ sword::sword()
     model.set_pos({0, 0, -100});
     dir = {0,0,0};
     model.set_file("./Res/sword_red.obj");
-
 }
 
 void sword::scale()
@@ -365,6 +366,7 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
     objects_container o;
     o.set_load_func(std::bind(load_object_cube, std::placeholders::_1, p1->pos + dir * squish, p2->pos - dir * squish, thickness, tex));
     o.cache = false;
+    //o.set_normal("res/norm_body.png");
 
     link l;
 

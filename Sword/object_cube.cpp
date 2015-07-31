@@ -17,7 +17,7 @@ void rect_to_tris(std::array<cl_float4, 4> p, cl_float4 out[2][3])
     out[1][2] = p[3];
 }
 
-triangle points_to_tri(cl_float4 in[3], float size)
+triangle points_to_tri(cl_float4 in[3], float size, float len, int which_side) ///0 top and bottom, 1 front/back, 2 left right
 {
     triangle t;
 
@@ -29,11 +29,31 @@ triangle points_to_tri(cl_float4 in[3], float size)
     ///and then just use the twice sized texture
     for(int i=0; i<3; i++)
     {
-        float mx = in[i].x / (size * 2);
-        float mz = in[i].z / (size * 2);
+        float mx = 0;
+        float mz = 0;
 
-        mx += 0.5f;
-        mz += 0.5f;
+        if(which_side == 0)
+        {
+            mx = in[i].x / (size * 2);
+            mz = in[i].z / (size * 2);
+
+            mx += 0.5f;
+            mz += 0.5f;
+        }
+        else if(which_side == 1)
+        {
+            mx = in[i].x / (size * 2);
+            mz = in[i].y / (len * 2);
+
+            mx += 0.5f;
+        }
+        else if(which_side == 2)
+        {
+            mx = in[i].z / (size * 2);
+            mz = in[i].y / (len * 2);
+
+            mx += 0.5f;
+        }
 
         t.vertices[i].set_vt({mx, mz});
     }
@@ -85,37 +105,37 @@ void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float siz
 
     rect_to_tris({p[3], p[2], p[1], p[0]}, out);
 
-    tris.push_back(points_to_tri(out[0], size));
-    tris.push_back(points_to_tri(out[1], size));
+    tris.push_back(points_to_tri(out[0], size, len, 0));
+    tris.push_back(points_to_tri(out[1], size, len, 0));
 
     rect_to_tris({p[4], p[5], p[6], p[7]}, out);
 
-    tris.push_back(points_to_tri(out[0], size));
-    tris.push_back(points_to_tri(out[1], size));
+    tris.push_back(points_to_tri(out[0], size, len, 0));
+    tris.push_back(points_to_tri(out[1], size, len, 0));
 
     ///left
     rect_to_tris({p[0], p[4], p[7], p[3]}, out);
 
-    tris.push_back(points_to_tri(out[0], size));
-    tris.push_back(points_to_tri(out[1], size));
+    tris.push_back(points_to_tri(out[0], size, len, 2));
+    tris.push_back(points_to_tri(out[1], size, len, 2));
 
     ///right
     rect_to_tris({p[2], p[6], p[5], p[1]}, out);
 
-    tris.push_back(points_to_tri(out[0], size));
-    tris.push_back(points_to_tri(out[1], size));
+    tris.push_back(points_to_tri(out[0], size, len, 2));
+    tris.push_back(points_to_tri(out[1], size, len, 2));
 
     ///forward
     rect_to_tris({p[0], p[1], p[5], p[4]}, out);
 
-    tris.push_back(points_to_tri(out[0], size));
-    tris.push_back(points_to_tri(out[1], size));
+    tris.push_back(points_to_tri(out[0], size, len, 1));
+    tris.push_back(points_to_tri(out[1], size, len, 1));
 
     ///back
     rect_to_tris({p[2], p[3], p[7], p[6]}, out);
 
-    tris.push_back(points_to_tri(out[0], size));
-    tris.push_back(points_to_tri(out[1], size));
+    tris.push_back(points_to_tri(out[0], size, len, 1));
+    tris.push_back(points_to_tri(out[1], size, len, 1));
 
     texture tex;
     tex.type = 0;
