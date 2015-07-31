@@ -145,8 +145,6 @@
 		<Unit filename="../openclrenderer/proj.hpp" />
 		<Unit filename="../openclrenderer/projectile_buffer_gen.cpp" />
 		<Unit filename="../openclrenderer/projectile_buffer_gen.hpp" />
-		<Unit filename="../openclrenderer/smoke.cpp" />
-		<Unit filename="../openclrenderer/smoke.hpp" />
 		<Unit filename="../openclrenderer/terrain_gen/terrain_gen.cpp" />
 		<Unit filename="../openclrenderer/terrain_gen/terrain_gen.hpp" />
 		<Unit filename="../openclrenderer/text_handler.cpp" />
