@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
     printf("textures\n");
 
     obj_mem_manager::g_arrange_mem();
-    obj_mem_manager::g_changeover();
+    obj_mem_manager::g_changeover(true);
 
     printf("loaded memory\n");
 
@@ -442,7 +442,6 @@ int main(int argc, char *argv[])
             my_fight->scale();
 
             obj_mem_manager::g_arrange_mem();
-            obj_mem_manager::g_changeover();
         }
 
         if(once<sf::Keyboard::B>())
@@ -495,7 +494,6 @@ int main(int argc, char *argv[])
 
             obj_mem_manager::load_active_objects();
             obj_mem_manager::g_arrange_mem();
-            obj_mem_manager::g_changeover();
         }
 
         audio_packet pack;
@@ -530,7 +528,6 @@ int main(int argc, char *argv[])
                 my_fight->scale();
 
                 obj_mem_manager::g_arrange_mem();
-                obj_mem_manager::g_changeover();
             }
             else
             {
@@ -568,6 +565,8 @@ int main(int argc, char *argv[])
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
 
+        obj_mem_manager::g_changeover();
+
         window.draw_bulk_objs_n();
 
         //my_fight->my_cape.tick(&my_fight->parts[bodypart::LUPPERARM].model,
@@ -575,11 +574,13 @@ int main(int argc, char *argv[])
         //                       &my_fight->parts[bodypart::RUPPERARM].model
         //                        );
 
+
         window.render_buffers();
         text::draw();
 
         window.display();
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

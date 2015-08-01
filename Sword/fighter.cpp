@@ -77,6 +77,8 @@ part::part()
     set_global_rot({0,0,0});
 
     model.set_file("./Res/bodypart_red.obj");
+
+    team = -1;
 }
 
 part::part(bodypart_t t) : part()
@@ -96,8 +98,10 @@ void part::set_active(bool active)
     is_active = active;
 }
 
-void part::scale(float amount)
+void part::scale()
 {
+    float amount = bodypart::scale/3.f;
+
     if(type != bodypart::HEAD)
         model.scale(amount);
     else
@@ -139,7 +143,17 @@ void part::update_model()
 
 void part::set_team(int _team)
 {
-    if(_team == 0)
+    int old = team;
+
+    team = _team;
+
+    if(old != team)
+        load_team_model();
+}
+
+void part::load_team_model()
+{
+    if(team == 0)
     {
         model.set_file("./Res/bodypart_red.obj");
     }
@@ -154,7 +168,9 @@ void part::set_team(int _team)
 
     set_active(true);
 
-    team = _team;
+    obj_mem_manager::load_active_objects();
+
+    scale();
 }
 
 ///a network transmission of damage will get swollowed if you are hit between the time you spawn, and the time it takes to transmit
@@ -181,7 +197,6 @@ void part::damage(float dam, bool do_effect)
 
         obj_mem_manager::load_active_objects();
         obj_mem_manager::g_arrange_mem();
-        obj_mem_manager::g_changeover();
     }
 
     network_hp();
@@ -296,7 +311,17 @@ void movement::set(movement_t t)
 
 void sword::set_team(int _team)
 {
-    if(_team == 0)
+    int old = team;
+
+    team = _team;
+
+    if(old != team)
+        load_team_model();
+}
+
+void sword::load_team_model()
+{
+    if(team == 0)
     {
         model.set_file("./Res/sword_red.obj");
 
@@ -310,7 +335,9 @@ void sword::set_team(int _team)
 
     model.set_active(true);
 
-    team = _team;
+    obj_mem_manager::load_active_objects();
+
+    scale();
 }
 
 sword::sword()
@@ -318,6 +345,7 @@ sword::sword()
     model.set_pos({0, 0, -100});
     dir = {0,0,0};
     model.set_file("./Res/sword_red.obj");
+    team = -1;
 }
 
 void sword::scale()
@@ -421,7 +449,7 @@ void fighter::load()
 
     idling = false;
 
-    team = 0;
+    team = -1;
 
     left_full = false;
 
@@ -485,14 +513,18 @@ void fighter::respawn(vec2f _pos)
 
     weapon.model.set_active(true);
 
+    for(auto& i : joint_links)
+    {
+        i.obj.set_active(true);
+    }
+
     set_team(team);
 
     obj_mem_manager::load_active_objects();
 
-    scale();
-
     obj_mem_manager::g_arrange_mem();
     obj_mem_manager::g_changeover();
+
 
     //network::host_update(&net.dead);
 }
@@ -573,7 +605,6 @@ void fighter::die()
 
     obj_mem_manager::load_active_objects();
     obj_mem_manager::g_arrange_mem();
-    obj_mem_manager::g_changeover(); ///maybe clfinish here
 }
 
 int fighter::num_dead()
@@ -628,10 +659,10 @@ bool fighter::dead()
 
 void fighter::scale()
 {
-    for(size_t i=0; i<bodypart::COUNT; i++)
-        parts[i].scale(bodypart::scale/3.f);
+    /*for(size_t i=0; i<bodypart::COUNT; i++)
+        parts[i].scale();
 
-    weapon.scale();
+    weapon.scale();*/
 }
 
 void fighter::set_look(vec3f _look)
@@ -1765,14 +1796,19 @@ void fighter::overwrite_parts_from_model()
 
 void fighter::set_team(int _team)
 {
+    int old = team;
+
     team = _team;
 
-    for(auto& i : parts)
+    for(part& i : parts)
     {
         i.set_team(team);
     }
 
     weapon.set_team(team);
+
+    if(old == team)
+        return;
 
     for(auto& i : joint_links)
     {

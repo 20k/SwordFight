@@ -161,6 +161,7 @@ struct part
     void update_model();
 
     void set_team(int _team);
+    void load_team_model();
     void damage(float dam, bool do_effect = true);
     void set_hp(float h);
 
@@ -173,7 +174,7 @@ struct part
     ~part();
 
     void set_active(bool);
-    void scale(float);
+    void scale();
 
     objects_container* obj();
 
@@ -323,6 +324,7 @@ struct sword
     void set_rot(vec3f _rot);
 
     void set_team(int _team);
+    void load_team_model();
 
     void scale();
 };

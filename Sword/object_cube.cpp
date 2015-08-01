@@ -160,6 +160,8 @@ void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float siz
     obj.rid = normal.id;
     obj.has_bump = 0;
 
+    ///???
+    //pobj->objs.clear();
     pobj->objs.push_back(obj);
 
     pobj->set_pos({start.v[0], start.v[1], start.v[2]});
