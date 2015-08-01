@@ -54,6 +54,7 @@ void cube_effect::activate()
     }
 }
 
+///when we do async, trying to flush to an un alloced memory piece will asplod everything
 void cube_effect::tick()
 {
     //for(int i=0; i<effects.size(); i++)
