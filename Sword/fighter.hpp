@@ -266,6 +266,12 @@ static std::vector<movement> slash =
     {0, {100, -80, -140}, 450, 1, bodypart::LHAND, mov::DAMAGING} ///attack
 };
 
+/*static std::vector<movement> slash =
+{
+    {0, {-150, -80, -40}, 200, 0, bodypart::LHAND, mov::WINDUP}, ///windup
+    {0, {100, -80, -140}, 450, 1, bodypart::LHAND, mov::DAMAGING} ///attack
+};*/
+
 static std::vector<movement> rest =
 {
     {0, {0, -200, -100}, 500, 1, bodypart::LHAND, mov::NONE}

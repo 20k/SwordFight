@@ -1223,33 +1223,12 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         h *= 1.2f;
     }
 
-    //if(idle)
-    //    time_elapsed = 0;
-
     float dist = 100.f;
 
     vec2f f = {0, dist};
     f = f.rot(dir.angle());
 
     float up = 50.f;
-
-
-    float stroke_time = 400.f;
-    float up_time = 100.f;
-
-    std::vector<vec3f> leg_positions
-    {
-        -(vec3f){f.v[0], 0.f, f.v[1]},
-        -(vec3f){f.v[0], up, f.v[1]}, ///actually wants to just be current position
-        (vec3f){f.v[0], 0.f, f.v[1]}
-    };
-
-    std::vector<int> stage_times
-    {
-        stroke_time,
-        up_time,
-        stroke_time - up_time
-    };
 
     int num = 3;
 
@@ -1273,8 +1252,6 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 
     auto foot = bodypart::LFOOT;
     auto ofoot = bodypart::RFOOT;
-
-    //frac = frac + time_elapsed / 100.f;
 
     vec3f lrp = {parts[foot].pos.v[0], 0.f, parts[foot].pos.v[2]};
     vec3f rrp = {parts[ofoot].pos.v[0], 0.f, parts[ofoot].pos.v[2]};
