@@ -1203,11 +1203,15 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 {
     ///try and fix the lex stiffening up a bit, but who cares
     ///make feet average out with the ground
-    if(dir.v[0] == 0 && dir.v[1] == 0)
-    {
-        walk_clock.restart();
-        return;
-    }
+    bool idle = dir.v[0] == 0 && dir.v[1] == 0;
+
+    static vec2f valid_dir = {-1, 0};
+
+    if(idle)
+        dir = valid_dir;
+    else
+        valid_dir = dir;
+
     ///in ms
     float time_elapsed = walk_clock.getElapsedTime().asMicroseconds() / 1000.f;
 
@@ -1218,6 +1222,9 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         time_elapsed *= 1.3f;
         h *= 1.2f;
     }
+
+    //if(idle)
+    //    time_elapsed = 0;
 
     float dist = 100.f;
 
@@ -1250,24 +1257,15 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 
     ldir.v[1] = -ldir.v[1];
 
-    time_elapsed = time_elapsed;
-
     vec3f global_dir = {ldir.rot(- rot.v[1]).v[1] * time_elapsed/2.f, 0.f, ldir.rot(- rot.v[1]).v[0] * time_elapsed/2.f};
 
-    //pos.v[0] += ldir.rot(- rot.v[1]).v[1] * time_elapsed/2.f;
-    //pos.v[2] += ldir.rot(- rot.v[1]).v[0] * time_elapsed/2.f;
-
-    pos = pos + global_dir;
-
-
-    //vec3f current_dir = {f.v[0], 0.f, f.v[1]};
-    //current_dir = current_dir.norm() * dist;
+    ///dont move the player if we're really idling
+    if(!idle)
+        pos = pos + global_dir;
 
     vec3f current_dir = (vec3f){ldir.v[1], 0.f, ldir.v[0]} * time_elapsed/2.f;
 
     vec3f fin = (vec3f){ldir.v[1], 0.f, ldir.v[0]}.norm() * dist;
-
-    //vec3f current_dir = global_dir;
 
     ///1 is push, 0 is air
     static float lmod = 1.f;
@@ -1288,8 +1286,12 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     lfrac -= 0.2f;
     rfrac -= 0.2f;
 
-    IK_foot(0, parts[foot].pos - lmod * current_dir);
-    IK_foot(1, parts[bodypart::RFOOT].pos + lmod * current_dir);
+    ///dont move the feet if we're really idling in the direction of last travel
+    if(!idle)
+    {
+        IK_foot(0, parts[foot].pos - lmod * current_dir);
+        IK_foot(1, parts[bodypart::RFOOT].pos + lmod * current_dir);
+    }
 
     lfrac /= 0.8f;
     rfrac /= 0.8f;
@@ -1300,13 +1302,13 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     //printf("%f %f\n", lfrac, rfrac);
     //printf("%f %f %f\n", fin.v[0], fin.v[1], fin.v[2]);
 
-    if(lmod < 0)
+    if(lmod < 0 && !idle)
     {
         float xv = -lfrac * (lfrac - 1);
 
         parts[foot].pos.v[1] = h * xv + rest_positions[foot].v[1];
     }
-    if(lmod > 0)
+    if(lmod > 0 && !idle)
     {
         float xv = -rfrac * (rfrac - 1);
 
@@ -1321,6 +1323,9 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     float real_weight = 5.f;
 
     ///adjust foot so that it sits on the 'correct' line
+
+    ///works for idling, average in last direction of moving to stick the feet on ground
+    ///also keeps feet in place while regular walking
     {
         foot = bodypart::LFOOT;
 
@@ -1343,7 +1348,7 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         IK_foot(1, (line_point + parts[foot].pos * real_weight) / (1.f + real_weight));
     }
 
-
+    ///reflects foot when it reaches the destination
     {
         foot = bodypart::LFOOT;
 

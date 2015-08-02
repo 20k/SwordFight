@@ -9,7 +9,7 @@
 
 #include "bbox.hpp"
 
-//#include "cape.hpp"
+#include "cape.hpp"
 
 namespace mov
 {

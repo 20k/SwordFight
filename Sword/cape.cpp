@@ -92,7 +92,11 @@ cape::cape()
     model = new objects_container;
 
     model->set_load_func(cape::load_cape);
-    //model->set_active(true);
+    model->set_active(true);
+
+    obj_mem_manager::load_active_objects();
+    obj_mem_manager::g_arrange_mem();
+    obj_mem_manager::g_changeover();
 
     which = 0;
 
@@ -100,6 +104,7 @@ cape::cape()
     out = compute::buffer(cl::context, sizeof(float)*width*height*depth*3, CL_MEM_READ_WRITE, nullptr);
 
     cl_float* inmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), in.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*width*height*depth*3, 0, NULL, NULL, NULL);
+    cl_float* outmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), out.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*width*height*depth*3, 0, NULL, NULL, NULL);
 
     const float separation = 11.f;
 
@@ -114,10 +119,15 @@ cape::cape()
             inmap[(i + j*width)*3 + 0] = xpos;
             inmap[(i + j*width)*3 + 1] = ypos;
             inmap[(i + j*width)*3 + 2] = zpos;
+
+            outmap[(i + j*width)*3 + 0] = xpos;
+            outmap[(i + j*width)*3 + 1] = ypos;
+            outmap[(i + j*width)*3 + 2] = zpos;
         }
     }
 
     clEnqueueUnmapMemObject(cl::cqueue.get(), in.get(), inmap, 0, NULL, NULL);
+    clEnqueueUnmapMemObject(cl::cqueue.get(), out.get(), outmap, 0, NULL, NULL);
 }
 
 

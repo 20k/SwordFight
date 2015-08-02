@@ -543,7 +543,6 @@ int main(int argc, char *argv[])
         if(!my_fight->dead())
             my_fight->update_lights();
 
-
         for(auto& i : net_fighters)
         {
             if(my_fight == i)
@@ -569,9 +568,9 @@ int main(int argc, char *argv[])
 
         window.draw_bulk_objs_n();
 
-        //my_fight->my_cape.tick(&my_fight->parts[bodypart::LUPPERARM].model,
-        //                       &my_fight->parts[bodypart::BODY].model,
-        //                       &my_fight->parts[bodypart::RUPPERARM].model
+        //my_fight->my_cape.tick(my_fight->parts[bodypart::LUPPERARM].obj(),
+        //                       my_fight->parts[bodypart::BODY].obj(),
+        //                       my_fight->parts[bodypart::RUPPERARM].obj()
         //                        );
 
 
