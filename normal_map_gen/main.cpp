@@ -50,7 +50,7 @@ typedef setting_list::setting_list setting_t;
 std::map<setting_t, setting> options =
 {
     {setting_list::FLOOR, {2048, 2048, 10000000}},
-    {setting_list::BODYPART, {1024, 1024, 10000000*40}}
+    {setting_list::BODYPART, {1024, 1024, 10000000/4}}
 };
 
 int main()
