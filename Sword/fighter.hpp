@@ -139,6 +139,8 @@ typedef bodypart::bodypart bodypart_t;
 
 struct part
 {
+    int quality; ///graphics quality, 0 is low, 1 is high
+
     bodypart_t type;
     vec3f pos;
     vec3f rot;
@@ -164,6 +166,8 @@ struct part
     void load_team_model();
     void damage(float dam, bool do_effect = true);
     void set_hp(float h);
+
+    void set_quality(int _quality);
 
     bool alive(); ///if the model is inactive, its considered dead
 
@@ -417,10 +421,12 @@ struct fighter
     bool idling;
     bool performed_death; ///have i done my death stuff locally
 
-    //cape my_cape;
 
-    ///sigh, cant be on init because needs to be after object load
-    void scale();
+    int quality; /// 0 = low, 1 = high
+
+    void set_quality(int _quality);
+
+    //cape my_cape;
 
     void IK_hand(int hand, vec3f pos);
     void IK_foot(int foot, vec3f pos);

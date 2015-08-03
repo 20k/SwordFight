@@ -79,6 +79,8 @@ part::part()
     model.set_file("./Res/bodypart_red.obj");
 
     team = -1;
+
+    quality = 0;
 }
 
 part::part(bodypart_t t) : part()
@@ -153,14 +155,30 @@ void part::set_team(int _team)
 
 void part::load_team_model()
 {
-    if(team == 0)
+    ///this is not the place to define these
+    const std::string low_red = "res/low/bodypart_red.obj";
+    const std::string high_red = "res/high/bodypart_red.obj";
+    const std::string low_blue = "res/low/bodypart_blue.obj";
+    const std::string high_blue = "res/high/bodypart_blue.obj";
+
+    std::string to_load = low_red;
+
+    if(quality == 0)
     {
-        model.set_file("./Res/bodypart_red.obj");
+        if(team == 0)
+            to_load = low_red;
+        else
+            to_load = low_blue;
     }
     else
     {
-        model.set_file("./Res/bodypart_blue.obj");
+        if(team == 0)
+            to_load = high_red;
+        else
+            to_load = high_blue;
     }
+
+    model.set_file(to_load);
 
     model.set_normal("res/norm_body.png");
 
@@ -171,6 +189,18 @@ void part::load_team_model()
     obj_mem_manager::load_active_objects();
 
     scale();
+}
+
+void part::set_quality(int _quality)
+{
+    int old_quality = quality;
+
+    quality = _quality;
+
+    if(quality != old_quality)
+    {
+        load_team_model();
+    }
 }
 
 ///a network transmission of damage will get swollowed if you are hit between the time you spawn, and the time it takes to transmit
@@ -413,6 +443,8 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
 ///need to only maintain 1 copy of this, I'm just a muppet
 fighter::fighter()
 {
+    quality = 0;
+
     light l1;
 
     my_lights.push_back(light::add_light(&l1));
@@ -657,12 +689,14 @@ bool fighter::dead()
     return (num_dead() > num_needed_to_die()) || performed_death;
 }
 
-void fighter::scale()
+void fighter::set_quality(int _quality)
 {
-    /*for(size_t i=0; i<bodypart::COUNT; i++)
-        parts[i].scale();
+    quality = _quality;
 
-    weapon.scale();*/
+    for(auto& i : parts)
+    {
+        i.set_quality(quality);
+    }
 }
 
 void fighter::set_look(vec3f _look)

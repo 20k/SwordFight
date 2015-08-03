@@ -296,11 +296,13 @@ int main(int argc, char *argv[])
 
     fighter fight;
     fight.set_team(0);
+    fight.set_quality(s.quality);
 
     fighter fight2;
     fight2.set_team(1);
     fight2.set_pos({0, 0, -600});
     fight2.set_rot({0, M_PI, 0});
+    fight2.set_quality(s.quality);
 
     std::vector<fighter*> net_fighters;
 
@@ -311,6 +313,7 @@ int main(int argc, char *argv[])
         net_fighters[i]->set_team(1);
         net_fighters[i]->set_pos({0, 0, -3000000});
         net_fighters[i]->set_rot({0, 0, 0});
+        net_fighters[i]->set_quality(s.quality);
     }
 
 
@@ -323,15 +326,11 @@ int main(int argc, char *argv[])
 
     printf("postload\n");
 
-    fight.scale();
-    fight2.scale();
-
     fight.set_physics(&phys);
     fight2.set_physics(&phys);
 
     for(auto& i : net_fighters)
     {
-        i->scale();
         i->set_physics(&phys);
 
         net_slave(*i);
@@ -359,7 +358,7 @@ int main(int argc, char *argv[])
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
-    l.set_brightness(0.04f);
+    l.set_brightness(0.02f);
     l.set_diffuse(1.f);
     l.set_pos({0, 10000, -300, 0});
 
@@ -438,8 +437,6 @@ int main(int argc, char *argv[])
             fight2.die();
 
             obj_mem_manager::load_active_objects();
-
-            my_fight->scale();
 
             obj_mem_manager::g_arrange_mem();
         }
@@ -524,8 +521,6 @@ int main(int argc, char *argv[])
                 fight2.die();
 
                 obj_mem_manager::load_active_objects();
-
-                my_fight->scale();
 
                 obj_mem_manager::g_arrange_mem();
             }
