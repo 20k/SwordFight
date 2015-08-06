@@ -499,7 +499,6 @@ void fighter::load()
 
     rest_positions = bodypart::init_default();
 
-
     for(size_t i=0; i<bodypart::COUNT; i++)
     {
         parts[i].set_type((bodypart_t)i);
@@ -524,8 +523,6 @@ void fighter::load()
     IK_hand(1, weapon.pos);
 
     focus_pos = weapon.pos;
-
-    update_render_positions();
 }
 
 void fighter::respawn(vec2f _pos)

@@ -10,7 +10,7 @@
 #include "../openclrenderer/ui_manager.hpp"
 
 #include "fighter.hpp"
-#include "text.hpp"
+#include "text.hpp" 
 #include "physics.hpp"
 
 #include "../openclrenderer/network.hpp"
@@ -484,6 +484,8 @@ int main(int argc, char *argv[])
             printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
 
         my_fight->tick(true);
+        my_fight->tick_cape();
+
 
         bool need_realloc = network::tick();
 
@@ -562,8 +564,6 @@ int main(int argc, char *argv[])
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
 
         obj_mem_manager::g_changeover();
-
-        my_fight->tick_cape();
 
         window.draw_bulk_objs_n();
 
