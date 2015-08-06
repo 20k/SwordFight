@@ -441,7 +441,7 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
 }
 
 ///need to only maintain 1 copy of this, I'm just a muppet
-fighter::fighter() : my_cape()
+fighter::fighter()
 {
     quality = 0;
 
@@ -691,7 +691,7 @@ bool fighter::dead()
 
 void fighter::tick_cape()
 {
-    int ticks = 2;
+    int ticks = 1;
 
     for(int i=0; i<ticks; i++)
     {

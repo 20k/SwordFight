@@ -462,7 +462,7 @@ int main(int argc, char *argv[])
             //fight2.queue_attack(attacks::BLOCK);
 
             fight2.tick();
-            //fight2.tick_cape();
+            fight2.tick_cape();
 
             fight2.update_render_positions();
 
@@ -484,7 +484,7 @@ int main(int argc, char *argv[])
             printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
 
         my_fight->tick(true);
-        //my_fight->tick_cape();
+        my_fight->tick_cape();
 
 
         bool need_realloc = network::tick();
