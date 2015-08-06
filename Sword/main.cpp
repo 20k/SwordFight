@@ -10,7 +10,7 @@
 #include "../openclrenderer/ui_manager.hpp"
 
 #include "fighter.hpp"
-#include "text.hpp" 
+#include "text.hpp"
 #include "physics.hpp"
 
 #include "../openclrenderer/network.hpp"
@@ -573,6 +573,6 @@ int main(int argc, char *argv[])
         window.display();
 
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

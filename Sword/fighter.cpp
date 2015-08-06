@@ -693,7 +693,8 @@ void fighter::tick_cape()
 {
     this->my_cape.tick(this->parts[bodypart::LUPPERARM].obj(),
                            this->parts[bodypart::BODY].obj(),
-                           this->parts[bodypart::RUPPERARM].obj()
+                           this->parts[bodypart::RUPPERARM].obj(),
+                           this
                             );
 }
 

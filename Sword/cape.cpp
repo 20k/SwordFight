@@ -143,7 +143,8 @@ void cape::make_stable(fighter* parent)
     {
         tick(parent->parts[bodypart::LUPPERARM].obj(),
                                parent->parts[bodypart::BODY].obj(),
-                               parent->parts[bodypart::RUPPERARM].obj()
+                               parent->parts[bodypart::RUPPERARM].obj(),
+                               parent
                                 );
     }
 }
@@ -209,8 +210,27 @@ compute::buffer cape::fighter_to_fixed(objects_container* l, objects_container* 
     return buf;
 }
 
-void cape::tick(objects_container* l, objects_container* m, objects_container* r)
+compute::buffer body_to_gpu(fighter* parent)
 {
+    std::vector<cl_float4> pos;
+
+    for(auto& i : parent->parts)
+    {
+        vec3f p = i.global_pos;
+
+        pos.push_back({p.v[0], p.v[1], p.v[2]});
+    }
+
+    compute::buffer buf = compute::buffer(cl::context, sizeof(cl_float4)*pos.size(), CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, pos.data());
+
+    return buf;
+}
+
+void cape::tick(objects_container* l, objects_container* m, objects_container* r, fighter* parent)
+{
+    auto buf = body_to_gpu(parent);
+    int num = bodypart::COUNT;
+
     arg_list cloth_args;
 
     cloth_args.push_back(&obj_mem_manager::g_tri_mem);
@@ -229,6 +249,8 @@ void cape::tick(objects_container* l, objects_container* m, objects_container* r
     cloth_args.push_back(&b2);
     cloth_args.push_back(&fixed);
     cloth_args.push_back(&engine::g_screen);
+    cloth_args.push_back(&buf);
+    cloth_args.push_back(&num);
 
     cl_uint global_ws[1] = {width*height*depth};
     cl_uint local_ws[1] = {256};
