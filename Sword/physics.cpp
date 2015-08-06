@@ -180,7 +180,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                 rel = pos;
 
-                cl_float4 scr;
+                ///screen position, this is off the screen for a non this client character
+                cl_float4 scr = {-100, -100, -100, 0};
 
                 if(is_player)
                     scr = engine::project({pos.v[0], pos.v[1], pos.v[2]});

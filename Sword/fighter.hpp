@@ -426,7 +426,7 @@ struct fighter
 
     void set_quality(int _quality);
 
-    //cape my_cape;
+    cape my_cape;
 
     void IK_hand(int hand, vec3f pos);
     void IK_foot(int foot, vec3f pos);
@@ -487,6 +487,8 @@ struct fighter
     int num_needed_to_die();
     void checked_death(); ///only die if we should
     bool dead();
+
+    void tick_cape();
 
     ///rotation
     void set_look(vec3f look);

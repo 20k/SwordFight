@@ -2,10 +2,13 @@
 #define CAPE_HPP_INCLUDED
 
 #include <Boost/compute.hpp>
+#include "vec.hpp"
 
 struct objects_container;
 
 namespace compute = boost::compute;
+
+struct fighter;
 
 struct cape
 {
@@ -23,6 +26,8 @@ struct cape
     compute::buffer fighter_to_fixed(objects_container* l, objects_container* m, objects_container* r);
 
     void tick(objects_container* l, objects_container* m, objects_container* r);
+
+    void make_stable(fighter* parent);
 };
 
 #endif // CAPE_HPP_INCLUDED

@@ -441,7 +441,7 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
 }
 
 ///need to only maintain 1 copy of this, I'm just a muppet
-fighter::fighter()
+fighter::fighter() : my_cape()
 {
     quality = 0;
 
@@ -524,6 +524,8 @@ void fighter::load()
     IK_hand(1, weapon.pos);
 
     focus_pos = weapon.pos;
+
+    update_render_positions();
 }
 
 void fighter::respawn(vec2f _pos)
@@ -557,6 +559,7 @@ void fighter::respawn(vec2f _pos)
     obj_mem_manager::g_arrange_mem();
     obj_mem_manager::g_changeover();
 
+    //my_cape.make_stable(this);
 
     //network::host_update(&net.dead);
 }
@@ -687,6 +690,14 @@ void fighter::checked_death()
 bool fighter::dead()
 {
     return (num_dead() > num_needed_to_die()) || performed_death;
+}
+
+void fighter::tick_cape()
+{
+    this->my_cape.tick(this->parts[bodypart::LUPPERARM].obj(),
+                           this->parts[bodypart::BODY].obj(),
+                           this->parts[bodypart::RUPPERARM].obj()
+                            );
 }
 
 void fighter::set_quality(int _quality)

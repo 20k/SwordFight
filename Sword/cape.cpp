@@ -8,6 +8,7 @@
 #include "../openclrenderer/obj_mem_manager.hpp"
 #include "vec.hpp"
 #include "physics.hpp"
+#include "fighter.hpp"
 
 void cape::load_cape(objects_container* pobj)
 {
@@ -95,6 +96,10 @@ cape::cape()
     model->set_active(true);
 
     obj_mem_manager::load_active_objects();
+
+    model->set_two_sided(true);
+    model->set_specular(0);
+
     obj_mem_manager::g_arrange_mem();
     obj_mem_manager::g_changeover();
 
@@ -106,7 +111,7 @@ cape::cape()
     cl_float* inmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), in.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*width*height*depth*3, 0, NULL, NULL, NULL);
     cl_float* outmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), out.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*width*height*depth*3, 0, NULL, NULL, NULL);
 
-    const float separation = 11.f;
+    const float separation = 10.f;
 
     for(int j=0; j<height; j++)
     {
@@ -130,153 +135,18 @@ cape::cape()
     clEnqueueUnmapMemObject(cl::cqueue.get(), out.get(), outmap, 0, NULL, NULL);
 }
 
-
-/*struct cloth
+void cape::make_stable(fighter* parent)
 {
-    compute::buffer px[2], py[2], pz[2];
-    compute::buffer defx, defy, defz;
-    int which;
-    int which_not;
+    int num = 100;
 
-    int w, h, d;
-
-    cloth()
+    for(int i=0; i<num; i++)
     {
-        w = 10;
-        h = 30;
-        d = 1;
-
-        for(int i=0; i<2; i++)
-        {
-            px[i] = compute::buffer(cl::context, sizeof(float)*w*h*d, CL_MEM_READ_WRITE, nullptr);
-            py[i] = compute::buffer(cl::context, sizeof(float)*w*h*d, CL_MEM_READ_WRITE, nullptr);
-            pz[i] = compute::buffer(cl::context, sizeof(float)*w*h*d, CL_MEM_READ_WRITE, nullptr);
-        }
-
-        float* xm = new float[w*h*d]();
-        float* ym = new float[w*h*d]();
-        float* zm = new float[w*h*d]();
-
-        const float pretend_rest = 20.f;
-        const float real_rest = 10.f;
-
-        for(int k=0; k<d; k++)
-        {
-            for(int j=0; j<h; j++)
-            {
-                for(int i=0; i<w; i++)
-                {
-                    xm[i + j*w + k*w*h] = i * pretend_rest;
-                    ym[i + j*w + k*w*h] = j * pretend_rest;
-                    zm[i + j*w + k*w*h] = k * pretend_rest;
-                }
-            }
-        }
-
-        ///Performs a copy to pcie, should really map the buffer instead
-        cl::cqueue.enqueue_write_buffer(px[0], 0, sizeof(float)*w*h*d, xm);
-        cl::cqueue.enqueue_write_buffer(py[0], 0, sizeof(float)*w*h*d, ym);
-        cl::cqueue.enqueue_write_buffer(pz[0], 0, sizeof(float)*w*h*d, zm);
-
-        delete [] xm;
-        delete [] ym;
-        delete [] zm;
-
-        defx = compute::buffer(cl::context, sizeof(cl_float)*w, CL_MEM_READ_WRITE, nullptr);
-        defy = compute::buffer(cl::context, sizeof(cl_float)*w, CL_MEM_READ_WRITE, nullptr);
-        defz = compute::buffer(cl::context, sizeof(cl_float)*w, CL_MEM_READ_WRITE, nullptr);
-
-        cl_float* xmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defx.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
-        cl_float* ymap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defy.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
-        cl_float* zmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defz.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
-
-        for(int i=0; i<w; i++)
-        {
-            xmap[i] = i * real_rest;
-            ymap[i] = (h-1) * real_rest;
-            zmap[i] = 0;
-        }
-
-        clEnqueueUnmapMemObject(cl::cqueue.get(), defx.get(), xmap, 0, NULL, NULL);
-        clEnqueueUnmapMemObject(cl::cqueue.get(), defy.get(), ymap, 0, NULL, NULL);
-        clEnqueueUnmapMemObject(cl::cqueue.get(), defz.get(), zmap, 0, NULL, NULL);
-
-        ///mypos = (float3){x * rest_dist, (height-1) * rest_dist, 0};
-
-        which = 0;
-        which_not = (which + 1) % 2;
+        tick(parent->parts[bodypart::LUPPERARM].obj(),
+                               parent->parts[bodypart::BODY].obj(),
+                               parent->parts[bodypart::RUPPERARM].obj()
+                                );
     }
-
-    void fighter_to_fixed(objects_container* l, objects_container* m, objects_container* r)
-    {
-        vec3f position = xyz_to_vec(m->pos);
-        vec3f rotation = xyz_to_vec(m->rot);
-
-        vec3f lpos = xyz_to_vec(l->pos);
-        vec3f rpos = xyz_to_vec(r->pos);
-
-        bbox lbbox = get_bbox(l);
-        bbox rbbox = get_bbox(r);
-
-        float ldepth = lbbox.max.v[2] - lbbox.min.v[2];
-        float rdepth = rbbox.max.v[2] - rbbox.min.v[2];
-
-        lpos = lpos + (vec3f){0, 0, ldepth}.rot({0,0,0}, rotation);
-        rpos = rpos + (vec3f){0, 0, rdepth}.rot({0,0,0}, rotation);
-
-        vec3f dir = rpos - lpos;
-
-        int len = w;
-
-        vec3f step = dir / (float)len;
-
-        vec3f current = lpos;
-
-        cl_float* xmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defx.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
-        cl_float* ymap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defy.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
-        cl_float* zmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defz.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
-
-        for(int i=0; i < len; i ++)
-        {
-            xmap[i] = current.v[0];
-            ymap[i] = current.v[1];
-            zmap[i] = current.v[2];
-
-            current = current + step;
-        }
-
-        clEnqueueUnmapMemObject(cl::cqueue.get(), defx.get(), xmap, 0, NULL, NULL);
-        clEnqueueUnmapMemObject(cl::cqueue.get(), defy.get(), ymap, 0, NULL, NULL);
-        clEnqueueUnmapMemObject(cl::cqueue.get(), defz.get(), zmap, 0, NULL, NULL);
-
-    }
-
-    compute::buffer cur(int dim)
-    {
-        if(dim == 0)
-            return px[which];
-        if(dim == 1)
-            return py[which];
-        if(dim == 2)
-            return pz[which];
-    }
-
-    compute::buffer next(int dim)
-    {
-        if(dim == 0)
-            return px[which_not];
-        if(dim == 1)
-            return py[which_not];
-        if(dim == 2)
-            return pz[which_not];
-    }
-
-    void swap()
-    {
-        which_not = which;
-        which = (which + 1) % 2;
-    }
-};*/
+}
 
 compute::buffer cape::fighter_to_fixed(objects_container* l, objects_container* m, objects_container* r)
 {
@@ -337,7 +207,6 @@ compute::buffer cape::fighter_to_fixed(objects_container* l, objects_container* 
     clEnqueueUnmapMemObject(cl::cqueue.get(), buf.get(), mem_map, 0, NULL, NULL);
 
     return buf;
-
 }
 
 void cape::tick(objects_container* l, objects_container* m, objects_container* r)

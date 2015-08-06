@@ -297,6 +297,7 @@ int main(int argc, char *argv[])
     fighter fight;
     fight.set_team(0);
     fight.set_quality(s.quality);
+    fight.my_cape.make_stable(&fight);
 
     fighter fight2;
     fight2.set_team(1);
@@ -461,6 +462,7 @@ int main(int argc, char *argv[])
             //fight2.queue_attack(attacks::BLOCK);
 
             fight2.tick();
+            fight2.tick_cape();
 
             fight2.update_render_positions();
 
@@ -561,13 +563,9 @@ int main(int argc, char *argv[])
 
         obj_mem_manager::g_changeover();
 
+        my_fight->tick_cape();
+
         window.draw_bulk_objs_n();
-
-        //my_fight->my_cape.tick(my_fight->parts[bodypart::LUPPERARM].obj(),
-        //                       my_fight->parts[bodypart::BODY].obj(),
-        //                       my_fight->parts[bodypart::RUPPERARM].obj()
-        //                        );
-
 
         window.render_buffers();
         text::draw();
