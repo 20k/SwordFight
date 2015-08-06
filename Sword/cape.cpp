@@ -38,7 +38,7 @@ void cape::load_cape(objects_container* pobj)
     }
 
     std::vector<triangle> tris;
-    tris.resize(width*height*2);
+    //tris.resize(width*height*2);
 
     for(int j=0; j<height-1; j++)
     {
@@ -56,11 +56,27 @@ void cape::load_cape(objects_container* pobj)
 
             t.vertices[0] = verts[j][i+1];
             t.vertices[1] = verts[j+1][i+1];
-
             t.vertices[2] = verts[j+1][i];
 
             tris.push_back(t);
         }
+    }
+
+    for(int i=0; i<width-1; i++)
+    {
+        triangle t;
+
+        t.vertices[0] = verts[0][0];
+        t.vertices[1] = verts[0][1];
+        t.vertices[2] = verts[1][0];
+
+        tris.push_back(t);
+
+        t.vertices[0] = verts[0][1];
+        t.vertices[1] = verts[1][1];
+        t.vertices[2] = verts[1][0];
+
+        tris.push_back(t);
     }
 
     texture tex;
@@ -106,6 +122,7 @@ void cape::load()
 
     model->set_load_func(cape::load_cape);
     model->set_active(true);
+    model->cache = false;
 
     obj_mem_manager::load_active_objects();
 
@@ -252,7 +269,10 @@ compute::buffer body_to_gpu(fighter* parent)
 void cape::tick(objects_container* l, objects_container* m, objects_container* r, fighter* parent)
 {
     if(!loaded)
+    {
         load();
+        return;
+    }
 
     auto buf = body_to_gpu(parent);
     int num = bodypart::COUNT + 2;
