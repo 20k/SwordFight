@@ -10,10 +10,14 @@
 #include "physics.hpp"
 #include "fighter.hpp"
 
+///10, 30
+#define WIDTH 10
+#define HEIGHT 20
+
 void cape::load_cape(objects_container* pobj)
 {
-    constexpr int width = 10;
-    constexpr int height = 30;
+    constexpr int width = WIDTH;
+    constexpr int height = HEIGHT;
 
     vertex verts[height][width];
 
@@ -86,9 +90,17 @@ void cape::load_cape(objects_container* pobj)
 
 cape::cape()
 {
-    width = 10;
-    height = 30;
+    width = WIDTH;
+    height = HEIGHT;
     depth = 1;
+
+    loaded = false;
+}
+
+void cape::load()
+{
+    if(loaded)
+        return;
 
     model = new objects_container;
 
@@ -133,10 +145,15 @@ cape::cape()
 
     clEnqueueUnmapMemObject(cl::cqueue.get(), in.get(), inmap, 0, NULL, NULL);
     clEnqueueUnmapMemObject(cl::cqueue.get(), out.get(), outmap, 0, NULL, NULL);
+
+    loaded = true;
 }
 
 void cape::make_stable(fighter* parent)
 {
+    if(!loaded)
+        return;
+
     int num = 100;
 
     for(int i=0; i<num; i++)
@@ -221,6 +238,12 @@ compute::buffer body_to_gpu(fighter* parent)
         pos.push_back({p.v[0], p.v[1], p.v[2]});
     }
 
+    vec3f half = (parent->parts[bodypart::LUPPERLEG].global_pos + parent->parts[bodypart::RUPPERLEG].global_pos)/2.f;
+    vec3f half2 = (parent->parts[bodypart::LLOWERLEG].global_pos + parent->parts[bodypart::RLOWERLEG].global_pos)/2.f;
+
+    pos.push_back({half.v[0], half.v[1], half.v[2]});
+    pos.push_back({half2.v[0], half2.v[1], half2.v[2]});
+
     compute::buffer buf = compute::buffer(cl::context, sizeof(cl_float4)*pos.size(), CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, pos.data());
 
     return buf;
@@ -228,8 +251,11 @@ compute::buffer body_to_gpu(fighter* parent)
 
 void cape::tick(objects_container* l, objects_container* m, objects_container* r, fighter* parent)
 {
+    if(!loaded)
+        load();
+
     auto buf = body_to_gpu(parent);
-    int num = bodypart::COUNT;
+    int num = bodypart::COUNT + 2;
 
     arg_list cloth_args;
 

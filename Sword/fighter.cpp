@@ -691,11 +691,16 @@ bool fighter::dead()
 
 void fighter::tick_cape()
 {
-    this->my_cape.tick(this->parts[bodypart::LUPPERARM].obj(),
-                           this->parts[bodypart::BODY].obj(),
-                           this->parts[bodypart::RUPPERARM].obj(),
-                           this
-                            );
+    int ticks = 2;
+
+    for(int i=0; i<ticks; i++)
+    {
+        this->my_cape.tick(this->parts[bodypart::LUPPERARM].obj(),
+                               this->parts[bodypart::BODY].obj(),
+                               this->parts[bodypart::RUPPERARM].obj(),
+                               this
+                                );
+    }
 }
 
 void fighter::set_quality(int _quality)

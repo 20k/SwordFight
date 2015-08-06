@@ -28,6 +28,11 @@ struct cape
     void tick(objects_container* l, objects_container* m, objects_container* r, fighter* parent);
 
     void make_stable(fighter* parent);
+
+    void load();
+
+private:
+    bool loaded;
 };
 
 #endif // CAPE_HPP_INCLUDED
