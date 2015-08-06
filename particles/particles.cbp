@@ -30,10 +30,6 @@
 				<Linker>
 					<Add option="-s" />
 				</Linker>
-				<ExtraCommands>
-					<Add after="post_build.bat" />
-					<Mode after="always" />
-				</ExtraCommands>
 			</Target>
 			<Target title="Profile">
 				<Option output="bin/Profile/Mech_game" prefix_auto="1" extension_auto="1" />
@@ -62,11 +58,11 @@
 		</Compiler>
 		<Linker>
 			<Add option="-lmingw32" />
-			<Add option="-lsfml-graphics" />
-			<Add option="-lsfml-audio" />
-			<Add option="-lsfml-network" />
-			<Add option="-lsfml-window" />
-			<Add option="-lsfml-system" />
+			<Add option="-lsfml-graphics-s" />
+			<Add option="-lsfml-audio-s" />
+			<Add option="-lsfml-network-s" />
+			<Add option="-lsfml-window-s" />
+			<Add option="-lsfml-system-s" />
 			<Add option="-lfreetype" />
 			<Add option="-ljpeg" />
 			<Add option="-lopengl32" />
@@ -162,22 +158,7 @@
 		<Unit filename="../openclrenderer/vec.hpp" />
 		<Unit filename="../openclrenderer/vertex.cpp" />
 		<Unit filename="../openclrenderer/vertex.hpp" />
-		<Unit filename="bbox.hpp" />
-		<Unit filename="cape.cpp" />
-		<Unit filename="fighter.cpp" />
-		<Unit filename="fighter.hpp" />
 		<Unit filename="main.cpp" />
-		<Unit filename="object_cube.cpp" />
-		<Unit filename="object_cube.hpp" />
-		<Unit filename="particle_effect.cpp" />
-		<Unit filename="particle_effect.hpp" />
-		<Unit filename="physics.cpp" />
-		<Unit filename="physics.hpp" />
-		<Unit filename="sound.cpp" />
-		<Unit filename="sound.hpp" />
-		<Unit filename="text.cpp" />
-		<Unit filename="text.hpp" />
-		<Unit filename="vec.hpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

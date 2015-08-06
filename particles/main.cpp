@@ -125,9 +125,11 @@ int main(int argc, char *argv[])
 
     printf("light\n");
 
-    point_cloud cloud;
 
-    uint32_t num = 100000;
+    uint32_t num = 10000;
+
+    std::vector<cl_float4> positions;
+    std::vector<cl_uint> colours;
 
     for(uint32_t i = 0; i<num; i++)
     {
@@ -136,16 +138,25 @@ int main(int argc, char *argv[])
         uint32_t col = 0xFF00FF00;
 
 
-        cloud.position.push_back({pos.v[0], pos.v[1], pos.v[2]});
-        cloud.rgb_colour.push_back(col);
+        positions.push_back({pos.v[0], pos.v[1], pos.v[2]});
+        colours.push_back(col);
     }
 
-    point_cloud_info info = point_cloud_manager::alloc_point_cloud(cloud);
+    compute::buffer bufs[2];
+
+    for(int i=0; i<2; i++)
+        bufs[i] = engine::make_read_write(sizeof(cl_float4)*positions.size(), positions.data());
+
+    auto g_col = engine::make_read_write(sizeof(cl_uint)*colours.size(), colours.data());
 
     auto screen_buf = engine::make_screen_buffer(sizeof(cl_uint4));
 
     sf::Mouse mouse;
     sf::Keyboard key;
+
+    int which = 0;
+    int nwhich = 1;
+
 
     while(window.window.isOpen())
     {
@@ -164,23 +175,28 @@ int main(int argc, char *argv[])
 
         run_kernel_with_string("clear_screen_buffer", {window.width * window.height}, {128}, 1, c_args);
 
+        arg_list g_args;
+        g_args.push_back(&num);
+        g_args.push_back(&bufs[which]);
+        g_args.push_back(&bufs[nwhich]);
+
+        run_kernel_with_string("gravity_attract", {num}, {128}, 1, g_args);
 
         arg_list r_args;
-        r_args.push_back(&info.len);
-        r_args.push_back(&info.g_points_mem);
-        r_args.push_back(&info.g_colour_mem);
+        r_args.push_back(&num);
+        r_args.push_back(&bufs[which]);
+        r_args.push_back(&g_col);
         r_args.push_back(&engine::c_pos);
         r_args.push_back(&engine::c_rot);
         r_args.push_back(&screen_buf);
 
-        run_kernel_with_string("render_naive_points", {info.len}, {128}, 1, r_args);
+        run_kernel_with_string("render_naive_points", {num}, {128}, 1, r_args);
 
         arg_list b_args;
         b_args.push_back(&engine::g_screen);
         b_args.push_back(&screen_buf);
 
         run_kernel_with_string("blit_unconditional", {window.width * window.height}, {128}, 1, b_args);
-
 
 
         //window.draw_bulk_objs_n();
@@ -190,5 +206,8 @@ int main(int argc, char *argv[])
         window.display();
 
         std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+
+        nwhich = which;
+        which = (which + 1) % 2;
     }
 }
