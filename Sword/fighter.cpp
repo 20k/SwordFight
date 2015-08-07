@@ -691,6 +691,9 @@ bool fighter::dead()
 
 void fighter::tick_cape()
 {
+    if(dead())
+        return;
+
     int ticks = 1;
 
     for(int i=0; i<ticks; i++)

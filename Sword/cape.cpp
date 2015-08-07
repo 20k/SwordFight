@@ -12,6 +12,7 @@
 #include "../openclrenderer/vec.hpp"
 
 ///10, 30
+///8, 10
 #define WIDTH 8
 #define HEIGHT 10
 
@@ -141,7 +142,6 @@ void cape::load(int team)
     model->cache = false;
     //model->set_normal("res/norm_body.png");
 
-
     obj_mem_manager::load_active_objects();
 
     model->set_two_sided(true);
@@ -262,6 +262,7 @@ compute::buffer cape::fighter_to_fixed(objects_container* l, objects_container* 
     return buf;
 }
 
+///use pcie instead etc
 compute::buffer body_to_gpu(fighter* parent)
 {
     std::vector<cl_float4> pos;
@@ -309,10 +310,6 @@ struct wind
 
         for(int i=0; i<WIDTH; i++)
         {
-            //cl_float4 dir = {randf_s(), randf_s(), randf_s()};
-
-            //dir = mult(dir, dir);
-
             vec3f dir = randf<3, float>(0.f, 1.f);
 
             dir = dir * dir * dir;
@@ -337,21 +334,6 @@ void cape::tick(objects_container* l, objects_container* m, objects_container* r
         load(parent->team);
         return;
     }
-
-    //cl_float4 wind_dir = {1, 0, 0};
-    //cl_float wind_str = randf_s(0.0f, 0.2f);
-    //cl_float wind_side = randf_s(-1.f, 1.f);
-
-    /*cl_float wind_side = randf_s(0.f, 1.f);
-
-    if(wind_side > 0.9f)
-    {
-        wind_side = 1.f;
-    }
-    else
-    {
-        wind_side = 0.f;
-    }*/
 
     static wind w;
     auto wind_buf = w.tick();
