@@ -11,10 +11,10 @@
 #include "fighter.hpp"
 
 ///10, 30
-#define WIDTH 10
-#define HEIGHT 20
+#define WIDTH 8
+#define HEIGHT 10
 
-void cape::load_cape(objects_container* pobj)
+void cape::load_cape(objects_container* pobj, int team)
 {
     constexpr int width = WIDTH;
     constexpr int height = HEIGHT;
@@ -81,8 +81,22 @@ void cape::load_cape(objects_container* pobj)
 
     texture tex;
     tex.type = 0;
-    tex.set_texture_location("./res/red.png");
+
+    if(team == 0)
+        tex.set_texture_location("./res/red.png");
+    else
+        tex.set_texture_location("./res/blue.png");
+
     tex.push();
+
+    texture normal;
+
+    if(pobj->normal_map != "")
+    {
+        normal.type = 0;
+        normal.set_texture_location(pobj->normal_map.c_str());
+        normal.push();
+    }
 
     object obj;
     obj.tri_list = tris;
@@ -91,6 +105,7 @@ void cape::load_cape(objects_container* pobj)
 
     obj.tid = tex.id;
     obj.bid = -1;
+    obj.rid = normal.id;
 
     obj.has_bump = 0;
 
@@ -113,21 +128,23 @@ cape::cape()
     loaded = false;
 }
 
-void cape::load()
+void cape::load(int team)
 {
     if(loaded)
         return;
 
     model = new objects_container;
 
-    model->set_load_func(cape::load_cape);
+    model->set_load_func(std::bind(cape::load_cape, std::placeholders::_1, team));
     model->set_active(true);
     model->cache = false;
+    //model->set_normal("res/norm_body.png");
+
 
     obj_mem_manager::load_active_objects();
 
     model->set_two_sided(true);
-    model->set_specular(0);
+    model->set_specular(0.7);
 
     obj_mem_manager::g_arrange_mem();
     obj_mem_manager::g_changeover();
@@ -258,8 +275,11 @@ compute::buffer body_to_gpu(fighter* parent)
     vec3f half = (parent->parts[bodypart::LUPPERLEG].global_pos + parent->parts[bodypart::RUPPERLEG].global_pos)/2.f;
     vec3f half2 = (parent->parts[bodypart::LLOWERLEG].global_pos + parent->parts[bodypart::RLOWERLEG].global_pos)/2.f;
 
+    vec3f half3 = (half + parent->parts[bodypart::BODY].global_pos)/2.f;
+
     pos.push_back({half.v[0], half.v[1], half.v[2]});
     pos.push_back({half2.v[0], half2.v[1], half2.v[2]});
+    pos.push_back({half3.v[0], half3.v[1], half3.v[2]});
 
     compute::buffer buf = compute::buffer(cl::context, sizeof(cl_float4)*pos.size(), CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, pos.data());
 
@@ -270,12 +290,12 @@ void cape::tick(objects_container* l, objects_container* m, objects_container* r
 {
     if(!loaded)
     {
-        load();
+        load(parent->team);
         return;
     }
 
     auto buf = body_to_gpu(parent);
-    int num = bodypart::COUNT + 2;
+    int num = bodypart::COUNT + 3;
 
     arg_list cloth_args;
 

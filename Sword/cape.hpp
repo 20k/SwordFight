@@ -12,7 +12,7 @@ struct fighter;
 
 struct cape
 {
-    static void load_cape(objects_container* obj);
+    static void load_cape(objects_container* obj, int team);
 
     objects_container* model;
 
@@ -29,7 +29,7 @@ struct cape
 
     void make_stable(fighter* parent);
 
-    void load();
+    void load(int team);
 
 private:
     bool loaded;
