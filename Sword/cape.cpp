@@ -9,6 +9,7 @@
 #include "vec.hpp"
 #include "physics.hpp"
 #include "fighter.hpp"
+#include "../openclrenderer/vec.hpp"
 
 ///10, 30
 #define WIDTH 8
@@ -286,6 +287,49 @@ compute::buffer body_to_gpu(fighter* parent)
     return buf;
 }
 
+struct wind
+{
+    cl_float4 dir = (cl_float4){0.f, 0.f, 0.f, 0.f};
+    cl_float amount = 0;
+
+    cl_float gust = 0;
+
+    sf::Clock clk;
+
+    compute::buffer tick()
+    {
+        dir = {1, 0, 0};
+
+        float weight = 100.f;
+        amount = (amount*weight + randf_s(0.f, 0.9f)) / (1.f + weight);
+
+        float time = clk.getElapsedTime().asMicroseconds() / 1000.f;
+
+        std::vector<cl_float4> accel;
+
+        for(int i=0; i<WIDTH; i++)
+        {
+            //cl_float4 dir = {randf_s(), randf_s(), randf_s()};
+
+            //dir = mult(dir, dir);
+
+            vec3f dir = randf<3, float>(0.f, 1.f);
+
+            dir = dir * dir * dir;
+
+            dir = dir * amount;
+
+            dir = dir * 5.f;
+
+            cl_float4 ext = {dir.v[0], dir.v[1], dir.v[2]};
+
+            accel.push_back(ext);
+        }
+
+        return compute::buffer(cl::context, sizeof(cl_float4)*accel.size(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, accel.data());
+    }
+};
+
 void cape::tick(objects_container* l, objects_container* m, objects_container* r, fighter* parent)
 {
     if(!loaded)
@@ -293,6 +337,28 @@ void cape::tick(objects_container* l, objects_container* m, objects_container* r
         load(parent->team);
         return;
     }
+
+    //cl_float4 wind_dir = {1, 0, 0};
+    //cl_float wind_str = randf_s(0.0f, 0.2f);
+    //cl_float wind_side = randf_s(-1.f, 1.f);
+
+    /*cl_float wind_side = randf_s(0.f, 1.f);
+
+    if(wind_side > 0.9f)
+    {
+        wind_side = 1.f;
+    }
+    else
+    {
+        wind_side = 0.f;
+    }*/
+
+    static wind w;
+    auto wind_buf = w.tick();
+
+    cl_float4 wind_dir = w.dir;
+    cl_float wind_str = w.amount;
+    //cl_float wind_side = w.gust;
 
     auto buf = body_to_gpu(parent);
     int num = bodypart::COUNT + 3;
@@ -317,6 +383,9 @@ void cape::tick(objects_container* l, objects_container* m, objects_container* r
     cloth_args.push_back(&engine::g_screen);
     cloth_args.push_back(&buf);
     cloth_args.push_back(&num);
+    cloth_args.push_back(&wind_dir);
+    cloth_args.push_back(&wind_str);
+    cloth_args.push_back(&wind_buf);
 
     cl_uint global_ws[1] = {width*height*depth};
     cl_uint local_ws[1] = {256};
