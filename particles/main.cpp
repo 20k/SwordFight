@@ -144,7 +144,6 @@ int main(int argc, char *argv[])
 
         uint32_t col = 0xFF00FF00;
 
-
         positions.push_back({pos.v[0], pos.v[1], pos.v[2]});
         colours.push_back(col);
 
@@ -152,12 +151,14 @@ int main(int argc, char *argv[])
 
         float dens = 1.f;
 
-        if(prob < 0.5f)
-            dens = 0.4f;
-        else
+        if(prob < 0.2f)
+            dens = 2.1f;
+        else if(prob < 0.8f)
             dens = 1.f;
+        else
+            dens = 0.9f;
 
-        float temp = randf_s(0.2f, 0.3f);
+        float temp = randf_s(0.0f, 0.01f);
 
         pinfo.push_back({dens, temp});
     }
