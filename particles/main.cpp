@@ -134,17 +134,24 @@ int main(int argc, char *argv[])
 
     uint32_t num = 1000;
 
-    std::vector<cl_float4> positions;
+    std::vector<cl_float4> p1;
+    std::vector<cl_float4> p2;
     std::vector<cl_uint> colours;
     std::vector<particle_info> pinfo;
 
     for(uint32_t i = 0; i<num; i++)
     {
-        vec3f pos = randf<3, float>(-100.f, 100.f);
+        float dim = 100;
+
+        vec3f pos = randf<3, float>(dim, dim);
+        vec3f centre = (vec3f){dim/2.f, dim/2.f, dim/2.f};
+
 
         uint32_t col = 0xFF00FF00;
 
-        positions.push_back({pos.v[0], pos.v[1], pos.v[2]});
+        p1.push_back({pos.v[0], pos.v[1], pos.v[2]});
+        p2.push_back({pos.v[0], pos.v[1], pos.v[2]});
+
         colours.push_back(col);
 
         float prob = randf_s();
@@ -158,6 +165,8 @@ int main(int argc, char *argv[])
         else
             dens = 0.9f;
 
+        //dens = randf_s(0.1f, 1.f);
+
         float temp = randf_s(0.0f, 0.01f);
 
         pinfo.push_back({dens, temp});
@@ -165,8 +174,8 @@ int main(int argc, char *argv[])
 
     compute::buffer bufs[2];
 
-    for(int i=0; i<2; i++)
-        bufs[i] = engine::make_read_write(sizeof(cl_float4)*positions.size(), positions.data());
+    bufs[0] = engine::make_read_write(sizeof(cl_float4)*p1.size(), p1.data());
+    bufs[1] = engine::make_read_write(sizeof(cl_float4)*p2.size(), p2.data());
 
     compute::buffer p_bufs[2];
 
