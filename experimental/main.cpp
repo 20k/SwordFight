@@ -194,7 +194,7 @@ inline float noisemult(float x, float y)
     //mz = z + mwz*2;
 
     return noisemod(mx, my, 0, 0, 0.174, 0.1) + noisemod(mx, my, 0, 0, 0.067, 0.5) + noisemod(mx, my, 0, 0, 0.0243, 0.5f) +
-    noisemod(mx, my, 0.f, 0.f, 0.00243, 10.5f);
+    noisemod(mx, my, 0.f, 0.f, 0.00243, 1.5f);
     //return noisemod(x, y, 0.f, 0, 0.1, 4.f) +
     //noisemod(x, y, 0.f, 0, 1.f, 1.f);
 }
@@ -255,10 +255,8 @@ inline float sample_noisefield_arr(float p[3], float*** nf)
     return sample_noisefield(p[0], p[1], p[2], nf);
 }
 
-std::vector<triangle> get_mountain()
+cl_float4* get_y_array(int width, int height, int sz)
 {
-    int sz = 1000;
-
     float* tw1, *tw2, *tw3;
 
     ///needs to be nw, nh, nd
@@ -273,8 +271,77 @@ std::vector<triangle> get_mountain()
         tw3[i] = (float)rand() / RAND_MAX;
     }
 
-    int width = 1000;
-    int height = 1000;
+    cl_float4* arr = new cl_float4[width*height];
+
+    for(int j=0; j<height; j++)
+    {
+        for(int i=0; i<width; i++)
+        {
+            int imin = -5;
+            int imax = -0;
+
+            cl_float3 ret = y_of(i, j, 1.f, sz, sz, 5, tw1, tw2, tw3, imin, imax);
+
+            arr[j*width + i] = ret;
+        }
+    }
+
+    delete [] tw1;
+    delete [] tw2;
+    delete [] tw3;
+
+    return arr;
+}
+
+cl_float* get_smoothnoise_array(int len, int width)
+{
+    cl_float* arr = new cl_float[width];
+
+    for(int i=0; i<width; i++)
+    {
+        float x = (i - width/2.f) / (width/2.f);
+
+        float nv = smoothnoise((x+1)*5.f, 0.f, 0.f, 0.f);
+
+        arr[i] = nv;
+    }
+
+    return arr;
+}
+
+compute::buffer g_y_array(int width, int height, int sz)
+{
+    cl_float4* arr = get_y_array(width, height, sz);
+
+    auto buf = engine::make_read_write(width*height*sizeof(cl_float4), arr);
+
+    delete [] arr;
+
+    return buf;
+}
+
+compute::buffer g_sm_array(int len, int width)
+{
+    cl_float* arr = get_smoothnoise_array(len, width);
+
+    auto buf = engine::make_read_write(len*sizeof(cl_float), arr);
+
+    delete [] arr;
+
+    return buf;
+}
+
+std::vector<triangle> get_mountain_old(int width, int height);
+
+std::vector<triangle> reserve_cpu_space(int width, int height)
+{
+    return get_mountain_old(width, height); ///doesnt really matter anymore
+}
+
+std::vector<triangle> get_mountain_old(int width, int height)
+{
+    cl_float4* y_array = get_y_array(width+1, height+1, 100);
+    cl_float* sm_array = get_smoothnoise_array(width+1, width);
 
     vec3f* vertex_positions = new vec3f[(width+1)*(height+1)];
     vec3f* normal_accumulate = new vec3f[(width+1)*(height+1)];
@@ -298,29 +365,27 @@ std::vector<triangle> get_mountain()
 
             float xgauss = 60.f * exp(- x*x / (2*spr*spr));
 
-            float centre_height = smoothnoise(x * 5.f, 0.f, 0.f, 0.f) * 5.f + xgauss;
+            //float centre_height = smoothnoise((x + 1) * 5.f, 0.f, 0.f, 0.f) * 5.f + xgauss;
+
+            float centre_height = sm_array[i] * 5.f + xgauss;
 
             float yfrac = 1.f - fabs(y);
 
-            int imin = -5;
-            int imax = -0;
+            //int imin = -5;
+            //int imax = -0;
 
             ///tinker with this
-            cl_float3 rval = y_of(i, j, 1.f, sz, sz, 5, tw1, tw2, tw3, imin, imax);
+            cl_float3 rval = y_array[j*width + i];
 
-            float random = rval.z / 10.f;
+            float random = rval.z;
 
             pos->v[0] = x * size;
-            pos->v[1] = centre_height * yfrac * yfrac + random * 10.f;// + noisemult(x, y);// + fabs(x) * fabs(y) * val/;
+            pos->v[1] = centre_height * yfrac * yfrac + random;// + noisemult(x, y);// + fabs(x) * fabs(y) * val/;
             pos->v[2] = y * size;
 
             pos->v[1] *= 10;
 
-            //pos->v[1] = ;//noisemult((float)i/width, (float)j/height) + val;
-
-            //*pos = mult(*pos, 100.0f);
-
-            *pos = *pos;
+            *pos = *pos / 10.f;
         }
     }
 
@@ -351,27 +416,11 @@ std::vector<triangle> get_mountain()
 
             //do both normals
 
-            //normal_accumulate[j*width + i].x += cr1.x;
-            //normal_accumulate[j*width + i].y += cr1.y;
-            //normal_accumulate[j*width + i].z += cr1.z;
-
             normal_accumulate[j*width + i] += cr1;
             normal_accumulate[j*width + i + 1] += cr1 + cr2;;
 
             normal_accumulate[(j+1)*width + i] += cr1 + cr2;;
             normal_accumulate[(j+1)*width + i + 1] += cr2;;
-
-            /*normal_accumulate[j*width + i + 1].x += cr1.x + cr2.x;
-            normal_accumulate[j*width + i + 1].y += cr1.y + cr2.y;
-            normal_accumulate[j*width + i + 1].z += cr1.z + cr2.z;
-
-            normal_accumulate[(j+1)*width + i].x += cr1.x + cr2.x;
-            normal_accumulate[(j+1)*width + i].y += cr1.y + cr2.y;
-            normal_accumulate[(j+1)*width + i].z += cr1.z + cr2.z;
-
-            normal_accumulate[(j+1)*width + i + 1].x += cr2.x;
-            normal_accumulate[(j+1)*width + i + 1].y += cr2.y;
-            normal_accumulate[(j+1)*width + i + 1].z += cr2.z;*/
         }
     }
 
@@ -381,15 +430,7 @@ std::vector<triangle> get_mountain()
     {
         for(int i=0; i<width; i++)
         {
-            //normal_accumulate[j*width + i] = normalise(add(normal_accumulate[j*width + i], noisemod(i, j, 1, 1, 0.25, 4000)));
-
-            //float norm_rand = noisemod(i, j, 1, 1, 0.25, 0.001);
-
-            //if(rand() % 2)
-            //    norm_rand = -norm_rand;
-
             normal_accumulate[j*width + i] = normal_accumulate[j*width + i].norm();// normalise(add(normalise(normal_accumulate[j*width + i]), norm_rand));
-            //normal_accumulate[j*width + i] =  normalise(add(normalise(normal_accumulate[j*width + i]), norm_rand));
         }
     }
 
@@ -418,9 +459,10 @@ std::vector<triangle> get_mountain()
             tri.vertices[1].set_normal(nbl);
             tri.vertices[2].set_normal(ntr);
 
-            tri.vertices[0].set_vt({0.1, 0.1});
-            tri.vertices[1].set_vt({0.2, 0.5});
-            tri.vertices[2].set_vt({0.5, 0.7});
+            ///do this using i and j instead
+            tri.vertices[0].set_vt({tl.x/width, tl.z/height});
+            tri.vertices[1].set_vt({bl.x/width, bl.z/height});
+            tri.vertices[2].set_vt({tr.x/width, tr.z/height});
 
 
             triangle tri2;
@@ -432,10 +474,13 @@ std::vector<triangle> get_mountain()
             tri2.vertices[1].set_normal(nbl);
             tri2.vertices[2].set_normal(nbr);
 
+            tri2.vertices[0].set_vt({tr.x/width, tr.z/height});
+            tri2.vertices[1].set_vt({bl.x/width, bl.z/height});
+            tri2.vertices[2].set_vt({br.x/width, br.z/height});
 
-            tri2.vertices[0].set_vt({0.1, 0.1});
-            tri2.vertices[1].set_vt({0.2, 0.5});
-            tri2.vertices[2].set_vt({0.5, 0.7});
+            //tri2.vertices[0].set_vt({0.1, 0.1});
+            //tri2.vertices[1].set_vt({0.2, 0.5});
+            //tri2.vertices[2].set_vt({0.5, 0.7});
 
 
             tris.push_back(tri);
@@ -446,6 +491,9 @@ std::vector<triangle> get_mountain()
 
     delete [] vertex_positions;
     delete [] normal_accumulate;
+
+    delete [] y_array;
+    delete [] sm_array;
 
     return tris;
 }
@@ -487,7 +535,7 @@ void mountain_texture_generate(texture* tex)
     tex->cacheable = false;
 }
 
-void load_mountain(objects_container* pobj)
+void load_mountain(objects_container* pobj, int width, int height)
 {
     texture tex;
     tex.type = 0;
@@ -508,11 +556,10 @@ void load_mountain(objects_container* pobj)
 
     object o;
 
-    auto new_tris = get_mountain();
+    auto new_tris = reserve_cpu_space(width, height);
 
    // o.tri_list.push_back(t);
     o.tri_list.insert(o.tri_list.begin(), new_tris.begin(), new_tris.end());
-
 
     o.tri_num = o.tri_list.size();
 
@@ -526,25 +573,35 @@ void load_mountain(objects_container* pobj)
     pobj->objs.push_back(o);
 
     pobj->isloaded = true;
-    pobj->set_two_sided(true);
-
-    //tex.set_texture_location()
+    pobj->set_two_sided(false);
 }
 
 int main(int argc, char *argv[])
 {
-    objects_container floor;
-    //floor.set_file("../openclrenderer/sp2/sp2.obj");
-    floor.set_load_func(load_mountain);
+    engine window;
+    window.load(1200, 800, 1000, "SwordFight", "../openclrenderer/cl2.cl", true);
 
-    ///need to extend this to textures as well
+    objects_container floor;
+
+    int width = 1000, height = 1000;
+
+    floor.set_load_func(std::bind(load_mountain, std::placeholders::_1, width+1, height+1));
+
     floor.cache = false;
     floor.set_active(true);
 
-    engine window;
-    window.load(800, 600,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
+    auto g_y_buf = g_y_array(width+1, height+1, 100);
+    auto g_sm_buf = g_sm_array(width+1, width);
+    auto g_hmap = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float), nullptr);
 
-    window.set_camera_pos({500, 200, -700});
+    auto g_dmap = engine::make_read_write(engine::width*engine::height*sizeof(cl_float), nullptr);
+
+    auto txo = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float)*6, nullptr);
+    auto tyo = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float)*6, nullptr);
+    auto tzo = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float)*6, nullptr);
+
+
+    window.set_camera_pos({0, 300, -1000});
 
     printf("loaded\n");
 
@@ -578,7 +635,8 @@ int main(int argc, char *argv[])
     l.set_brightness(0.8f);
     l.set_diffuse(1.f);
     //l.set_pos({200, 1000, 0, 0});
-    l.set_pos({5000, 10000, 4000, 0});
+    //l.set_pos({5000, 10000, 4000, 0});
+    l.set_pos({-50, 1000, 0, 0});
 
     window.add_light(&l);
 
@@ -594,9 +652,62 @@ int main(int argc, char *argv[])
                 window.window.close();
         }
 
+        cl_uint h_size[] = {width+1, height+1};
+
         window.input();
 
-        window.draw_bulk_objs_n();
+        //window.draw_bulk_objs_n();
+
+        arg_list hmap_args;
+        hmap_args.push_back(&width);
+        hmap_args.push_back(&height);
+        hmap_args.push_back(&g_hmap);
+        hmap_args.push_back(&g_y_buf);
+        hmap_args.push_back(&g_sm_buf);
+        hmap_args.push_back(&engine::c_pos);
+        hmap_args.push_back(&engine::c_rot);
+
+        run_kernel_with_string("generate_heightmap", {width+1, height+1}, {16, 16}, 2, hmap_args);
+
+
+        arg_list clear_args;
+        clear_args.push_back(&engine::g_screen);
+
+        run_kernel_with_string("clear_screen_tex", {engine::width, engine::height}, {16, 16}, 2, clear_args);
+
+
+        arg_list db_args;
+        db_args.push_back(&g_dmap);
+
+        run_kernel_with_string("clear_depth_buffer", {engine::width, engine::height}, {16, 16}, 2, db_args);
+
+
+        arg_list rh_args;
+        rh_args.push_back(&width);
+        rh_args.push_back(&height);
+        rh_args.push_back(&g_hmap);
+        rh_args.push_back(&g_dmap);
+        rh_args.push_back(&engine::c_pos);
+        rh_args.push_back(&engine::c_rot);
+        rh_args.push_back(&engine::g_screen);
+
+        run_kernel_with_string("render_heightmap", {width, height}, {16, 16}, 2, rh_args);
+
+        run_kernel_with_string("render_heightmap_p2", {engine::width, engine::height}, {16, 16}, 2, rh_args);
+
+        /*arg_list triangleize_args;
+        triangleize_args.push_back(&width);
+        triangleize_args.push_back(&height);
+        triangleize_args.push_back(&g_hmap);
+        triangleize_args.push_back(&g_y_buf);
+        triangleize_args.push_back(&g_sm_buf);
+        triangleize_args.push_back(&engine::c_pos);
+        triangleize_args.push_back(&engine::c_rot);
+        triangleize_args.push_back(&floor.objs[0].gpu_tri_start);
+        triangleize_args.push_back(&floor.objs[0].gpu_tri_end);
+        triangleize_args.push_back(&obj_mem_manager::g_tri_mem);
+
+        run_kernel_with_string("triangleize_grid", {width, height}, {16, 16}, 2, triangleize_args);*/
 
         window.render_buffers();
 
