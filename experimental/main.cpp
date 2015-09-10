@@ -280,7 +280,7 @@ cl_float4* get_y_array(int width, int height, int sz)
             int imin = -5;
             int imax = -0;
 
-            cl_float3 ret = y_of(i, j, 1.f, sz, sz, 5, tw1, tw2, tw3, imin, imax);
+            cl_float3 ret = y_of(i + 100, j + 100, 1.f, sz, sz, 5, tw1, tw2, tw3, imin, imax);
 
             arr[j*width + i] = ret;
         }
@@ -595,6 +595,7 @@ int main(int argc, char *argv[])
     auto g_hmap = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float), nullptr);
 
     auto g_dmap = engine::make_read_write(engine::width*engine::height*sizeof(cl_float), nullptr);
+    auto g_dmap2 = engine::make_read_write(engine::width*engine::height*sizeof(cl_float), nullptr);
 
     auto txo = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float)*6, nullptr);
     auto tyo = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float)*6, nullptr);
@@ -681,6 +682,11 @@ int main(int argc, char *argv[])
 
         run_kernel_with_string("clear_depth_buffer", {engine::width, engine::height}, {16, 16}, 2, db_args);
 
+        arg_list db_args2;
+        db_args2.push_back(&g_dmap2);
+
+        run_kernel_with_string("clear_depth_buffer", {engine::width, engine::height}, {16, 16}, 2, db_args2);
+
 
         arg_list rh_args;
         rh_args.push_back(&width);
@@ -692,6 +698,32 @@ int main(int argc, char *argv[])
         rh_args.push_back(&engine::g_screen);
 
         run_kernel_with_string("render_heightmap", {width, height}, {16, 16}, 2, rh_args);
+
+        for(int i=0; i<1; i++)
+        {
+            compute::buffer args[2];
+
+            if(i % 2 == 0)
+            {
+                args[0] = g_dmap;
+                args[1] = g_dmap2;
+            }
+            else
+            {
+                args[0] = g_dmap2;
+                args[1] = g_dmap;
+            }
+
+            arg_list blur_args;
+            blur_args.push_back(&args[0]);
+            blur_args.push_back(&args[1]);
+            blur_args.push_back(&engine::width);
+            blur_args.push_back(&engine::height);
+
+            run_kernel_with_string("blur_depthmap", {engine::width, engine::height}, {16, 16}, 2, blur_args);
+        }
+
+        rh_args.args[3] = &g_dmap2;
 
         run_kernel_with_string("render_heightmap_p2", {engine::width, engine::height}, {16, 16}, 2, rh_args);
 
