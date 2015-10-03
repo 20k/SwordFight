@@ -59,6 +59,7 @@
 			<Add option="-DCL_USE_DEPRECATED_OPENCL_1_1_APIS" />
 			<Add option="-DNDEBUG" />
 			<Add option="-DSFML_STATIC" />
+			<Add option="-DGLEW_STATIC" />
 		</Compiler>
 		<Linker>
 			<Add option="-lmingw32" />
@@ -83,6 +84,8 @@
 			<Option weight="45" />
 		</Unit>
 		<Unit filename="../openclrenderer/clstate.cpp" />
+		<Unit filename="../openclrenderer/controls.cpp" />
+		<Unit filename="../openclrenderer/controls.hpp" />
 		<Unit filename="../openclrenderer/engine.cpp" />
 		<Unit filename="../openclrenderer/engine.hpp" />
 		<Unit filename="../openclrenderer/goo.cpp" />

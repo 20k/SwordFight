@@ -1,3 +1,4 @@
+
 #include "../openclrenderer/proj.hpp"
 #include "../openclrenderer/ocl.h"
 #include "../openclrenderer/texture_manager.hpp"
@@ -21,6 +22,7 @@
 #include "particle_effect.hpp"
 
 #include "../openclrenderer/settings_loader.hpp"
+#include "../openclrenderer/controls.hpp"
 
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
@@ -67,12 +69,11 @@ bool once()
     return false;
 }
 
-
+///none of these affect the camera, so engine does not care about them
+///assume main is blocking
 void debug_controls(fighter* my_fight, engine& window)
 {
     sf::Keyboard key;
-
-    window.input();
 
     if(once<sf::Keyboard::T>())
     {
@@ -190,11 +191,11 @@ void fps_controls(fighter* my_fight, engine& window)
 
     my_fight->set_look({-window.c_rot.s[0], window.get_mouse_delta_x() / 1.f, 0});
 
-    part* head = &my_fight->parts[bodypart::HEAD];
+    //part* head = &my_fight->parts[bodypart::HEAD];
 
-    vec3f pos = head->pos + my_fight->pos;
+    //vec3f pos = head->pos + my_fight->pos;
 
-    window.set_camera_pos({pos.v[0], pos.v[1], pos.v[2]});
+    //window.set_camera_pos({pos.v[0], pos.v[1], pos.v[2]});
 
     vec2f m;
     m.v[0] = window.get_mouse_delta_x();
@@ -202,12 +203,38 @@ void fps_controls(fighter* my_fight, engine& window)
 
     my_fight->set_rot_diff({0, -m.v[0] / 100.f, 0.f});
 
+    //vec3f o_rot = xyz_to_vec(window.c_rot);
+
+    //o_rot.v[1] = my_fight->rot.v[1];
+    //o_rot.v[0] += m.v[1] / 200.f;
+
+    //window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
+}
+
+input_delta fps_camera_controls(float frametime, const input_delta& input, engine& window, const fighter* my_fight)
+{
+    const part* head = &my_fight->parts[bodypart::HEAD];
+
+    vec3f pos = head->pos + my_fight->pos;
+
+    //window.set_camera_pos({pos.v[0], pos.v[1], pos.v[2]});
+
+    cl_float4 c_pos = {pos.v[0], pos.v[1], pos.v[2]};
+
+    vec2f m;
+    m.v[0] = window.get_mouse_delta_x();
+    m.v[1] = window.get_mouse_delta_y();
+
     vec3f o_rot = xyz_to_vec(window.c_rot);
 
     o_rot.v[1] = my_fight->rot.v[1];
     o_rot.v[0] += m.v[1] / 200.f;
 
-    window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
+    //window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
+
+    cl_float4 c_rot = {o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]};
+
+    return {sub(c_pos, input.c_pos), sub(c_rot, input.c_rot)};
 }
 
 ///a fighter we own has its hp determined by someone else?
@@ -285,6 +312,9 @@ int main(int argc, char *argv[])
     engine window;
     window.load(s.width,s.height,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
 
+    window.set_camera_pos((cl_float4){-800,150,-570});
+
+
     //window.window.setFramerateLimit(24.f);
 
     printf("loaded\n");
@@ -327,6 +357,7 @@ int main(int argc, char *argv[])
 
     printf("postload\n");
 
+
     fight.set_physics(&phys);
     fight2.set_physics(&phys);
 
@@ -344,12 +375,13 @@ int main(int argc, char *argv[])
     floor.set_specular(0.9f);
     floor.set_diffuse(8.f);
 
+
     texture_manager::allocate_textures();
 
     printf("textures\n");
 
     obj_mem_manager::g_arrange_mem();
-    obj_mem_manager::g_changeover(true);
+    obj_mem_manager::g_changeover();
 
     printf("loaded memory\n");
 
@@ -375,7 +407,6 @@ int main(int argc, char *argv[])
 
     vec3f seek_pos = original_pos;
 
-
     vec3f rest_position = {0, -200, -100};
 
     fighter* my_fight = &fight;
@@ -385,6 +416,7 @@ int main(int argc, char *argv[])
     int controls_state = 0;
 
     printf("loop\n");
+
 
     while(window.window.isOpen())
     {
@@ -415,6 +447,18 @@ int main(int argc, char *argv[])
             debug_controls(my_fight, window);
         if(controls_state == 1)
             fps_controls(my_fight, window);
+
+        control_input c_input;
+
+        if(controls_state == 0)
+            c_input = control_input();
+
+        if(controls_state == 1)
+            c_input = control_input(std::bind(fps_camera_controls, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, my_fight),
+                              process_controls_empty
+                              );
+
+        window.set_input_handler(c_input);
 
         if(once<sf::Keyboard::V>() && network::network_state == 0)
         {
@@ -568,11 +612,10 @@ int main(int argc, char *argv[])
         window.draw_bulk_objs_n();
 
         //window.render_buffers();
-        window.render_block();
-        text::draw();
+        //text::draw();
 
         window.display();
-
+        window.render_block();
 
         std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
