@@ -45,7 +45,7 @@
 	"object.hpp"
 	"objects_container.hpp"
 
-1437979941 c:\users\james\desktop\render_projects\openclrenderer\object.hpp
+1438826197 c:\users\james\desktop\render_projects\openclrenderer\object.hpp
 	<vector>
 	"triangle.hpp"
 	<string>
@@ -59,10 +59,10 @@
 1438395277 c:\users\james\desktop\render_projects\openclrenderer\vertex.hpp
 	<cl/cl.h>
 
-1438396306 c:\users\james\desktop\render_projects\openclrenderer\obj_g_descriptor.hpp
+1438826337 c:\users\james\desktop\render_projects\openclrenderer\obj_g_descriptor.hpp
 	<CL/CL.h>
 
-1437979913 c:\users\james\desktop\render_projects\openclrenderer\objects_container.hpp
+1438826179 c:\users\james\desktop\render_projects\openclrenderer\objects_container.hpp
 	"object.hpp"
 	<functional>
 
@@ -117,7 +117,7 @@
 	<boost/compute/interop/opengl.hpp>
 	<initializer_list>
 
-1438396879 c:\users\james\desktop\render_projects\openclrenderer\ocl.h
+1438985657 c:\users\james\desktop\render_projects\openclrenderer\ocl.h
 	<cstdio>
 	<CL/cl.h>
 	<iostream>
@@ -352,7 +352,7 @@
 1438396970 source:c:\users\james\desktop\render_projects\openclrenderer\clstate.cpp
 	"clstate.h"
 
-1438819269 source:c:\users\james\desktop\render_projects\openclrenderer\engine.cpp
+1438983213 source:c:\users\james\desktop\render_projects\openclrenderer\engine.cpp
 	<gl/glew.h>
 	<gl/gl.h>
 	"engine.hpp"
@@ -639,7 +639,7 @@
 	<math.h>
 	<list>
 
-1438817619 source:c:\users\james\desktop\render_projects\openclrenderer\obj_mem_manager.cpp
+1438916775 source:c:\users\james\desktop\render_projects\openclrenderer\obj_mem_manager.cpp
 	"obj_mem_manager.hpp"
 	<CL/CL.h>
 	"clstate.h"
@@ -658,7 +658,7 @@
 	"engine.hpp"
 	<map>
 
-1437979978 source:c:\users\james\desktop\render_projects\openclrenderer\object.cpp
+1438826282 source:c:\users\james\desktop\render_projects\openclrenderer\object.cpp
 	"object.hpp"
 	"clstate.h"
 	"texture.hpp"
@@ -668,7 +668,7 @@
 	"texture_manager.hpp"
 	"vec.hpp"
 
-1437979642 source:c:\users\james\desktop\render_projects\openclrenderer\objects_container.cpp
+1438826225 source:c:\users\james\desktop\render_projects\openclrenderer\objects_container.cpp
 	"objects_container.hpp"
 	<iostream>
 	"obj_load.hpp"
@@ -772,7 +772,7 @@
 1438395277 source:c:\users\james\desktop\render_projects\openclrenderer\vertex.cpp
 	"vertex.hpp"
 
-1438821805 source:c:\users\james\desktop\render_projects\particles\main.cpp
+1438821921 source:c:\users\james\desktop\render_projects\particles\main.cpp
 	"../openclrenderer/proj.hpp"
 	"../openclrenderer/ocl.h"
 	"../openclrenderer/texture_manager.hpp"
