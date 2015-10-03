@@ -65,6 +65,7 @@ triangle points_to_tri(cl_float4 in[3], float size, float len, int which_side) /
         return t;
 }
 
+///fin - start is the object direction
 void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float size, std::string tex_name)
 {
     start = start + xyz_to_vec(pobj->pos);

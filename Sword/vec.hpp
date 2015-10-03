@@ -48,6 +48,20 @@ struct vec
         return r;
     }
 
+    vec<N, T>& operator+=(T other)
+    {
+        *this = *this + other;
+
+        return *this;
+    }
+
+    vec<N, T>& operator+=(const vec<N, T>& other)
+    {
+        *this = *this + other;
+
+        return *this;
+    }
+
     vec<N, T> operator-(const vec<N, T>& other) const
     {
         vec<N, T> r;
@@ -293,6 +307,7 @@ bool operator== (const vec<N, T>& v1, const vec<N, T>& v2)
     return true;
 }
 
+#define V3to4(x) {x.v[0], x.v[1], x.v[2], x.v[3]}
 
 typedef vec<3, float> vec3f;
 typedef vec<2, float> vec2f;

@@ -567,7 +567,8 @@ int main(int argc, char *argv[])
 
         window.draw_bulk_objs_n();
 
-        window.render_buffers();
+        //window.render_buffers();
+        window.render_block();
         text::draw();
 
         window.display();
