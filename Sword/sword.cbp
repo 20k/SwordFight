@@ -26,6 +26,9 @@
 				<Option compiler="mingw64" />
 				<Compiler>
 					<Add option="-Ofast" />
+					<Add option="-march=native" />
+					<Add option="-msse3 -mavx" />
+					<Add option="-std=gnu++11" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
