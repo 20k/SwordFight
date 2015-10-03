@@ -59,6 +59,12 @@ bool once()
     return false;
 }
 
+struct particle_info
+{
+    float density;
+    float temp;
+};
+
 int main(int argc, char *argv[])
 {
     /*objects_container c1;
@@ -84,7 +90,7 @@ int main(int argc, char *argv[])
     floor.set_active(false);
 
     engine window;
-    window.load(800, 600,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
+    window.load(1000, 800, 1000, "SwordFight", "../openclrenderer/cl2.cl", true);
 
     //window.window.setFramerateLimit(24.f);
 
@@ -126,29 +132,57 @@ int main(int argc, char *argv[])
     printf("light\n");
 
 
-    uint32_t num = 10000;
+    uint32_t num = 1000;
 
-    std::vector<cl_float4> positions;
+    std::vector<cl_float4> p1;
+    std::vector<cl_float4> p2;
     std::vector<cl_uint> colours;
+    std::vector<particle_info> pinfo;
 
     for(uint32_t i = 0; i<num; i++)
     {
-        vec3f pos = randf<3, float>(-100.f, 100.f);
+        float dim = 100;
+
+        vec3f pos = randf<3, float>(dim, dim);
+        vec3f centre = (vec3f){dim/2.f, dim/2.f, dim/2.f};
+
 
         uint32_t col = 0xFF00FF00;
 
+        p1.push_back({pos.v[0], pos.v[1], pos.v[2]});
+        p2.push_back({pos.v[0], pos.v[1], pos.v[2]});
 
-        positions.push_back({pos.v[0], pos.v[1], pos.v[2]});
         colours.push_back(col);
+
+        float prob = randf_s();
+
+        float dens = 1.f;
+
+        if(prob < 0.2f)
+            dens = 2.1f;
+        else if(prob < 0.8f)
+            dens = 1.f;
+        else
+            dens = 0.9f;
+
+        //dens = randf_s(0.1f, 1.f);
+
+        float temp = randf_s(0.0f, 0.01f);
+
+        pinfo.push_back({dens, temp});
     }
 
     compute::buffer bufs[2];
 
+    bufs[0] = engine::make_read_write(sizeof(cl_float4)*p1.size(), p1.data());
+    bufs[1] = engine::make_read_write(sizeof(cl_float4)*p2.size(), p2.data());
+
+    compute::buffer p_bufs[2];
+
     for(int i=0; i<2; i++)
-        bufs[i] = engine::make_read_write(sizeof(cl_float4)*positions.size(), positions.data());
+        p_bufs[i] = engine::make_read_write(sizeof(particle_info)*pinfo.size(), pinfo.data());
 
     auto g_col = engine::make_read_write(sizeof(cl_uint)*colours.size(), colours.data());
-
     auto screen_buf = engine::make_screen_buffer(sizeof(cl_uint4));
 
     sf::Mouse mouse;
@@ -179,6 +213,9 @@ int main(int argc, char *argv[])
         g_args.push_back(&num);
         g_args.push_back(&bufs[which]);
         g_args.push_back(&bufs[nwhich]);
+        g_args.push_back(&p_bufs[which]);
+        g_args.push_back(&p_bufs[nwhich]);
+        g_args.push_back(&g_col);
 
         run_kernel_with_string("gravity_attract", {num}, {128}, 1, g_args);
 
