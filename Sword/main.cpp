@@ -225,10 +225,10 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
     m.v[0] = window.get_mouse_delta_x();
     m.v[1] = window.get_mouse_delta_y();
 
-    vec3f o_rot = xyz_to_vec(window.c_rot);
+    vec3f o_rot = xyz_to_vec(input.c_rot);
 
     o_rot.v[1] = my_fight->rot.v[1];
-    o_rot.v[0] += m.v[1] / 200.f;
+    o_rot.v[0] += m.v[1] / 150.f;
 
     //window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
 
@@ -304,7 +304,12 @@ int main(int argc, char *argv[])
     ///need to extend this to textures as well
     floor.set_normal("./res/norm.png");
     floor.cache = false;
-    floor.set_active(true);
+    floor.set_active(false);
+
+    objects_container file_map;
+    file_map.set_file("./res/maps/map1.obj");
+    file_map.set_active(true);
+    file_map.set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3 - 0, 0});
 
     settings s;
     s.load("./res/settings.txt");
@@ -314,6 +319,7 @@ int main(int argc, char *argv[])
 
     window.set_camera_pos((cl_float4){-800,150,-570});
 
+    window.window.setVerticalSyncEnabled(true);
 
     //window.window.setFramerateLimit(24.f);
 
@@ -355,6 +361,8 @@ int main(int argc, char *argv[])
 
     obj_mem_manager::load_active_objects();
 
+    file_map.scale(1000);
+
     printf("postload\n");
 
 
@@ -391,7 +399,7 @@ int main(int argc, char *argv[])
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
-    l.set_brightness(0.02f);
+    l.set_brightness(0.2f);
     l.set_diffuse(1.f);
     l.set_pos({0, 10000, -300, 0});
 
@@ -455,8 +463,7 @@ int main(int argc, char *argv[])
 
         if(controls_state == 1)
             c_input = control_input(std::bind(fps_camera_controls, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, my_fight),
-                              process_controls_empty
-                              );
+                              process_controls_empty);
 
         window.set_input_handler(c_input);
 
