@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
     floor.set_active(false);
 
     objects_container file_map;
-    file_map.set_file("./res/maps/map1.obj");
+    file_map.set_file("./res/map2.obj");
     file_map.set_active(true);
     file_map.set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3 - 0, 0});
 
@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
 
     window.set_camera_pos((cl_float4){-800,150,-570});
 
-    window.window.setVerticalSyncEnabled(true);
+    window.window.setVerticalSyncEnabled(false);
 
     //window.window.setFramerateLimit(24.f);
 
