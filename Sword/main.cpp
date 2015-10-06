@@ -310,6 +310,7 @@ int main(int argc, char *argv[])
     file_map.set_file("./res/map2.obj");
     file_map.set_active(true);
     file_map.set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3 - 0, 0});
+    //file_map.set_normal("res/norm_body.png");
 
     settings s;
     s.load("./res/settings.txt");
