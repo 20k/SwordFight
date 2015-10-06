@@ -597,9 +597,9 @@ int main(int argc, char *argv[])
     auto g_dmap = engine::make_read_write(engine::width*engine::height*sizeof(cl_float), nullptr);
     auto g_dmap2 = engine::make_read_write(engine::width*engine::height*sizeof(cl_float), nullptr);
 
-    auto txo = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float)*6, nullptr);
-    auto tyo = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float)*6, nullptr);
-    auto tzo = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float)*6, nullptr);
+    //auto txo = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float)*6, nullptr);
+    //auto tyo = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float)*6, nullptr);
+    //auto tzo = engine::make_read_write((width+1)*(height+1)*sizeof(cl_float)*6, nullptr);
 
 
     window.set_camera_pos({0, 300, -1000});
