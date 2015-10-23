@@ -77,8 +77,8 @@ int main(int argc, char *argv[])
     c2.cache = false;
     c2.set_active(true);*/
 
-    objects_container floor;
-    floor.set_file("../openclrenderer/sp2/sp2.obj");
+    //objects_container floor;
+    //floor.set_file("../openclrenderer/sp2/sp2.obj");
     /*floor.set_load_func(std::bind(load_object_cube, std::placeholders::_1,
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0},
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0},
@@ -86,8 +86,8 @@ int main(int argc, char *argv[])
 
     ///need to extend this to textures as well
     //floor.set_normal("./res/norm.png");clamped_ids
-    floor.cache = false;
-    floor.set_active(false);
+    //floor.cache = false;
+    //floor.set_active(false);
 
     engine window;
     window.load(1000, 800, 1000, "SwordFight", "../openclrenderer/cl2.cl", true);
@@ -101,38 +101,38 @@ int main(int argc, char *argv[])
 
     printf("preload\n");
 
-    obj_mem_manager::load_active_objects();
+    //obj_mem_manager::load_active_objects();
 
     printf("postload\n");
 
-    floor.set_specular(0.0f);
-    floor.set_diffuse(1.f);
+    //floor.set_specular(0.0f);
+    //floor.set_diffuse(1.f);
 
-    texture_manager::allocate_textures();
+    //texture_manager::allocate_textures();
 
     printf("textures\n");
 
-    obj_mem_manager::g_arrange_mem();
-    obj_mem_manager::g_changeover(true);
+    //obj_mem_manager::g_arrange_mem();
+    //obj_mem_manager::g_changeover(true);
 
     printf("loaded memory\n");
 
     sf::Event Event;
 
-    light l;
+    /*light l;
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
     l.set_brightness(0.8f);
     l.set_diffuse(1.f);
-    l.set_pos({200, 1000, 0, 0});
+    l.set_pos({200, 1000, 0, 0});*/
 
-    window.add_light(&l);
+    //window.add_light(&l);
 
     printf("light\n");
 
 
-    uint32_t num = 1000;
+    cl_int num = 10000;
 
     std::vector<cl_float4> p1;
     std::vector<cl_float4> p2;
@@ -143,9 +143,8 @@ int main(int argc, char *argv[])
     {
         float dim = 100;
 
-        vec3f pos = randf<3, float>(dim, dim);
+        vec3f pos = randf<3, float>(-dim, dim);
         vec3f centre = (vec3f){dim/2.f, dim/2.f, dim/2.f};
-
 
         uint32_t col = 0xFF00FF00;
 
@@ -191,7 +190,6 @@ int main(int argc, char *argv[])
     int which = 0;
     int nwhich = 1;
 
-
     while(window.window.isOpen())
     {
         sf::Clock c;
@@ -202,7 +200,7 @@ int main(int argc, char *argv[])
                 window.window.close();
         }
 
-        window.input();
+        //window.input();
 
         arg_list c_args;
         c_args.push_back(&screen_buf);
@@ -221,13 +219,17 @@ int main(int argc, char *argv[])
 
         arg_list r_args;
         r_args.push_back(&num);
+        r_args.push_back(&bufs[nwhich]);
         r_args.push_back(&bufs[which]);
         r_args.push_back(&g_col);
         r_args.push_back(&engine::c_pos);
         r_args.push_back(&engine::c_rot);
+        r_args.push_back(&engine::old_pos);
+        r_args.push_back(&engine::old_rot);
         r_args.push_back(&screen_buf);
 
-        run_kernel_with_string("render_naive_points", {num}, {128}, 1, r_args);
+        ///render a 2d gaussian for particle effects
+        run_kernel_with_string("render_gaussian_points", {num}, {128}, 1, r_args);
 
         arg_list b_args;
         b_args.push_back(&engine::g_screen);
@@ -235,12 +237,14 @@ int main(int argc, char *argv[])
 
         run_kernel_with_string("blit_unconditional", {window.width * window.height}, {128}, 1, b_args);
 
+        window.old_pos = window.c_pos;
+        window.old_rot = window.c_rot;
 
-        //window.draw_bulk_objs_n();
-
-        window.render_buffers();
-
+        window.render_me = true;
+        window.current_frametype = frametype::RENDER;
         window.display();
+        window.render_block();
+
 
         std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
 
