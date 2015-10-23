@@ -149,7 +149,10 @@ int main(int argc, char *argv[])
         uint32_t col = 0xFF00FF00;
 
         p1.push_back({pos.v[0], pos.v[1], pos.v[2]});
-        p2.push_back({pos.v[0], pos.v[1], pos.v[2]});
+
+        vec3f pos_2 = pos * 0.99f;
+
+        p2.push_back({pos_2.v[0], pos_2.v[1], pos_2.v[2]});
 
         colours.push_back(col);
 
@@ -181,8 +184,8 @@ int main(int argc, char *argv[])
     for(int i=0; i<2; i++)
         p_bufs[i] = engine::make_read_write(sizeof(particle_info)*pinfo.size(), pinfo.data());
 
-    auto g_col = engine::make_read_write(sizeof(cl_uint)*colours.size(), colours.data());
-    auto screen_buf = engine::make_screen_buffer(sizeof(cl_uint4));
+    compute::buffer g_col = engine::make_read_write(sizeof(cl_uint)*colours.size(), colours.data());
+    compute::buffer screen_buf = engine::make_screen_buffer(sizeof(cl_uint4));
 
     sf::Mouse mouse;
     sf::Keyboard key;
@@ -207,7 +210,7 @@ int main(int argc, char *argv[])
 
         run_kernel_with_string("clear_screen_buffer", {window.width * window.height}, {128}, 1, c_args);
 
-        arg_list g_args;
+        /*arg_list g_args;
         g_args.push_back(&num);
         g_args.push_back(&bufs[which]);
         g_args.push_back(&bufs[nwhich]);
@@ -215,7 +218,14 @@ int main(int argc, char *argv[])
         g_args.push_back(&p_bufs[nwhich]);
         g_args.push_back(&g_col);
 
-        run_kernel_with_string("gravity_attract", {num}, {128}, 1, g_args);
+        run_kernel_with_string("gravity_attract", {num}, {128}, 1, g_args);*/
+
+        arg_list p_args;
+        p_args.push_back(&num);
+        p_args.push_back(&bufs[which]);
+        p_args.push_back(&bufs[nwhich]);
+
+        run_kernel_with_string("particle_explode", {num}, {128}, 1, p_args);
 
         arg_list r_args;
         r_args.push_back(&num);
@@ -242,9 +252,9 @@ int main(int argc, char *argv[])
 
         window.render_me = true;
         window.current_frametype = frametype::RENDER;
+
         window.display();
         window.render_block();
-
 
         std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
 
