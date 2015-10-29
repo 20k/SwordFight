@@ -514,6 +514,7 @@ int main(int argc, char *argv[])
             //fight2.queue_attack(attacks::BLOCK);
 
             fight2.tick();
+            cl::cqueue.finish();
             fight2.tick_cape();
 
             fight2.update_render_positions();
@@ -536,7 +537,12 @@ int main(int argc, char *argv[])
             printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
 
         my_fight->tick(true);
+
+        cl::cqueue.finish();
+
         my_fight->tick_cape();
+
+
 
 
         bool need_realloc = network::tick();
@@ -621,9 +627,9 @@ int main(int argc, char *argv[])
 
         //window.render_buffers();
         //text::draw();
-
-        window.display();
         window.render_block();
+        window.display();
+
 
         std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
