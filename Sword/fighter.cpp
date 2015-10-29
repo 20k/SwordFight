@@ -228,6 +228,8 @@ void part::damage(float dam, bool do_effect)
 
         set_pos({0, -1000000000, 0});
         set_active(false);
+        cpu_context->build();
+        //model->hide();
 
         //cpu_context.load_active();
     }
@@ -1607,6 +1609,7 @@ void fighter::update_render_positions()
 
         i.set_global_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
         i.set_global_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
+
         i.update_model();
     }
 
