@@ -4,6 +4,9 @@
 #include <Boost/compute.hpp>
 #include "vec.hpp"
 
+struct object_context_data;
+struct object_context;
+
 struct objects_container;
 
 namespace compute = boost::compute;
@@ -21,7 +24,7 @@ struct cape
 
     int width, height, depth;
 
-    cape();
+    cape(object_context& cpu, object_context_data& gpu);
 
     compute::buffer fighter_to_fixed(objects_container* l, objects_container* m, objects_container* r);
 
@@ -33,6 +36,8 @@ struct cape
 
 private:
     bool loaded;
+    object_context* cpu_context;
+    object_context_data* gpu_context;
 };
 
 #endif // CAPE_HPP_INCLUDED

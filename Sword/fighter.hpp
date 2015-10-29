@@ -173,8 +173,8 @@ struct part
 
     //void tick();
 
-    part();
-    part(bodypart_t);
+    part(object_context& _cpu);
+    part(bodypart_t, object_context& _cpu);
     ~part();
 
     void set_active(bool);
@@ -182,9 +182,12 @@ struct part
 
     objects_container* obj();
 
+    object_context* cpu_context = nullptr;
+
 private:
     void network_hp();
-    objects_container model;
+    objects_container* model;
+
 };
 
 ///one single movement
@@ -315,7 +318,7 @@ static std::map<attack_t, attack> attack_list =
 struct sword
 {
     ///if you want global, you have to poke around in here ( sadface )
-    objects_container model;
+    objects_container* model;
 
     ///everything here is *local*,
     vec3f pos;
@@ -328,7 +331,7 @@ struct sword
 
     bbox bound;
 
-    sword();
+    sword(object_context& cpu);
 
     void set_pos(vec3f _pos); //? model now has different pos to actual due to top down approach
     void set_rot(vec3f _rot);
@@ -337,6 +340,9 @@ struct sword
     void load_team_model();
 
     void scale();
+
+private:
+    object_context* cpu_context = nullptr;
 };
 
 ///define attacks in terms of a start, an end, a time, and possibly a smoothing function
@@ -364,7 +370,7 @@ struct link
     part* p1;
     part* p2;
 
-    objects_container obj;
+    objects_container* obj;
 
     vec3f offset;
 
@@ -390,10 +396,12 @@ struct fighter
 
     const vec3f* rest_positions;
 
-    part parts[bodypart::COUNT];
+    //part parts[bodypart::COUNT];
+    ///bodypart::COUNT numbers of these
+    std::vector<part> parts;
     vec3f old_pos[bodypart::COUNT];
 
-    fighter();
+    fighter(object_context& cpu_context, object_context_data& gpu_context);
     void load();
 
     ///ideally we want movements to be ptrs, then delete them on removal
@@ -495,6 +503,8 @@ struct fighter
 
     vec3f look_displacement;
 
+    void set_contexts(object_context* _cpu, object_context_data* _gpu);
+
 private:
     size_t left_id;
     size_t right_id;
@@ -518,6 +528,9 @@ private:
 
     sf::Clock walk_clock;
     std::map<bodypart_t, vec3f> up_pos;
+
+    object_context* cpu_context = nullptr;
+    object_context_data* gpu_context = nullptr;
 };
 
 

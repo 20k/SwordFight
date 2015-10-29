@@ -261,7 +261,7 @@ void net_slave(fighter& fight)
         network::slave_var(&i.hp); ///this is not an error, hp transmission is handled when hp takes damage
     }
 
-    network::slave_object(&fight.weapon.model);
+    network::slave_object(fight.weapon.model);
 
     network::slave_var(&fight.net.is_blocking);
 
@@ -278,7 +278,7 @@ void make_host(fighter& fight)
         ///no need to touch hp here as its always a slave variable
     }
 
-    network::transform_host_object(&fight.weapon.model);
+    network::transform_host_object(fight.weapon.model);
 
     network::transform_host_var(&fight.net.is_blocking);
 }
@@ -295,21 +295,24 @@ int main(int argc, char *argv[])
     c2.cache = false;
     c2.set_active(true);*/
 
-    objects_container floor;
-    floor.set_load_func(std::bind(load_object_cube, std::placeholders::_1,
+    object_context context;
+    object_context_data* gpu_context = context.fetch();
+
+    objects_container* floor = context.make_new();
+    floor->set_load_func(std::bind(load_object_cube, std::placeholders::_1,
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0},
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0},
                                   3000.f, "./res/gray.png"));
 
     ///need to extend this to textures as well
-    floor.set_normal("./res/norm.png");
-    floor.cache = false;
-    floor.set_active(false);
+    floor->set_normal("./res/norm.png");
+    floor->cache = false;
+    floor->set_active(false);
 
-    objects_container file_map;
-    file_map.set_file("./res/map2.obj");
-    file_map.set_active(true);
-    file_map.set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3 - 0, 0});
+    objects_container* file_map = context.make_new();
+    file_map->set_file("./res/map2.obj");
+    file_map->set_active(true);
+    file_map->set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3 - 0, 0});
     //file_map.set_normal("res/norm_body.png");
 
     settings s;
@@ -331,12 +334,12 @@ int main(int argc, char *argv[])
     window.set_camera_pos({-1009.17, -94.6033, -317.804});
     window.set_camera_rot({0, 1.6817, 0});
 
-    fighter fight;
+    fighter fight(context, *gpu_context);
     fight.set_team(0);
     fight.set_quality(s.quality);
     //fight.my_cape.make_stable(&fight);
 
-    fighter fight2;
+    fighter fight2(context, *gpu_context);
     fight2.set_team(1);
     fight2.set_pos({0, 0, -600});
     fight2.set_rot({0, M_PI, 0});
@@ -347,22 +350,23 @@ int main(int argc, char *argv[])
     ///tmp
     for(int i=0; i<10; i++)
     {
-        net_fighters.push_back(new fighter);
+        net_fighters.push_back(new fighter(context, *gpu_context));
         net_fighters[i]->set_team(1);
         net_fighters[i]->set_pos({0, 0, -3000000});
         net_fighters[i]->set_rot({0, 0, 0});
         net_fighters[i]->set_quality(s.quality);
     }
 
-
     physics phys;
     phys.load();
 
     printf("preload\n");
 
-    obj_mem_manager::load_active_objects();
+    //obj_mem_manager::load_active_objects();
 
-    file_map.scale(1000);
+    context.load_active();
+
+    file_map->scale(1000);
 
     printf("postload\n");
 
@@ -381,16 +385,24 @@ int main(int argc, char *argv[])
 
     printf("loaded net fighters\n");
 
-    floor.set_specular(0.9f);
-    floor.set_diffuse(8.f);
+    floor->set_specular(0.9f);
+    floor->set_diffuse(8.f);
 
 
     texture_manager::allocate_textures();
+    auto tex_gpu = texture_manager::build_descriptors();
+
+    window.set_tex_data(tex_gpu);
 
     printf("textures\n");
 
-    obj_mem_manager::g_arrange_mem();
-    obj_mem_manager::g_changeover();
+    //obj_mem_manager::g_arrange_mem();
+    //obj_mem_manager::g_changeover();
+
+    context.build();
+
+    auto ctx = context.fetch();
+    window.set_object_data(*ctx);
 
     printf("loaded memory\n");
 
@@ -404,7 +416,13 @@ int main(int argc, char *argv[])
     l.set_diffuse(1.f);
     l.set_pos({0, 10000, -300, 0});
 
-    window.add_light(&l);
+    //window.add_light(&l);
+
+    light::add_light(&l);
+
+    auto light_data = light::build();
+
+    window.set_light_data(light_data);
 
     printf("light\n");
 
@@ -426,6 +444,9 @@ int main(int argc, char *argv[])
 
     printf("loop\n");
 
+    {
+        printf("%i\n", context.containers.size());
+    }
 
     while(window.window.isOpen())
     {
@@ -489,9 +510,12 @@ int main(int argc, char *argv[])
             fight.die();
             fight2.die();
 
-            obj_mem_manager::load_active_objects();
+            //obj_mem_manager::load_active_objects();
 
-            obj_mem_manager::g_arrange_mem();
+            //obj_mem_manager::g_arrange_mem();
+
+            context.load_active();
+            context.build();
         }
 
         if(once<sf::Keyboard::B>())
@@ -514,7 +538,6 @@ int main(int argc, char *argv[])
             //fight2.queue_attack(attacks::BLOCK);
 
             fight2.tick();
-            cl::cqueue.finish();
             fight2.tick_cape();
 
             fight2.update_render_positions();
@@ -538,12 +561,7 @@ int main(int argc, char *argv[])
 
         my_fight->tick(true);
 
-        cl::cqueue.finish();
-
         my_fight->tick_cape();
-
-
-
 
         bool need_realloc = network::tick();
 
@@ -551,8 +569,8 @@ int main(int argc, char *argv[])
         {
             printf("Reallocating\n");
 
-            obj_mem_manager::load_active_objects();
-            obj_mem_manager::g_arrange_mem();
+            context.load_active();
+            context.build();
         }
 
         audio_packet pack;
@@ -582,9 +600,8 @@ int main(int argc, char *argv[])
                 fight.die();
                 fight2.die();
 
-                obj_mem_manager::load_active_objects();
-
-                obj_mem_manager::g_arrange_mem();
+                context.load_active();
+                context.build();
             }
             else
             {
@@ -616,12 +633,16 @@ int main(int argc, char *argv[])
         particle_effect::tick();
 
         ///about 0.2ms slower than not doing this
-        engine::realloc_light_gmem();
+        //engine::realloc_light_gmem();
+        light_data = light::build();
+        window.set_light_data(light_data);
+
+        context.flush_locations();
 
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
 
-        obj_mem_manager::g_changeover();
+        //obj_mem_manager::g_changeover();
 
         window.draw_bulk_objs_n();
 
@@ -633,4 +654,6 @@ int main(int argc, char *argv[])
 
         std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
+
+    cl::cqueue.finish();
 }

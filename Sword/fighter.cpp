@@ -62,9 +62,12 @@ void part::set_type(bodypart_t t)
     set_hp(1.f);
 }
 
-part::part()
+part::part(object_context& context)
 {
     //performed_death = false;
+
+    cpu_context = &context;
+    model = context.make_new();
 
     is_active = false;
 
@@ -76,26 +79,26 @@ part::part()
     set_global_pos({0,0,0});
     set_global_rot({0,0,0});
 
-    model.set_file("./Res/bodypart_red.obj");
+    model->set_file("./Res/bodypart_red.obj");
 
     team = -1;
 
     quality = 0;
 }
 
-part::part(bodypart_t t) : part()
+part::part(bodypart_t t, object_context& context) : part(context)
 {
     set_type(t);
 }
 
 part::~part()
 {
-    model.set_active(false);
+    model->set_active(false);
 }
 
 void part::set_active(bool active)
 {
-    model.set_active(active);
+    model->set_active(active);
 
     is_active = active;
 }
@@ -105,14 +108,14 @@ void part::scale()
     float amount = bodypart::scale/3.f;
 
     if(type != bodypart::HEAD)
-        model.scale(amount);
+        model->scale(amount);
     else
-        model.scale(amount);
+        model->scale(amount);
 }
 
 objects_container* part::obj()
 {
-    return &model;
+    return model;
 }
 
 void part::set_pos(vec3f _pos)
@@ -137,10 +140,8 @@ void part::set_global_rot(vec3f _global_rot)
 
 void part::update_model()
 {
-    model.set_pos({global_pos.v[0], global_pos.v[1], global_pos.v[2]});
-    model.set_rot({global_rot.v[0], global_rot.v[1], global_rot.v[2]});
-
-    model.g_flush_objects();
+    model->set_pos({global_pos.v[0], global_pos.v[1], global_pos.v[2]});
+    model->set_rot({global_rot.v[0], global_rot.v[1], global_rot.v[2]});
 }
 
 void part::set_team(int _team)
@@ -178,15 +179,15 @@ void part::load_team_model()
             to_load = high_blue;
     }
 
-    model.set_file(to_load);
+    model->set_file(to_load);
 
-    model.set_normal("res/norm_body.png");
+    model->set_normal("res/norm_body.png");
 
-    model.unload();
+    model->unload();
 
     set_active(true);
 
-    obj_mem_manager::load_active_objects();
+    cpu_context->load_active();
 
     scale();
 }
@@ -205,6 +206,8 @@ void part::set_quality(int _quality)
 
 ///a network transmission of damage will get swollowed if you are hit between the time you spawn, and the time it takes to transmit
 ///the hp stat to the destination. This is probably acceptable
+
+///temp error as this class needs gpu access
 void part::damage(float dam, bool do_effect)
 {
     hp -= dam;
@@ -223,10 +226,10 @@ void part::damage(float dam, bool do_effect)
             particle_effect::push(e);
         }
 
+        set_pos({0, -1000000000, 0});
         set_active(false);
 
-        obj_mem_manager::load_active_objects();
-        obj_mem_manager::g_arrange_mem();
+        //cpu_context.load_active();
     }
 
     network_hp();
@@ -353,41 +356,45 @@ void sword::load_team_model()
 {
     if(team == 0)
     {
-        model.set_file("./Res/sword_red.obj");
-
+        model->set_file("./Res/sword_red.obj");
     }
     else
     {
-        model.set_file("./Res/sword_blue.obj");
+        model->set_file("./Res/sword_blue.obj");
     }
 
-    model.unload();
+    model->unload();
 
-    model.set_active(true);
+    model->set_active(true);
 
-    obj_mem_manager::load_active_objects();
+    //model->cache = false;
 
+    cpu_context->load_active();
     scale();
 }
 
-sword::sword()
+sword::sword(object_context& cpu)
 {
-    model.set_pos({0, 0, -100});
+    cpu_context = &cpu;
+
+    model = cpu.make_new();
+
+    model->set_pos({0, 0, -100});
     dir = {0,0,0};
-    model.set_file("./Res/sword_red.obj");
+    model->set_file("./Res/sword_red.obj");
     team = -1;
 }
 
 void sword::scale()
 {
-    model.scale(50.f);
-    model.set_specular(0.4f);
+    model->scale(50.f);
+    model->set_specular(0.4f);
 
-    bound = get_bbox(&model);
+    bound = get_bbox(model);
 
     float sword_height = 0;
 
-    for(triangle& t : model.objs[0].tri_list)
+    for(triangle& t : model->objs[0].tri_list)
     {
         for(vertex& v : t.vertices)
         {
@@ -421,9 +428,9 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
     if(team == 1)
         tex = "./res/blue.png";
 
-    objects_container o;
-    o.set_load_func(std::bind(load_object_cube, std::placeholders::_1, p1->pos + dir * squish, p2->pos - dir * squish, thickness, tex));
-    o.cache = false;
+    objects_container* o = p1->cpu_context->make_new();
+    o->set_load_func(std::bind(load_object_cube, std::placeholders::_1, p1->pos + dir * squish, p2->pos - dir * squish, thickness, tex));
+    o->cache = false;
     //o.set_normal("res/norm_body.png");
 
     link l;
@@ -441,8 +448,16 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
 }
 
 ///need to only maintain 1 copy of this, I'm just a muppet
-fighter::fighter()
+fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context) : weapon(_cpu_context), my_cape(_cpu_context, _gpu_context)
 {
+    cpu_context = &_cpu_context;
+    gpu_context = &_gpu_context;
+
+    for(int i=0; i<bodypart::COUNT; i++)
+    {
+        parts.push_back(part(_cpu_context));
+    }
+
     quality = 0;
 
     light l1;
@@ -542,19 +557,22 @@ void fighter::respawn(vec2f _pos)
         i.set_active(true);
     }
 
-    weapon.model.set_active(true);
+    weapon.model->set_active(true);
 
     for(auto& i : joint_links)
     {
-        i.obj.set_active(true);
+        i.obj->set_active(true);
     }
 
     set_team(team);
 
-    obj_mem_manager::load_active_objects();
+    cpu_context->load_active();
 
-    obj_mem_manager::g_arrange_mem();
-    obj_mem_manager::g_changeover();
+    cpu_context->build();
+    gpu_context = cpu_context->fetch();
+
+    //obj_mem_manager::g_arrange_mem();
+    //obj_mem_manager::g_changeover();
 
     //my_cape.make_stable(this);
 
@@ -572,11 +590,11 @@ void fighter::die()
         i.set_active(false);
     }
 
-    weapon.model.set_active(false);
+    weapon.model->set_active(false);
 
     for(auto& i : joint_links)
     {
-        i.obj.set_active(false);
+        i.obj->set_active(false);
     }
 
     ///spawn in some kind of swanky effect here
@@ -606,8 +624,8 @@ void fighter::die()
     }
 
     {
-        vec3f weapon_pos = xyz_to_vec(weapon.model.pos);
-        vec3f weapon_rot = xyz_to_vec(weapon.model.rot);
+        vec3f weapon_pos = xyz_to_vec(weapon.model->pos);
+        vec3f weapon_rot = xyz_to_vec(weapon.model->rot);
 
         vec3f weapon_dir = (vec3f){0, 1, 0}.rot({0,0,0}, weapon_rot);
 
@@ -635,8 +653,10 @@ void fighter::die()
 
     //network::host_update(&net.dead);
 
-    obj_mem_manager::load_active_objects();
-    obj_mem_manager::g_arrange_mem();
+    cpu_context->load_active();
+
+    cpu_context->build();
+    gpu_context = cpu_context->fetch();
 }
 
 int fighter::num_dead()
@@ -702,7 +722,7 @@ void fighter::tick_cape()
                                this->parts[bodypart::BODY].obj(),
                                this->parts[bodypart::RUPPERARM].obj(),
                                this
-                                );
+                               );
     }
 }
 
@@ -1592,15 +1612,14 @@ void fighter::update_render_positions()
 
     auto r = to_world_space(pos, rot, weapon.pos, weapon.rot);
 
-    weapon.model.set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
-    weapon.model.set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
-    weapon.model.g_flush_objects();
+    weapon.model->set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
+    weapon.model->set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
 
     for(auto& i : joint_links)
     {
         bool active = i.p1->is_active && i.p2->is_active;
 
-        objects_container* obj = &i.obj;
+        objects_container* obj = i.obj;
 
         vec3f start = i.p1->global_pos;
         vec3f fin = i.p2->global_pos;
@@ -1616,7 +1635,6 @@ void fighter::update_render_positions()
 
         obj->set_pos({start.v[0], start.v[1], start.v[2]});
         obj->set_rot({rot.v[0], rot.v[1], rot.v[2]});
-        obj->g_flush_objects();
     }
 
     for(int i=0; i<bodypart::COUNT; i++)
@@ -1635,7 +1653,7 @@ void fighter::update_lights()
 
     my_lights[1]->set_pos({bpos.v[0], bpos.v[1], bpos.v[2]});
 
-    vec3f sword_tip = xyz_to_vec(weapon.model.pos) + (vec3f){0, weapon.length, 0}.rot({0,0,0}, xyz_to_vec(weapon.model.rot));
+    vec3f sword_tip = xyz_to_vec(weapon.model->pos) + (vec3f){0, weapon.length, 0}.rot({0,0,0}, xyz_to_vec(weapon.model->rot));
 
     my_lights[2]->set_pos({sword_tip.v[0], sword_tip.v[1], sword_tip.v[2]});
 
@@ -1728,7 +1746,7 @@ void fighter::set_team(int _team)
 
     for(auto& i : joint_links)
     {
-        i.obj.set_active(false);
+        i.obj->set_active(false);
     }
 
     joint_links.clear();
@@ -1766,7 +1784,7 @@ void fighter::set_team(int _team)
 
     for(auto& i : joint_links)
     {
-        i.obj.set_active(true);
+        i.obj->set_active(true);
     }
 }
 
@@ -1864,4 +1882,13 @@ void fighter::damage(bodypart_t type, float d)
 
     net.recoil = 1;
     network::host_update(&net.recoil);
+}
+
+void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)
+{
+    if(_cpu)
+        cpu_context = _cpu;
+
+    if(_gpu)
+        gpu_context = _gpu;
 }

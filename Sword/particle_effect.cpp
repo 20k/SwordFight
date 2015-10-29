@@ -111,17 +111,11 @@ void cube_effect::tick()
                 for(auto& o : e.objects)
                 {
                     o.set_pos({0, 0, -30000000});
-                    o.g_flush_objects();
                     o.set_active(false);
 
                     finished = true;
                 }
             }
-        }
-
-        for(auto& o : e.objects)
-        {
-            o.g_flush_objects();
         }
     }
 }

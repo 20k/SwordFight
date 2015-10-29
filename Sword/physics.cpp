@@ -78,13 +78,13 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     if(my_parent->num_dead() >= my_parent->num_needed_to_die())
         return -1;
 
-    if(w.model.isactive == false)
+    if(w.model->isactive == false)
         return -1;
 
     //vec3f s_rot = w.rot;
-    vec3f s_pos = xyz_to_vec(w.model.pos); ///this is its worldspace position
+    vec3f s_pos = xyz_to_vec(w.model->pos); ///this is its worldspace position
 
-    vec3f dir = (vec3f){0, 1, 0}.rot({0,0,0}, xyz_to_vec(w.model.rot));
+    vec3f dir = (vec3f){0, 1, 0}.rot({0,0,0}, xyz_to_vec(w.model->rot));
     dir = dir.norm();
 
     //vec3f world_move_dir = sword_move_dir.rot({0,0,0}, xyz_to_vec(w.model.rot));

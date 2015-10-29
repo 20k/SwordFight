@@ -121,13 +121,16 @@ void cape::load_cape(objects_container* pobj, int team)
     pobj->isloaded = true;
 }
 
-cape::cape()
+cape::cape(object_context& cpu, object_context_data& gpu)
 {
     width = WIDTH;
     height = HEIGHT;
     depth = 1;
 
     loaded = false;
+
+    cpu_context = &cpu;
+    gpu_context = &gpu;
 }
 
 void cape::load(int team)
@@ -135,20 +138,25 @@ void cape::load(int team)
     if(loaded)
         return;
 
-    model = new objects_container;
+    model = cpu_context->make_new();
 
     model->set_load_func(std::bind(cape::load_cape, std::placeholders::_1, team));
     model->set_active(true);
     model->cache = false;
     //model->set_normal("res/norm_body.png");
 
-    obj_mem_manager::load_active_objects();
+    //obj_mem_manager::load_active_objects();
+
+    cpu_context->load_active();
 
     model->set_two_sided(true);
     model->set_specular(0.7);
 
-    obj_mem_manager::g_arrange_mem();
-    obj_mem_manager::g_changeover();
+    //obj_mem_manager::g_arrange_mem();
+    //obj_mem_manager::g_changeover();
+
+    cpu_context->build();
+    gpu_context = cpu_context->fetch();
 
     which = 0;
 
@@ -245,14 +253,13 @@ compute::buffer cape::fighter_to_fixed(objects_container* l, objects_container* 
 
     compute::buffer buf = compute::buffer(cl::context, sizeof(float)*width*3, CL_MEM_READ_WRITE, nullptr);
 
-    cl_float* mem_map = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), buf.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*width*3, 0, NULL, NULL, NULL);
+    cl_float* mem_map = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), buf.get(), CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, 0, sizeof(cl_float)*width*3, 0, NULL, NULL, NULL);
 
     for(int i=0; i<len; i++)
     {
         mem_map[i*3 + 0] = current.v[0];
         mem_map[i*3 + 1] = current.v[1];
         mem_map[i*3 + 2] = current.v[2];
-
 
         current = current + step;
     }
@@ -347,7 +354,7 @@ void cape::tick(objects_container* l, objects_container* m, objects_container* r
 
     arg_list cloth_args;
 
-    cloth_args.push_back(&obj_mem_manager::g_tri_mem);
+    cloth_args.push_back(&gpu_context->g_tri_mem);
     cloth_args.push_back(&model->objs[0].gpu_tri_start);
     cloth_args.push_back(&model->objs[0].gpu_tri_end);
     cloth_args.push_back(&width);
