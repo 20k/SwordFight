@@ -11,8 +11,7 @@
 
 #include "../openclrenderer/network.hpp"
 
-#include "../openclrenderer/settings_loader.hpp"
-#include "../sword/vec.hpp" ///really need to figure out where to put this
+#include <vec/vec.hpp>
 
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
@@ -65,126 +64,185 @@ struct particle_info
     float temp;
 };
 
-int main(int argc, char *argv[])
+struct particle_vec
 {
-    /*objects_container c1;
-    c1.set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0, 0, 0}, (vec3f){0, 100, -100}, 20.f));
-    c1.cache = false;
-    c1.set_active(true);
-
-    objects_container c2;
-    c2.set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0, 0, 0}, (vec3f){100, -100, 100}, 20.f));
-    c2.cache = false;
-    c2.set_active(true);*/
-
-    //objects_container floor;
-    //floor.set_file("../openclrenderer/sp2/sp2.obj");
-    /*floor.set_load_func(std::bind(load_object_cube, std::placeholders::_1,
-                                  (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0},
-                                  (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0},
-                                  3000.f, "../sword/res/gray.png"));*/
-
-    ///need to extend this to textures as well
-    //floor.set_normal("./res/norm.png");clamped_ids
-    //floor.cache = false;
-    //floor.set_active(false);
-
-    engine window;
-    window.load(1000, 800, 1000, "SwordFight", "../openclrenderer/cl2.cl", true);
-
-    //window.window.setFramerateLimit(24.f);
-
-    printf("loaded\n");
-
-    window.set_camera_pos({-1009.17, -94.6033, -317.804});
-    window.set_camera_rot({0, 1.6817, 0});
-
-    printf("preload\n");
-
-    //obj_mem_manager::load_active_objects();
-
-    printf("postload\n");
-
-    //floor.set_specular(0.0f);
-    //floor.set_diffuse(1.f);
-
-    //texture_manager::allocate_textures();
-
-    printf("textures\n");
-
-    //obj_mem_manager::g_arrange_mem();
-    //obj_mem_manager::g_changeover(true);
-
-    printf("loaded memory\n");
-
-    sf::Event Event;
-
-    /*light l;
-    //l.set_col({1.0, 1.0, 1.0, 0});
-    l.set_col({1.0, 1.0, 1.0, 0});
-    l.set_shadow_casting(0);
-    l.set_brightness(0.8f);
-    l.set_diffuse(1.f);
-    l.set_pos({200, 1000, 0, 0});*/
-
-    //window.add_light(&l);
-
-    printf("light\n");
-
-
-    cl_int num = 10000;
-
     std::vector<cl_float4> p1;
     std::vector<cl_float4> p2;
     std::vector<cl_uint> colours;
-    std::vector<particle_info> pinfo;
+
+    compute::buffer bufs[2];
+    compute::buffer g_col;
+
+    int which;
+    int nwhich;
+
+    cl_int num;
+
+    particle_vec(std::vector<cl_float4> v1, std::vector<cl_float4> v2, std::vector<cl_uint> c1)
+    {
+        p1 = v1;
+        p2 = v2;
+        colours = c1;
+
+        bufs[0] = engine::make_read_write(sizeof(cl_float4)*p1.size(), p1.data());
+        bufs[1] = engine::make_read_write(sizeof(cl_float4)*p2.size(), p2.data());
+
+        g_col =  engine::make_read_write(sizeof(cl_uint)*colours.size(), colours.data());
+
+        which = 0;
+        nwhich = 1;
+
+        num = v1.size();
+    }
+
+    void flip()
+    {
+        nwhich = which;
+
+        which = (which + 1) % 2;
+    }
+};
+
+struct particle_intermediate
+{
+    std::vector<cl_float4> p1;
+    std::vector<cl_float4> p2;
+    std::vector<cl_uint> colours;
+
+    particle_intermediate append(const particle_intermediate& n)
+    {
+        p1.insert(p1.end(), n.p1.begin(), n.p1.end());
+        p2.insert(p2.end(), n.p2.begin(), n.p2.end());
+        colours.insert(colours.end(), n.colours.begin(), n.colours.end());
+
+        return *this;
+    }
+
+    particle_vec build()
+    {
+        return particle_vec(p1, p2, colours);
+    }
+};
+
+particle_intermediate make_particle_jet(int num, vec3f start, vec3f dir, float len, float angle, vec3f col, float speedmod)
+{
+    std::vector<cl_float4> p1;
+    std::vector<cl_float4> p2;
+    std::vector<cl_uint> colours;
 
     for(uint32_t i = 0; i<num; i++)
     {
-        float dim = 100;
+        float len_pos = randf_s(0, len);
 
-        vec3f pos = randf<3, float>(-dim, dim);
-        vec3f centre = (vec3f){dim/2.f, dim/2.f, dim/2.f};
+        float len_frac = len_pos / len;
 
-        uint32_t col = 0xFF00FF00;
+        vec3f euler = dir.get_euler();
 
-        p1.push_back({pos.v[0], pos.v[1], pos.v[2]});
+        euler = euler + (vec3f){0, randf_s(-angle, angle), randf_s(-angle, angle)};
 
-        vec3f pos_2 = pos * 0.99f;
+        vec3f rot_pos = (vec3f){0.f, len_pos, 0.f}.rot({0.f, 0.f, 0.f}, euler);
+
+        vec3f final_pos = start + rot_pos;
+
+        final_pos = final_pos + randf<3, float>(-len/40.f, len/40.f);
+
+
+        float mod = speedmod;
+
+        p1.push_back({final_pos.v[0], final_pos.v[1], final_pos.v[2]});
+
+        vec3f pos_2 = final_pos * mod;
 
         p2.push_back({pos_2.v[0], pos_2.v[1], pos_2.v[2]});
 
-        colours.push_back(col);
+        col = clamp(col, 0.f, 1.f);
 
-        float prob = randf_s();
-
-        float dens = 1.f;
-
-        if(prob < 0.2f)
-            dens = 2.1f;
-        else if(prob < 0.8f)
-            dens = 1.f;
-        else
-            dens = 0.9f;
-
-        //dens = randf_s(0.1f, 1.f);
-
-        float temp = randf_s(0.0f, 0.01f);
-
-        pinfo.push_back({dens, temp});
+        colours.push_back(rgba_to_uint(col));
     }
 
-    compute::buffer bufs[2];
+    return particle_intermediate{p1, p2, colours};
+}
 
-    bufs[0] = engine::make_read_write(sizeof(cl_float4)*p1.size(), p1.data());
-    bufs[1] = engine::make_read_write(sizeof(cl_float4)*p2.size(), p2.data());
+void process_pvec(particle_vec& v1, float friction, compute::buffer& screen_buf, float frac_remaining)
+{
+    cl_float brightness = frac_remaining * 3.f + (1.f - frac_remaining) * 0.0f;
 
-    compute::buffer p_bufs[2];
+    //brightness = sqrtf(brightness);
 
-    for(int i=0; i<2; i++)
-        p_bufs[i] = engine::make_read_write(sizeof(particle_info)*pinfo.size(), pinfo.data());
+    //printf("%f\n", brightness);
 
-    compute::buffer g_col = engine::make_read_write(sizeof(cl_uint)*colours.size(), colours.data());
+    int which = v1.which;
+    int nwhich = v1.nwhich;
+
+    cl_int num = v1.num;
+
+    arg_list p_args;
+    p_args.push_back(&num);
+    p_args.push_back(&v1.bufs[which]);
+    p_args.push_back(&v1.bufs[nwhich]);
+    p_args.push_back(&friction);
+
+    run_kernel_with_string("particle_explode", {num}, {128}, 1, p_args);
+
+    arg_list r_args;
+    r_args.push_back(&num);
+    r_args.push_back(&v1.bufs[nwhich]);
+    r_args.push_back(&v1.bufs[which]);
+    r_args.push_back(&v1.g_col);
+    r_args.push_back(&brightness);
+    r_args.push_back(&engine::c_pos);
+    r_args.push_back(&engine::c_rot);
+    r_args.push_back(&engine::old_pos);
+    r_args.push_back(&engine::old_rot);
+    r_args.push_back(&screen_buf);
+
+    ///render a 2d gaussian for particle effects
+    run_kernel_with_string("render_gaussian_points", {num}, {128}, 1, r_args);
+
+    v1.flip();
+}
+
+int main(int argc, char *argv[])
+{
+    engine window;
+    window.load(1000, 800, 1000, "SwordFight", "../openclrenderer/cl2.cl", true);
+
+    window.set_camera_pos({-0.17, -94.6033, -1500.804});
+    window.set_camera_rot({0, 0, 0});
+
+    vec3f red = {0.90, 0.55, 0.175};
+    vec3f blue = {0.6, 0.6, 1.f};
+
+    float rangle = M_PI/32.f;
+    float bangle = (M_PI/4 - rangle);
+
+    float fill_angle = (M_PI - bangle) / 2;
+
+    float rspeed = 0.987f;
+    float bspeed = 0.99f;
+
+    int rnum = 80;
+    int bnum = 40;
+
+    particle_intermediate i1 =
+               make_particle_jet(rnum, {0.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, 100.f, rangle, red, rspeed);
+    i1.append( make_particle_jet(rnum, {0.f, 0.f, 0.f}, {0.f, -1.f, 0.f}, 100.f, rangle, red, rspeed) );
+    i1.append( make_particle_jet(rnum, {0.f, 0.f, 0.f}, {-1.f, 0.f, 0.f}, 100.f, rangle, red, rspeed) );
+    i1.append( make_particle_jet(rnum, {0.f, 0.f, 0.f}, {1.f, 0.f, 0.f}, 100.f, rangle, red, rspeed) );
+    i1.append( make_particle_jet(rnum, {0.f, 0.f, 0.f}, {0.f, 0.f, -1.f}, 100.f, rangle, red, rspeed) );
+    i1.append( make_particle_jet(rnum, {0.f, 0.f, 0.f}, {0.f, 0.f, 1.f}, 100.f, rangle, red, rspeed) );
+
+
+    i1.append( make_particle_jet(bnum, {0.f, 0.f, 0.f}, {1.f, 1.f, 0.f}, 100.f, bangle, blue, bspeed) );
+    i1.append( make_particle_jet(bnum, {0.f, 0.f, 0.f}, {1.f, -1.f, 0.f}, 100.f, bangle, blue, bspeed) );
+    i1.append( make_particle_jet(bnum, {0.f, 0.f, 0.f}, {-1.f, -1.f, 0.f}, 100.f, bangle, blue, bspeed) );
+    i1.append( make_particle_jet(bnum, {0.f, 0.f, 0.f}, {-1.f, 1.f, 0.f}, 100.f, bangle, blue, bspeed) );
+
+    i1.append( make_particle_jet(bnum, {0.f, 0.f, 0.f}, {0, 0, 1.f}, 100.f, fill_angle, blue, bspeed) );
+    i1.append( make_particle_jet(bnum, {0.f, 0.f, 0.f}, {0, 0, -1.f}, 100.f, fill_angle, blue, bspeed) );
+
+    particle_vec v1 = i1.build();
+
     compute::buffer screen_buf = engine::make_screen_buffer(sizeof(cl_uint4));
 
     sf::Mouse mouse;
@@ -193,15 +251,43 @@ int main(int argc, char *argv[])
     int which = 0;
     int nwhich = 1;
 
+    float start_friction = 1.f;
+    float end_friction = 0.9f;
+
+    const float end_time = 30000.f;
+    const float fadeout_time = 3000.f;
+
+    //cl::cqueue.finish();
+
+    sf::Clock explosion_clock;
+
+    cl::cqueue.finish();
+    cl::cqueue2.finish();
+
     while(window.window.isOpen())
     {
         sf::Clock c;
 
-        if(window.window.pollEvent(Event))
+        sf::Event Event;
+
+        while(window.window.pollEvent(Event))
         {
             if(Event.type == sf::Event::Closed)
                 window.window.close();
         }
+
+        float explode_time = explosion_clock.getElapsedTime().asMicroseconds() / (1000.f);
+
+        float frac = explode_time / end_time;
+
+        if(frac > 1)
+            frac = 1;
+
+        //frac *= frac;// * frac;
+
+        frac = pow(frac, 1.1);
+
+        float friction = (1.f - frac) * start_friction + frac * end_friction;
 
         //window.input();
 
@@ -210,36 +296,7 @@ int main(int argc, char *argv[])
 
         run_kernel_with_string("clear_screen_buffer", {window.width * window.height}, {128}, 1, c_args);
 
-        /*arg_list g_args;
-        g_args.push_back(&num);
-        g_args.push_back(&bufs[which]);
-        g_args.push_back(&bufs[nwhich]);
-        g_args.push_back(&p_bufs[which]);
-        g_args.push_back(&p_bufs[nwhich]);
-        g_args.push_back(&g_col);
-
-        run_kernel_with_string("gravity_attract", {num}, {128}, 1, g_args);*/
-
-        arg_list p_args;
-        p_args.push_back(&num);
-        p_args.push_back(&bufs[which]);
-        p_args.push_back(&bufs[nwhich]);
-
-        run_kernel_with_string("particle_explode", {num}, {128}, 1, p_args);
-
-        arg_list r_args;
-        r_args.push_back(&num);
-        r_args.push_back(&bufs[nwhich]);
-        r_args.push_back(&bufs[which]);
-        r_args.push_back(&g_col);
-        r_args.push_back(&engine::c_pos);
-        r_args.push_back(&engine::c_rot);
-        r_args.push_back(&engine::old_pos);
-        r_args.push_back(&engine::old_rot);
-        r_args.push_back(&screen_buf);
-
-        ///render a 2d gaussian for particle effects
-        run_kernel_with_string("render_gaussian_points", {num}, {128}, 1, r_args);
+        process_pvec(v1, friction, screen_buf, 1.f - clamp(explode_time / fadeout_time, 0.f, 1.f));
 
         arg_list b_args;
         b_args.push_back(&engine::g_screen);
@@ -253,8 +310,26 @@ int main(int argc, char *argv[])
         window.render_me = true;
         window.current_frametype = frametype::RENDER;
 
-        window.display();
         window.render_block();
+
+        /*int mx = window.get_mouse_x();
+        int my = window.get_mouse_y();
+
+        if(mx >= 0 && my >= 0 && mx < window.width && my < window.height)
+        {
+            cl_uint4 res;
+
+            my = window.height - my;
+
+            clEnqueueReadBuffer(cl::cqueue.get(), screen_buf.get(), CL_TRUE, (my*window.width + mx) * sizeof(cl_uint4), sizeof(cl_uint4), &res, 0, nullptr, nullptr);
+
+            cl::cqueue.finish();
+
+            printf("%i %i %i\n", res.x, res.y, res.z);
+        }*/
+
+        window.display();
+
 
         std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
 
