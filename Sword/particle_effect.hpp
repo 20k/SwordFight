@@ -5,6 +5,8 @@
 #include "vec.hpp"
 #include <vector>
 
+struct object_context;
+
 struct objects_container;
 
 struct light;
@@ -29,13 +31,15 @@ struct cube_effect : effect
 
     int num;
 
-    std::vector<objects_container> objects;
+    std::vector<objects_container*> objects;
 
     void tick();
-    void make(float duration, vec3f _pos, float _scale, int _team, int _num);
+    void make(float duration, vec3f _pos, float _scale, int _team, int _num, object_context& cpu);
     void activate();
 
     ~cube_effect() = default;
+
+    object_context* cpu_context = nullptr;
 };
 
 struct light_effect : effect

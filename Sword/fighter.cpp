@@ -222,12 +222,14 @@ void part::damage(float dam, bool do_effect)
         {
             cube_effect e;
 
-            e.make(1300, global_pos, 100.f, team, 10);
+            e.make(1300, global_pos, 100.f, team, 10, *cpu_context);
             particle_effect::push(e);
         }
 
-        set_pos({0, -1000000000, 0});
+        //set_pos({0, -1000000000, 0});
         set_active(false);
+
+        cpu_context->load_active();
         cpu_context->build();
         //model->hide();
 
@@ -621,7 +623,7 @@ void fighter::die()
     {
         cube_effect e;
 
-        e.make(death_time, i.global_pos, 50.f, team, 10);
+        e.make(death_time, i.global_pos, 50.f, team, 10, *cpu_context);
         particle_effect::push(e);
     }
 
@@ -639,7 +641,7 @@ void fighter::die()
 
             cube_effect e;
 
-            e.make(death_time, pos, 50.f, team, 5);
+            e.make(death_time, pos, 50.f, team, 5, *cpu_context);
             particle_effect::push(e);
         }
     }
