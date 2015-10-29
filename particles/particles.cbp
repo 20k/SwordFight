@@ -55,7 +55,7 @@
 			<Add option="-std=gnu++11" />
 			<Add option="-Wno-unknown-pragmas" />
 			<Add option="-Wno-narrowing" />
-			<Add option="-DCL_USE_DEPRECATED_OPENCL_1_1_APIS" />
+			<Add option="-DGLEW_STATIC" />
 			<Add option="-DNDEBUG" />
 		</Compiler>
 		<Linker>

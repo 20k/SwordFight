@@ -167,10 +167,6 @@ void process_pvec(particle_vec& v1, float friction, compute::buffer& screen_buf,
 {
     cl_float brightness = frac_remaining * 3.f + (1.f - frac_remaining) * 0.0f;
 
-    //brightness = sqrtf(brightness);
-
-    //printf("%f\n", brightness);
-
     int which = v1.which;
     int nwhich = v1.nwhich;
 
@@ -257,8 +253,6 @@ int main(int argc, char *argv[])
     const float end_time = 30000.f;
     const float fadeout_time = 3000.f;
 
-    //cl::cqueue.finish();
-
     sf::Clock explosion_clock;
 
     cl::cqueue.finish();
@@ -283,13 +277,9 @@ int main(int argc, char *argv[])
         if(frac > 1)
             frac = 1;
 
-        //frac *= frac;// * frac;
-
         frac = pow(frac, 1.1);
 
         float friction = (1.f - frac) * start_friction + frac * end_friction;
-
-        //window.input();
 
         arg_list c_args;
         c_args.push_back(&screen_buf);
