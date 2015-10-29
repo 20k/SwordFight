@@ -379,7 +379,9 @@ void cape::tick(objects_container* l, objects_container* m, objects_container* r
     cl_uint global_ws[1] = {width*height*depth};
     cl_uint local_ws[1] = {256};
 
-    run_kernel_with_string("cloth_simulate", global_ws, local_ws, 1, cloth_args);
+    run_kernel_with_string("cloth_simulate", global_ws, local_ws, 1, cloth_args, cl::cqueue);
+
+    //cl::cqueue2.finish();
 
     which = (which + 1) % 2;
 }

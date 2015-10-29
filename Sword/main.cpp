@@ -641,6 +641,7 @@ int main(int argc, char *argv[])
 
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
+        sound::update_listeners();
 
         //obj_mem_manager::g_changeover();
 

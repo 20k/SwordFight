@@ -15,6 +15,7 @@ void sound::set_listener(vec3f pos, vec3f rot)
 sf::SoundBuffer s[2];
 
 std::deque<sf::Sound> sounds;
+std::deque<vec3f> positions;
 
 void sound::add(int type, vec3f pos)
 {
@@ -37,6 +38,7 @@ void sound::add(int type, vec3f pos)
     sf::Sound sound;
 
     sounds.push_back(sound);
+    positions.push_back(pos);
 
     sf::Sound& sd = sounds.back();
 
@@ -60,7 +62,25 @@ void sound::add(int type, vec3f pos)
         if(sounds[i].getStatus() == sf::Sound::Status::Stopped)
         {
             sounds.erase(sounds.begin() + i);
+            positions.erase(positions.begin() + i);
             i--;
         }
+    }
+}
+
+void sound::update_listeners()
+{
+    //for(auto& sd : sounds)
+    for(int i=0; i<sounds.size(); i++)
+    {
+        sf::Sound& sd = sounds[i];
+        vec3f pos = positions[i];
+
+        vec3f rel = {0,0,0};
+
+        rel = pos - listener_pos;
+        rel = rel.back_rot({0,0,0}, listener_rot);
+
+        sd.setPosition(-rel.v[0], rel.v[1], -rel.v[2]);
     }
 }

@@ -2,6 +2,7 @@
 #define SOUND_HPP_INCLUDED
 
 #include "vec.hpp"
+#include <vector>
 
 struct sound
 {
@@ -11,6 +12,8 @@ struct sound
     static void add(int type, vec3f pos);
 
     static void set_listener(vec3f pos, vec3f rot);
+
+    static void update_listeners();
 };
 
 
