@@ -43,7 +43,7 @@
 	"object.hpp"
 	"objects_container.hpp"
 
-1441678976 c:\users\james\desktop\render_projects\openclrenderer\object.hpp
+1446238786 c:\users\james\desktop\render_projects\openclrenderer\object.hpp
 	<vector>
 	"triangle.hpp"
 	<string>
@@ -60,7 +60,7 @@
 1445982697 c:\users\james\desktop\render_projects\openclrenderer\obj_g_descriptor.hpp
 	<CL/CL.h>
 
-1446005459 c:\users\james\desktop\render_projects\openclrenderer\objects_container.hpp
+1446240548 c:\users\james\desktop\render_projects\openclrenderer\objects_container.hpp
 	"object.hpp"
 	<functional>
 	<boost/compute/system.hpp>
@@ -73,7 +73,7 @@
 	"obj_g_descriptor.hpp"
 	<functional>
 
-1446094144 c:\users\james\desktop\render_projects\openclrenderer\engine.hpp
+1446146330 c:\users\james\desktop\render_projects\openclrenderer\engine.hpp
 	<SFML/graphics.hpp>
 	"object.hpp"
 	<vector>
@@ -355,7 +355,7 @@
 1446092830 source:c:\users\james\desktop\render_projects\openclrenderer\clstate.cpp
 	"clstate.h"
 
-1446093376 source:c:\users\james\desktop\render_projects\openclrenderer\engine.cpp
+1446237765 source:c:\users\james\desktop\render_projects\openclrenderer\engine.cpp
 	<gl/glew.h>
 	<gl/gl.h>
 	"engine.hpp"
@@ -609,7 +609,7 @@
 	"clstate.h"
 	"engine.hpp"
 
-1445559164 source:c:\users\james\desktop\render_projects\openclrenderer\network.cpp
+1446101884 source:c:\users\james\desktop\render_projects\openclrenderer\network.cpp
 	"network.hpp"
 	<ws2tcpip.h>
 	<iostream>
@@ -645,7 +645,7 @@
 	<math.h>
 	<list>
 
-1446000738 source:c:\users\james\desktop\render_projects\openclrenderer\obj_mem_manager.cpp
+1446106313 source:c:\users\james\desktop\render_projects\openclrenderer\obj_mem_manager.cpp
 	"obj_mem_manager.hpp"
 	<CL/CL.h>
 	"clstate.h"
@@ -664,7 +664,7 @@
 	"engine.hpp"
 	<map>
 
-1445558890 source:c:\users\james\desktop\render_projects\openclrenderer\object.cpp
+1446240862 source:c:\users\james\desktop\render_projects\openclrenderer\object.cpp
 	"object.hpp"
 	"clstate.h"
 	"texture.hpp"
@@ -674,7 +674,7 @@
 	"texture_manager.hpp"
 	"vec.hpp"
 
-1446005507 source:c:\users\james\desktop\render_projects\openclrenderer\objects_container.cpp
+1446244499 source:c:\users\james\desktop\render_projects\openclrenderer\objects_container.cpp
 	"objects_container.hpp"
 	<iostream>
 	"obj_load.hpp"
@@ -782,7 +782,7 @@
 1438395277 source:c:\users\james\desktop\render_projects\openclrenderer\vertex.cpp
 	"vertex.hpp"
 
-1446097120 source:c:\users\james\desktop\render_projects\particles\main.cpp
+1447162173 source:c:\users\james\desktop\render_projects\particles\main.cpp
 	"../openclrenderer/proj.hpp"
 	"../openclrenderer/ocl.h"
 	"../openclrenderer/texture_manager.hpp"
@@ -793,6 +793,7 @@
 	"../openclrenderer/ui_manager.hpp"
 	"../openclrenderer/network.hpp"
 	<vec/vec.hpp>
+	"gpu_particles.hpp"
 
 1441403250 c:\users\james\desktop\render_projects\sword\vec.hpp
 	<cmath>
@@ -1561,4 +1562,13 @@
 	"controls.hpp"
 	"engine.hpp"
 	"vec.hpp"
+
+1447162292 c:\users\james\desktop\render_projects\particles\gpu_particles.hpp
+	<vector>
+	"../openclrenderer/ocl.h"
+	"../openclrenderer/engine.hpp"
+	<vec/vec.hpp>
+
+1447162296 source:c:\users\james\desktop\render_projects\particles\gpu_particles.cpp
+	"gpu_particles.hpp"
 
