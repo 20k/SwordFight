@@ -33,7 +33,7 @@ struct particle_vec
         colours = c1;
 
         bufs[0] = engine::make_read_write(sizeof(cl_float4)*p1.size(), p1.data());
-        bufs[1] = engine::make_read_write(sizeof(cl_float4)*p2.size(), p2.data());
+        //bufs[1] = engine::make_read_write(sizeof(cl_float4)*p2.size(), p2.data());
 
         g_col =  engine::make_read_write(sizeof(cl_uint)*colours.size(), colours.data());
 
@@ -60,7 +60,7 @@ struct particle_intermediate
     particle_intermediate append(const particle_intermediate& n)
     {
         p1.insert(p1.end(), n.p1.begin(), n.p1.end());
-        p2.insert(p2.end(), n.p2.begin(), n.p2.end());
+        //p2.insert(p2.end(), n.p2.begin(), n.p2.end());
         colours.insert(colours.end(), n.colours.begin(), n.colours.end());
 
         return *this;
@@ -74,7 +74,7 @@ struct particle_intermediate
 
 particle_intermediate make_particle_jet(int num, vec3f start, vec3f dir, float len, float angle, vec3f col, float speedmod);
 
-void process_pvec(particle_vec& v1, float friction, compute::buffer& screen_buf, float frac_remaining);
+void process_pvec(particle_vec& v1, float frac, float old_frac, compute::buffer& screen_buf, float frac_remaining);
 
 
 #endif // GPU_PARTICLES_HPP_INCLUDED

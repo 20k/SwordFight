@@ -72,7 +72,7 @@ struct particle_processor
 
     compute::buffer screen_buf = engine::make_screen_buffer(sizeof(cl_uint4));
 
-    ///we want to change this to be an analytical solution rather than an iterative one
+    /*///we want to change this to be an analytical solution rather than an iterative one
     ///so that we can just plug in frac and not have to keep multiple copies on the gpu
     void tick(engine& window, particle_vec& v1)
     {
@@ -109,6 +109,60 @@ struct particle_processor
 
         window.render_me = true;
         window.current_frametype = frametype::RENDER;
+    }*/
+
+    void tick(engine& window, particle_vec& v1)
+    {
+        float explode_time = explosion_clock.getElapsedTime().asMicroseconds() / (1000.f);
+
+        float frac = explode_time / fadeout_time;
+        static float old_frac = -0.1f;
+
+        //if(frac > 1)
+        //    frac = 1;
+
+        float min_bound = 0.5f;
+
+        frac += min_bound;
+
+        frac = log2(frac) - log2(min_bound);
+
+        frac = frac / (log2(1.f + min_bound) - log2(min_bound));
+
+        //printf("%f\n", frac);
+
+        //frac = pow(frac, 1.1);
+
+        //frac = powf(frac, 0.4f);
+
+        //printf("%f\n", frac);
+
+        //float friction = (1.f - frac) * start_friction + frac * end_friction;
+
+        arg_list c_args;
+        c_args.push_back(&screen_buf);
+
+        run_kernel_with_string("clear_screen_buffer", {window.width * window.height}, {128}, 1, c_args);
+
+        process_pvec(v1, frac, old_frac, screen_buf, 1.f - clamp(explode_time / fadeout_time, 0.f, 1.f));
+
+        arg_list b_args;
+        b_args.push_back(&engine::g_screen);
+        b_args.push_back(&screen_buf);
+
+        run_kernel_with_string("blit_unconditional", {window.width * window.height}, {128}, 1, b_args);
+
+        ///whole 3d rendering system is so broken i don't even
+        ///there just isn't a proper way to blit textures atm
+        ///whole async thing is just rubbish
+        ///though we do get 1ms faster out of it so who am I to judge
+        window.old_pos = window.c_pos;
+        window.old_rot = window.c_rot;
+
+        window.render_me = true;
+        window.current_frametype = frametype::RENDER;
+
+        old_frac = frac;
     }
 
     ///does not work due to me being an idiot
@@ -207,6 +261,6 @@ int main(int argc, char *argv[])
         window.display();
 
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

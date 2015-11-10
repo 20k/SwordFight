@@ -782,7 +782,7 @@
 1438395277 source:c:\users\james\desktop\render_projects\openclrenderer\vertex.cpp
 	"vertex.hpp"
 
-1447162173 source:c:\users\james\desktop\render_projects\particles\main.cpp
+1447171057 source:c:\users\james\desktop\render_projects\particles\main.cpp
 	"../openclrenderer/proj.hpp"
 	"../openclrenderer/ocl.h"
 	"../openclrenderer/texture_manager.hpp"
@@ -1563,12 +1563,12 @@
 	"engine.hpp"
 	"vec.hpp"
 
-1447162292 c:\users\james\desktop\render_projects\particles\gpu_particles.hpp
+1447170437 c:\users\james\desktop\render_projects\particles\gpu_particles.hpp
 	<vector>
 	"../openclrenderer/ocl.h"
 	"../openclrenderer/engine.hpp"
 	<vec/vec.hpp>
 
-1447162296 source:c:\users\james\desktop\render_projects\particles\gpu_particles.cpp
+1447171100 source:c:\users\james\desktop\render_projects\particles\gpu_particles.cpp
 	"gpu_particles.hpp"
 

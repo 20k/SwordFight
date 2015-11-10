@@ -30,7 +30,7 @@ particle_intermediate make_particle_jet(int num, vec3f start, vec3f dir, float l
 
         vec3f pos_2 = final_pos * mod;
 
-        p2.push_back({pos_2.v[0], pos_2.v[1], pos_2.v[2]});
+        //p2.push_back({pos_2.v[0], pos_2.v[1], pos_2.v[2]});
 
         col = clamp(col, 0.f, 1.f);
 
@@ -40,27 +40,30 @@ particle_intermediate make_particle_jet(int num, vec3f start, vec3f dir, float l
     return particle_intermediate{p1, p2, colours};
 }
 
-void process_pvec(particle_vec& v1, float friction, compute::buffer& screen_buf, float frac_remaining)
+void process_pvec(particle_vec& v1, cl_float frac, cl_float old_frac, compute::buffer& screen_buf, float frac_remaining)
 {
     cl_float brightness = frac_remaining * 3.f + (1.f - frac_remaining) * 0.0f;
 
     int which = v1.which;
     int nwhich = v1.nwhich;
 
+    //brightness = 1;
+
     cl_int num = v1.num;
 
-    arg_list p_args;
+    /*arg_list p_args;
     p_args.push_back(&num);
     p_args.push_back(&v1.bufs[which]);
     p_args.push_back(&v1.bufs[nwhich]);
-    p_args.push_back(&friction);
+    p_args.push_back(&frac);
 
-    run_kernel_with_string("particle_explode", {num}, {128}, 1, p_args);
+    run_kernel_with_string("particle_explode", {num}, {128}, 1, p_args);*/
 
     arg_list r_args;
     r_args.push_back(&num);
-    r_args.push_back(&v1.bufs[nwhich]);
     r_args.push_back(&v1.bufs[which]);
+    r_args.push_back(&frac);
+    r_args.push_back(&old_frac);
     r_args.push_back(&v1.g_col);
     r_args.push_back(&brightness);
     r_args.push_back(&engine::c_pos);
@@ -72,5 +75,5 @@ void process_pvec(particle_vec& v1, float friction, compute::buffer& screen_buf,
     ///render a 2d gaussian for particle effects
     run_kernel_with_string("render_gaussian_points", {num}, {128}, 1, r_args);
 
-    v1.flip();
+    //v1.flip();
 }
