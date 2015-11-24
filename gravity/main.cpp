@@ -135,8 +135,8 @@ struct render_info
         cl::cqueue.enqueue_write_buffer(bufs_v[0], 0, sizeof(cl_float4) * num, &cur_v[0]);
         cl::cqueue.enqueue_write_buffer(bufs_v[1], 0, sizeof(cl_float4) * num, &old_v[0]);
 
-        cl::cqueue.enqueue_write_buffer(bufs_v[0], 0, sizeof(cl_float4) * num, &cur_a[0]);
-        cl::cqueue.enqueue_write_buffer(bufs_v[1], 0, sizeof(cl_float4) * num, &old_a[0]);
+        cl::cqueue.enqueue_write_buffer(bufs_a[0], 0, sizeof(cl_float4) * num, &cur_a[0]);
+        cl::cqueue.enqueue_write_buffer(bufs_a[1], 0, sizeof(cl_float4) * num, &old_a[0]);
     }
 
     void tick()
