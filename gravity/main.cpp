@@ -177,9 +177,65 @@ struct render_info
         //which = (which + 1) % 2;
     }
 
-    void fire_ball(int num, vec2f ldir, vec2f lpos)
+    void fire_ball(int lnum, vec2f ldir, vec2f lpos)
     {
-        vec3f pos = {lpos.v[0], 0.f, lpos.v[1]};
+        vec3f gpos = {lpos.v[0], 0.f, lpos.v[1]};
+
+        std::vector<cl_float4> positions;
+        std::vector<cl_float4> velocities;
+
+        for(int i=0; i<lnum; i++)
+        {
+            float rad = 100.f;
+
+            vec3f rp = randf<3, float>(-rad, rad);
+
+            ///I cannot be arsed to actually solve this
+            while(rp.length() > rad)
+            {
+                rp = randf<3, float>(-rad, rad);
+            }
+
+            rp = rp + gpos;
+
+            positions.push_back({rp.v[0], rp.v[1], rp.v[2]});
+            velocities.push_back({ldir.v[0], 0.f, ldir.v[1]});
+        }
+
+        int bignum = num + lnum;
+
+        compute::buffer n_p[2];
+        compute::buffer n_v[2];
+
+        n_p[0] = engine::make_read_write(sizeof(cl_float4) * bignum);
+        n_p[1] = engine::make_read_write(sizeof(cl_float4) * bignum);
+
+        n_v[0] = engine::make_read_write(sizeof(cl_float4) * bignum);
+        n_v[1] = engine::make_read_write(sizeof(cl_float4) * bignum);
+
+        clEnqueueCopyBuffer(cl::cqueue.get(), bufs_p[0].get(), n_p[0].get(), 0, 0, sizeof(cl_float4) * num, 0, nullptr, nullptr);
+        clEnqueueCopyBuffer(cl::cqueue.get(), bufs_p[1].get(), n_p[1].get(), 0, 0, sizeof(cl_float4) * num, 0, nullptr, nullptr);
+
+        clEnqueueCopyBuffer(cl::cqueue.get(), bufs_v[0].get(), n_v[0].get(), 0, 0, sizeof(cl_float4) * num, 0, nullptr, nullptr);
+        clEnqueueCopyBuffer(cl::cqueue.get(), bufs_v[1].get(), n_v[1].get(), 0, 0, sizeof(cl_float4) * num, 0, nullptr, nullptr);
+
+        printf("%i %i\n", num, lnum);
+
+        cl::cqueue.enqueue_write_buffer(n_p[0], sizeof(cl_float4) * num, sizeof(cl_float4) * (lnum), &positions[0]);
+        cl::cqueue.enqueue_write_buffer(n_p[1], sizeof(cl_float4) * num, sizeof(cl_float4) * (lnum), &positions[0]);
+
+        cl::cqueue.enqueue_write_buffer(n_v[0], sizeof(cl_float4) * num, sizeof(cl_float4) * (lnum), &velocities[0]);
+        cl::cqueue.enqueue_write_buffer(n_v[1], sizeof(cl_float4) * num, sizeof(cl_float4) * (lnum), &velocities[0]);
+
+        cl::cqueue.finish();
+
+        bufs_p[0] = n_p[0];
+        bufs_p[1] = n_p[1];
+
+        bufs_v[0] = n_v[0];
+        bufs_v[1] = n_v[1];
+
+        num = bignum;
     }
 };
 
@@ -198,6 +254,8 @@ int main(int argc, char *argv[])
     render_info inf;
     inf.load(10000);
 
+    bool first_lclick = false;
+    vec2f last_pos = 0.f;
 
     while(window.window.isOpen())
     {
@@ -226,6 +284,29 @@ int main(int argc, char *argv[])
 
             printf("%i %i %i\n", res.x, res.y, res.z);
         }*/
+
+        vec2f mouse_pos;
+        mouse_pos.v[0] = window.get_mouse_x();
+        mouse_pos.v[1] = window.get_mouse_y();
+
+
+
+        if(once<sf::Mouse::Left>())
+        {
+            if(!first_lclick)
+            {
+                first_lclick = true;
+
+                last_pos = mouse_pos;
+            }
+            else
+            {
+                first_lclick = false;
+
+                inf.fire_ball(1000, (mouse_pos - last_pos) / 100.f, mouse_pos);
+            }
+        }
+
 
         arg_list c_args;
         c_args.push_back(&inf.screen);
