@@ -176,6 +176,11 @@ struct render_info
 
         //which = (which + 1) % 2;
     }
+
+    void fire_ball(int num, vec2f ldir, vec2f lpos)
+    {
+        vec3f pos = {lpos.v[0], 0.f, lpos.v[1]};
+    }
 };
 
 
