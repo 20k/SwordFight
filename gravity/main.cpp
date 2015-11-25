@@ -154,9 +154,27 @@ struct render_info
         gar.push_back(&engine::c_rot);
         gar.push_back(&screen);
 
-        run_kernel_with_string("gravity_alt_render", {num}, {128}, 1, gar);
+        run_kernel_with_string("gravity_alt_first", {num}, {128}, 1, gar);
 
-        which = (which + 1) % 2;
+        arg_list gar2;
+
+        gar2.push_back(&num);
+        gar2.push_back(&bufs_p[(which + 1) % 2]);
+        gar2.push_back(&bufs_p[which]);
+
+        gar2.push_back(&bufs_v[(which + 1) % 2]);
+        gar2.push_back(&bufs_v[which]);
+
+        gar2.push_back(&bufs_a[(which + 1) % 2]);
+        gar2.push_back(&bufs_a[which]);
+
+        gar2.push_back(&engine::c_pos);
+        gar2.push_back(&engine::c_rot);
+        gar2.push_back(&screen);
+
+        run_kernel_with_string("gravity_alt_render", {num}, {128}, 1, gar2);
+
+        //which = (which + 1) % 2;
     }
 };
 
@@ -223,9 +241,8 @@ int main(int argc, char *argv[])
         window.render_me = true;
         window.current_frametype = frametype::RENDER;
 
-        window.render_block();
-
         window.display();
+        window.render_block();
 
         std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
