@@ -68,7 +68,15 @@ struct planet_builder
     compute::buffer positions;
     compute::buffer colours;
 
+    std::vector<cl_float4> saved_pos;
+    std::vector<std::array<int, 8>> saved_conn;
+
     cl_int num = 10000;
+
+    vec3f get_fibonnacci_position(int id, int num)
+    {
+
+    }
 
     ///something approximating local connectivity
     std::array<int, 8> find_nearest_points(const std::vector<cl_float4>& pos, cl_float4 my_pos)
@@ -115,6 +123,103 @@ struct planet_builder
         }
 
         return found_nums;
+    }
+
+    std::vector<triangle> get_tris(const std::vector<cl_float4>& pos, const std::vector<std::array<int, 8>>& connections)
+    {
+        std::vector<int> visited;
+
+        ///fill with 0s
+        visited.resize(pos.size());
+
+        std::vector<triangle> tris;
+
+        for(int i=0; i<pos.size(); i++)
+        {
+            cl_float4 my_pos = pos[i];
+            std::array<int, 8> my_connections = connections[i];
+
+            std::vector<std::pair<float, int>> connection_angles;
+
+            if(visited[i])
+                continue;
+
+            vec3f vec = xyz_to_vec(my_pos);
+            vec3f euler = vec.get_euler();
+
+            ///get_euler gives us angle from +y upwards as the vertial axis
+            ///so doing back rotate gives us this point centered on this line
+            ///which means that x and z are 2d plane components
+            ///and y is the depth
+
+            vec3f centre_point = vec.back_rot(0.f, euler);
+
+            ///xz
+            vec2f centre_2d = (vec2f){centre_point.v[0], centre_point.v[2]};
+
+            ///need to sort connections anticlockwise about mutual plane. Or something
+
+            for(int j=0; j<8; j++)
+            {
+                cl_float4 conn_pos = pos[connections[i][j]];
+
+                vec3f vec_pos = xyz_to_vec(conn_pos);
+
+                vec3f rotated = vec_pos.back_rot(0.f, euler);
+
+                vec2f rot_2d = (vec2f){rotated.v[0], rotated.v[2]};
+
+                vec2f rel = rot_2d - centre_2d;
+
+                float angle = rel.angle();
+
+                connection_angles.push_back({angle, connections[i][j]});
+
+                //printf("%f %f %f\n", EXPAND_3(rotated));
+            }
+
+            std::sort(connection_angles.begin(), connection_angles.end(),
+                      [](auto i1, auto i2)
+                      {
+                          return i1.first < i2.first;
+                      }
+                      );
+
+            ///connection angles now sorted anticlockwise
+
+            for(int j=0; j<8; j++)
+            {
+                int nxt = (j + 1) % 8;
+
+                triangle tri;
+                tri.vertices[0].set_pos(pos[connection_angles[nxt].second]);
+                tri.vertices[1].set_pos(pos[connection_angles[j].second]);
+                tri.vertices[2].set_pos(my_pos);
+
+                tri.vertices[0].set_vt({0.7, 0.1});
+                tri.vertices[1].set_vt({0.1, 0.1});
+                tri.vertices[2].set_vt({0.5, 0.5});
+
+                vec3f flat_normal = generate_flat_normal(xyz_to_vec(tri.vertices[0].get_pos()),
+                                                         xyz_to_vec(tri.vertices[1].get_pos()),
+                                                         xyz_to_vec(tri.vertices[2].get_pos()));
+
+                tri.vertices[0].set_normal({flat_normal.v[0], flat_normal.v[1], flat_normal.v[2]});
+                tri.vertices[1].set_normal({flat_normal.v[0], flat_normal.v[1], flat_normal.v[2]});
+                tri.vertices[2].set_normal({flat_normal.v[0], flat_normal.v[1], flat_normal.v[2]});
+
+                visited[connection_angles[j].second] = 1;
+
+                tris.push_back(tri);
+
+                //printf("%f %f %f\n", tri.vertices[0].get_pos().x, tri.vertices[0].get_pos().y, tri.vertices[0].get_pos().z);
+                //printf("%f %f %f\n", tri.vertices[1].get_pos().x, tri.vertices[1].get_pos().y, tri.vertices[1].get_pos().z);
+                //printf("%f %f %f\n", tri.vertices[2].get_pos().x, tri.vertices[2].get_pos().y, tri.vertices[2].get_pos().z);
+            }
+
+        }
+
+        return tris;
     }
 
     void load()
@@ -209,7 +314,6 @@ struct planet_builder
             pos[i] = {p.v[0], p.v[1], p.v[2]};
         }
 
-
         for(int i=0; i<num; i++)
         {
             cl_float4 mypos = pos[i];
@@ -228,11 +332,15 @@ struct planet_builder
             pos[i] = mypos;
         }
 
-
         for(auto& i : pos)
         {
             i = mult(i, mul);
         }
+
+        saved_pos = pos;
+        saved_conn = connections;
+
+        //get_tris(pos, connections);
 
         cl::cqueue.enqueue_write_buffer(positions, 0, sizeof(cl_float4)*num, &pos[0]);
         cl::cqueue.enqueue_write_buffer(colours, 0, sizeof(cl_uint)*num, &col[0]);
@@ -293,6 +401,41 @@ struct planet_builder
     }
 };
 
+void load_asteroid(objects_container* pobj)
+{
+    if(pobj == nullptr)
+        throw std::runtime_error("broken severely in load asteroid, nullptr obj");
+
+    planet_builder planet;
+    planet.load();
+
+    ///bad code central
+    auto tris = planet.get_tris(planet.saved_pos, planet.saved_conn);
+
+    printf("Tri num: %i\n", tris.size());
+
+    texture tex;
+    tex.type = 0;
+    tex.set_texture_location("res/red.png");
+    tex.push();
+
+    object obj;
+    obj.tri_list = tris;
+    obj.tri_num = obj.tri_list.size();
+
+    obj.tid = tex.id;
+    obj.has_bump = 0;
+
+    obj.pos = {0,0,0,0};
+    obj.rot = {0,0,0,0};
+
+    obj.isloaded = true;
+
+    pobj->objs.push_back(obj);
+
+    pobj->isloaded = true;
+}
+
 ///do 2d electron simulation
 ///but then modify it to be able to do terrain generation
 ///?
@@ -303,8 +446,39 @@ int main(int argc, char *argv[])
 
     window.set_camera_pos({0, 0, -200});
 
-    planet_builder process;
-    process.load();
+    object_context context;
+
+    auto asteroid = context.make_new();
+    asteroid->set_load_func(load_asteroid);
+    //asteroid->set_file("../openclrenderer/sp2/sp2.obj");
+    asteroid->set_active(true);
+    asteroid->cache = false;
+
+    context.load_active();
+
+    texture_manager::allocate_textures();
+
+    auto tex_gpu = texture_manager::build_descriptors();
+    window.set_tex_data(tex_gpu);
+
+    context.build();
+    auto object_dat = context.fetch();
+    window.set_object_data(*object_dat);
+
+
+    light l;
+    l.set_col((cl_float4){1.0f, 1.0f, 1.0f, 0.0f});
+    l.set_shadow_casting(0);
+    l.set_brightness(1);
+    l.radius = 100000;
+    l.set_pos((cl_float4){-200, 5000, -100, 0});
+
+    light::add_light(&l);
+
+    auto light_data = light::build();
+
+    window.set_light_data(light_data);
+
 
     sf::Mouse mouse;
     sf::Keyboard key;
@@ -324,9 +498,13 @@ int main(int argc, char *argv[])
                 window.window.close();
         }
 
-        process.tick(window);
+        window.draw_bulk_objs_n();
+
+        //process.tick(window);
 
         window.render_block();
         window.display();
+
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }
