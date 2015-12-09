@@ -93,7 +93,7 @@ struct planet_builder
     }
 
     template<int N>
-    std::array<int, N> get_nearest_n(const std::vector<cl_float4>& pos, int my_id)
+    std::array<int, N> get_nearest_n(const std::vector<cl_float4>& pos, int my_id, std::vector<int> exclude)
     {
         cl_float4 my_pos = pos[my_id];
 
@@ -111,6 +111,17 @@ struct planet_builder
             cl_float4 found = pos[i];
 
             if(i == my_id)
+                continue;
+
+            bool skip = false;
+
+            for(auto& j : exclude)
+            {
+                if(i == j)
+                    skip = true;
+            }
+
+            if(skip)
                 continue;
 
             float len = dist(found, my_pos);
@@ -152,11 +163,11 @@ struct planet_builder
     ///average two vectors together to find vec -> corner, then find nearest to that
     ///within angle tolerance
     ///might not work for the really irregular bits though
-    std::array<int, 8> find_nearest_points(const std::vector<cl_float4>& pos, int my_id)
+    std::array<int, 8> find_nearest_points(const std::vector<cl_float4>& pos, int my_id, std::vector<int> exclude = std::vector<int>())
     {
 
 
-        return get_nearest_n<8>(pos, my_id);
+        return get_nearest_n<8>(pos, my_id, exclude);
 
         ///this is built on false assumptions
         /*cl_float4 my_pos = pos[my_id];
@@ -277,6 +288,71 @@ struct planet_builder
         //return found_nums;
     }
 
+    //std::vector<triangle get_tris
+
+    #if 0
+    std::vector<triangle> get_tris(const std::vector<cl_float4>& pos, std::vector<std::array<int, 8>> connections)
+    {
+        std::vector<int> visited;
+
+        ///fill with 0s
+        visited.resize(pos.size());
+
+        std::vector<triangle> tris;
+
+        std::vector<int> ref_count;
+        ref_count.resize(pos.size());
+
+        for(int i=0; i<pos.size(); i++)
+        {
+            cl_float4 my_pos = pos[i];
+            std::array<int, 8> my_connections = connections[i];
+
+            for(auto& j : my_connections)
+            {
+                ref_count[j]++;
+            }
+        }
+
+        for(int i=0; i<pos.size(); i++)
+        {
+            int closest_id = -1;
+            float closest_len = FLT_MAX;
+
+            cl_float4 my_pos = pos[i];
+
+            if(ref_count[i] > 8)
+            {
+                for(int j=0; j<pos.size(); j++)
+                {
+                    if(ref_count[j] < 8)
+                    {
+                        cl_float4 val = pos[j];
+
+                        float len = dist(val, my_pos);
+
+                        if(len < closest_len)
+                        {
+                            closest_len = len;
+                            closest_id = j;
+                        }
+                    }
+                }
+
+                ///we need to find the point for who adopting this
+                ///would cause minimal change
+                //connections[i][]
+            }
+        }
+
+        /*for(int i=0; i<ref_count.size(); i++)
+        {
+            printf("%i\n", ref_count[i]);
+        }*/
+
+    }
+    #endif
+
     std::vector<triangle> get_tris(const std::vector<cl_float4>& pos, const std::vector<std::array<int, 8>>& connections)
     {
         std::vector<int> visited;
@@ -337,20 +413,26 @@ struct planet_builder
                       }
                       );*/
 
+            if(visited[i])
+                continue;
+
             std::vector<vec3f> in_connections;
 
-            for(auto& j : my_connections)
+            //for(auto& j : my_connections)
+            for(int j=0; j<8; j++)
             {
-                in_connections.push_back({pos[j].x, pos[j].y, pos[j].z});
+                int c = my_connections[j];
+
+                in_connections.push_back({pos[c].x, pos[c].y, pos[c].z});
             }
 
             std::vector<vec3f> sorted = sort_anticlockwise(in_connections, {my_pos.x, my_pos.y, my_pos.z});
 
             ///connection angles now sorted anticlockwise
 
-            for(int j=0; j<8; j++)
+            for(int j=0; j<sorted.size(); j++)
             {
-                int nxt = (j + 1) % 8;
+                int nxt = (j + 1) % sorted.size();
 
                 triangle tri;
                 tri.vertices[0].set_pos({sorted[nxt].v[0], sorted[nxt].v[1], sorted[nxt].v[2]});
@@ -383,6 +465,436 @@ struct planet_builder
         return tris;
     }
 
+    const std::vector<cl_float4> do_repulse(const std::vector<cl_float4>& pos)
+    {
+        auto ret = pos;
+
+        for(int i=0; i<pos.size(); i++)
+        {
+            vec3f mypos = xyz_to_vec(pos[i]);
+            vec3f force = {0.f,0,0};
+            float rad = mypos.length();
+
+            for(int j=0; j<pos.size(); j++)
+            {
+                if(i == j)
+                    continue;
+
+                vec3f theirpos = xyz_to_vec(pos[j]);
+
+                vec3f to_them = theirpos - mypos;
+
+                float len = to_them.length();
+
+                //if(len < 1.f)
+                //    len = 1.f;
+
+                float G = 0.01f;
+
+                force = force - (G * to_them) / len*len*len;
+            }
+
+            vec3f fin = mypos + force;
+
+            fin = fin.norm() * rad;
+
+            ret[i] = {fin.v[0], fin.v[1], fin.v[2]};
+        }
+
+        return ret;
+
+
+        #if 0
+        for(int i=0; i<pos.size(); i++)
+        {
+            cl_float4 my_pos = pos[i];
+            float rad = length(my_pos);
+
+            cl_float4 change = {0,0,0,0};
+
+            for(int j=0; j<pos.size(); j++)
+            {
+                if(i == j)
+                    continue;
+
+                cl_float4 their_pos = pos[j];
+
+                cl_float4 to_them = sub(their_pos, my_pos);
+
+                float len = length(to_them);
+
+                if(len < 0.1f)
+                    len = 0.1f;
+
+                float G = 0.01f;
+
+                change = add(change,
+                             neg(
+                             div(mult(to_them, G),
+                                 len*len*len
+                                 )
+                             )
+                             );
+            }
+
+            ret[i] = add(my_pos, change);
+
+            float new_rad = length(ret[i]);
+
+            float diff = rad / new_rad;
+
+            ret[i] = mult(ret[i], diff);
+        }
+        #endif
+    }
+
+    /*std::vector<std::array<int, 8>> fix_connections(const std::vector<cl_float4>& pos, const std::vector<std::array<int, 8>>& connections, float extra_frac = 1.f, float len_frac = 1.f)
+    {
+        auto lpos = pos;
+
+        ///connections is sorted from closest to furthest;
+        auto ret = connections;
+
+        for(int n=0; n<lpos.size(); n++)
+        {
+            cl_float4 my_pos = lpos[n];
+
+            cl_float4 conn_pos[8];
+
+            for(int i=0; i<8; i++)
+            {
+                conn_pos[i] = lpos[connections[n][i]];
+            }
+
+            std::vector<vec3f> to_sort;
+
+            for(int i=0; i<4; i++)
+                to_sort.push_back(xyz_to_vec(conn_pos[i]));
+
+            std::vector<vec3f> sorted = sort_anticlockwise(to_sort, xyz_to_vec(my_pos));
+
+            for(int i=0; i<4; i++)
+                conn_pos[i] = {sorted[i].v[0], sorted[i].v[1], sorted[i].v[2]};
+
+            cl_float4 diagonals[4];
+
+            ///assume that the closest 4 points are the non diagonals
+            for(int i=0; i<4; i++)
+            {
+                ///to diagonal
+                diagonals[i] = div(add(sub(conn_pos[i], my_pos),
+                                       sub(conn_pos[(i + 1) % 4], my_pos)
+                                       ), 2.f);
+
+                //printf("%i %f\n", i, length(sub(conn_pos[i], my_pos)));
+
+                float len = length(diagonals[i]);
+
+                ///difference from corner of rectangle to circle
+                float extra = sqrtf(2.f*len*len) - len;
+
+                //extra *= 2.f;
+                extra *= extra_frac;
+
+                float frac = (extra + len) / len;
+
+                frac *= len_frac;
+
+                ///this is the expected position roughly
+                diagonals[i] = mult(diagonals[i], frac);
+
+                //printf("%f\n", length(diagonals[i]));
+
+                diagonals[i] = add(diagonals[i], my_pos);
+
+                float flen = FLT_MAX;
+                int id = -1;
+
+                for(int k=0; k<lpos.size(); k++)
+                {
+                    bool allowed = true;
+
+                    for(int jj=0; jj<4; jj++)
+                    {
+                        if(k == connections[k][jj])
+                            allowed = false;
+                    }
+
+                    if(k == n)
+                        allowed = false;
+
+                    if(dist(diagonals[i], lpos[k]) < flen && allowed)
+                    {
+                        flen = dist(diagonals[i], lpos[k]);
+                        id = k;
+                    }
+                }
+
+                ret[n][i + 4] = id;
+            }
+        }
+
+        return ret;
+    }*/
+
+    std::vector<int> get_refcount(const std::vector<std::array<int, 8>>& connections)
+    {
+        std::vector<int> refc;
+        refc.resize(connections.size());
+
+        for(int i=0; i<connections.size(); i++)
+        {
+            for(auto& j : connections[i])
+            {
+                refc[j]++;
+            }
+        }
+
+        return refc;
+    }
+
+    std::vector<int> get_ids_who_reference(const std::vector<std::array<int, 8>>& connections, int id)
+    {
+        std::vector<int> ret;
+
+        for(int i=0; i<connections.size(); i++)
+        {
+            for(int j=0; j<connections[i].size(); j++)
+            {
+                if(connections[i][j] == id)
+                {
+                    ret.push_back(i);
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    std::array<int, 8> change_reference(std::array<int, 8> to_change, int original, int change)
+    {
+        bool found = false;
+
+        for(int j=0; j<8; j++)
+        {
+            if(to_change[j] == original)
+            {
+                to_change[j] = change;
+                found = true;
+            }
+        }
+
+        if(!found)
+            printf("sadface\n");
+
+        return to_change;
+    }
+
+    std::vector<std::array<int, 8>> fix_connections(const std::vector<cl_float4>& pos, const std::vector<std::array<int, 8>>& connections, int tick)
+    {
+        //return connections;
+
+        auto new_connect = connections;
+
+        std::vector<int> rc = get_refcount(connections);
+
+        /*for(int i=0; i<rc.size(); i++)
+        {
+            if(rc[i] > 8)
+            {
+                for(int j=0; j<8; j++)
+                    new_connect[i][j] = 0;
+            }
+        }*/
+
+        int bc = 0;
+
+        std::array<int, 8> blank;
+
+        for(auto& i : blank)
+            i = 0;
+
+        /*int lrc = rc.size();
+
+        for(int i=0; i<rc.size(); i++)
+        {
+            int ncs = new_connect[i].size();
+
+            if((tick % 10) == 9)
+                for(int j=0; j<ncs; j++)
+                    new_connect[i][j] = rand() % lrc;
+        }*/
+
+        for(int i=0; i<rc.size(); i++)
+        {
+            if(rc[i] > 8)// || rc[i] < 8)
+            {
+                bc++;
+
+                #if 1
+                for(int j=0; j<8; j++)
+                {
+                    if(rc[connections[i][j]] < 8)
+                    {
+                        //new_connect[i] = blank;
+                        ///someone sharing these two points is wrong
+                        ///somebody who references rc[i] shuld instead be referencing
+                        ///rc[new_connect[i][j]]
+                        ///so if we check everyone who references rc[i]
+                        ///and we check of those, who doesn't reference rc[new_connect[i][j]]
+                        ///and then we swap the closest
+
+                        auto referencers = get_ids_who_reference(connections, i);
+
+                        std::set<int> common;
+
+                        /*cl_float4 newpos = pos[connections[i][j]];
+
+                        std::vector<cl_float4> ref_positions;
+
+                        for(auto& k : referencers)
+                        {
+                            ref_positions.push_back(pos[k]);
+                        }
+
+                        int id = -1;
+                        float len = FLT_MAX;
+
+                        for(int k=0; k<referencers.size(); k++)
+                        {
+                            if(dist(ref_positions[k], newpos) < len)
+                            {
+                                len = dist(ref_positions[k], newpos);
+                                id = referencers[k];
+                            }
+                        }*/
+                        #if 0
+                        int id = -1;
+
+                        for(auto& k : referencers)
+                        {
+                            if(rc[k] > 8)
+                            {
+                                id = k;
+                            }
+                        }
+
+                        if(id == -1)
+                        {
+                            //new_connect[connections[i][j]] = find_nearest_points(pos, connections[i][j], {i});
+                            //new_connect[i] = find_nearest_points(pos, i, {connections[i][j]});
+
+                            /*int rand_id = rand() % referencers.size();
+
+                            new_connect[referencers[rand_id]] = find_nearest_points(pos, referencers[rand_id], {connections[i][j]});
+                            new_connect[connections[i][j]][rc[connections[i][j]]] = referencers[rand_id];*/
+
+                            cl_float4 newpos = pos[connections[i][j]];
+
+                            std::vector<cl_float4> ref_positions;
+
+                            for(auto& k : referencers)
+                            {
+                                ref_positions.push_back(pos[k]);
+                            }
+
+                            int id = -1;
+                            float len = FLT_MAX;
+
+                            for(int k=0; k<referencers.size(); k++)
+                            {
+                                if(dist(ref_positions[k], newpos) < len)
+                                {
+                                    len = dist(ref_positions[k], newpos);
+                                    id = referencers[k];
+                                }
+                            }
+
+                            //printf(":[\n");
+                            continue;
+                        }
+                        //else
+                        //    printf(":]\n");
+
+                        new_connect[i] = find_nearest_points(pos, i, {id});//change_reference(new_connect[i], i, )
+                        new_connect[id] = change_reference(connections[id], i, connections[i][j]);
+                        #endif
+                        //printf("hi\n");
+                    }
+                }
+                #endif
+            }
+        }
+
+
+
+        printf("Error: %i\n", bc);
+
+        //printf("\n\n\n\n");
+
+        ///need to fix the backwards connections too
+
+        /*auto new_rc = get_refcount(new_connect);
+
+        for(auto& i : new_rc)
+        {
+            if(i > 8)
+                printf(":]\n");
+        }*/
+
+        return new_connect;
+    }
+
+
+    bool is_locally_well_formed(const std::vector<int>& refc, const std::vector<std::array<int, 8>>& connections, int id)
+    {
+        if(refc[id] > 8 || refc[id] < 8)
+            return false;
+
+        std::array<int, 8> conn = connections[id];
+
+        bool well_formed = true;
+
+        for(int i=0; i<8; i++)
+        {
+            //well_formed &= (refc[conn[i]] == 8);
+            if(refc[conn[i]] != 8)
+                well_formed = false;
+        }
+
+        return well_formed;
+    }
+
+    ///optimally merge two connection structures to produce
+    ///one less broken one
+    ///this will allow me to bruteforce the asteroids connections
+    std::vector<std::array<int, 8>> stable_merge(const std::vector<std::array<int, 8>>& c1, const std::vector<std::array<int, 8>>& c2)
+    {
+        std::vector<std::array<int, 8>> merged = c1;
+
+        std::vector<int> r1, r2;
+
+        r1 = get_refcount(c1);
+        r2 = get_refcount(c2);
+
+        for(int i=0; i<r1.size(); i++)
+        {
+            if(r1[i] != 8)
+            //if(is_locally_well_formed(r2, c2, i) || r1[i] != 8)
+            //if(r1[i] != 8)
+            //if(!is_locally_well_formed(r1, c1, i))
+            {
+                //if(is_locally_well_formed(r2, c2, i))
+                //if(r2[i] == 8)
+                {
+                    merged[i] = c2[i];
+                }
+            }
+        }
+
+        return merged;
+    }
+
     void load()
     {
         positions = compute::buffer(cl::context, sizeof(cl_float4)*num, CL_MEM_READ_ONLY, nullptr);
@@ -402,16 +914,30 @@ struct planet_builder
 
         ///need to get latitude and longitude out so i can feed them into random number generators
         ///or actually, just use angles, yz, xz
+        ///maybe I should do one iteration of electron repulsion on this?
+        ///then again, that ruins all my guarantees
         for(int i=0; i<num; i++)
         {
             pos.push_back(get_fibonnacci_position(i, num));
             col.push_back(0xFF00FFFF);
         }
 
+        /*for(int i=0; i<10; i++)
+        {
+            auto ret = do_repulse(pos);
+
+            std::swap(ret, pos);
+        }*/
+
         for(int i=0; i<num; i++)
         {
             connections.push_back(find_nearest_points(pos, i));
         }
+
+        for(int i=0; i<100; i++)
+            connections = fix_connections(pos, connections, i);
+
+        //connections = stable_merge(connections, fixed_connections);
 
         /*auto test_arr = find_nearest_points(pos, pos[9999]);
 
