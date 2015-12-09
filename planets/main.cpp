@@ -73,14 +73,158 @@ struct planet_builder
 
     cl_int num = 10000;
 
-    vec3f get_fibonnacci_position(int id, int num)
+    cl_float4 get_fibonnacci_position(int id, int num)
     {
+        float offset = 2.f / num;
 
+        constexpr float increment = M_PI * (3.f - sqrtf(5.f));
+
+        int rnd = 1;
+
+        float y = ((id * offset) - 1) + offset/2.f; ///?why plus offset/2
+        float r = sqrtf(1.f - std::min(powf(y, 2.f), 1.f));
+
+        float phi = ((id + rnd) % num) * increment;
+
+        float x = cosf(phi) * r;
+        float z = sinf(phi) * r;
+
+        return {x, y, z, 0};
+    }
+
+    template<int N>
+    std::array<int, N> get_nearest_n(const std::vector<cl_float4>& pos, int my_id)
+    {
+        cl_float4 my_pos = pos[my_id];
+
+        std::array<float, N> found_distances;
+        std::array<int, N> found_nums;
+
+        for(auto& i : found_distances)
+            i = FLT_MAX;
+
+        for(auto& i : found_nums)
+            i = -1;
+
+        for(int i=0; i<pos.size(); i++)
+        {
+            cl_float4 found = pos[i];
+
+            if(i == my_id)
+                continue;
+
+            float len = dist(found, my_pos);
+
+            for(int j=0; j<N; j++)
+            {
+                if(len < found_distances[j])
+                {
+                    int found_location = j;
+
+                    ///push all elements forwards one
+                    for(int k=N-1; k>j; k--)
+                    {
+                        found_distances[k] = found_distances[k-1];
+                        found_nums[k] = found_nums[k-1];
+                    }
+
+                    found_distances[found_location] = len;
+                    found_nums[found_location] = i;
+
+                    break;
+                    //printf("hi %i %i %f\n", found_location, i, len);
+                }
+            }
+        }
+
+
+        return found_nums;
     }
 
     ///something approximating local connectivity
-    std::array<int, 8> find_nearest_points(const std::vector<cl_float4>& pos, cl_float4 my_pos)
+    ///hmm. We want to maximise distance between points
+    ///while staying within the other constraint of being minimal to the centre
+    ///or we could do an angle constraint based version
+    ///divide up into 8 slots, and then assign to them based on angle/distance min
+    ///hmm
+    ///we could assume that nearest 4 are always correct (reasonable), then discover the other's based
+    ///off this
+    ///average two vectors together to find vec -> corner, then find nearest to that
+    ///within angle tolerance
+    ///might not work for the really irregular bits though
+    std::array<int, 8> find_nearest_points(const std::vector<cl_float4>& pos, int my_id)
     {
+
+
+        return get_nearest_n<8>(pos, my_id);
+
+        ///this is built on false assumptions
+        /*cl_float4 my_pos = pos[my_id];
+
+        std::array<int, 8> ret;
+
+        ///not ideal, but better than segfaulting
+        ///later we'll fix the first and last element
+        ret[6] = (my_id - 1 + pos.size()) % pos.size();
+        ret[7] = (my_id + 1) % pos.size();
+
+        std::array<float, 2> found_distances;
+        std::array<int, 2> found_nums;
+
+        for(auto& i : found_distances)
+            i = FLT_MAX;
+
+        for(auto& i : found_nums)
+            i = -1;
+
+        for(int i=0; i<pos.size(); i++)
+        {
+            cl_float4 found = pos[i];
+
+            ///skip the forwards and back elements
+            if(i == my_id || i == ret[6] || i == ret[7])
+                continue;
+
+            float len = dist(found, my_pos);
+
+            for(int j=0; j<2; j++)
+            {
+                if(len < found_distances[j])
+                {
+                    int found_location = j;
+
+                    ///push all elements forwards one
+                    for(int k=2-1; k>j; k--)
+                    {
+                        found_distances[k] = found_distances[k-1];
+                        found_nums[k] = found_nums[k-1];
+                    }
+
+                    found_distances[found_location] = len;
+                    found_nums[found_location] = i;
+
+
+                    break;
+                    //printf("hi %i %i %f\n", found_location, i, len);
+                }
+            }
+        }
+
+        ///found 2 closest
+
+        ret[0] = found_nums[0];
+        ret[1] = found_nums[1];
+
+        ret[2] = (found_nums[0] - 1 + pos.size()) % pos.size();
+        ret[3] = (found_nums[0] + 1) % pos.size();
+
+        ret[4] = (found_nums[1] - 1 + pos.size()) % pos.size();
+        ret[5] = (found_nums[1] + 1) % pos.size();
+
+        return ret;*/
+
+        /*cl_float4 my_pos = pos[my_id];
+
         std::array<float, 8> found_distances;
         std::array<int, 8> found_nums;
 
@@ -94,7 +238,7 @@ struct planet_builder
         {
             cl_float4 found = pos[i];
 
-            if((found.x == my_pos.x) && (found.y == my_pos.y) && (found.z == my_pos.z))
+            if(i == my_id)
                 continue;
 
             float len = dist(found, my_pos);
@@ -115,14 +259,22 @@ struct planet_builder
                     found_distances[found_location] = len;
                     found_nums[found_location] = i;
 
-
                     break;
                     //printf("hi %i %i %f\n", found_location, i, len);
                 }
             }
+        }*/
+
+        /*printf("%i ", my_id);
+
+        for(int i=0; i<8; i++)
+        {
+            printf("%i ", found_nums[i]);
         }
 
-        return found_nums;
+        printf("\n");*/
+
+        //return found_nums;
     }
 
     std::vector<triangle> get_tris(const std::vector<cl_float4>& pos, const std::vector<std::array<int, 8>>& connections)
@@ -139,7 +291,7 @@ struct planet_builder
             cl_float4 my_pos = pos[i];
             std::array<int, 8> my_connections = connections[i];
 
-            std::vector<std::pair<float, int>> connection_angles;
+            /*std::vector<std::pair<float, int>> connection_angles;
 
             if(visited[i])
                 continue;
@@ -183,7 +335,16 @@ struct planet_builder
                       {
                           return i1.first < i2.first;
                       }
-                      );
+                      );*/
+
+            std::vector<vec3f> in_connections;
+
+            for(auto& j : my_connections)
+            {
+                in_connections.push_back({pos[j].x, pos[j].y, pos[j].z});
+            }
+
+            std::vector<vec3f> sorted = sort_anticlockwise(in_connections, {my_pos.x, my_pos.y, my_pos.z});
 
             ///connection angles now sorted anticlockwise
 
@@ -192,8 +353,8 @@ struct planet_builder
                 int nxt = (j + 1) % 8;
 
                 triangle tri;
-                tri.vertices[0].set_pos(pos[connection_angles[nxt].second]);
-                tri.vertices[1].set_pos(pos[connection_angles[j].second]);
+                tri.vertices[0].set_pos({sorted[nxt].v[0], sorted[nxt].v[1], sorted[nxt].v[2]});
+                tri.vertices[1].set_pos({sorted[j].v[0], sorted[j].v[1], sorted[j].v[2]});
                 tri.vertices[2].set_pos(my_pos);
 
                 tri.vertices[0].set_vt({0.7, 0.1});
@@ -208,7 +369,7 @@ struct planet_builder
                 tri.vertices[1].set_normal({flat_normal.v[0], flat_normal.v[1], flat_normal.v[2]});
                 tri.vertices[2].set_normal({flat_normal.v[0], flat_normal.v[1], flat_normal.v[2]});
 
-                visited[connection_angles[j].second] = 1;
+                visited[my_connections[j]] = 1;
 
                 tris.push_back(tri);
 
@@ -236,11 +397,6 @@ struct planet_builder
         col.reserve(num);
         connections.reserve(num);
 
-        float offset = 2.f / num;
-
-        constexpr float increment = M_PI * (3.f - sqrtf(5.f));
-
-        int rnd = 1;
 
         float mul = 100.f;
 
@@ -248,21 +404,13 @@ struct planet_builder
         ///or actually, just use angles, yz, xz
         for(int i=0; i<num; i++)
         {
-            float y = ((i * offset) - 1) + offset/2.f; ///?why plus offset/2
-            float r = sqrtf(1.f - powf(y, 2.f));
-
-            float phi = ((i + rnd) % num) * increment;
-
-            float x = cosf(phi) * r;
-            float z = sinf(phi) * r;
-
-            pos.push_back({x, y, z, 0.f});
+            pos.push_back(get_fibonnacci_position(i, num));
             col.push_back(0xFF00FFFF);
         }
 
         for(int i=0; i<num; i++)
         {
-            connections.push_back(find_nearest_points(pos, pos[i]));
+            connections.push_back(find_nearest_points(pos, i));
         }
 
         /*auto test_arr = find_nearest_points(pos, pos[9999]);
