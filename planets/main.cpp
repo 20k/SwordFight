@@ -261,6 +261,9 @@ struct planet_builder
         std::vector<cl_float4> new_pos;
         std::vector<std::vector<int>> new_connections;
 
+        new_pos.reserve(pos.size()*5);
+        new_connections.reserve(pos.size()*5);
+
         std::vector<int> visited;
         visited.resize(pos.size());
 
@@ -401,17 +404,17 @@ struct planet_builder
 
         float rad = sqrtf(1*1 + tao*tao);
 
-        int subdivision_nums = 3;
+        int subdivision_nums = 5;
 
         for(int i=0; i<subdivision_nums; i++)
             std::tie(pos, connections) = subdivide(pos, connections, rad);
 
-        saved_pos = pos;
+        /*saved_pos = pos;
 
         for(auto& i : saved_pos)
         {
             i = mult(i, 100.f);
-        }
+        }*/
 
         /*for(int i=0; i<10; i++)
         {
@@ -468,23 +471,31 @@ struct planet_builder
 
             p = (nrad / rad) * p;
 
+            //p = xyz_to_vec(pos[i]);
+
             pos[i] = {p.v[0], p.v[1], p.v[2]};
         }
 
-        for(int i=0; i<pos.size(); i++)
+        auto backup = pos;
+
+        for(int i=0; i<backup.size(); i++)
         {
-            cl_float4 mypos = pos[i];
+            cl_float4 mypos = backup[i];
 
             cl_float4 accum = {0};
 
+            int num = 0;
+
             for(int j=0; j<connections[i].size(); j++)
             {
-                cl_float4 neighbour = pos[connections[i][j]];
+                cl_float4 neighbour = backup[connections[i][j]];
 
                 accum = add(accum, neighbour);
+
+                num++;
             }
 
-            mypos = div(add(mypos, accum), 9.f);
+            mypos = div(add(mypos, accum), num+1);
 
             pos[i] = mypos;
         }
@@ -494,7 +505,7 @@ struct planet_builder
             i = mult(i, mul);
         }
 
-        //saved_pos = pos;
+        saved_pos = pos;
         saved_conn = connections;
 
         for(auto& i : pos)
