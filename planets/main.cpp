@@ -177,6 +177,45 @@ struct planet_builder
         ///fill with 0s
         visited.resize(pos.size());
 
+        ///probably want to run a smoothing pass over this or something
+        std::vector<vec3f> smoothed_normals;
+        smoothed_normals.reserve(pos.size());
+
+        //for(auto& i : pos)
+        for(int i=0; i<pos.size(); i++)
+        {
+            std::vector<int> my_connections = connections[i];
+
+            std::vector<vec3f> in_connections;
+            in_connections.reserve(my_connections.size());
+
+            for(int j=0; j<my_connections.size(); j++)
+            {
+                int c = my_connections[j];
+
+                in_connections.push_back({pos[c].x, pos[c].y, pos[c].z});
+            }
+
+            vec3f my_pos = {pos[i].x, pos[i].y, pos[i].z};
+
+            std::vector<vec3f> sorted = sort_anticlockwise(in_connections, my_pos);
+
+            vec3f normal_accum = 0.f;
+
+            for(int j=0; j<sorted.size(); j++)
+            {
+                int nxt = (j + 1) % sorted.size();
+
+                vec3f flat_normal = generate_flat_normal(sorted[nxt], sorted[j], my_pos);
+
+                normal_accum += flat_normal;
+            }
+
+            normal_accum = normal_accum / (float)sorted.size();
+
+            smoothed_normals.push_back(normal_accum);
+        }
+
         std::vector<triangle> tris;
 
         for(int i=0; i<pos.size(); i++)
@@ -197,7 +236,9 @@ struct planet_builder
                 in_connections.push_back({pos[c].x, pos[c].y, pos[c].z});
             }
 
-            std::vector<vec3f> sorted = sort_anticlockwise(in_connections, {my_pos.x, my_pos.y, my_pos.z});
+            std::vector<std::pair<float, int>> out_ids;
+
+            std::vector<vec3f> sorted = sort_anticlockwise(in_connections, {my_pos.x, my_pos.y, my_pos.z}, &out_ids);
 
             ///connection angles now sorted anticlockwise
 
@@ -214,13 +255,22 @@ struct planet_builder
                 tri.vertices[1].set_vt({0.1, 0.1});
                 tri.vertices[2].set_vt({0.5, 0.5});
 
-                vec3f flat_normal = generate_flat_normal(xyz_to_vec(tri.vertices[0].get_pos()),
+                /*vec3f flat_normal = generate_flat_normal(xyz_to_vec(tri.vertices[0].get_pos()),
                                                          xyz_to_vec(tri.vertices[1].get_pos()),
                                                          xyz_to_vec(tri.vertices[2].get_pos()));
 
                 tri.vertices[0].set_normal({flat_normal.v[0], flat_normal.v[1], flat_normal.v[2]});
                 tri.vertices[1].set_normal({flat_normal.v[0], flat_normal.v[1], flat_normal.v[2]});
-                tri.vertices[2].set_normal({flat_normal.v[0], flat_normal.v[1], flat_normal.v[2]});
+                tri.vertices[2].set_normal({flat_normal.v[0], flat_normal.v[1], flat_normal.v[2]});*/
+
+                int id_1 = my_connections[out_ids[nxt].second];
+                int id_2 = my_connections[out_ids[j].second];
+                int id_3 = i;
+
+                tri.vertices[0].set_normal({smoothed_normals[id_1].v[0], smoothed_normals[id_1].v[1], smoothed_normals[id_1].v[2]});
+                tri.vertices[1].set_normal({smoothed_normals[id_2].v[0], smoothed_normals[id_2].v[1], smoothed_normals[id_2].v[2]});
+                tri.vertices[2].set_normal({smoothed_normals[id_3].v[0], smoothed_normals[id_3].v[1], smoothed_normals[id_3].v[2]});
+
 
                 //visited[my_connections[j]] = 1;
 
@@ -439,8 +489,8 @@ struct planet_builder
             float yz = atan2(p.v[1], p.v[2]);
             float xz = atan2(p.v[0], p.v[2]);
 
-            float ly = yz;
             float lx = xz;
+            float ly = yz;
 
             if(xz > 0)
                 lx = -xz;
