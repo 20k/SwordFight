@@ -256,7 +256,7 @@ struct planet_builder
     }
 
     std::tuple<std::vector<cl_float4>, std::vector<std::vector<int>>>
-    subdivide(const std::vector<cl_float4>& pos, const std::vector<std::vector<int>>& connections)
+    subdivide(const std::vector<cl_float4>& pos, const std::vector<std::vector<int>>& connections, float rad)
     {
         std::vector<cl_float4> new_pos;
         std::vector<std::vector<int>> new_connections;
@@ -312,6 +312,10 @@ struct planet_builder
                 //new_pos.push_back({p1.v[0], p1.v[1], p1.v[2]});
                 //new_pos.push_back({p2.v[0], p2.v[1], p2.v[2]});
                 //new_pos.push_back({p3.v[0], p3.v[1], p3.v[2]});
+
+                float old_rad = d1.length();
+
+                d1 = d1 * rad / old_rad;
 
                 new_pos.push_back({d1.v[0], d1.v[1], d1.v[2]});
                 near_num.push_back(6);
@@ -395,7 +399,12 @@ struct planet_builder
             connections.push_back(get_nearest_n(pos, i, 5));
         }
 
-        std::tie(pos, connections) = subdivide(pos, connections);
+        float rad = sqrtf(1*1 + tao*tao);
+
+        int subdivision_nums = 3;
+
+        for(int i=0; i<subdivision_nums; i++)
+            std::tie(pos, connections) = subdivide(pos, connections, rad);
 
         saved_pos = pos;
 
@@ -638,8 +647,8 @@ int main(int argc, char *argv[])
 
     window.set_light_data(light_data);
 
-    planet_builder test;
-    test.load();
+    //planet_builder test;
+    //test.load();
 
 
     sf::Mouse mouse;
