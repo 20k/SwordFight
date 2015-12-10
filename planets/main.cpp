@@ -746,7 +746,7 @@ struct planet_builder
 
                         auto referencers = get_ids_who_reference(connections, i);
 
-                        std::set<int> common;
+
 
                         /*cl_float4 newpos = pos[connections[i][j]];
 
