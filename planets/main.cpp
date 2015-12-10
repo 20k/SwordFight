@@ -181,7 +181,6 @@ struct planet_builder
         std::vector<vec3f> smoothed_normals;
         smoothed_normals.reserve(pos.size());
 
-        //for(auto& i : pos)
         for(int i=0; i<pos.size(); i++)
         {
             std::vector<int> my_connections = connections[i];
@@ -214,6 +213,25 @@ struct planet_builder
             normal_accum = normal_accum / (float)sorted.size();
 
             smoothed_normals.push_back(normal_accum);
+        }
+
+        for(int i=0; i<0; i++)
+        {
+            auto backup_smooth = smoothed_normals;
+
+            for(int i=0; i<smoothed_normals.size(); i++)
+            {
+                std::vector<int> conn = connections[i];
+
+                vec3f super_smooth = backup_smooth[i];
+
+                for(auto& j : conn)
+                {
+                    super_smooth = super_smooth + backup_smooth[j];
+                }
+
+                smoothed_normals[i] = super_smooth.norm();
+            }
         }
 
         std::vector<triangle> tris;
@@ -676,13 +694,15 @@ int main(int argc, char *argv[])
 
     object_context context;
 
-    auto asteroid = context.make_new();
+    objects_container* asteroid = context.make_new();
     asteroid->set_load_func(load_asteroid);
     //asteroid->set_file("../openclrenderer/sp2/sp2.obj");
     asteroid->set_active(true);
     asteroid->cache = false;
 
     context.load_active();
+
+    asteroid->set_specular(0.6f);
 
     texture_manager::allocate_textures();
 
