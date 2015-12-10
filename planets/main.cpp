@@ -233,6 +233,9 @@ struct planet_builder
             {
                 int c = my_connections[j];
 
+                //if(visited[c])
+                //    continue;
+
                 in_connections.push_back({pos[c].x, pos[c].y, pos[c].z});
             }
 
@@ -247,6 +250,7 @@ struct planet_builder
                 int nxt = (j + 1) % sorted.size();
 
                 triangle tri;
+
                 tri.vertices[0].set_pos({sorted[nxt].v[0], sorted[nxt].v[1], sorted[nxt].v[2]});
                 tri.vertices[1].set_pos({sorted[j].v[0], sorted[j].v[1], sorted[j].v[2]});
                 tri.vertices[2].set_pos(my_pos);
@@ -271,17 +275,12 @@ struct planet_builder
                 tri.vertices[1].set_normal({smoothed_normals[id_2].v[0], smoothed_normals[id_2].v[1], smoothed_normals[id_2].v[2]});
                 tri.vertices[2].set_normal({smoothed_normals[id_3].v[0], smoothed_normals[id_3].v[1], smoothed_normals[id_3].v[2]});
 
-
                 //visited[my_connections[j]] = 1;
 
                 ///we're double creating triangles atm
                 ///need to use the visited step after we've processed outselves, then skip
                 ///tris that are that
                 tris.push_back(tri);
-
-                //printf("%f %f %f\n", tri.vertices[0].get_pos().x, tri.vertices[0].get_pos().y, tri.vertices[0].get_pos().z);
-                //printf("%f %f %f\n", tri.vertices[1].get_pos().x, tri.vertices[1].get_pos().y, tri.vertices[1].get_pos().z);
-                //printf("%f %f %f\n", tri.vertices[2].get_pos().x, tri.vertices[2].get_pos().y, tri.vertices[2].get_pos().z);
             }
 
             visited[i] = 1;
