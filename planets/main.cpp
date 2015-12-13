@@ -324,6 +324,34 @@ struct planet_builder
         return ret;
     }
 
+
+    std::vector<int> mark_deletion(const std::vector<cl_float4>& in)
+    {
+        std::vector<int> marked;
+        marked.resize(in.size());
+
+        for(int i=0; i<in.size(); i++)
+        {
+            for(int j=i+1; j<in.size(); j++)
+            {
+                if(i == j)
+                    continue;
+
+                cl_float4 p1 = in[i];
+                cl_float4 p2 = in[j];
+
+                float len = dist(p1, p2);
+
+                if(len < 0.001f)
+                {
+                    marked[j] = 1;
+                }
+            }
+        }
+
+        return marked;
+    }
+
     std::tuple<std::vector<cl_float4>, std::vector<std::vector<int>>>
     subdivide_direct(const std::vector<cl_float4>& pos, const std::vector<std::vector<int>>& connections, float rad, int num)
     {
@@ -366,16 +394,6 @@ struct planet_builder
             {
                 int nxt = (j + 1) % sorted.size();
 
-                //int p1_id = in_ids[pass_out[nxt].second];
-                //int p2_id = in_ids[pass_out[j].second];
-                //int p3_id = i;
-
-                //vec3f p1 = xyz_to_vec(pos[p1_id]);
-                //vec3f p2 = xyz_to_vec(pos[p2_id]);
-
-                if(visited[in_ids[pass_out[j].second]])
-                    continue;
-
                 vec3f p1 = sorted[nxt];
                 vec3f p2 = sorted[j];
 
@@ -387,7 +405,7 @@ struct planet_builder
 
                 float segment_length = d1_seg.length();
 
-                printf("%f %f %f\n", d1.length(), d2.length(), (p2 - p1).length());
+                //printf("%f %f %f\n", d1.length(), d2.length(), (p2 - p1).length());
 
                 ///skip the centre point
                 for(int k=1; k<num; k++)
@@ -402,7 +420,7 @@ struct planet_builder
 
                     float dnum = dd / segment_length;
 
-                    //printf("%f\n", dd);
+                    //printf("%f\n", dnum);
 
                     vec3f d12_seg = d12 / dnum;
 
@@ -431,13 +449,31 @@ struct planet_builder
             conn_pos.clear();
         }
 
+
+        std::vector<int> marked = mark_deletion(new_pos);
+
+        for(int i=0; i<marked.size(); i++)
+        {
+            if(marked[i])
+            {
+                new_pos.erase(new_pos.begin() + i);
+                near_num.erase(near_num.begin() + i);
+                marked.erase(marked.begin() + i);
+                i--;
+            }
+        }
+
         for(int i=0; i<new_pos.size(); i++)
         {
             new_connections.push_back(get_nearest_n(new_pos, i, near_num[i]));
         }
 
+        ///could call a prune method and just be done with it
+        ///or actually could hack in get_nearest_n
+
         return std::forward_as_tuple(new_pos, new_connections);
     }
+
 
     ///recursive version
     ///we want a direct, fast version
@@ -581,10 +617,10 @@ struct planet_builder
 
         int subdivision_nums = 5;
 
-        //for(int i=0; i<subdivision_nums; i++)
+        //for(int i=0; i<1; i++)
         //    std::tie(pos, connections) = subdivide(pos, connections, rad);
 
-        std::tie(pos, connections) = subdivide_direct(pos, connections, rad, 3);
+        std::tie(pos, connections) = subdivide_direct(pos, connections, rad, 30);
 
         /*saved_pos = pos;
 
@@ -646,6 +682,7 @@ struct planet_builder
             float v2 = noisemult_2d(xz, yz, noise_2d, -6, -4, 1.f);
 
             v1 = 0;
+            //v2 = 0;
 
             float val = (v1 + v2) / 10.f;
 
@@ -662,7 +699,7 @@ struct planet_builder
             pos[i] = {p.v[0], p.v[1], p.v[2]};
         }
 
-        /*auto backup = pos;
+        auto backup = pos;
 
         for(int i=0; i<backup.size(); i++)
         {
@@ -684,7 +721,7 @@ struct planet_builder
             mypos = div(add(mypos, accum), num+1);
 
             pos[i] = mypos;
-        }*/
+        }
 
         for(auto& i : pos)
         {
@@ -701,12 +738,12 @@ struct planet_builder
 
         //get_tris(pos, connections);
 
-        //positions = compute::buffer(cl::context, sizeof(cl_float4)*saved_pos.size(), CL_MEM_READ_ONLY, nullptr);
-        //colours = compute::buffer(cl::context, sizeof(cl_uint)*saved_pos.size(), CL_MEM_READ_ONLY, nullptr);
+        positions = compute::buffer(cl::context, sizeof(cl_float4)*saved_pos.size(), CL_MEM_READ_ONLY, nullptr);
+        colours = compute::buffer(cl::context, sizeof(cl_uint)*saved_pos.size(), CL_MEM_READ_ONLY, nullptr);
 
 
-        //cl::cqueue.enqueue_write_buffer(positions, 0, sizeof(cl_float4)*saved_pos.size(), &saved_pos[0]);
-        //cl::cqueue.enqueue_write_buffer(colours, 0, sizeof(cl_uint)*saved_pos.size(), &col[0]);
+        cl::cqueue.enqueue_write_buffer(positions, 0, sizeof(cl_float4)*saved_pos.size(), &saved_pos[0]);
+        cl::cqueue.enqueue_write_buffer(colours, 0, sizeof(cl_uint)*saved_pos.size(), &col[0]);
     }
 
     void tick(engine& window)
@@ -874,8 +911,6 @@ int main(int argc, char *argv[])
         }
 
         window.draw_bulk_objs_n();
-
-        //process.tick(window);
 
         //test.tick(window);
 
