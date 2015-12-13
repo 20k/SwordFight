@@ -71,7 +71,7 @@ struct planet_builder
     std::vector<cl_float4> saved_pos;
     std::vector<std::vector<int>> saved_conn;
 
-    cl_int num = 10000;
+    //cl_int num = 10000;
 
     cl_float4 get_fibonnacci_position(int id, int num)
     {
@@ -267,6 +267,8 @@ struct planet_builder
             {
                 int nxt = (j + 1) % sorted.size();
 
+                //printf("%f %f %f\n", (sorted[nxt] - sorted[j]).length(), (sorted[nxt] - xyz_to_vec(my_pos)).length(), (sorted[j] - xyz_to_vec(my_pos)).length());
+
                 triangle tri;
 
                 tri.vertices[0].set_pos({sorted[nxt].v[0], sorted[nxt].v[1], sorted[nxt].v[2]});
@@ -323,6 +325,127 @@ struct planet_builder
     }
 
     std::tuple<std::vector<cl_float4>, std::vector<std::vector<int>>>
+    subdivide_direct(const std::vector<cl_float4>& pos, const std::vector<std::vector<int>>& connections, float rad, int num)
+    {
+        std::vector<cl_float4> new_pos;
+        std::vector<std::vector<int>> new_connections;
+
+        std::vector<int> visited;
+        visited.resize(pos.size());
+
+        int num_pos = pos.size();
+
+        std::vector<vec3f> conn_pos;
+
+        std::vector<int> near_num;
+
+        for(int i=0; i<num_pos; i++)
+        {
+            cl_float4 my_pos = pos[i];
+
+            vec3f centre = xyz_to_vec(my_pos);
+
+            std::vector<int> in_ids;
+
+            for(auto& j : connections[i])
+            {
+                //if(visited[j])
+                //    continue;
+
+                conn_pos.push_back(xyz_to_vec(pos[j]));
+
+                in_ids.push_back(j);
+            }
+
+            std::vector<std::pair<float, int>> pass_out;
+
+            std::vector<vec3f> sorted = sort_anticlockwise(conn_pos, centre, &pass_out);
+
+            ///for every connection anticlockwise
+            for(int j=0; j<sorted.size(); j++)
+            {
+                int nxt = (j + 1) % sorted.size();
+
+                //int p1_id = in_ids[pass_out[nxt].second];
+                //int p2_id = in_ids[pass_out[j].second];
+                //int p3_id = i;
+
+                //vec3f p1 = xyz_to_vec(pos[p1_id]);
+                //vec3f p2 = xyz_to_vec(pos[p2_id]);
+
+                if(visited[in_ids[pass_out[j].second]])
+                    continue;
+
+                vec3f p1 = sorted[nxt];
+                vec3f p2 = sorted[j];
+
+                vec3f d1 = p1 - centre;
+                vec3f d2 = p2 - centre;
+
+                vec3f d1_seg = d1 / (float)num;
+                vec3f d2_seg = d2 / (float)num;
+
+                float segment_length = d1_seg.length();
+
+                printf("%f %f %f\n", d1.length(), d2.length(), (p2 - p1).length());
+
+                ///skip the centre point
+                for(int k=1; k<num; k++)
+                {
+                    vec3f d1p = d1_seg * k + centre;
+                    vec3f d2p = d2_seg * k + centre;
+
+                    ///from j to next
+                    vec3f d12 = (d1p - d2p);
+
+                    float dd = d12.length();
+
+                    float dnum = dd / segment_length;
+
+                    //printf("%f\n", dd);
+
+                    vec3f d12_seg = d12 / dnum;
+
+                    for(float ll = 0; ll < dnum; ll += 1.f)
+                    {
+                        vec3f cur = d2p + ll * d12_seg;
+
+                        cur = cur.norm() * rad;
+
+                        near_num.push_back(6);
+
+                        new_pos.push_back({cur.v[0], cur.v[1], cur.v[2]});
+                    }
+                }
+            }
+
+            new_pos.push_back(my_pos);
+
+            if(connections[i].size() == 5)
+                near_num.push_back(5);
+            else
+                near_num.push_back(6);
+
+            visited[i] = 1;
+
+            conn_pos.clear();
+        }
+
+        for(int i=0; i<new_pos.size(); i++)
+        {
+            new_connections.push_back(get_nearest_n(new_pos, i, near_num[i]));
+        }
+
+        return std::forward_as_tuple(new_pos, new_connections);
+    }
+
+    ///recursive version
+    ///we want a direct, fast version
+    ///can split edge into x segments
+    ///find segment length
+    ///then find the equivalent point on the opposite side
+    ///then add points in a line across, at segment interval
+    std::tuple<std::vector<cl_float4>, std::vector<std::vector<int>>>
     subdivide(const std::vector<cl_float4>& pos, const std::vector<std::vector<int>>& connections, float rad)
     {
         std::vector<cl_float4> new_pos;
@@ -335,6 +458,7 @@ struct planet_builder
         visited.resize(pos.size());
 
         std::vector<int> near_num;
+        near_num.reserve(pos.size()*5);
 
         for(int i=0; i<pos.size(); i++)
         {
@@ -342,6 +466,7 @@ struct planet_builder
             std::vector<int> my_connections = connections[i];
 
             std::vector<vec3f> in_connections;
+            in_connections.reserve(my_connections.size());
 
             for(int j=0; j<my_connections.size(); j++)
             {
@@ -352,16 +477,6 @@ struct planet_builder
 
                 in_connections.push_back({pos[c].x, pos[c].y, pos[c].z});
             }
-
-            //std::vector<std::pair<float, int>> pass_out;
-
-            ///alas, the sorting is useless
-            //std::vector<vec3f> sorted = sort_anticlockwise(in_connections, {my_pos.x, my_pos.y, my_pos.z}, &pass_out);
-
-            ///connection angles now sorted anticlockwise
-
-            //if(i != 0)
-            //    continue;
 
             for(int j=0; j<in_connections.size(); j++)
             {
@@ -405,10 +520,6 @@ struct planet_builder
                 int d3_id = next_free_id++;
 
                 new_connections[p1_id] = replace_ref(new_connections, p2_id, )*/
-
-                //printf("%f %f %f\n", tri.vertices[0].get_pos().x, tri.vertices[0].get_pos().y, tri.vertices[0].get_pos().z);
-                //printf("%f %f %f\n", tri.vertices[1].get_pos().x, tri.vertices[1].get_pos().y, tri.vertices[1].get_pos().z);
-                //printf("%f %f %f\n", tri.vertices[2].get_pos().x, tri.vertices[2].get_pos().y, tri.vertices[2].get_pos().z);
             }
 
             new_pos.push_back(my_pos);
@@ -427,22 +538,19 @@ struct planet_builder
             new_connections.push_back(get_nearest_n(new_pos, i, near_num[i]));
         }
 
-        return std::make_tuple(new_pos, new_connections);
+        return std::forward_as_tuple(new_pos, new_connections);
     }
 
     void load()
     {
-
-        //constexpr int nearest = 5;
-
         std::vector<cl_float4> pos;
         std::vector<cl_uint> col;
         std::vector<std::vector<int>> connections;
 
         ///really, this wants to be mapped pcie accessible memory set to overwrite, alas
-        pos.reserve(num);
-        col.reserve(num);
-        connections.reserve(num);
+        //pos.reserve(num);
+        //col.reserve(num);
+        //connections.reserve(num);
 
         float tao = 1.61803399f;
 
@@ -464,7 +572,7 @@ struct planet_builder
             pos.push_back({icosahedron[i].v[0], icosahedron[i].v[1], icosahedron[i].v[2]});
         }
 
-        for(int i=0; i<num; i++)
+        for(int i=0; i<pos.size(); i++)
         {
             connections.push_back(get_nearest_n(pos, i, 5));
         }
@@ -473,8 +581,10 @@ struct planet_builder
 
         int subdivision_nums = 5;
 
-        for(int i=0; i<subdivision_nums; i++)
-            std::tie(pos, connections) = subdivide(pos, connections, rad);
+        //for(int i=0; i<subdivision_nums; i++)
+        //    std::tie(pos, connections) = subdivide(pos, connections, rad);
+
+        std::tie(pos, connections) = subdivide_direct(pos, connections, rad, 3);
 
         /*saved_pos = pos;
 
@@ -520,7 +630,7 @@ struct planet_builder
             yz += 4*M_PI;
             xz += 4*M_PI;
 
-            float v1 = noisemult_2d(lx, ly, noise_2d, 0, 4, 1.);
+            /*float v1 = noisemult_2d(lx, ly, noise_2d, 0, 4, 1.);
             float v2 = noisemult_2d(xz + M_PI, yz + M_PI, noise_2d, -3, -2, 1.f);
             //v2 += noisemult_2d(xz + M_PI, yz + 0, noise_2d, -3, -2, 1.f);
             //v2 += noisemult_2d(xz + 0, yz + M_PI, noise_2d, -3, -2, 1.f);
@@ -530,11 +640,20 @@ struct planet_builder
 
             val = (val + 1) / 2.f;
 
-            //val = (val + 3) / (1 + 3);
+            //val = (val + 3) / (1 + 3);*/
+
+            float v1 = noisemult_2d(xz, yz, noise_2d, -3, -2, 1.f);
+            float v2 = noisemult_2d(xz, yz, noise_2d, -6, -4, 1.f);
+
+            v1 = 0;
+
+            float val = (v1 + v2) / 10.f;
 
             float rad = p.length();
 
-            float nrad = rad * val;
+            //float nrad = rad * val;
+
+            float nrad = rad + val;
 
             p = (nrad / rad) * p;
 
@@ -543,7 +662,7 @@ struct planet_builder
             pos[i] = {p.v[0], p.v[1], p.v[2]};
         }
 
-        auto backup = pos;
+        /*auto backup = pos;
 
         for(int i=0; i<backup.size(); i++)
         {
@@ -565,7 +684,7 @@ struct planet_builder
             mypos = div(add(mypos, accum), num+1);
 
             pos[i] = mypos;
-        }
+        }*/
 
         for(auto& i : pos)
         {
@@ -582,12 +701,12 @@ struct planet_builder
 
         //get_tris(pos, connections);
 
-        positions = compute::buffer(cl::context, sizeof(cl_float4)*saved_pos.size(), CL_MEM_READ_ONLY, nullptr);
-        colours = compute::buffer(cl::context, sizeof(cl_uint)*saved_pos.size(), CL_MEM_READ_ONLY, nullptr);
+        //positions = compute::buffer(cl::context, sizeof(cl_float4)*saved_pos.size(), CL_MEM_READ_ONLY, nullptr);
+        //colours = compute::buffer(cl::context, sizeof(cl_uint)*saved_pos.size(), CL_MEM_READ_ONLY, nullptr);
 
 
-        cl::cqueue.enqueue_write_buffer(positions, 0, sizeof(cl_float4)*saved_pos.size(), &saved_pos[0]);
-        cl::cqueue.enqueue_write_buffer(colours, 0, sizeof(cl_uint)*saved_pos.size(), &col[0]);
+        //cl::cqueue.enqueue_write_buffer(positions, 0, sizeof(cl_float4)*saved_pos.size(), &saved_pos[0]);
+        //cl::cqueue.enqueue_write_buffer(colours, 0, sizeof(cl_uint)*saved_pos.size(), &col[0]);
     }
 
     void tick(engine& window)
@@ -627,7 +746,6 @@ struct planet_builder
         gaussian_args.push_back(&screen_buf);
 
         run_kernel_with_string("render_gaussian_normal", {nnum}, {128}, 1, gaussian_args);
-
 
         arg_list b_args;
         b_args.push_back(&engine::g_screen);
@@ -694,11 +812,18 @@ int main(int argc, char *argv[])
 
     object_context context;
 
+    int num = 1;
+    int r = sqrt(num);
+
+    //for(int i=0; i<num; i++)
+    //{
     objects_container* asteroid = context.make_new();
     asteroid->set_load_func(load_asteroid);
-    //asteroid->set_file("../openclrenderer/sp2/sp2.obj");
     asteroid->set_active(true);
     asteroid->cache = false;
+
+    //asteroid->set_pos({(i % r) * 200, 0.f, i * 200 / r});
+    //}
 
     context.load_active();
 
@@ -730,7 +855,6 @@ int main(int argc, char *argv[])
     //planet_builder test;
     //test.load();
 
-
     sf::Mouse mouse;
     sf::Keyboard key;
 
@@ -758,6 +882,6 @@ int main(int argc, char *argv[])
         window.render_block();
         window.display();
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }
