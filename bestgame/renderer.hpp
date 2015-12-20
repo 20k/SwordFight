@@ -73,7 +73,6 @@ struct render_square : renderable
     }
 };
 
-
 struct renderer
 {
     std::vector<renderable*> render_list;

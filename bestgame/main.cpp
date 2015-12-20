@@ -154,12 +154,20 @@ int main(int argc, char *argv[])
 
     player* play = new player;
     play->set_pos({100, 100});
+    play->set_dim({10, 10});
+    play->set_team(team::FRIENDLY);
+
+    character* hostile = new character;
+    hostile->set_pos({200, 150});
+    hostile->set_dim({10, 10});
+    hostile->set_team(team::ENEMY);
 
     std::vector<game_entity*> entities;
 
     st.entities = &entities;
 
     entities.push_back(play);
+    entities.push_back(hostile);
 
     vec2f mouse_pos = {0, 0};
 

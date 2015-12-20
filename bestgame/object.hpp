@@ -4,11 +4,31 @@
 #include "state.hpp"
 #include "renderer.hpp"
 
+namespace team
+{
+    enum team : int32_t
+    {
+        FRIENDLY,
+        ENEMY,
+        OBJECT,
+        NONE ///skip
+    };
+}
+
+typedef team::team team_t;
+
 struct game_entity
 {
     vec2f pos;
     float hp;
     bool to_remove;
+    team_t my_team;
+    vec2f dim;
+
+    void set_dim(vec2f _dim)
+    {
+        dim = _dim;
+    }
 
     void set_pos(vec2f _pos)
     {
@@ -30,21 +50,55 @@ struct game_entity
         return hp <= 0.f;
     }
 
-    void damage(float frac)
+    void do_damage(float frac)
     {
         hp -= frac;
     }
 
+    void set_team(team_t _team)
+    {
+        my_team = _team;
+    }
+
     virtual void tick(state& s, float dt){}
 
-    game_entity(){hp = 1.f; to_remove = false;}
+    game_entity(){hp = 1.f; to_remove = false; my_team = team::NONE;}
     virtual ~game_entity(){}
+};
+
+struct collider
+{
+    int get_collider_id(game_entity* me, const std::vector<game_entity*>& entities)
+    {
+        vec2f pos = me->pos;
+
+        team_t my_team = me->my_team;
+
+        for(int i=0; i<entities.size(); i++)
+        {
+            game_entity* en = entities[i];
+
+            team_t their_team = en->my_team;
+
+            ///im within his rectangle (temp)
+            ///my team is not his team (no ff)
+            ///and his team isn't none
+            if(pos >= (en->pos - en->dim/2.f) && pos < (en->pos + en->dim/2.f) &&
+               my_team != their_team && their_team != team::NONE)
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
 };
 
 struct projectile : game_entity
 {
     vec2f dir;
     float speed;
+    float damage;
 
     void set_dir(vec2f _dir)
     {
@@ -56,18 +110,37 @@ struct projectile : game_entity
         speed = _speed;
     }
 
+    void set_damage(float _damage)
+    {
+        damage = _damage;
+    }
+
     virtual void tick(state& s, float dt)
     {
         move_at_speed(dir.norm(), speed, dt);
 
-        render_square sq(pos, {3, 3}, {1, 1, 0.3});
+        render_square sq(pos, dim, {1, 1, 0.3});
 
         s.render_2d->add(sq);
+
+        collider collide;
+
+        int id = collide.get_collider_id(this, *s.entities);
+
+        if(id == -1)
+            return;
+
+        game_entity* en = (*s.entities)[id];
+
+        en->do_damage(damage);
+
+        to_remove = true;
     }
 
     projectile()
     {
         speed = 1.f;
+        damage = 0.35f;
     }
 };
 
@@ -80,7 +153,7 @@ struct character : game_entity
 
     virtual void tick(state& s, float dt)
     {
-        render_square sq(pos, {10, 10}, {0.3, 0.3, 1.f});
+        render_square sq(pos, dim, {0.3, 0.3, 1.f});
 
         s.render_2d->add(sq);
 
@@ -98,6 +171,8 @@ struct character : game_entity
 
         new_projectile->set_dir(dir);
         new_projectile->set_pos(pos);
+        new_projectile->set_dim({3, 3});
+        new_projectile->set_team(my_team);
 
         return new_projectile;
     }
