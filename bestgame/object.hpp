@@ -8,11 +8,29 @@ namespace team
 {
     enum team : int32_t
     {
-        FRIENDLY,
+        FRIENDLY = 0,
         ENEMY,
         OBJECT,
         NONE ///skip
     };
+
+    std::vector<vec3f> normal_cols
+    {
+        {0.3, 0.3, 1.f},
+        {1.f, 0.3f, 0.3f},
+        {0.7f, 0.7f, 0.7f},
+        {1.f, 1.f, 1.f}
+    };
+
+    std::vector<vec3f> hit_cols
+    {
+        {0.9f, 0.9f, 1.f},
+        {1.f, 0.6f, 0.6f},
+        {0.9f, 0.9f, 0.9f},
+        {1.f, 1.f, 1.f}
+    };
+
+    const float hit_timer_s = 0.2f;
 }
 
 typedef team::team team_t;
@@ -24,6 +42,7 @@ struct game_entity
     bool to_remove;
     team_t my_team;
     vec2f dim;
+    sf::Clock hit_timer; ///if less than hit_timer_s do hit effect
 
     void set_dim(vec2f _dim)
     {
@@ -53,6 +72,9 @@ struct game_entity
     void do_damage(float frac)
     {
         hp -= frac;
+
+        ///do hit effect
+        hit_timer.restart();
     }
 
     void set_team(team_t _team)
@@ -153,7 +175,18 @@ struct character : game_entity
 
     virtual void tick(state& s, float dt)
     {
-        render_square sq(pos, dim, {0.3, 0.3, 1.f});
+        vec3f normal_col = team::normal_cols[my_team];
+        vec3f hurt_col = team::hit_cols[my_team];
+
+        vec3f set_col = normal_col;
+
+        if(hit_timer.getElapsedTime().asMilliseconds() / 1000.f < team::hit_timer_s)
+        {
+            set_col = hurt_col;
+            printf("hi\n");
+        }
+
+        render_square sq(pos, dim, set_col);
 
         s.render_2d->add(sq);
 
