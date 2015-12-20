@@ -43,6 +43,7 @@ struct game_entity
     team_t my_team;
     vec2f dim;
     sf::Clock hit_timer; ///if less than hit_timer_s do hit effect
+    bool do_hit_effect;
 
     void set_dim(vec2f _dim)
     {
@@ -75,6 +76,7 @@ struct game_entity
 
         ///do hit effect
         hit_timer.restart();
+        do_hit_effect = true;
     }
 
     void set_team(team_t _team)
@@ -84,7 +86,7 @@ struct game_entity
 
     virtual void tick(state& s, float dt){}
 
-    game_entity(){hp = 1.f; to_remove = false; my_team = team::NONE;}
+    game_entity(){hp = 1.f; to_remove = false; my_team = team::NONE; do_hit_effect = false;}
     virtual ~game_entity(){}
 };
 
@@ -180,10 +182,13 @@ struct character : game_entity
 
         vec3f set_col = normal_col;
 
-        if(hit_timer.getElapsedTime().asMilliseconds() / 1000.f < team::hit_timer_s)
+        if(hit_timer.getElapsedTime().asMilliseconds() / 1000.f < team::hit_timer_s && do_hit_effect)
         {
             set_col = hurt_col;
-            printf("hi\n");
+        }
+        else
+        {
+            do_hit_effect = false;
         }
 
         render_square sq(pos, dim, set_col);
