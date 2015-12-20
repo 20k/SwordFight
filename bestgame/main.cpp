@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
         {
             entities[i]->tick(st, dt);
 
-            if(entities[i]->is_dead() || entities[i]->to_remove)
+            if(entities[i]->to_remove)
             {
                 delete entities[i];
 
@@ -225,6 +225,6 @@ int main(int argc, char *argv[])
         window.window.display();
         window.window.clear();
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }
