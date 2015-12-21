@@ -157,10 +157,15 @@ int main(int argc, char *argv[])
     play->set_dim({10, 10});
     play->set_team(team::FRIENDLY);
 
-    character* hostile = new character;
+    ai_character* hostile = new ai_character;
     hostile->set_pos({200, 150});
     hostile->set_dim({10, 10});
     hostile->set_team(team::ENEMY);
+
+    ai_character* h2 = new ai_character;
+    h2->set_pos({300, 450});
+    h2->set_dim({10, 10});
+    h2->set_team(team::ENEMY);
 
     std::vector<game_entity*> entities;
 
@@ -168,6 +173,11 @@ int main(int argc, char *argv[])
 
     entities.push_back(play);
     entities.push_back(hostile);
+    entities.push_back(h2);
+
+    ai_manager ai;
+
+    st.ai = &ai;
 
     vec2f mouse_pos = {0, 0};
 
@@ -199,7 +209,14 @@ int main(int argc, char *argv[])
         for(int i=0; i<entities.size(); i++)
         {
             entities[i]->tick(st, dt);
+        }
+        ///entities guaranteed to exist
 
+        st.ai->tick(st, dt);
+
+        ///clean dead entities
+        for(int i=0; i<entities.size(); i++)
+        {
             if(entities[i]->to_remove)
             {
                 delete entities[i];

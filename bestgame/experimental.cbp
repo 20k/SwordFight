@@ -161,6 +161,8 @@
 		<Unit filename="../openclrenderer/vertex.cpp" />
 		<Unit filename="../openclrenderer/vertex.hpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="object.hpp" />
+		<Unit filename="state.hpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
