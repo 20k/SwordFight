@@ -85,12 +85,16 @@ struct projectile : game_entity
     vec2f dir;
     float speed;
     float damage;
+    float time_to_live_s;
+
+    sf::Clock clk;
 
     projectile();
     virtual void tick(state& s, float dt);
     void set_damage(float _damage);
     void set_speed(float _speed);
     void set_dir(vec2f _dir);
+    void set_time_to_live(float _ttl);
 };
 
 struct character : game_entity
@@ -99,18 +103,117 @@ struct character : game_entity
     float current_time;
 
     character();
+
+    vec3f get_current_col();
     virtual void tick(state& s, float dt);
-    virtual projectile* fire(vec2f dir, float time_between_shots);
+    virtual projectile* fire(vec2f dir, float time_between_shots, float speed = 1.f);
+};
+
+struct seeker
+{
+    bool seeking = false;
+    vec2f seek_vec;
+
+    vec2f get_seek(vec2f current_pos);
+
+    ///distance is a random variable added to my_pos with randf<2, float>(-1, 1) * distance
+    void start_seek(vec2f my_pos, float distance);
+
+    bool is_complete(vec2f current_pos);
+    bool running();
+
+    void terminate();
 };
 
 struct ai_character : character
 {
     virtual void tick(state& s, float dt);
+
+    virtual void do_ai(state& s, float dt, vec2f pad_dir, character* current_enemy, const std::vector<ai_character*>& friendly_ai);
+};
+
+struct vanilla_enemy : ai_character
+{
+    vanilla_enemy();
+
+    virtual void tick(state& s, float dt);
+
+    virtual void do_ai(state& s, float dt, vec2f pad_dir, character* current_enemy, const std::vector<ai_character*>& friendly_ai);
+};
+
+struct robot_enemy : ai_character
+{
+    sf::Clock laser_duration_clock;
+    sf::Clock laser_refire_clock;
+    seeker seek;
+
+    vec2f locked_fire_dir;
+    bool firing;
+
+    robot_enemy();
+
+    projectile* fire_laser(vec2f dir, float time_between_pulses, float duration);
+
+    virtual void tick(state& s, float dt);
+
+    virtual void do_ai(state& s, float dt, vec2f pad_dir, character* current_enemy, const std::vector<ai_character*>& friendly_ai);
+};
+
+struct hound_enemy : ai_character
+{
+    ///am I controlling myself, or am i being controilled
+    //bool ai_active = false;
+    float move_clock;
+    float last_move_time = 0.f;
+    float move_probability = 0.7f;
+
+    void set_owned();
+    void set_free();
+
+    hound_enemy();
+
+    seeker seek;
+
+    virtual void tick(state& s, float dt);
+
+    ///disorganised AI
+    ///hound master controls organised AI
+    virtual void do_ai(state& s, float dt, vec2f pad_dir, character* current_enemy, const std::vector<ai_character*>& friendly_ai);
+};
+
+struct hound_master : ai_character
+{
+    bool hounds_init;
+    seeker seek;
+
+    hound_master();
+
+    std::vector<hound_enemy*> hounds;
+
+    virtual void tick(state& s, float dt);
+
+    virtual void do_ai(state& s, float dt, vec2f pad_dir, character* current_enemy, const std::vector<ai_character*>& friendly_ai);
+};
+
+struct tank_enemy : ai_character
+{
+    tank_enemy();
+
+    bool seeking;
+    vec2f seek_vec;
+
+    std::vector<projectile*> fire_circle(float time_between_shots, int num, float speed);
+
+    virtual void tick(state& s, float dt);
+
+    virtual void do_ai(state& s, float dt, vec2f pad_dir, character* current_enemy, const std::vector<ai_character*>& friendly_ai);
 };
 
 struct player : character
 {
-    void do_keyboard_controls(float dt);
+    player();
+
+    void do_keyboard_controls(state& s, float dt);
 
     virtual void tick(state& s, float dt);
 };

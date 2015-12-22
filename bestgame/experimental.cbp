@@ -160,7 +160,12 @@
 		<Unit filename="../openclrenderer/vec.hpp" />
 		<Unit filename="../openclrenderer/vertex.cpp" />
 		<Unit filename="../openclrenderer/vertex.hpp" />
+		<Unit filename="ai_manager.cpp" />
+		<Unit filename="ai_manager.hpp" />
+		<Unit filename="enemy_spawner.cpp" />
+		<Unit filename="enemy_spawner.hpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="object.cpp" />
 		<Unit filename="object.hpp" />
 		<Unit filename="state.hpp" />
 		<Extensions>

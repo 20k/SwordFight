@@ -17,6 +17,7 @@
 #include "renderer.hpp"
 #include "object.hpp"
 #include "state.hpp"
+#include "enemy_spawner.hpp"
 
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
@@ -69,6 +70,7 @@ struct w
     sf::RenderWindow window;
 };
 
+///really need stumble on enemy hit
 int main(int argc, char *argv[])
 {
     engine window;
@@ -154,17 +156,14 @@ int main(int argc, char *argv[])
 
     player* play = new player;
     play->set_pos({100, 100});
-    play->set_dim({10, 10});
     play->set_team(team::FRIENDLY);
 
-    ai_character* hostile = new ai_character;
+    ai_character* hostile = new hound_master;
     hostile->set_pos({200, 150});
-    hostile->set_dim({10, 10});
     hostile->set_team(team::ENEMY);
 
-    ai_character* h2 = new ai_character;
+    ai_character* h2 = new robot_enemy;
     h2->set_pos({300, 450});
-    h2->set_dim({10, 10});
     h2->set_team(team::ENEMY);
 
     std::vector<game_entity*> entities;
@@ -173,11 +172,23 @@ int main(int argc, char *argv[])
 
     entities.push_back(play);
     entities.push_back(hostile);
-    entities.push_back(h2);
+    //entities.push_back(h2);
+
+    for(int i=0; i<4; i++)
+    {
+        ai_character* h3 = new hound_enemy;
+        h3->set_pos({200, 150});
+        h3->set_team(team::ENEMY);
+
+        //entities.push_back(h3);
+    }
 
     ai_manager ai;
 
     st.ai = &ai;
+
+    enemy_spawner spawn;
+    spawn.start();
 
     vec2f mouse_pos = {0, 0};
 
@@ -210,9 +221,11 @@ int main(int argc, char *argv[])
         {
             entities[i]->tick(st, dt);
         }
-        ///entities guaranteed to exist
 
+        ///entities guaranteed to exist
         st.ai->tick(st, dt);
+
+        //spawn.tick(st, dt);
 
         ///clean dead entities
         for(int i=0; i<entities.size(); i++)
@@ -224,16 +237,6 @@ int main(int argc, char *argv[])
                 entities.erase(entities.begin() + i);
                 i--;
             }
-        }
-
-        if(mouse.isButtonPressed(sf::Mouse::Left))
-        {
-            vec2f dir = mouse_pos - play->pos;
-
-            game_entity* en = play->fire(dir, 0.25f);
-
-            if(en != nullptr)
-                entities.push_back(en);
         }
 
         render_2d.tick(window.window);
