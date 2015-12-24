@@ -25,7 +25,7 @@
 				<Option type="1" />
 				<Option compiler="mingw64" />
 				<Compiler>
-					<Add option="-Ofast" />
+					<Add option="-O3" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
@@ -83,13 +83,9 @@
 		<Unit filename="../openclrenderer/Game/Solar_object/solar.hpp" />
 		<Unit filename="../openclrenderer/Game/collision.cpp" />
 		<Unit filename="../openclrenderer/Game/collision.hpp" />
-		<Unit filename="../openclrenderer/Game/game_manager.cpp" />
 		<Unit filename="../openclrenderer/Game/game_manager.hpp" />
-		<Unit filename="../openclrenderer/Game/game_object.cpp" />
 		<Unit filename="../openclrenderer/Game/game_object.hpp" />
-		<Unit filename="../openclrenderer/Game/newtonian_body.cpp" />
 		<Unit filename="../openclrenderer/Game/newtonian_body.hpp" />
-		<Unit filename="../openclrenderer/Game/projectile.cpp" />
 		<Unit filename="../openclrenderer/Game/projectile.hpp" />
 		<Unit filename="../openclrenderer/Game/ship.cpp" />
 		<Unit filename="../openclrenderer/Game/ship.hpp" />
@@ -167,7 +163,10 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="object.cpp" />
 		<Unit filename="object.hpp" />
+		<Unit filename="renderer.hpp" />
 		<Unit filename="state.hpp" />
+		<Unit filename="world_manager.cpp" />
+		<Unit filename="world_manager.hpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

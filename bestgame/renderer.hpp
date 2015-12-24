@@ -54,11 +54,11 @@ struct render_square : renderable
     {
         //vec2f lpos = pos - dim/2.f;
 
-        if(pos.v[0] + dim.v[0] < 0 ||
+        /*if(pos.v[0] + dim.v[0] < 0 ||
            pos.v[0] - dim.v[0] >= win.getSize().x ||
            pos.v[1] + dim.v[1] < 0 ||
            pos.v[1] - dim.v[1] >= win.getSize().y)
-            return;
+            return;*/
 
         vec3f lcol = col * 255.f;
 

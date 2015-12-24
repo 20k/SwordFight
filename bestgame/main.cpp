@@ -18,6 +18,7 @@
 #include "object.hpp"
 #include "state.hpp"
 #include "enemy_spawner.hpp"
+#include "world_manager.hpp"
 
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
@@ -171,7 +172,7 @@ int main(int argc, char *argv[])
     st.entities = &entities;
 
     entities.push_back(play);
-    entities.push_back(hostile);
+    //entities.push_back(hostile);
     //entities.push_back(h2);
 
     for(int i=0; i<4; i++)
@@ -187,8 +188,15 @@ int main(int argc, char *argv[])
 
     st.ai = &ai;
 
+    world_manager world;
+    world.generate_level(1);
+
     enemy_spawner spawn;
     spawn.start();
+
+    sf::View view = window.window.getView();
+
+    window.window.setView(view);
 
     vec2f mouse_pos = {0, 0};
 
@@ -217,6 +225,8 @@ int main(int argc, char *argv[])
         window.render_block();
         window.display();*/
 
+        world.draw_rooms(st);
+
         for(int i=0; i<entities.size(); i++)
         {
             entities[i]->tick(st, dt);
@@ -238,6 +248,9 @@ int main(int argc, char *argv[])
                 i--;
             }
         }
+
+        ///need to check 4 corners of shape
+        printf("%i\n", world.is_wall(world.world_to_collision(play->pos).v[0], world.world_to_collision(play->pos).v[1]));
 
         render_2d.tick(window.window);
 
