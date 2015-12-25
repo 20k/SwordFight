@@ -127,6 +127,9 @@ struct seeker
 
 struct ai_character : character
 {
+    ///if false, the ai is off
+    bool enabled = true;
+
     virtual void tick(state& s, float dt);
 
     virtual void do_ai(state& s, float dt, vec2f pad_dir, character* current_enemy, const std::vector<ai_character*>& friendly_ai);

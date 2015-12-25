@@ -4,7 +4,6 @@
 #include <vector>
 #include <SFML/Graphics.hpp>
 
-struct sf::RenderWindow;
 struct renderer;
 struct game_entity;
 struct ai_manager;

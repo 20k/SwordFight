@@ -776,6 +776,12 @@ void player::do_keyboard_controls(state& s, float dt)
         if(en != nullptr)
             s.entities->push_back(en);
     }
+
+    vec2f ray_pos = s.world->raycast(pos, world_pos - pos);
+
+    render_square sq(ray_pos, {10, 10}, {1, 1, 1});
+
+    sq.tick(*s.win);
 }
 
 void player::tick(state& s, float dt)

@@ -1,7 +1,10 @@
 #ifndef ENEMY_SPAWNER_HPP_INCLUDED
 #define ENEMY_SPAWNER_HPP_INCLUDED
 
+#include <random>
+
 struct state;
+struct ai_character;
 
 struct enemy_spawner
 {
@@ -12,6 +15,8 @@ struct enemy_spawner
     void tick(state& s, float dt);
 
     void stop();
+
+    ai_character* get_random_character(std::minstd_rand& rnd);
 };
 
 

@@ -47,3 +47,29 @@ void enemy_spawner::stop()
 {
 
 }
+
+///remember, these are not added to the entity list!
+ai_character* enemy_spawner::get_random_character(std::minstd_rand& rnd)
+{
+    int type = rnd() % 4;
+
+    ai_character* ch = nullptr;
+
+    if(type == 0)
+        ch = new vanilla_enemy;
+    if(type == 1)
+        ch = new robot_enemy;
+    if(type == 2)
+        ch = new tank_enemy;
+    if(type == 3)
+        ch = new hound_master;
+
+    if(ch == nullptr)
+    {
+        throw std::runtime_error("Error in enemy spawner, invalid type???");
+    }
+
+    ch->set_team(team::ENEMY);
+
+    return ch;
+}

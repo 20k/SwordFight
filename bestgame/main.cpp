@@ -155,8 +155,9 @@ int main(int argc, char *argv[])
     st.render_2d = &render_2d;
     st.win = &window.window;
 
+    ///where should the player spawn?
     player* play = new player;
-    play->set_pos({100, 100});
+    //play->set_pos({100, 100});
     play->set_team(team::FRIENDLY);
 
     ai_character* hostile = new hound_master;
@@ -171,7 +172,7 @@ int main(int argc, char *argv[])
 
     st.entities = &entities;
 
-    entities.push_back(play);
+    //entities.push_back(play);
     //entities.push_back(hostile);
     //entities.push_back(h2);
 
@@ -190,6 +191,7 @@ int main(int argc, char *argv[])
 
     world_manager world;
     world.generate_level(1);
+    world.spawn_level(entities);
 
     st.world = &world;
 
@@ -252,7 +254,9 @@ int main(int argc, char *argv[])
         }
 
         ///need to check 4 corners of shape
-        printf("%i\n", world.is_open(world.world_to_collision(play->pos).v[0], world.world_to_collision(play->pos).v[1]));
+        //printf("%i\n", world.is_open(world.world_to_collision(play->pos).v[0], world.world_to_collision(play->pos).v[1]));
+
+        //render_square sq(st.world->raycast(play->pos, ));
 
         render_2d.tick(window.window);
 
@@ -260,6 +264,6 @@ int main(int argc, char *argv[])
         window.window.display();
         window.window.clear();
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 }

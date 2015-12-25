@@ -57,7 +57,8 @@ void ai_manager::tick(state& s, float dt)
         ///then coordinate that
         ///then do attacks based on that
 
-        ai->do_ai(s, dt, pad_vector, current_enemy, ai_list);
+        //if(ai->enabled)
+        //    ai->do_ai(s, dt, pad_vector, current_enemy, ai_list);
     }
 
     ai_list.clear();

@@ -3,6 +3,7 @@
 #include "state.hpp"
 #include "object.hpp"
 #include <cstring>
+#include "enemy_spawner.hpp"
 
 rect connect_rects(rect r1, rect r2)
 {
@@ -59,6 +60,24 @@ rect get_random_room(int seed)
     return {pos, dim};
 
     //printf("%f\n", v1);
+}
+
+///https://stackoverflow.com/questions/306316/determine-if-two-rectangles-overlap-each-other
+///RectA.X1 < RectB.X2 && RectA.X2 > RectB.X1 &&
+///RectA.Y1 < RectB.Y2 && RectA.Y2 > RectB.Y1
+bool intersect(rect r1, rect r2)
+{
+    float ax1 = r1.tl.v[0];
+    float ax2 = r1.tl.v[0] + r1.dim.v[0];
+    float bx1 = r2.tl.v[0];
+    float bx2 = r2.tl.v[0] + r2.dim.v[0];
+
+    float ay1 = r1.tl.v[1];
+    float ay2 = r1.tl.v[1] + r1.dim.v[1];
+    float by1 = r2.tl.v[1];
+    float by2 = r2.tl.v[1] + r2.dim.v[1];
+
+    return ax1 < bx2 && ax2 > bx1 && ay1 < by2 && ay2 > by1;
 }
 
 struct room_with_connectors
@@ -209,6 +228,39 @@ bool world_manager::entity_in_wall(vec2f world_pos, vec2f dim)
     return false;
 }
 
+vec2f world_manager::raycast(vec2f world_pos, vec2f dir)
+{
+    dir = dir.norm();
+
+    vec2i collision_pos = world_to_collision(world_pos);
+
+    if(!is_open(collision_pos.v[0], collision_pos.v[1]))
+        return world_pos;
+
+    vec2f cpos = {collision_pos.v[0], collision_pos.v[1]};
+
+    int max_raycast_length = 4000;
+
+    vec2f draw_dir;
+    int num;
+
+    line_draw_helper(cpos, cpos + dir * max_raycast_length, draw_dir, num);
+
+    vec2f pos = cpos;
+
+    for(int i=0; i<num; i++)
+    {
+        vec2f rpos = round(pos);
+
+        if(!is_open(rpos.v[0], rpos.v[1]))
+            return collision_to_world(pos);
+
+        pos = pos + draw_dir;
+    }
+
+    return world_pos;
+}
+
 ///need to shrink procedurally generated rooms to be fixed distance from each other
 
 void world_manager::generate_level(int seed)
@@ -234,11 +286,20 @@ void world_manager::generate_level(int seed)
     rooms.push_back(parent);
 
     rooms.insert(rooms.end(), connect.rooms.begin(), connect.rooms.end());
+
+    rooms_without_corridors = rooms;
+
     rooms.insert(rooms.end(), connect.connectors.begin(), connect.connectors.end());
 
     const float scale = 20.f;
 
     for(auto& i : rooms)
+    {
+        i.tl = (i.tl - i.dim/2.f) * scale + (i.dim/2.f) * scale;
+        i.dim = i.dim * scale;
+    }
+
+    for(auto& i : rooms_without_corridors)
     {
         i.tl = (i.tl - i.dim/2.f) * scale + (i.dim/2.f) * scale;
         i.dim = i.dim * scale;
@@ -300,6 +361,90 @@ void world_manager::generate_level(int seed)
         }
     }
 
+    level_rng = rnd;
+}
+
+void world_manager::spawn_level(std::vector<game_entity*>& entities)
+{
+    vec2f most_remote = {0,0};
+    int most_id = -1;
+
+    for(int i=0; i<rooms_without_corridors.size(); i++)
+    {
+        rect room = rooms_without_corridors[i];
+
+        vec2f centre = room.tl + room.dim/2.f;
+
+        if(fabs(centre.v[0]) > most_remote.v[0] || fabs(centre.v[1]) > most_remote.v[1] || centre.length() > most_remote.length())
+        {
+            most_remote = centre;
+            most_id = i;
+        }
+    }
+
+    if(most_id == -1)
+    {
+        throw std::runtime_error("broke");
+    }
+
+    ///for spawning in
+    ///added the id of the room the player is spawning in!
+    ///this is because several rooms can overlap
+    //std::vector<int> rooms_disallowed{most_id};
+
+    std::vector<int> rooms_allowed;
+
+    for(int i=0; i<rooms_without_corridors.size(); i++)
+    {
+        ///definitely not allowed
+        if(i == most_id)
+            continue;
+
+        if(!intersect(rooms_without_corridors[most_id], rooms_without_corridors[i]))
+        {
+            //rooms_disallowed.push_back(i);
+            rooms_allowed.push_back(i);
+        }
+    }
+
+    for(int i=0; i <rooms_allowed.size(); i++)
+    {
+        rect room = rooms_without_corridors[rooms_allowed[i]];
+
+        int min_enemies = 2;
+        int variation = 5;
+
+        int num_enemies = min_enemies + (level_rng() % variation);
+
+        enemy_spawner spawn;
+
+        for(int j=0; j<num_enemies; j++)
+        {
+            ai_character* ch = spawn.get_random_character(level_rng);
+
+            ///temp!!
+            ch->enabled = false;
+
+            vec2f min_spawn = room.dim/4.f;
+            vec2f max_spawn = 3 * room.dim / 4.f;
+
+            vec2f pos = rand_det(level_rng, min_spawn, max_spawn);
+
+            pos = pos + room.tl;
+
+            //vec2f pos = room.tl;
+
+            ch->set_pos(pos);
+
+            entities.push_back(ch);
+        }
+    }
+
+    player* play = new player;
+    play->set_team(team::FRIENDLY);
+    play->set_pos(most_remote);
+
+    entities.push_back(play);
 }
 
 void world_manager::draw_rooms(state& s)
