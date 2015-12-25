@@ -412,9 +412,9 @@ void world_manager::spawn_level(std::vector<game_entity*>& entities)
         rect room = rooms_without_corridors[rooms_allowed[i]];
 
         int min_enemies = 2;
-        int variation = 5;
+        int variation = 4;
 
-        int num_enemies = min_enemies + (level_rng() % variation);
+        int num_enemies = min_enemies + (level_rng() % (variation + 1));
 
         enemy_spawner spawn;
 
@@ -451,7 +451,7 @@ void world_manager::draw_rooms(state& s)
 {
     for(int i=0; i<rooms.size(); i++)
     {
-        render_square sq(rooms[i].tl + rooms[i].dim/2.f, rooms[i].dim, {0.7f, 0.3f, 0.7f});
+        render_square sq(rooms[i].tl + rooms[i].dim/2.f, rooms[i].dim, {0.4f, 0.4f, 0.4f});
 
         //sq.pos = sq.pos * 20.f;
         //sq.dim = sq.dim * 20.f;

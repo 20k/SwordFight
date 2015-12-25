@@ -336,6 +336,18 @@ vec2f get_move_within_distance(vec2f my_pos, vec2f enemy_pos, float distance)
     return {0,0};
 }
 
+bool can_see(state& s, game_entity* target, game_entity* source, float max_dist)
+{
+    vec2f end_pos = s.world->raycast(source->pos, target->pos - source->pos);
+
+    float to_end = (end_pos - source->pos).length();
+    float to_target = (target->pos - source->pos).length();
+
+    bool success = to_target < to_end && (target->pos - source->pos).length() < max_dist;
+
+    return success;
+}
+
 void ai_character::do_ai(state& s, float dt, vec2f pad_dir, character* current_enemy, const std::vector<ai_character*>& friendly_ai)
 {
 

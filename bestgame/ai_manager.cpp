@@ -59,6 +59,11 @@ void ai_manager::tick(state& s, float dt)
 
         //if(ai->enabled)
         //    ai->do_ai(s, dt, pad_vector, current_enemy, ai_list);
+
+        if(!can_see(s, ai, current_enemy, 500.f))
+            continue;
+
+         ai->do_ai(s, dt, pad_vector, current_enemy, ai_list);
     }
 
     ai_list.clear();

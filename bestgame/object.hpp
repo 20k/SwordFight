@@ -6,6 +6,8 @@
 
 #include "ai_manager.hpp"
 
+bool can_see(state& s, game_entity* target, game_entity* source, float max_dist);
+
 namespace team
 {
     enum team : int32_t
