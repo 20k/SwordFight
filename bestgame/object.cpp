@@ -1,4 +1,5 @@
 #include "object.hpp"
+#include "world_manager.hpp"
 
 void game_entity::set_dim(vec2f _dim)
 {
@@ -110,6 +111,20 @@ void projectile::tick(state& s, float dt)
 {
     if(clk.getElapsedTime().asMilliseconds() / 1000.f > time_to_live_s)
         to_remove = true;
+
+    //if(!s.world->is_open(pos.v[0], pos.v[1]))
+    //    to_remove = true;
+
+    //vec2i collision_coordinates = s.world->world_to_collision(pos);
+
+    //if(!s.world->is_open(collision_coordinates.v[0], collision_coordinates.v[1]))
+    //    to_remove = true;
+
+    if(s.world->entity_in_wall(pos, dim))
+        to_remove = true;
+
+    if(to_remove)
+        return;
 
     move_at_speed(dir.norm(), speed, dt);
 

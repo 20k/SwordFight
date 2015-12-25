@@ -8,6 +8,7 @@ struct sf::RenderWindow;
 struct renderer;
 struct game_entity;
 struct ai_manager;
+struct world_manager;
 
 struct state
 {
@@ -15,6 +16,7 @@ struct state
     renderer* render_2d;
     std::vector<game_entity*>* entities;
     ai_manager* ai;
+    world_manager* world;
 
     ///vector of all characters
 };

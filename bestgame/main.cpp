@@ -191,6 +191,8 @@ int main(int argc, char *argv[])
     world_manager world;
     world.generate_level(1);
 
+    st.world = &world;
+
     enemy_spawner spawn;
     spawn.start();
 
@@ -250,7 +252,7 @@ int main(int argc, char *argv[])
         }
 
         ///need to check 4 corners of shape
-        printf("%i\n", world.is_wall(world.world_to_collision(play->pos).v[0], world.world_to_collision(play->pos).v[1]));
+        printf("%i\n", world.is_open(world.world_to_collision(play->pos).v[0], world.world_to_collision(play->pos).v[1]));
 
         render_2d.tick(window.window);
 

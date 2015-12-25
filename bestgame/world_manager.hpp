@@ -22,8 +22,9 @@ struct world_manager
     bool* collision_map;
     int width, height;
 
-    bool is_wall(int x, int y);
+    bool is_open(int x, int y);
     void set_wall_state(int x, int y, bool is_open);
+    bool entity_in_wall(vec2f world_pos, vec2f dim);
 
     bool within_any_room(vec2f pos);
 

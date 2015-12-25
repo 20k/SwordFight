@@ -151,12 +151,12 @@ vec2f world_manager::collision_to_world(vec2f cpos)
     return ret;
 }
 
-bool world_manager::is_wall(int x, int y)
+bool world_manager::is_open(int x, int y)
 {
     if(x < 0 || y < 0 || x >= width || y >= width)
     {
         printf("warning, oob\n");
-        return true;
+        return false;
     }
 
     return collision_map[y*width + x];
@@ -178,6 +178,31 @@ bool world_manager::within_any_room(vec2f pos)
     for(auto& i : rooms)
     {
         if(pos >= i.tl && pos < i.tl + i.dim)
+            return true;
+    }
+
+    return false;
+}
+
+///the problem is dt meaning that its never really in the right place
+///:[
+bool world_manager::entity_in_wall(vec2f world_pos, vec2f dim)
+{
+    vec2f half_dim = ceil_away_from_zero(dim/2.f);
+    vec2f fcol = world_pos;
+
+    vec2f point[4];
+
+    point[0] = fcol - half_dim;
+    point[1] = fcol + (vec2f){half_dim.v[0], -half_dim.v[1]};
+    point[2] = fcol + (vec2f){-half_dim.v[0], half_dim.v[1]};
+    point[3] = fcol + half_dim;
+
+    for(int i=0; i<4; i++)
+    {
+        vec2i coll = world_to_collision(ceil_away_from_zero(point[i]));
+
+        if(!is_open(coll.v[0], coll.v[1]))
             return true;
     }
 
@@ -238,7 +263,7 @@ void world_manager::generate_level(int seed)
     ///you know, it might be faster to bruteforce it rather than do this
     for(int y=0; y<height; y+=1)
     {
-        for(int x=0; x<width; x+=1)
+        for(int x=0; x<width; x+=1)d
         {
             vec2f cpos = {x, y};
 
@@ -281,7 +306,7 @@ void world_manager::draw_rooms(state& s)
 {
     for(int i=0; i<rooms.size(); i++)
     {
-        render_square sq(rooms[i].tl + rooms[i].dim/2.f, rooms[i].dim, {0.3f, 0.8f, 0.3f});
+        render_square sq(rooms[i].tl + rooms[i].dim/2.f, rooms[i].dim, {0.7f, 0.3f, 0.7f});
 
         //sq.pos = sq.pos * 20.f;
         //sq.dim = sq.dim * 20.f;
