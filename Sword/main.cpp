@@ -314,6 +314,8 @@ int main(int argc, char *argv[])
     floor->cache = false;
     floor->set_active(true);
     //floor->set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
+    floor->offset_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
+
 
     /*objects_container* file_map = context.make_new();
     file_map->set_file("./res/map2.obj");
