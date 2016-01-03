@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <random>
 
 #define M_PIf ((float)M_PI)
 
@@ -277,6 +278,8 @@ bool operator<(const vec<N, T>& v1, const vec<N, T>& v2)
     return false;
 }*/
 
+///all elements less than the second
+///should probably change this to follow opencl
 template<int N, typename T>
 bool operator<(const vec<N, T>& v1, const vec<N, T>& v2)
 {
@@ -307,6 +310,12 @@ bool operator== (const vec<N, T>& v1, const vec<N, T>& v2)
     return true;
 }
 
+template<int N, typename T>
+bool operator>= (const vec<N, T>& v1, const vec<N, T>& v2)
+{
+    return (v1 > v2) || (v1 == v2);
+}
+
 #define V3to4(x) {x.v[0], x.v[1], x.v[2], x.v[3]}
 
 typedef vec<3, float> vec3f;
@@ -314,6 +323,7 @@ typedef vec<2, float> vec2f;
 
 typedef vec<3, int> vec3i;
 typedef vec<2, int> vec2i;
+
 
 
 inline float randf_s()
@@ -383,7 +393,6 @@ vec<N, T> clamp(const vec<N, T>& v1, const vec<N, T>& p1, const vec<N, T>& p2)
 
     return ret;
 }
-
 
 template<typename T>
 inline

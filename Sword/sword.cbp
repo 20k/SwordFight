@@ -137,6 +137,8 @@
 		<Unit filename="fighter.cpp" />
 		<Unit filename="fighter.hpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="map_tools.cpp" />
+		<Unit filename="map_tools.hpp" />
 		<Unit filename="object_cube.cpp" />
 		<Unit filename="object_cube.hpp" />
 		<Unit filename="particle_effect.cpp" />

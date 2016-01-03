@@ -23,6 +23,7 @@
 
 #include "../openclrenderer/settings_loader.hpp"
 #include "../openclrenderer/controls.hpp"
+#include "map_tools.hpp"
 
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
@@ -298,21 +299,26 @@ int main(int argc, char *argv[])
     object_context context;
     object_context_data* gpu_context = context.fetch();
 
-    objects_container* floor = context.make_new();
+    ///really old and wrong, ignore me
+    /*objects_container* floor = context.make_new();
     floor->set_load_func(std::bind(load_object_cube, std::placeholders::_1,
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0},
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0},
-                                  3000.f, "./res/gray.png"));
+                                  3000.f, "./res/gray.png"));*/
+
+    objects_container* floor = context.make_new();
+    floor->set_load_func(std::bind(load_map, std::placeholders::_1, map_test, 10, 10));
 
     ///need to extend this to textures as well
     floor->set_normal("./res/norm.png");
     floor->cache = false;
-    floor->set_active(false);
+    floor->set_active(true);
+    //floor->set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
 
-    objects_container* file_map = context.make_new();
+    /*objects_container* file_map = context.make_new();
     file_map->set_file("./res/map2.obj");
-    file_map->set_active(true);
-    file_map->set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3 - 0, 0});
+    file_map->set_active(false);
+    file_map->set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3 - 0, 0});*/
     //file_map.set_normal("res/norm_body.png");
 
     settings s;
@@ -366,7 +372,7 @@ int main(int argc, char *argv[])
 
     context.load_active();
 
-    file_map->scale(1000);
+    //file_map->scale(1000);
 
     printf("postload\n");
 
@@ -642,6 +648,11 @@ int main(int argc, char *argv[])
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
         sound::update_listeners();
+
+        context.flip();
+        object_context_data* cdat = context.fetch();
+
+        window.set_object_data(*cdat);
 
         //obj_mem_manager::g_changeover();
 

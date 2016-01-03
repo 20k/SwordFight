@@ -62,7 +62,7 @@ triangle points_to_tri(cl_float4 in[3], float size, float len, int which_side) /
     for(int i=0; i<3; i++)
         t.vertices[i].set_normal(cross(sub(in[1], in[0]), sub(in[2], in[0])));
 
-        return t;
+    return t;
 }
 
 ///fin - start is the object direction
@@ -165,6 +165,9 @@ void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float siz
     //pobj->objs.clear();
     pobj->objs.push_back(obj);
 
+    ///sets for subobjects as well
+    ///this is pretty confusing and misleading
+    ///its not additive, it sets the subobjects to be this
     pobj->set_pos({start.v[0], start.v[1], start.v[2]});
     pobj->set_rot({rot.v[0], rot.v[1], rot.v[2]});
 
