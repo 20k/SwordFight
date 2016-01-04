@@ -406,7 +406,7 @@ void cape::tick(fighter* parent)
     vec3f mp = parent->parts[bodypart::BODY].global_pos;
     vec3f rp = parent->parts[bodypart::RUPPERARM].global_pos;
 
-    vec3f grot = parent->parts[bodypart::BODY].global_rot;
+    vec3f grot = parent->rot;
 
     compute::buffer fixed = fighter_to_fixed_vec(lp, mp, rp, grot);
 
