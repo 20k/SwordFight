@@ -956,7 +956,7 @@ void fighter::IK_foot(int which_foot, vec3f pos)
     //printf("%f\n", o2.v[2]);
 
     parts[upper].set_pos(o1);
-    parts[lower].set_pos((o2 + old_pos[lower]*10)/11.f);
+    parts[lower].set_pos((o2 + old_pos[lower]*5)/6.f);
     parts[hand].set_pos(o3);
 }
 
