@@ -214,7 +214,7 @@ compute::buffer cape::fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f r
 
     ///approximation
     ///could also use body scaling
-    float ldepth = (p3 - p1).length() / 5.f;
+    float ldepth = (p3 - p1).length() / 4.f;
     float rdepth = ldepth;
 
     lpos = lpos + (vec3f){0, 0, ldepth}.rot({0,0,0}, rotation);
@@ -402,13 +402,13 @@ void cape::tick(fighter* parent)
     compute::buffer b1 = which == 0 ? in : out;
     compute::buffer b2 = which == 0 ? out : in;
 
-    objects_container* l = parent->parts[bodypart::LUPPERARM].obj();
-    objects_container* m = parent->parts[bodypart::BODY].obj();
-    objects_container* r = parent->parts[bodypart::RUPPERARM].obj();
+    vec3f lp = parent->parts[bodypart::LUPPERARM].global_pos;
+    vec3f mp = parent->parts[bodypart::BODY].global_pos;
+    vec3f rp = parent->parts[bodypart::RUPPERARM].global_pos;
 
-    //compute::buffer fixed = fighter_to_fixed(l, m, r);
+    vec3f grot = parent->parts[bodypart::BODY].global_rot;
 
-    compute::buffer fixed = fighter_to_fixed_vec(xyz_to_vec(l->pos), xyz_to_vec(m->pos), xyz_to_vec(r->pos), xyz_to_vec(m->rot));
+    compute::buffer fixed = fighter_to_fixed_vec(lp, mp, rp, grot);
 
     cloth_args.push_back(&b1);
     cloth_args.push_back(&b2);
