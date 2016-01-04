@@ -399,8 +399,8 @@ int main(int argc, char *argv[])
 
     ///a very high roughness is better (low spec), but then i think we need to remove the overhead lights
     ///specular component
-    floor->set_specular(0.9f);
-    floor->set_diffuse(8.f);
+    floor->set_specular(0.6f);
+    floor->set_diffuse(4.f);
 
     texture_manager::allocate_textures();
     auto tex_gpu = texture_manager::build_descriptors();
@@ -422,8 +422,8 @@ int main(int argc, char *argv[])
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
-    l.set_brightness(0.2f);
-    l.set_diffuse(1.f);
+    l.set_brightness(0.01f);
+    l.set_diffuse(10.f);
     l.set_pos({0, 10000, -300, 0});
 
     //window.add_light(&l);
@@ -519,10 +519,6 @@ int main(int argc, char *argv[])
 
             fight.die();
             fight2.die();
-
-            //obj_mem_manager::load_active_objects();
-
-            //obj_mem_manager::g_arrange_mem();
 
             context.load_active();
             context.build();
