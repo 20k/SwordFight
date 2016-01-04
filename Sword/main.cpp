@@ -306,8 +306,14 @@ int main(int argc, char *argv[])
                                   (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0},
                                   3000.f, "./res/gray.png"));*/
 
+    world_map default_map;
+    default_map.init(map_one, 11, 12);
+
+    gameplay_state current_state;
+    current_state.set_map(default_map);
+
     objects_container* floor = context.make_new();
-    floor->set_load_func(std::bind(load_map, std::placeholders::_1, &map_one[0], 11, 12));
+    floor->set_load_func(default_map.get_load_func());
 
     ///need to extend this to textures as well
     floor->set_normal("./res/norm.png");
@@ -345,6 +351,7 @@ int main(int argc, char *argv[])
     fighter fight(context, *gpu_context);
     fight.set_team(0);
     fight.set_quality(s.quality);
+    fight.set_gameplay_state(&current_state);
     //fight.my_cape.make_stable(&fight);
 
     fighter fight2(context, *gpu_context);
@@ -352,6 +359,7 @@ int main(int argc, char *argv[])
     fight2.set_pos({0, 0, -600});
     fight2.set_rot({0, M_PI, 0});
     fight2.set_quality(s.quality);
+    fight2.set_gameplay_state(&current_state);
 
     std::vector<fighter*> net_fighters;
 
@@ -363,6 +371,7 @@ int main(int argc, char *argv[])
         net_fighters[i]->set_pos({0, 0, -3000000});
         net_fighters[i]->set_rot({0, 0, 0});
         net_fighters[i]->set_quality(s.quality);
+        net_fighters[i]->set_gameplay_state(&current_state);
     }
 
     physics phys;
@@ -370,14 +379,9 @@ int main(int argc, char *argv[])
 
     printf("preload\n");
 
-    //obj_mem_manager::load_active_objects();
-
     context.load_active();
 
-    //file_map->scale(1000);
-
     printf("postload\n");
-
 
     fight.set_physics(&phys);
     fight2.set_physics(&phys);
@@ -398,16 +402,12 @@ int main(int argc, char *argv[])
     floor->set_specular(0.9f);
     floor->set_diffuse(8.f);
 
-
     texture_manager::allocate_textures();
     auto tex_gpu = texture_manager::build_descriptors();
 
     window.set_tex_data(tex_gpu);
 
     printf("textures\n");
-
-    //obj_mem_manager::g_arrange_mem();
-    //obj_mem_manager::g_changeover();
 
     context.build();
 
@@ -643,7 +643,6 @@ int main(int argc, char *argv[])
         particle_effect::tick();
 
         ///about 0.2ms slower than not doing this
-        //engine::realloc_light_gmem();
         light_data = light::build();
         window.set_light_data(light_data);
 
@@ -658,21 +657,22 @@ int main(int argc, char *argv[])
 
         window.set_object_data(*cdat);
 
-        //obj_mem_manager::g_changeover();
-
         window.draw_bulk_objs_n();
 
-        //window.render_buffers();
         //text::draw();
         window.render_block();
         window.display();
 
-        vec3f world_play = my_fight->pos;
+        /*vec3f world_play = my_fight->pos;
 
         vec2f world_2d = {world_play.v[0], world_play.v[2]};
 
-        printf("collide %i\n", is_wall(world_2d, map_one, 11, 12));
+        vec2f real_size = {bodypart::scale, bodypart::scale};
 
+        real_size = real_size * 2.f;
+        real_size = real_size + bodypart::scale * 2.f/5.f;*/
+
+        //printf("collide %i\n", rectangle_in_wall(world_2d, real_size, map_one, 11, 12));
 
         std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }

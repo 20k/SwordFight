@@ -10,6 +10,7 @@
 #include "bbox.hpp"
 
 #include "cape.hpp"
+#include "map_tools.hpp"
 
 namespace mov
 {
@@ -379,6 +380,7 @@ struct link
 
 struct light;
 
+///what a clusterfuck
 struct fighter
 {
     std::vector<light*> my_lights;
@@ -392,7 +394,9 @@ struct fighter
 
     networked_components net;
 
-    int side;
+    int side; ///as in team?
+
+    gameplay_state* game_state;
 
     const vec3f* rest_positions;
 
@@ -429,10 +433,10 @@ struct fighter
     bool idling;
     bool performed_death; ///have i done my death stuff locally
 
-
     int quality; /// 0 = low, 1 = high
 
     void set_quality(int _quality);
+    void set_gameplay_state(gameplay_state* st);
 
     cape my_cape;
 
@@ -460,6 +464,7 @@ struct fighter
     void set_pos(vec3f);
     void set_rot(vec3f);
     void set_rot_diff(vec3f diff);
+    vec2f get_approx_dim();
 
     movement* get_movement(size_t id);
 

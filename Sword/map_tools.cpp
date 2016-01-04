@@ -2,6 +2,26 @@
 #include "object_cube.hpp"
 #include "map_tools.hpp"
 
+void world_map::init(const std::vector<int>& _map, int w, int h)
+{
+    map_def = _map;
+    width = w;
+    height = h;
+}
+
+std::function<void(objects_container*)> world_map::get_load_func()
+{
+    if(width == 0 || height == 0)
+        throw std::runtime_error("wildly invalid map, what do");
+
+    return std::bind(load_map, std::placeholders::_1, map_def, width, height);
+}
+
+void gameplay_state::set_map(world_map& _map)
+{
+    current_map = _map;
+}
+
 ///doesnt' work because each addition to the container
 ///stomps over the position of the last
 ///we need to take the position and actually statically modify
@@ -10,7 +30,7 @@
 ///maybe make a temp objects container and do that
 ///do we want a static merge function? Combine nearby points to fix holes
 ///works now, but the above comments are still relevant
-void load_map(objects_container* obj, int* map_def, int width, int height)
+void load_map(objects_container* obj, const std::vector<int>& map_def, int width, int height)
 {
     vec2f centre = {width/2.f, height/2.f};
 
@@ -61,11 +81,39 @@ bool is_wall(vec2f world_pos, const std::vector<int>& map_def, int width, int he
 
     vec2i imap = {map_scale.v[0], map_scale.v[1]};
 
-    printf("Map: %i %i\n", imap.v[0], imap.v[1]);
+    //printf("Map: %i %i\n", imap.v[0], imap.v[1]);
 
     if(imap.v[0] < 0 || imap.v[0] >= width || imap.v[1] < 0 || imap.v[1] >= height)
         return true;
 
     ///if we're bigger than 0, we're a wall. Otherwise, not
     return map_def[imap.v[1]*width + imap.v[0]] > 0;
+}
+
+bool rectangle_in_wall(vec2f centre, vec2f dim, const std::vector<int>& map_def, int width, int height)
+{
+    vec2f hd = dim/2.f;
+
+    vec2f posl[4];
+
+    posl[0] = centre - hd;
+    posl[1] = centre + (vec2f){hd.v[0], -hd.v[1]};
+    posl[2] = centre + (vec2f){-hd.v[0], hd.v[1]};
+    posl[3] = centre + hd;
+
+    for(int i=0; i<4; i++)
+    {
+        if(is_wall(posl[i], map_def, width, height))
+            return true;
+    }
+
+    return false;
+}
+
+bool rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st)
+{
+    if(st == nullptr)
+        return false;
+
+    return rectangle_in_wall(centre, dim, st->current_map.map_def, st->current_map.width, st->current_map.height);
 }

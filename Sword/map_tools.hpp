@@ -5,6 +5,8 @@
 
 struct objects_container;
 
+//#include "../openclrenderer/objects_conta
+
 static std::vector<int>
 map_test =
 {
@@ -42,13 +44,33 @@ namespace game_map
     static float scale = 1000.f;
 }
 
+struct world_map
+{
+    int width = 0, height = 0;
+    std::vector<int> map_def;
+
+    void init(const std::vector<int>& _map, int w, int h);
+
+    std::function<void(objects_container*)> get_load_func();
+};
+
+struct gameplay_state
+{
+    world_map current_map;
+
+    void set_map(world_map& m);
+};
+
 ///what we really want is a map class
 ///that returns a load function
 ///or a loaded object
 
-void load_map(objects_container* obj, int* map_def, int width, int height);
+void load_map(objects_container* obj, const std::vector<int>& map_def, int width, int height);
 
 ///xz, where z is y in 2d space
 bool is_wall(vec2f world_pos, const std::vector<int>& map_def, int width, int height);
+bool rectangle_in_wall(vec2f centre, vec2f dim, const std::vector<int>& map_def, int width, int height);
+bool rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st);
+
 
 #endif // MAP_TOOLS_HPP_INCLUDED

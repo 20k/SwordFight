@@ -474,6 +474,8 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
     pos = {0,0,0};
     rot = {0,0,0};
+
+    game_state = nullptr;
 }
 
 void fighter::load()
@@ -738,6 +740,11 @@ void fighter::set_quality(int _quality)
     {
         i.set_quality(quality);
     }
+}
+
+void fighter::set_gameplay_state(gameplay_state* st)
+{
+    game_state = st;
 }
 
 void fighter::set_look(vec3f _look)
@@ -1150,10 +1157,16 @@ vec3f seek(vec3f cur, vec3f dest, float dist, float seek_time, float elapsed_tim
 ///do I want to do a proper dynamic timing synchronisation thing?
 void fighter::walk_dir(vec2f dir, bool sprint)
 {
+    if(game_state == nullptr)
+    {
+        printf("Warning: No gameplay state for fighter\n");
+    }
+
     ///try and fix the lex stiffening up a bit, but who cares
     ///make feet average out with the ground
     bool idle = dir.v[0] == 0 && dir.v[1] == 0;
 
+    ///Make me a member variable?
     static vec2f valid_dir = {-1, 0};
 
     if(idle)
@@ -1161,7 +1174,10 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     else
         valid_dir = dir;
 
+
+
     ///in ms
+    ///replace this with a dt
     float time_elapsed = walk_clock.getElapsedTime().asMicroseconds() / 1000.f;
 
     float h = 120.f;
@@ -1189,7 +1205,18 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 
     ///dont move the player if we're really idling
     if(!idle)
-        pos = pos + global_dir;
+    {
+        vec3f predicted = pos + global_dir;
+
+        vec2f lpredict = {predicted.v[0], predicted.v[2]};
+
+        ///now what we really wanna do is then deflect instead of stopping abruptly
+        ///but thats for a later date
+        if(!rectangle_in_wall(lpredict, get_approx_dim(), game_state))
+        {
+            pos = predicted;
+        }
+    }
 
     vec3f current_dir = (vec3f){ldir.v[1], 0.f, ldir.v[0]} * time_elapsed/2.f;
 
@@ -1429,6 +1456,16 @@ void fighter::set_rot_diff(vec3f diff)
 {
     rot_diff = diff;
     rot = rot + diff;
+}
+
+vec2f fighter::get_approx_dim()
+{
+    vec2f real_size = {bodypart::scale, bodypart::scale};
+
+    real_size = real_size * 2.f;
+    real_size = real_size + bodypart::scale * 2.f/5.f;
+
+    return real_size;
 }
 
 movement* fighter::get_movement(size_t id)
