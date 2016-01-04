@@ -1,7 +1,7 @@
 #ifndef PHYSICS_HPP_INCLUDED
 #define PHYSICS_HPP_INCLUDED
 
-#include "vec.hpp"
+#include <vec/vec.hpp>
 #include "bbox.hpp"
 
 struct part;

@@ -1,7 +1,7 @@
 #ifndef SOUND_HPP_INCLUDED
 #define SOUND_HPP_INCLUDED
 
-#include "vec.hpp"
+#include <vec/vec.hpp>
 #include <vector>
 
 struct sound

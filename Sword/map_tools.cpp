@@ -29,6 +29,9 @@ void load_map(objects_container* obj, int* map_def, int width, int height)
 
             float scale = 1000.f;
 
+            world_pos_start = world_pos_start + (vec3f){1/2.f, 0.f, 1/2.f};
+            world_pos_end = world_pos_end + (vec3f){1/2.f, 0.f, 1/2.f};
+
             objects_container temp_obj;
 
             load_object_cube(&temp_obj, world_pos_start * scale, world_pos_end * scale, scale/2, "./Res/gray.png");

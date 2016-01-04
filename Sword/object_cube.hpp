@@ -1,7 +1,7 @@
 #ifndef OBJECT_CUBE_HPP_INCLUDED
 #define OBJECT_CUBE_HPP_INCLUDED
 
-#include "vec.hpp"
+#include <vec/vec.hpp>
 
 struct objects_container;
 

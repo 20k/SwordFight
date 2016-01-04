@@ -3,7 +3,7 @@
 
 #include "../openclrenderer/objects_container.hpp"
 
-#include "vec.hpp"
+#include <vec/vec.hpp>
 
 #include <SFML/Graphics.hpp>
 
@@ -483,10 +483,6 @@ struct fighter
 
     void damage(bodypart_t type, float d);
 
-    int process_foot(bodypart_t foot, int stage, vec2f dir, float d, std::vector<vec3f> positions, float time_wasted = 0, bool can_skip = true, movement_t extra_tags = mov::NONE);
-
-    void process_foot_g2(bodypart_t foot, vec2f dir, int& stage, float& frac, vec3f seek, vec3f prev, float seek_time, float elapsed_time);
-
     ///resets all vars
     void respawn(vec2f pos = {0,0});
     void die();
@@ -519,8 +515,6 @@ private:
 
     float left_frac;
     float right_frac;
-
-    bool skip_stride(vec3f, vec3f, bodypart_t, bodypart_t);
 
     int idle_fired_first;
 

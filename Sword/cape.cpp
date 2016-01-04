@@ -6,7 +6,7 @@
 #include "../openclrenderer/clstate.h"
 #include "../openclrenderer/engine.hpp"
 #include "../openclrenderer/obj_mem_manager.hpp"
-#include "vec.hpp"
+#include <vec/vec.hpp>
 #include "physics.hpp"
 #include "fighter.hpp"
 #include "../openclrenderer/vec.hpp"

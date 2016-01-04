@@ -307,7 +307,7 @@ int main(int argc, char *argv[])
                                   3000.f, "./res/gray.png"));*/
 
     objects_container* floor = context.make_new();
-    floor->set_load_func(std::bind(load_map, std::placeholders::_1, map_test, 10, 10));
+    floor->set_load_func(std::bind(load_map, std::placeholders::_1, &map_one[0], 11, 12));
 
     ///need to extend this to textures as well
     floor->set_normal("./res/norm.png");
@@ -393,6 +393,8 @@ int main(int argc, char *argv[])
 
     printf("loaded net fighters\n");
 
+    ///a very high roughness is better (low spec), but then i think we need to remove the overhead lights
+    ///specular component
     floor->set_specular(0.9f);
     floor->set_diffuse(8.f);
 

@@ -2,7 +2,7 @@
 #define PARTICLE_EFFECT_HPP_INCLUDED
 
 #include <SFML/Graphics.hpp>
-#include "vec.hpp"
+#include <vec/vec.hpp>
 #include <vector>
 
 struct object_context;

@@ -2,7 +2,7 @@
 #include "../openclrenderer/objects_container.hpp"
 #include "../openclrenderer/vec.hpp"
 #include "../openclrenderer/texture.hpp"
-#include "vec.hpp"
+#include <vec/vec.hpp>
 #include <vector>
 #include <array>
 
@@ -23,7 +23,6 @@ triangle points_to_tri(cl_float4 in[3], float size, float len, int which_side) /
 
     for(int i=0; i<3; i++)
         t.vertices[i].set_pos(in[i]);
-
 
     ///should probs fix this being slightly wrong, could eliminate edge boundaries
     ///and then just use the twice sized texture

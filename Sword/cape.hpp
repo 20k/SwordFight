@@ -2,7 +2,7 @@
 #define CAPE_HPP_INCLUDED
 
 #include <Boost/compute.hpp>
-#include "vec.hpp"
+#include <vec/vec.hpp>
 
 struct object_context_data;
 struct object_context;

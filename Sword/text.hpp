@@ -1,7 +1,7 @@
 #ifndef TEXT_HPP_INCLUDED
 #define TEXT_HPP_INCLUDED
 
-#include "vec.hpp"
+#include <vec/vec.hpp>
 #include <vector>
 
 #include <SFML/Graphics.hpp>
