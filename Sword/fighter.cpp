@@ -900,7 +900,8 @@ void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1
 
     vec3f half = (p1 + o_p3)/2.f;
 
-    o_p2 = half + height * d3;
+    ///set this to std::max(height, 30.f) if you want beelzebub strolling around
+    o_p2 = half + std::min(height, -5.f) * d3;
 
     vec3f d = (o_p3 - p1).norm();
 
