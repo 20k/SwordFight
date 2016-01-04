@@ -1237,8 +1237,6 @@ void fighter::walk_dir(vec2f dir, bool sprint)
             dir_move = 0.f;
         }
 
-        ///now what we really wanna do is then deflect instead of stopping abruptly
-        ///but thats for a later date
         ///just in case!
         if(!rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state))
         {
