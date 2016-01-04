@@ -92,6 +92,7 @@ struct planet_builder
         return {x, y, z, 0};
     }
 
+    ///soo uh. Lets make this not n^stupid, ok?
     std::vector<int> get_nearest_n(const std::vector<cl_float4>& pos, int my_id, int N, std::vector<int> exclude = std::vector<int>())
     {
         cl_float4 my_pos = pos[my_id];
@@ -449,7 +450,6 @@ struct planet_builder
             conn_pos.clear();
         }
 
-
         std::vector<int> marked = mark_deletion(new_pos);
 
         for(int i=0; i<marked.size(); i++)
@@ -620,7 +620,7 @@ struct planet_builder
         //for(int i=0; i<1; i++)
         //    std::tie(pos, connections) = subdivide(pos, connections, rad);
 
-        std::tie(pos, connections) = subdivide_direct(pos, connections, rad, 30);
+        std::tie(pos, connections) = subdivide_direct(pos, connections, rad, 20);
 
         /*saved_pos = pos;
 
