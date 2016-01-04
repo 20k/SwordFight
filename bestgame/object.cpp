@@ -233,6 +233,8 @@ void ai_character::tick(state& s, float dt)
 vanilla_enemy::vanilla_enemy()
 {
     set_dim({10, 10});
+
+    hp = 0.5f;
 }
 
 robot_enemy::robot_enemy()
@@ -240,6 +242,8 @@ robot_enemy::robot_enemy()
     set_dim({12, 12});
 
     firing = false;
+
+    hp = 0.5f;
 }
 
 hound_enemy::hound_enemy()
@@ -249,6 +253,8 @@ hound_enemy::hound_enemy()
     move_clock = 0.f;
     last_move_time = 0.f;
 
+    hp = 0.25f;
+
     //ai_active = true;
 }
 
@@ -256,6 +262,8 @@ hound_master::hound_master()
 {
     set_dim({9, 9});
     hounds_init = false;
+
+    hp = 0.5f;
 }
 
 tank_enemy::tank_enemy()

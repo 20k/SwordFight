@@ -390,8 +390,6 @@ void world_manager::spawn_level(std::vector<game_entity*>& entities)
     ///for spawning in
     ///added the id of the room the player is spawning in!
     ///this is because several rooms can overlap
-    //std::vector<int> rooms_disallowed{most_id};
-
     std::vector<int> rooms_allowed;
 
     for(int i=0; i<rooms_without_corridors.size(); i++)
@@ -402,7 +400,6 @@ void world_manager::spawn_level(std::vector<game_entity*>& entities)
 
         if(!intersect(rooms_without_corridors[most_id], rooms_without_corridors[i]))
         {
-            //rooms_disallowed.push_back(i);
             rooms_allowed.push_back(i);
         }
     }
@@ -411,8 +408,8 @@ void world_manager::spawn_level(std::vector<game_entity*>& entities)
     {
         rect room = rooms_without_corridors[rooms_allowed[i]];
 
-        int min_enemies = 2;
-        int variation = 4;
+        int min_enemies = 0;
+        int variation = 3;
 
         int num_enemies = min_enemies + (level_rng() % (variation + 1));
 
