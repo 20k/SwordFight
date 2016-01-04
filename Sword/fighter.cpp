@@ -1201,9 +1201,15 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 
     ldir.v[1] = -ldir.v[1];
 
-    vec3f global_dir = {ldir.rot(- rot.v[1]).v[1] * time_elapsed/2.f, 0.f, ldir.rot(- rot.v[1]).v[0] * time_elapsed/2.f};
+    vec2f rld = ldir.rot(-rot.v[1]);
+
+    vec3f global_dir = {rld.v[1] * time_elapsed/2.f, 0.f, rld.v[0] * time_elapsed/2.f};
 
     ///dont move the player if we're really idling
+    ///move me into a function
+    ///if we're not idling, we want to actually move the player
+    ///want to make the movement animation speed based on how far we actually moved
+    ///out of how far we tried to move
     if(!idle)
     {
         vec3f predicted = pos + global_dir;
@@ -1213,6 +1219,8 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         vec2f dir_move = {global_dir.v[0], global_dir.v[2]};
 
         vec2f lpos = {pos.v[0], pos.v[2]};
+
+        float move_amount = dir_move.length();
 
         ///x move in wall
         bool xw = false;
@@ -1240,7 +1248,28 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         ///just in case!
         if(!rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state))
         {
-            //pos = predicted;
+            float real_move = dir_move.length();
+
+            float anim_frac = 0.f;
+
+            if(move_amount > 0.0001f)
+            {
+                anim_frac = real_move / move_amount;
+                time_elapsed *= anim_frac;
+
+                ///so now global_dir is my new global move direction
+                ///lets translate it back into local, and then
+                ///update our move estimate by that much
+
+                vec2f inv = {dir_move.v[1], dir_move.v[0]};
+
+                inv = inv.rot(rot.v[1]);
+
+                inv = inv / (time_elapsed / 2.f);
+
+                ldir = inv;
+            }
+
             pos = pos + (vec3f){dir_move.v[0], 0.f, dir_move.v[1]};
         }
     }
