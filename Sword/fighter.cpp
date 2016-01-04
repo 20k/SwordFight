@@ -1210,11 +1210,40 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 
         vec2f lpredict = {predicted.v[0], predicted.v[2]};
 
+        vec2f dir_move = {global_dir.v[0], global_dir.v[2]};
+
+        vec2f lpos = {pos.v[0], pos.v[2]};
+
+        ///x move in wall
+        bool xw = false;
+        bool yw = false;
+
+        if(rectangle_in_wall(lpos + (vec2f){dir_move.v[0], 0.f}, get_approx_dim(), game_state))
+        {
+            dir_move.v[0] = 0.f;
+            xw = true;
+        }
+        if(rectangle_in_wall(lpos + (vec2f){0.f, dir_move.v[1]}, get_approx_dim(), game_state))
+        {
+            dir_move.v[1] = 0.f;
+            yw = true;
+        }
+
+        ///if I move into wall, but yw and xw aren't true, stop
+        ///there are some diagonal cases here which might result in funky movement
+        ///but largely should be fine
+        if(rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state) && !xw && !yw)
+        {
+            dir_move = 0.f;
+        }
+
         ///now what we really wanna do is then deflect instead of stopping abruptly
         ///but thats for a later date
-        if(!rectangle_in_wall(lpredict, get_approx_dim(), game_state))
+        ///just in case!
+        if(!rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state))
         {
-            pos = predicted;
+            //pos = predicted;
+            pos = pos + (vec3f){dir_move.v[0], 0.f, dir_move.v[1]};
         }
     }
 
