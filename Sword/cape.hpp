@@ -28,6 +28,8 @@ struct cape
 
     compute::buffer fighter_to_fixed(objects_container* l, objects_container* m, objects_container* r);
 
+    compute::buffer fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f rot);
+
     void tick(fighter* parent);
 
     void make_stable(fighter* parent);

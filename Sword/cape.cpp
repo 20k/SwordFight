@@ -205,9 +205,51 @@ void cape::make_stable(fighter* parent)
     }
 }
 
+compute::buffer cape::fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f rot)
+{
+    vec3f rotation = rot;
+
+    vec3f lpos = p1;
+    vec3f rpos = p3;
+
+    ///approximation
+    ///could also use body scaling
+    float ldepth = (p3 - p1).length() / 5.f;
+    float rdepth = ldepth;
+
+    lpos = lpos + (vec3f){0, 0, ldepth}.rot({0,0,0}, rotation);
+    rpos = rpos + (vec3f){0, 0, rdepth}.rot({0,0,0}, rotation);
+
+    ///dir could also just be (p3 - p1).rot ???
+    vec3f dir = rpos - lpos;
+
+    int len = width;
+
+    vec3f step = dir / (float)len;
+
+    vec3f current = lpos;
+
+    compute::buffer buf = compute::buffer(cl::context, sizeof(float)*width*3, CL_MEM_READ_WRITE, nullptr);
+
+    cl_float* mem_map = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), buf.get(), CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, 0, sizeof(cl_float)*width*3, 0, NULL, NULL, NULL);
+
+    for(int i=0; i<len; i++)
+    {
+        mem_map[i*3 + 0] = current.v[0];
+        mem_map[i*3 + 1] = current.v[1];
+        mem_map[i*3 + 2] = current.v[2];
+
+        current = current + step;
+    }
+
+    clEnqueueUnmapMemObject(cl::cqueue.get(), buf.get(), mem_map, 0, NULL, NULL);
+
+    return buf;
+}
+
 compute::buffer cape::fighter_to_fixed(objects_container* l, objects_container* m, objects_container* r)
 {
-    vec3f position = xyz_to_vec(m->pos);
+    //vec3f position = xyz_to_vec(m->pos);
     vec3f rotation = xyz_to_vec(m->rot);
 
     vec3f lpos = xyz_to_vec(l->pos);
@@ -364,7 +406,9 @@ void cape::tick(fighter* parent)
     objects_container* m = parent->parts[bodypart::BODY].obj();
     objects_container* r = parent->parts[bodypart::RUPPERARM].obj();
 
-    compute::buffer fixed = fighter_to_fixed(l, m, r);
+    //compute::buffer fixed = fighter_to_fixed(l, m, r);
+
+    compute::buffer fixed = fighter_to_fixed_vec(xyz_to_vec(l->pos), xyz_to_vec(m->pos), xyz_to_vec(r->pos), xyz_to_vec(m->rot));
 
     cloth_args.push_back(&b1);
     cloth_args.push_back(&b2);
