@@ -28,7 +28,7 @@ struct cape
 
     compute::buffer fighter_to_fixed(objects_container* l, objects_container* m, objects_container* r);
 
-    void tick(objects_container* l, objects_container* m, objects_container* r, fighter* parent);
+    void tick(fighter* parent);
 
     void make_stable(fighter* parent);
 

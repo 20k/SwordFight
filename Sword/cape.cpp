@@ -201,11 +201,7 @@ void cape::make_stable(fighter* parent)
 
     for(int i=0; i<num; i++)
     {
-        tick(parent->parts[bodypart::LUPPERARM].obj(),
-                               parent->parts[bodypart::BODY].obj(),
-                               parent->parts[bodypart::RUPPERARM].obj(),
-                               parent
-                                );
+        tick(parent);
     }
 }
 
@@ -334,7 +330,7 @@ struct wind
     }
 };
 
-void cape::tick(objects_container* l, objects_container* m, objects_container* r, fighter* parent)
+void cape::tick(fighter* parent)
 {
     if(!loaded)
     {
@@ -363,6 +359,10 @@ void cape::tick(objects_container* l, objects_container* m, objects_container* r
 
     compute::buffer b1 = which == 0 ? in : out;
     compute::buffer b2 = which == 0 ? out : in;
+
+    objects_container* l = parent->parts[bodypart::LUPPERARM].obj();
+    objects_container* m = parent->parts[bodypart::BODY].obj();
+    objects_container* r = parent->parts[bodypart::RUPPERARM].obj();
 
     compute::buffer fixed = fighter_to_fixed(l, m, r);
 

@@ -724,11 +724,7 @@ void fighter::tick_cape()
 
     for(int i=0; i<ticks; i++)
     {
-        this->my_cape.tick(this->parts[bodypart::LUPPERARM].obj(),
-                               this->parts[bodypart::BODY].obj(),
-                               this->parts[bodypart::RUPPERARM].obj(),
-                               this
-                               );
+        my_cape.tick(this);
     }
 }
 
@@ -1176,7 +1172,6 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         valid_dir = dir;
 
 
-
     ///in ms
     ///replace this with a dt
     float time_elapsed = walk_clock.getElapsedTime().asMicroseconds() / 1000.f;
@@ -1210,6 +1205,8 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     ///out of how far we tried to move
     if(!idle)
     {
+        ///this portion of code handles collision detection
+        ///as well as ensuring the leg animations don't do anything silly
         vec3f predicted = pos + global_dir;
 
         vec2f lpredict = {predicted.v[0], predicted.v[2]};
