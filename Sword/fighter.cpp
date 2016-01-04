@@ -717,8 +717,9 @@ bool fighter::dead()
 
 void fighter::tick_cape()
 {
-    if(dead())
-        return;
+    ///hmm. If cape.inert? Have cape sort its own death once parent is signalled?
+    //if(dead())
+    //    return;
 
     int ticks = 1;
 
@@ -1439,6 +1440,9 @@ bool fighter::can_attack(bodypart_t type)
 ///this function assumes that an attack movelist keeps a consistent bodypart
 void fighter::queue_attack(attack_t type)
 {
+    if(dead())
+        return;
+
     attack a = attack_list[type];
 
     if(!can_attack(a.moves.front().limb))

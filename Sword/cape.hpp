@@ -3,6 +3,7 @@
 
 #include <Boost/compute.hpp>
 #include <vec/vec.hpp>
+#include <sfml/system.hpp>
 
 struct object_context_data;
 struct object_context;
@@ -23,6 +24,11 @@ struct cape
     int which;
 
     int width, height, depth;
+
+    ///0 when alive, decreases with gravity on death
+    float death_height_offset;
+    bool hit_floor;
+    sf::Clock timeout_time;
 
     cape(object_context& cpu, object_context_data& gpu);
 

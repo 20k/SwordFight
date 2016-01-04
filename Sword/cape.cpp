@@ -131,12 +131,20 @@ cape::cape(object_context& cpu, object_context_data& gpu)
 
     cpu_context = &cpu;
     gpu_context = &gpu;
+
+    death_height_offset = 0.f;
+
+    hit_floor = false;
 }
 
 void cape::load(int team)
 {
     if(loaded)
         return;
+
+    hit_floor = false;
+
+    death_height_offset = 0.f;
 
     model = cpu_context->make_new();
 
@@ -370,6 +378,18 @@ struct wind
 
         return compute::buffer(cl::context, sizeof(cl_float4)*accel.size(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, accel.data());
     }
+
+    compute::buffer get_null()
+    {
+        std::vector<cl_float4> accel;
+
+        for(int i=0; i<WIDTH; i++)
+        {
+            accel.push_back({1, 0, 1});
+        }
+
+        return compute::buffer(cl::context, sizeof(cl_float4)*accel.size(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, accel.data());
+    }
 };
 
 void cape::tick(fighter* parent)
@@ -380,8 +400,24 @@ void cape::tick(fighter* parent)
         return;
     }
 
+    if(!parent->dead())
+    {
+        death_height_offset = 0.f;
+        hit_floor = false;
+    }
+
+    if(hit_floor && timeout_time.getElapsedTime().asSeconds() > 2)
+    {
+        return;
+    }
+
     static wind w;
-    auto wind_buf = w.tick();
+    compute::buffer wind_buf;
+
+    if(!hit_floor)
+        wind_buf = w.tick();
+    else
+        wind_buf = w.get_null();
 
     cl_float4 wind_dir = w.dir;
     cl_float wind_str = w.amount;
@@ -406,9 +442,35 @@ void cape::tick(fighter* parent)
     vec3f mp = parent->parts[bodypart::BODY].global_pos;
     vec3f rp = parent->parts[bodypart::RUPPERARM].global_pos;
 
+    lp.v[1] += death_height_offset;
+    mp.v[1] += death_height_offset;
+    rp.v[1] += death_height_offset;
+
+    if(parent->dead())
+    {
+        death_height_offset -= 4.f;
+    }
+
+
+    float floor_min = FLOOR_CONST + 5.f;
+
+    if(lp.v[1] <= floor_min)
+    {
+        if(!hit_floor)
+            timeout_time.restart();
+
+        hit_floor = true;
+    }
+
+    lp.v[1] = std::max(lp.v[1], floor_min);
+    mp.v[1] = std::max(mp.v[1], floor_min);
+    rp.v[1] = std::max(rp.v[1], floor_min);
+
     vec3f grot = parent->rot;
 
     compute::buffer fixed = fighter_to_fixed_vec(lp, mp, rp, grot);
+
+    cl_float floor_const = floor_min;
 
     cloth_args.push_back(&b1);
     cloth_args.push_back(&b2);
@@ -419,6 +481,7 @@ void cape::tick(fighter* parent)
     cloth_args.push_back(&wind_dir);
     cloth_args.push_back(&wind_str);
     cloth_args.push_back(&wind_buf);
+    cloth_args.push_back(&floor_const);
 
     cl_uint global_ws[1] = {width*height*depth};
     cl_uint local_ws[1] = {256};
