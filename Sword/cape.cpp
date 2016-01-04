@@ -392,6 +392,8 @@ struct wind
     }
 };
 
+///function now really messy
+///shouldn't code while tired
 void cape::tick(fighter* parent)
 {
     if(!loaded)
@@ -450,7 +452,6 @@ void cape::tick(fighter* parent)
     {
         death_height_offset -= 4.f;
     }
-
 
     float floor_min = FLOOR_CONST + 5.f;
 

@@ -148,7 +148,6 @@
 		<Unit filename="sound.hpp" />
 		<Unit filename="text.cpp" />
 		<Unit filename="text.hpp" />
-		<Unit filename="vec.hpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
