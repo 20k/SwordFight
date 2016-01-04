@@ -92,7 +92,6 @@ void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float siz
         i.s[2] *= size;
     }
 
-
     vec3f dir = fin - start;
 
     vec3f rot = dir.get_euler();

@@ -1,5 +1,6 @@
 #include "../openclrenderer/objects_container.hpp"
 #include "object_cube.hpp"
+#include "map_tools.hpp"
 
 ///doesnt' work because each addition to the container
 ///stomps over the position of the last
@@ -27,7 +28,7 @@ void load_map(objects_container* obj, int* map_def, int width, int height)
             vec3f world_pos_start = {w2d.v[0], -1, w2d.v[1]};
             vec3f world_pos_end = {w2d.v[0], world_h, w2d.v[1]};
 
-            float scale = 1000.f;
+            float scale = game_map::scale;
 
             world_pos_start = world_pos_start + (vec3f){1/2.f, 0.f, 1/2.f};
             world_pos_end = world_pos_end + (vec3f){1/2.f, 0.f, 1/2.f};
@@ -42,4 +43,29 @@ void load_map(objects_container* obj, int* map_def, int width, int height)
     }
 
     obj->isloaded = true;
+}
+
+bool is_wall(vec2f world_pos, const std::vector<int>& map_def, int width, int height)
+{
+    ///so world pos has been scaled
+    ///and the level geometry has been moved by 0.5 to the right
+    ///and then this is also set to the centre helpfully
+
+    vec2f centre = {width/2.f, height/2.f};
+
+    vec2f map_scale = world_pos / game_map::scale;
+
+    map_scale = map_scale - 0.5f;
+
+    map_scale = round(map_scale + centre);
+
+    vec2i imap = {map_scale.v[0], map_scale.v[1]};
+
+    printf("Map: %i %i\n", imap.v[0], imap.v[1]);
+
+    if(imap.v[0] < 0 || imap.v[0] >= width || imap.v[1] < 0 || imap.v[1] >= height)
+        return true;
+
+    ///if we're bigger than 0, we're a wall. Otherwise, not
+    return map_def[imap.v[1]*width + imap.v[0]] > 0;
 }

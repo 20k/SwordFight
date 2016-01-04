@@ -667,6 +667,12 @@ int main(int argc, char *argv[])
         window.render_block();
         window.display();
 
+        vec3f world_play = my_fight->pos;
+
+        vec2f world_2d = {world_play.v[0], world_play.v[2]};
+
+        printf("collide %i\n", is_wall(world_2d, map_one, 11, 12));
+
 
         std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
