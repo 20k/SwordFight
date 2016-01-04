@@ -1188,10 +1188,7 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         h *= 1.2f;
     }
 
-    float dist = 100.f;
-
-    vec2f f = {0, dist};
-    f = f.rot(dir.angle());
+    float dist = 125.f;
 
     float up = 50.f;
 
