@@ -1,5 +1,6 @@
-
-#include "../openclrenderer/proj.hpp"
+//#include "../openclrenderer/proj.hpp"
+#include <winsock2.h>
+#include "../openclrenderer/engine.hpp"
 #include "../openclrenderer/ocl.h"
 #include "../openclrenderer/texture_manager.hpp"
 
@@ -24,6 +25,8 @@
 #include "../openclrenderer/settings_loader.hpp"
 #include "../openclrenderer/controls.hpp"
 #include "map_tools.hpp"
+
+#include "server_networking.hpp"
 
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
@@ -254,6 +257,7 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
     //network::host_var(&fight.net.is_blocking);
 }*/
 
+///so, this is the total list of things that need to be networked
 void net_slave(fighter& fight)
 {
     for(auto& i : fight.parts)
@@ -436,6 +440,9 @@ int main(int argc, char *argv[])
 
     printf("light\n");
 
+    server_networking server;
+
+
 
     sf::Mouse mouse;
     sf::Keyboard key;
@@ -523,6 +530,13 @@ int main(int argc, char *argv[])
             context.load_active();
             context.build();
         }
+
+        server.set_my_fighter(my_fight);
+        server.tick(&context, &current_state, &phys);
+
+        ///debugging
+        if(!server.joined_game)
+            server.set_game_to_join(0);
 
         if(once<sf::Keyboard::B>())
         {
@@ -670,7 +684,7 @@ int main(int argc, char *argv[])
 
         //printf("collide %i\n", rectangle_in_wall(world_2d, real_size, map_one, 11, 12));
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 
     cl::cqueue.finish();

@@ -144,6 +144,10 @@
 		<Unit filename="particle_effect.hpp" />
 		<Unit filename="physics.cpp" />
 		<Unit filename="physics.hpp" />
+		<Unit filename="server_networking.cpp">
+			<Option weight="45" />
+		</Unit>
+		<Unit filename="server_networking.hpp" />
 		<Unit filename="sound.cpp" />
 		<Unit filename="sound.hpp" />
 		<Unit filename="text.cpp" />
