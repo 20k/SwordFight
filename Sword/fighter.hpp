@@ -23,9 +23,9 @@ namespace mov
         MOVES = 8, ///physically moves character
         CAN_STOP = 16, ///movement can be interrupted
         FINISH_INDEPENDENT = 32, ///for hand movements, are they independent of the view
-        START_INDEPENDENT = 64 ///for hand movements, are they independent of the view
+        START_INDEPENDENT = 64, ///for hand movements, are they independent of the view
         ///as a consequence of the animation system, start_independent is not necessary. I might keep it for clarity however
-
+        LOCKS_ARMS = 128 ///for visual reasons, some attacks might want to lock the arms
     };
 }
 
@@ -260,18 +260,18 @@ struct attack
 static std::vector<movement> overhead =
 {
     {0, {-150, -0, -40}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
-    {0, {100, -150, -140}, 500, 1, bodypart::LHAND, mov::DAMAGING} ///attack
+    {0, {100, -150, -140}, 500, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS)} ///attack
 };
 
 static std::vector<movement> recoil =
 {
-    {0, {-150, -0, -20}, 800, 0, bodypart::LHAND, mov::NONE} ///recoiling doesnt block or damage
+    {0, {-120, -10, -60}, 800, 0, bodypart::LHAND,  (movement_t)(mov::NONE | mov::LOCKS_ARMS)} ///recoiling doesnt block or damage
 };
 
 static std::vector<movement> slash =
 {
-    {0, {-150, -80, -40}, 350, 0, bodypart::LHAND, mov::WINDUP}, ///windup
-    {0, {100, -80, -140}, 450, 1, bodypart::LHAND, mov::DAMAGING} ///attack
+    {0, {-180, -60, -10}, 350, 0, bodypart::LHAND, mov::WINDUP}, ///windup
+    {0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS)} ///attack
 };
 
 /*static std::vector<movement> slash =
@@ -295,7 +295,7 @@ static std::vector<movement> block =
 static std::vector<movement> feint =
 {
     //{0, {-150, -80, -40}, 350, 0, bodypart::LHAND, mov::NONE}
-     {0, {0, -200, -100}, 300, 1, bodypart::LHAND, mov::NONE}
+    {0, {0, -200, -100}, 300, 1, bodypart::LHAND, mov::NONE}
 };
 
 static std::map<attack_t, attack> attack_list =
@@ -307,7 +307,6 @@ static std::map<attack_t, attack> attack_list =
     {attacks::RECOIL, {recoil}},
     {attacks::FEINT, {feint}}
 };
-
 
 /*static std::map<attack_t, attack> attack_list2 =
 {
@@ -441,7 +440,7 @@ struct fighter
 
     cape my_cape;
 
-    void IK_hand(int hand, vec3f pos, float upper_rotation = 0.f);
+    void IK_hand(int hand, vec3f pos, float upper_rotation = 0.f, bool arms_are_locked = false);
     void IK_foot(int foot, vec3f pos);
 
     void linear_move(int hand, vec3f pos, float time, bodypart_t b);

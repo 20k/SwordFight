@@ -911,7 +911,7 @@ void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1
 
 }
 
-void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation)
+void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation, bool arms_are_locked)
 {
     using namespace bodypart;
 
@@ -943,8 +943,14 @@ void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation)
 
     //printf("%f\n", look_displacement.v[0]);
 
+    if(arms_are_locked)
+    {
+        o2 = (o1 + o3) / 2.f;
+    }
+
     parts[upper].set_pos(o1);
     parts[lower].set_pos(o2);
+    //parts[lower].set_pos((o2 + old_pos[lower]*1)/2.f);
     parts[hand].set_pos(o3);
 }
 
@@ -1005,7 +1011,6 @@ void fighter::tick(bool is_player)
     ///will be set to true if a move is currently doing a blocking action
     net.is_blocking = 0;
 
-
     if(net.recoil)
     {
         if(can_recoil())
@@ -1013,6 +1018,8 @@ void fighter::tick(bool is_player)
 
         net.recoil = 0;
     }
+
+    bool arms_are_locked = false;
 
     for(movement& i : moves)
     {
@@ -1049,6 +1056,11 @@ void fighter::tick(bool is_player)
         if(i.does(mov::FINISH_INDEPENDENT))
         {
             actual_finish = actual_finish - look_displacement;
+        }
+
+        if(i.does(mov::LOCKS_ARMS))
+        {
+            //arms_are_locked = true;
         }
 
         ///need to use a bitfield really, thisll get unmanageable
@@ -1124,18 +1136,40 @@ void fighter::tick(bool is_player)
 
     //rot += 0.01f;
 
+    ///again needs to be made frametime independent
     const float displacement = (rest_positions[bodypart::LHAND] - rest_positions[bodypart::LUPPERARM]).length();
-
     float focus_rotation = 0.f;
-
     shoulder_rotation = shoulder_rotation * 6 + atan2((old_look_displacement.v[0] - look_displacement.v[0]) * 10.f, displacement);
-
     shoulder_rotation /= 7.f;
 
     vec3f rot_focus = (focus_pos + look_displacement).rot((vec3f){0,0,0}, (vec3f){0, focus_rotation, 0});
 
-    IK_hand(0, rot_focus, shoulder_rotation);
-    IK_hand(1, rot_focus, shoulder_rotation);
+    /*vec2f weapon_pos = (vec2f){weapon.pos.v[0], weapon.pos.v[2]}.rot(rot.v[1]);
+
+
+    ///absolute angle
+    float weapon_angle = weapon_pos.angle();
+    float look_angle = shoulder_rotation + rot.v[1];//(vec2f){rot_focus.v[0], rot_focus.v[2]}.angle();
+
+    float body_diff = weapon_angle - look_angle;
+
+    //rot_focus = rot_focus.rot({0,0,0}, {0, body_diff, 0.f});
+
+    shoulder_rotation += body_diff/10.f;
+
+    printf("%f sh\n", weapon_angle);*/
+
+    vec2f weapon_pos = {weapon.pos.v[0], weapon.pos.v[2]};
+
+    //printf("%f %f\n", EXPAND_2(weapon_pos));
+
+    float wangle = weapon_pos.angle() + M_PI/2.f;
+
+    shoulder_rotation += (wangle - shoulder_rotation) + shoulder_rotation * 5.f;
+    shoulder_rotation /= 6;
+
+    IK_hand(0, rot_focus, shoulder_rotation, arms_are_locked);
+    IK_hand(1, rot_focus, shoulder_rotation, arms_are_locked);
 
     weapon.set_pos(parts[bodypart::LHAND].pos);
 
