@@ -469,6 +469,7 @@ struct fighter
     movement* get_movement(size_t id);
 
     void update_render_positions();
+    void network_update_render_positions(); /// only if im a network fighter
     void update_lights();
     void overwrite_parts_from_model();
 

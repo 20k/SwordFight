@@ -368,7 +368,7 @@ int main(int argc, char *argv[])
     std::vector<fighter*> net_fighters;
 
     ///tmp
-    for(int i=0; i<10; i++)
+    /*for(int i=0; i<10; i++)
     {
         net_fighters.push_back(new fighter(context, *gpu_context));
         net_fighters[i]->set_team(1);
@@ -376,7 +376,16 @@ int main(int argc, char *argv[])
         net_fighters[i]->set_rot({0, 0, 0});
         net_fighters[i]->set_quality(s.quality);
         net_fighters[i]->set_gameplay_state(&current_state);
-    }
+    }*/
+
+    //fighter* net_fighter = new fighter(context, *context.fetch());
+
+    /*fighter fight3(context, *gpu_context);
+    fight3.set_team(1);
+    fight3.set_pos({0, 0, -600});
+    fight3.set_rot({0, M_PI, 0});
+    fight3.set_quality(s.quality);
+    fight3.set_gameplay_state(&current_state);*/
 
     physics phys;
     phys.load();
@@ -441,8 +450,6 @@ int main(int argc, char *argv[])
     printf("light\n");
 
     server_networking server;
-
-
 
     sf::Mouse mouse;
     sf::Keyboard key;
@@ -575,6 +582,10 @@ int main(int argc, char *argv[])
             }
         }
 
+        /*fight3.tick();
+        fight3.update_render_positions();
+        fight3.update_lights();*/
+
         /*int hit_p = phys.sword_collides(fight.weapon, &fight, {0, 0, -1});
         if(hit_p != -1)
             printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
@@ -684,7 +695,7 @@ int main(int argc, char *argv[])
 
         //printf("collide %i\n", rectangle_in_wall(world_2d, real_size, map_one, 11, 12));
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 
     cl::cqueue.finish();

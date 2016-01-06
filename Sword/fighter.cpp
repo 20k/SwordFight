@@ -1614,6 +1614,33 @@ void fighter::update_render_positions()
     }
 }
 
+void fighter::network_update_render_positions()
+{
+    using namespace bodypart;
+
+    for(auto& i : joint_links)
+    {
+        bool active = i.p1->is_active && i.p2->is_active;
+
+        objects_container* obj = i.obj;
+
+        vec3f start = i.p1->global_pos;
+        vec3f fin = i.p2->global_pos;
+
+        start = start + i.offset;
+        fin = fin + i.offset;
+
+        vec3f rot = (fin - start).get_euler();
+
+        vec3f dir = (fin - start);
+
+        start = start + dir * i.squish_frac;
+
+        obj->set_pos({start.v[0], start.v[1], start.v[2]});
+        obj->set_rot({rot.v[0], rot.v[1], rot.v[2]});
+    }
+}
+
 void fighter::update_lights()
 {
     vec3f lpos = (parts[bodypart::LFOOT].global_pos + parts[bodypart::RFOOT].global_pos) / 2.f;
