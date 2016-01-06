@@ -544,6 +544,8 @@ void fighter::load()
     IK_hand(1, weapon.pos);
 
     focus_pos = weapon.pos;
+
+    shoulder_rotation = 0.f;
 }
 
 void fighter::respawn(vec2f _pos)
@@ -774,6 +776,7 @@ void fighter::set_look(vec3f _look)
     float height = displacement * sin(new_look.v[0]);
     float width = displacement * sin(new_look.v[1]);
 
+    old_look_displacement = look_displacement;
     look_displacement = (vec3f){width, height, 0.f};
 
     look = new_look;
@@ -908,7 +911,7 @@ void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1
 
 }
 
-void fighter::IK_hand(int which_hand, vec3f pos)
+void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation)
 {
     using namespace bodypart;
 
@@ -918,9 +921,19 @@ void fighter::IK_hand(int which_hand, vec3f pos)
 
     //printf("%f\n", pos.v[0]);
 
+    vec3f i1, i2, i3;
+
+    i1 = rest_positions[upper];
+    i2 = rest_positions[lower];
+    i3 = rest_positions[hand];
+
+    i1 = i1.rot({0,0,0}, {0, upper_rotation, 0});
+    i2 = i2.rot({0,0,0}, {0, upper_rotation, 0});
+    i3 = i3.rot({0,0,0}, {0, upper_rotation, 0});
+
     vec3f o1, o2, o3;
 
-    inverse_kinematic(pos, rest_positions[upper], rest_positions[lower], rest_positions[hand], o1, o2, o3);
+    inverse_kinematic(pos, i1, i2, i3, o1, o2, o3);
 
     //o1 = o1 + look_displacement;
     //o2 = o2 + look_displacement;
@@ -1107,8 +1120,22 @@ void fighter::tick(bool is_player)
             it++;
     }
 
-    IK_hand(0, focus_pos + look_displacement);
-    IK_hand(1, focus_pos + look_displacement);
+    //static float rot = 0.f;
+
+    //rot += 0.01f;
+
+    const float displacement = (rest_positions[bodypart::LHAND] - rest_positions[bodypart::LUPPERARM]).length();
+
+    float focus_rotation = 0.f;
+
+    shoulder_rotation = shoulder_rotation * 6 + atan2((old_look_displacement.v[0] - look_displacement.v[0]) * 10.f, displacement);
+
+    shoulder_rotation /= 7.f;
+
+    vec3f rot_focus = (focus_pos + look_displacement).rot((vec3f){0,0,0}, (vec3f){0, focus_rotation, 0});
+
+    IK_hand(0, rot_focus, shoulder_rotation);
+    IK_hand(1, rot_focus, shoulder_rotation);
 
     weapon.set_pos(parts[bodypart::LHAND].pos);
 

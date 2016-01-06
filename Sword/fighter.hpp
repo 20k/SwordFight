@@ -419,6 +419,7 @@ struct fighter
     vec3f focus_pos; ///where to put my hands and sword
     ///this should almost certainly be relative
 
+    float shoulder_rotation;
 
     int team;
 
@@ -440,7 +441,7 @@ struct fighter
 
     cape my_cape;
 
-    void IK_hand(int hand, vec3f pos);
+    void IK_hand(int hand, vec3f pos, float upper_rotation = 0.f);
     void IK_foot(int foot, vec3f pos);
 
     void linear_move(int hand, vec3f pos, float time, bodypart_t b);
@@ -504,6 +505,7 @@ struct fighter
     void set_look(vec3f look);
 
     vec3f look_displacement;
+    vec3f old_look_displacement;
 
     void set_contexts(object_context* _cpu, object_context_data* _gpu);
 

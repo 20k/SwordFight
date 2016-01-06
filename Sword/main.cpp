@@ -513,7 +513,7 @@ int main(int argc, char *argv[])
 
         window.set_input_handler(c_input);
 
-        if(once<sf::Keyboard::V>() && network::network_state == 0)
+        /*if(once<sf::Keyboard::V>() && network::network_state == 0)
         {
             network::join(s.ip);
 
@@ -536,7 +536,7 @@ int main(int argc, char *argv[])
 
             context.load_active();
             context.build();
-        }
+        }*/
 
         server.set_my_fighter(my_fight);
         server.tick(&context, &current_state, &phys);
@@ -594,7 +594,7 @@ int main(int argc, char *argv[])
 
         my_fight->tick_cape();
 
-        bool need_realloc = network::tick();
+        /*bool need_realloc = network::tick();
 
         if(need_realloc)
         {
@@ -602,8 +602,9 @@ int main(int argc, char *argv[])
 
             context.load_active();
             context.build();
-        }
+        }*/
 
+        ///leave in for the moment, this is NOT reimplemnted in the new networking
         audio_packet pack;
 
         while(network::pop_audio(pack))
@@ -612,7 +613,7 @@ int main(int argc, char *argv[])
         }
 
         ///we've joined the game!
-        if(network::join_id != -1 && !network::loaded)
+        /*if(network::join_id != -1 && !network::loaded)
         {
             printf("In load func\n");
 
@@ -640,7 +641,7 @@ int main(int argc, char *argv[])
             }
 
             network::loaded = true;
-        }
+        }*/
 
 
         my_fight->update_render_positions();
