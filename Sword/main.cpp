@@ -678,11 +678,13 @@ int main(int argc, char *argv[])
 
         window.set_object_data(*cdat);
 
-        window.draw_bulk_objs_n();
 
         //text::draw();
-        window.render_block();
         window.display();
+
+        window.draw_bulk_objs_n();
+        window.render_block();
+
 
         /*vec3f world_play = my_fight->pos;
 
@@ -695,7 +697,7 @@ int main(int argc, char *argv[])
 
         //printf("collide %i\n", rectangle_in_wall(world_2d, real_size, map_one, 11, 12));
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 
     cl::cqueue.finish();
