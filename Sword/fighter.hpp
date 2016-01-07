@@ -504,6 +504,7 @@ struct fighter
 
     void update_render_positions();
     void network_update_render_positions(); /// only if im a network fighter
+    void respawn_if_appropriate(); ///network
     void update_lights();
     void overwrite_parts_from_model();
 

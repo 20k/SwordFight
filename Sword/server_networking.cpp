@@ -321,12 +321,6 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                     printf("made a new networked player\n");
                 }
 
-                /*if(player_id == my_id)
-                {
-                    printf("me\n");
-                    printf("%i\n", component_id);
-                }*/
-
                 network_player play = discovered_fighters[player_id];
 
                 std::map<int, ptr_info> arg_map = build_fighter_network_stack(play.fight);
@@ -378,6 +372,29 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                     printf("Got joinack, I have id: %i\n", my_id);
                 }
+            }
+
+            if(type == message::TEAMASSIGNMENT)
+            {
+                int32_t client_id = fetch.get<int32_t>();
+                int32_t team = fetch.get<int32_t>();
+
+                int32_t canary_found = fetch.get<int32_t>();
+
+                //printf("teamassign\n");
+
+                if(canary_found == canary_end)
+                {
+                    if(discovered_fighters.find(client_id) != discovered_fighters.end() && discovered_fighters[client_id].fight)
+                        discovered_fighters[client_id].fight->set_team(team);
+                    else
+                        printf("teamassignskip\n");
+                }
+                else
+                {
+                    printf("Team assign canary err\n");
+                }
+
             }
         }
     }
@@ -433,6 +450,19 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 my_fighter->net.reported_dead = 0;
             }
 
+            for(auto& i : discovered_fighters[my_id].fight->parts)
+            {
+                fighter* my_fighter = discovered_fighters[my_id].fight;
+
+                if(i.net.hp_dirty)
+                {
+                    network_update_element<float>(this, &i.hp, my_fighter);
+
+                    i.net.hp_dirty = false;
+                }
+            }
+
+            ///uuh. Looking increasingly like we should just include the home fighter in this one, eh?
             for(auto& net_fighter : discovered_fighters)
             {
                 if(my_id == net_fighter.first)
@@ -503,6 +533,11 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
         if(i.first == my_id)
             continue;
 
+        //if(i.second.id < 0)
+        //    continue;
+
+        i.second.fight->respawn_if_appropriate();
+
         i.second.fight->overwrite_parts_from_model();
         i.second.fight->manual_check_part_death();
 
@@ -535,7 +570,7 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
 {
     fighter* net_fighter = new fighter(*ctx, *ctx->fetch());
 
-    net_fighter->set_team(1);
+    net_fighter->set_team(0);
     net_fighter->set_pos({0, 0, 0});
     net_fighter->set_rot({0, 0, 0});
     //net_fighter->set_quality(s.quality);

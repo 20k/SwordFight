@@ -1787,6 +1787,19 @@ void fighter::update_lights()
     }
 }
 
+void fighter::respawn_if_appropriate()
+{
+    if(num_dead() < num_needed_to_die())
+    {
+        if(performed_death)
+        {
+            respawn();
+        }
+    }
+
+    //printf("respawn %i %i\n", num_dead(), num_needed_to_die());
+}
+
 ///net-fighters ONLY
 void fighter::overwrite_parts_from_model()
 {
@@ -1813,10 +1826,10 @@ void fighter::overwrite_parts_from_model()
     ///we could avoid this by networking the death state
     ///but that requries more networking. We already have the info, so do it clientside
     ///hp for parts are also 'reliably' delivered (every frame)
-    if(!should_die())
+    /*if(!should_die())
     {
         performed_death = false;
-    }
+    }*/
 
     ///do not need to update weapon because it does not currently have a global position stored (not a part)
 }
@@ -1879,6 +1892,10 @@ void fighter::set_team(int _team)
     {
         i.obj->set_active(true);
     }
+
+    cpu_context->load_active();
+    cpu_context->build();
+    gpu_context = cpu_context->fetch();
 }
 
 void fighter::set_physics(physics* _phys)
