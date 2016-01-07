@@ -218,25 +218,31 @@ void part::damage(float dam, bool do_effect)
     {
         //printf("I blowed up %s\n", bodypart::names[type].c_str());
 
-        if(do_effect)
-        {
-            cube_effect e;
-
-            e.make(1300, global_pos, 100.f, team, 10, *cpu_context);
-            particle_effect::push(e);
-        }
-
-        //set_pos({0, -1000000000, 0});
-        set_active(false);
-
-        cpu_context->load_active();
-        cpu_context->build();
         //model->hide();
 
         //cpu_context.load_active();
+
+        perform_death();
     }
 
     network_hp();
+}
+
+void part::perform_death(bool do_effect)
+{
+    if(do_effect)
+    {
+        cube_effect e;
+
+        e.make(1300, global_pos, 100.f, team, 10, *cpu_context);
+        particle_effect::push(e);
+    }
+
+    //set_pos({0, -1000000000, 0});
+    set_active(false);
+
+    cpu_context->load_active();
+    cpu_context->build();
 }
 
 /*void part::tick()
@@ -259,6 +265,7 @@ void part::set_hp(float h)
 
 void part::network_hp()
 {
+    net.hp_dirty = true;
     network::host_update(&hp);
 }
 
@@ -1186,6 +1193,7 @@ void fighter::tick(bool is_player)
 
     ///rip
     checked_death();
+    manual_check_part_death();
 
     /*int collide_id = phys->sword_collides(weapon);
 
@@ -1193,6 +1201,18 @@ void fighter::tick(bool is_player)
         printf("%s %i\n", bodypart::names[collide_id % bodypart::COUNT].c_str(), collide_id);*/
 }
 
+void fighter::manual_check_part_death()
+{
+    bool do_explode_effect = num_dead() < num_needed_to_die() - 1;
+
+    for(auto& i : parts)
+    {
+        if(i.hp < 0.0001f && i.is_active)
+        {
+            i.perform_death(do_explode_effect);
+        }
+    }
+}
 
 int modulo_distance(int a, int b, int m)
 {
@@ -1634,6 +1654,10 @@ void fighter::update_render_positions()
 
         t_pos.v[1] += foot_heights[which_side[i.type]] * foot_modifiers[i.type];
 
+        float twist_extra = shoulder_rotation * waggle_modifiers[i.type];
+
+        t_pos = t_pos.rot({0,0,0}, {0, twist_extra, 0});
+
         auto r = to_world_space(pos, rot, t_pos, i.rot);
 
         i.set_global_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
@@ -1685,8 +1709,11 @@ void fighter::network_update_render_positions()
 
         objects_container* obj = i.obj;
 
-        vec3f start = i.p1->global_pos;
-        vec3f fin = i.p2->global_pos;
+        cl_float4 op1 = i.p1->obj()->pos;
+        cl_float4 op2 = i.p2->obj()->pos;
+
+        vec3f start = xyz_to_vec(op1);
+        vec3f fin = xyz_to_vec(op2);
 
         start = start + i.offset;
         fin = fin + i.offset;
@@ -1940,7 +1967,8 @@ void fighter::damage(bodypart_t type, float d)
     parts[type].damage(d, do_explode_effect);
 
     net.recoil = 1;
-    network::host_update(&net.recoil);
+    net.recoil_dirty = true;
+    //network::host_update(&net.recoil);
 }
 
 void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)

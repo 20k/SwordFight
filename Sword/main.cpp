@@ -258,7 +258,7 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 }*/
 
 ///so, this is the total list of things that need to be networked
-void net_slave(fighter& fight)
+/*void net_slave(fighter& fight)
 {
     for(auto& i : fight.parts)
     {
@@ -273,9 +273,9 @@ void net_slave(fighter& fight)
     network::slave_var(&fight.net.recoil);
 
     //network::slave_var(&fight.net.dead);
-}
+}*/
 
-void make_host(fighter& fight)
+/*void make_host(fighter& fight)
 {
     for(auto& i : fight.parts)
     {
@@ -286,7 +286,7 @@ void make_host(fighter& fight)
     network::transform_host_object(fight.weapon.model);
 
     network::transform_host_var(&fight.net.is_blocking);
-}
+}*/
 
 int main(int argc, char *argv[])
 {
@@ -360,7 +360,7 @@ int main(int argc, char *argv[])
 
     fighter fight2(context, *gpu_context);
     fight2.set_team(1);
-    fight2.set_pos({0, 0, -600});
+    fight2.set_pos({0, 0, -650});
     fight2.set_rot({0, M_PI, 0});
     fight2.set_quality(s.quality);
     fight2.set_gameplay_state(&current_state);
@@ -399,14 +399,14 @@ int main(int argc, char *argv[])
     fight.set_physics(&phys);
     fight2.set_physics(&phys);
 
-    for(auto& i : net_fighters)
+    /*for(auto& i : net_fighters)
     {
         i->set_physics(&phys);
 
         net_slave(*i);
 
         i->update_render_positions();
-    }
+    }*/
 
     printf("loaded net fighters\n");
 
@@ -698,7 +698,7 @@ int main(int argc, char *argv[])
 
         //printf("collide %i\n", rectangle_in_wall(world_2d, real_size, map_one, 11, 12));
 
-        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 
     cl::cqueue.finish();

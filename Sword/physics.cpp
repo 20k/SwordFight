@@ -229,7 +229,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     ///want to network them recoiling
                     ///their client will figure out whether or not it makes any sense
                     them->net.recoil = 1;
-                    network::host_update(&them->net.recoil);
+                    them->net.recoil_dirty = true;
+                    //network::host_update(&them->net.recoil);
 
                     continue;
                 }

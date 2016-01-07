@@ -88,6 +88,25 @@ namespace bodypart
         0
     };
 
+    ///hip twist in relation to weapon movement
+    static float waggle_modifiers[COUNT] =
+    {
+        0.f,
+        0.f,
+        0.f,
+        0.f,
+        0.f,
+        0.f,
+        0.f,
+        0.f,
+        0.3f,
+        -0.05f,
+        0.3f,
+        -0.05f,
+        0.f,
+        0.f
+    };
+
     static std::vector<std::string> names =
     {
         "HEAD",
@@ -138,6 +157,12 @@ namespace bodypart
 
 typedef bodypart::bodypart bodypart_t;
 
+struct network_part
+{
+    bool hp_dirty = false;
+};
+
+///need to network part hp
 struct part
 {
     int quality; ///graphics quality, 0 is low, 1 is high
@@ -154,6 +179,8 @@ struct part
 
     float hp;
 
+    network_part net;
+
     //bool performed_death;
 
     void set_type(bodypart_t); ///sets me up in the default position
@@ -167,6 +194,7 @@ struct part
     void load_team_model();
     void damage(float dam, bool do_effect = true);
     void set_hp(float h);
+    void perform_death(bool do_effect = true);
 
     void set_quality(int _quality);
 
@@ -360,9 +388,12 @@ struct physics;
 
 struct networked_components
 {
-    int is_blocking = 0;
+    ///this is authoritative
+    int32_t is_blocking = 0;
     //int dead = 0; ///networked status of killing, can be updated remotely
-    int recoil = 0; ///this is a recoil request, not necessarily saying i AM(?)
+    int32_t recoil = 0; ///this is a recoil request, not necessarily saying i AM(?)
+
+    bool recoil_dirty = false;
 };
 
 struct link
@@ -457,6 +488,7 @@ struct fighter
     void update_sword_rot();
 
     void tick(bool is_player = false);
+    void manual_check_part_death(); ///interate over parts, if < 0 and active then die
     //void walk(int which); ///temp
 
     void walk_dir(vec2f dir, bool sprint = false); ///z, x

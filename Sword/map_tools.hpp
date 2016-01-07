@@ -7,6 +7,8 @@ struct objects_container;
 
 //#include "../openclrenderer/objects_conta
 
+#include "../sword_server/game_server/game_modes.hpp"
+
 static std::vector<int>
 map_test =
 {
@@ -56,11 +58,34 @@ struct world_map
     std::function<void(objects_container*)> get_load_func();
 };
 
+struct game_mode_exec;
+
+namespace menu_state
+{
+    enum menu_state
+    {
+        MENU,
+        GAME,
+        COUNT
+    };
+}
+
+typedef menu_state::menu_state menu_t;
+
+///make gamemode implementation a polymorphic struct
 struct gameplay_state
 {
     world_map current_map;
+    game_mode_t current_mode = game_mode::FIRST_TO_X;
+    game_mode_exec* mode_exec = nullptr;
+
+    menu_t current_menu;
 
     void set_map(world_map& m);
+    void start_game_mode();
+
+    bool should_end_game_mode();
+    void end_game_mode();
 };
 
 ///what we really want is a map class

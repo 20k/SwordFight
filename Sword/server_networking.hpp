@@ -79,6 +79,8 @@ struct server_networking
 
     network_player make_networked_player(int32_t id, object_context* ctx, gameplay_state* st, physics* phys);
 
+    int32_t get_id_from_fighter(fighter* f);
+
     std::vector<game_server> get_serverlist(byte_fetch& fetch);
 
     void print_serverlist(); ///debugging really
@@ -87,5 +89,72 @@ struct server_networking
 
     void set_my_fighter(fighter* fight);
 };
+
+struct ptr_info
+{
+    void* ptr;
+    int size;
+};
+
+std::map<int, ptr_info> build_fighter_network_stack(fighter* fight);
+
+template<typename T>
+inline
+int get_position_of(std::map<int, ptr_info>& stk, T* elem)
+{
+    for(int i=0; i<stk.size(); i++)
+    {
+        if(stk[i].ptr == elem)
+            return i;
+    }
+
+    return -1;
+}
+
+///any network discovered fighter
+
+template<typename T>
+inline
+void
+network_update_element(server_networking* net, T* element, fighter* fight)
+{
+    auto memory_map = build_fighter_network_stack(fight);
+
+    int32_t pos = get_position_of(memory_map, element);
+
+    if(pos == -1)
+    {
+        printf("Error in network update element -1\n");
+        return;
+    }
+
+    int32_t network_id = net->get_id_from_fighter(fight);
+
+    if(network_id == -1)
+    {
+        printf("Error in network update netid -1\n");
+        return;
+    }
+
+    if(!net->is_init || !net->to_game.valid())
+    {
+        printf("Some kind of... network error, spewing errors back into the observable universe!\n");
+        return;
+    }
+
+    byte_vector vec;
+    vec.push_back(canary_start);
+    vec.push_back(message::FORWARDING);
+    vec.push_back<int32_t>(network_id);
+    vec.push_back<int32_t>(pos);
+
+    int32_t S = sizeof(T);
+
+    vec.push_back<int32_t>(S);
+    vec.push_back((uint8_t*)element, S);
+    vec.push_back(canary_end);
+
+    udp_send_to(net->to_game, vec.ptr, (const sockaddr*)&net->to_game_store);
+}
 
 #endif // SERVER_NETWORKING_HPP_INCLUDED

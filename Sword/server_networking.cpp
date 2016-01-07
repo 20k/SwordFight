@@ -154,17 +154,12 @@ void server_networking::ping_master()
     tcp_send(to_master, vec.ptr);
 }
 
-struct ptr_info
-{
-    void* ptr;
-    int size;
-};
-
 template<typename T>
 ptr_info get_inf(T* ptr)
 {
     return {(void*)ptr, sizeof(T)};
 }
+
 
 std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
 {
@@ -181,22 +176,11 @@ std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
 
     fighter_stack[c++] = get_inf(&fight->weapon.model->pos);
     fighter_stack[c++] = get_inf(&fight->weapon.model->rot);
+
     fighter_stack[c++] = get_inf(&fight->net.is_blocking);
     fighter_stack[c++] = get_inf(&fight->net.recoil);
 
     return fighter_stack;
-}
-
-template<typename T>
-int get_position_of(std::map<int, ptr_info>& stk, T* elem)
-{
-    for(int i=0; i<stk.size(); i++)
-    {
-        if(stk[i].ptr == elem)
-            return i;
-    }
-
-    return -1;
 }
 
 template<typename T>
@@ -217,6 +201,7 @@ std::map<int, ptr_info> build_host_network_stack(fighter* fight)
     {
         set_map_element(to_send, total_stack, &fight->parts[i].obj()->pos);
         set_map_element(to_send, total_stack, &fight->parts[i].obj()->rot);
+        //set_map_element(to_send, total_stack, &fight->parts[i].hp); ///wrong but useful to test
     }
 
     set_map_element(to_send, total_stack, &fight->weapon.model->pos);
@@ -334,6 +319,12 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                     printf("made a new networked player\n");
                 }
 
+                /*if(player_id == my_id)
+                {
+                    printf("me\n");
+                    printf("%i\n", component_id);
+                }*/
+
                 network_player play = discovered_fighters[player_id];
 
                 std::map<int, ptr_info> arg_map = build_fighter_network_stack(play.fight);
@@ -354,8 +345,13 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                 memmove(comp.ptr, payload, comp.size);
 
+                ///done for me now
+                if(player_id == my_id)
+                    continue;
+
                 for(auto& i : play.fight->parts)
                 {
+                    ///???
                     i.obj()->set_pos(i.obj()->pos);
                     i.obj()->set_rot(i.obj()->rot);
                 }
@@ -411,6 +407,35 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 udp_send_to(to_game, vec.ptr, (const sockaddr*)&to_game_store);
             }
 
+            for(auto& net_fighter : discovered_fighters)
+            {
+                if(my_id == net_fighter.first)
+                    continue;
+
+                fighter* fight = net_fighter.second.fight;
+
+                ///? should be impossibru
+                if(!fight)
+                    continue;
+
+                if(fight->net.recoil_dirty)
+                {
+                    network_update_element<int32_t>(this, &fight->net.recoil, fight);
+
+                    fight->net.recoil_dirty = false;
+                }
+
+                for(auto& i : fight->parts)
+                {
+                    if(i.net.hp_dirty)
+                    {
+                        network_update_element<float>(this, &i.hp, fight);
+
+                        i.net.hp_dirty = false;
+                    }
+                }
+            }
+
             time_since_last_send.restart();
         }
     }
@@ -431,10 +456,23 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
             continue;
 
         i.second.fight->overwrite_parts_from_model();
+        i.second.fight->manual_check_part_death();
 
+        ///death is dynamically calculated from part health
         if(!i.second.fight->dead())
             i.second.fight->update_lights();
     }
+}
+
+int32_t server_networking::get_id_from_fighter(fighter* f)
+{
+    for(auto& i : discovered_fighters)
+    {
+        if(i.second.fight == f)
+            return i.first;
+    }
+
+    return -1;
 }
 
 void server_networking::print_serverlist()
@@ -450,7 +488,7 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
     fighter* net_fighter = new fighter(*ctx, *ctx->fetch());
 
     net_fighter->set_team(1);
-    net_fighter->set_pos({0, 10, 0});
+    net_fighter->set_pos({0, 0, 0});
     net_fighter->set_rot({0, 0, 0});
     //net_fighter->set_quality(s.quality);
     net_fighter->set_quality(1); ///???
