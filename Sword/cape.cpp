@@ -221,7 +221,7 @@ compute::buffer cape::fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f r
 
     vec3f diff = p3 - p1;
 
-    float shrink = 0.12;
+    float shrink = 0.12f;
 
     diff = diff * shrink;
 
@@ -237,20 +237,11 @@ compute::buffer cape::fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f r
     float rdepth = ldepth;
     ///we should move perpendicularly away, not zdistance away
 
-    //lpos = lpos + (vec3f){0, 0, ldepth}.rot({0,0,0}, rotation);
-    //rpos = rpos + (vec3f){0, 0, rdepth}.rot({0,0,0}, rotation);
-
-    //vec2f space_perp = cross((vec2f){p3.v[0], p3.v[2]}.norm(), (vec2f){p1.v[0], p1.v[2]}.norm());
-
     vec2f ldir = {p3.v[0], p3.v[2]};
 
     ldir = ldir - (vec2f){p1.v[0], p1.v[2]};
 
     vec2f perp = perpendicular(ldir.norm());
-
-    //vec2f perp = 0.f;
-
-    //vec3f perp3 = (vec3f){0, 0, ldepth}.rot({0,0,0}, {0, rotation.v[1], 0.f});
 
     vec3f perp3 = {perp.v[0], 0.f, perp.v[1]};
 
