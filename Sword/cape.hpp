@@ -18,6 +18,8 @@ struct cape
 {
     static void load_cape(objects_container* obj, int team);
 
+    int saved_team;
+
     objects_container* model;
 
     compute::buffer in, out;

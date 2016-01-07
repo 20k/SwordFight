@@ -139,8 +139,10 @@ cape::cape(object_context& cpu, object_context_data& gpu)
 
 void cape::load(int team)
 {
-    if(loaded)
+    if(loaded && team == saved_team)
         return;
+
+    saved_team = team;
 
     hit_floor = false;
 
@@ -150,7 +152,7 @@ void cape::load(int team)
 
     model->set_load_func(std::bind(cape::load_cape, std::placeholders::_1, team));
     model->set_active(true);
-    model->cache = false;
+    model->cache = false; ///why?
     //model->set_normal("res/norm_body.png");
 
     //obj_mem_manager::load_active_objects();
@@ -217,23 +219,53 @@ compute::buffer cape::fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f r
 {
     vec3f rotation = rot;
 
+    vec3f diff = p3 - p1;
+
+    float shrink = 0.12;
+
+    diff = diff * shrink;
+
+    p3 = p3 - diff;
+    p1 = p1 + diff;
+
     vec3f lpos = p1;
     vec3f rpos = p3;
 
     ///approximation
     ///could also use body scaling
-    float ldepth = (p3 - p1).length() / 4.f;
+    float ldepth = (p3 - p1).length() / 3.f;
     float rdepth = ldepth;
+    ///we should move perpendicularly away, not zdistance away
 
-    lpos = lpos + (vec3f){0, 0, ldepth}.rot({0,0,0}, rotation);
-    rpos = rpos + (vec3f){0, 0, rdepth}.rot({0,0,0}, rotation);
+    //lpos = lpos + (vec3f){0, 0, ldepth}.rot({0,0,0}, rotation);
+    //rpos = rpos + (vec3f){0, 0, rdepth}.rot({0,0,0}, rotation);
+
+    //vec2f space_perp = cross((vec2f){p3.v[0], p3.v[2]}.norm(), (vec2f){p1.v[0], p1.v[2]}.norm());
+
+    vec2f ldir = {p3.v[0], p3.v[2]};
+
+    ldir = ldir - (vec2f){p1.v[0], p1.v[2]};
+
+    vec2f perp = perpendicular(ldir.norm());
+
+    //vec2f perp = 0.f;
+
+    //vec3f perp3 = (vec3f){0, 0, ldepth}.rot({0,0,0}, {0, rotation.v[1], 0.f});
+
+    vec3f perp3 = {perp.v[0], 0.f, perp.v[1]};
+
+    lpos = lpos + perp3 * ldepth;
+    rpos = rpos + perp3 * ldepth;
+
+    lpos.v[1] += bodypart::scale / 4;
+    rpos.v[1] += bodypart::scale / 4;
 
     ///dir could also just be (p3 - p1).rot ???
     vec3f dir = rpos - lpos;
 
     int len = width;
 
-    vec3f step = dir / (float)len;
+    vec3f step = dir / (float)(len - 1);
 
     vec3f current = lpos;
 
@@ -241,10 +273,18 @@ compute::buffer cape::fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f r
 
     cl_float* mem_map = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), buf.get(), CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, 0, sizeof(cl_float)*width*3, 0, NULL, NULL, NULL);
 
+    float sag = bodypart::scale/32.f;
+
+    //sag = 0;
+
     for(int i=0; i<len; i++)
     {
+        float xf = (float)i / len;
+
+        float yval = 4 * xf * (xf - 1) * sag + sin(xf * 30);
+
         mem_map[i*3 + 0] = current.v[0];
-        mem_map[i*3 + 1] = current.v[1];
+        mem_map[i*3 + 1] = current.v[1] + yval;
         mem_map[i*3 + 2] = current.v[2];
 
         current = current + step;
@@ -396,7 +436,7 @@ struct wind
 ///shouldn't code while tired
 void cape::tick(fighter* parent)
 {
-    if(!loaded)
+    if(!loaded || saved_team != parent->team)
     {
         load(parent->team);
         return;
