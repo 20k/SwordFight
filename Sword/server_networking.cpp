@@ -180,6 +180,8 @@ std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
     fighter_stack[c++] = get_inf(&fight->net.is_blocking);
     fighter_stack[c++] = get_inf(&fight->net.recoil);
 
+    fighter_stack[c++] = get_inf(&fight->net.reported_dead);
+
     return fighter_stack;
 }
 
@@ -407,6 +409,30 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 udp_send_to(to_game, vec.ptr, (const sockaddr*)&to_game_store);
             }
 
+            if(discovered_fighters[my_id].fight->net.reported_dead)
+            {
+                fighter* my_fighter = discovered_fighters[my_id].fight;
+
+                int32_t player_id = get_id_from_fighter(my_fighter);
+
+                if(player_id == -1)
+                {
+                    printf("Fighter reported dead, but does not exist on networking\n");
+                }
+
+                byte_vector vec;
+                vec.push_back<int32_t>(canary_start);
+                vec.push_back<int32_t>(message::REPORT);
+                vec.push_back<int32_t>(report::DEATH);
+                vec.push_back<int32_t>(player_id);
+                vec.push_back<int32_t>(0); ///no extra data
+                vec.push_back<int32_t>(canary_end);
+
+                udp_send(to_game, vec.ptr);
+
+                my_fighter->net.reported_dead = 0;
+            }
+
             for(auto& net_fighter : discovered_fighters)
             {
                 if(my_id == net_fighter.first)
@@ -433,6 +459,28 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                         i.net.hp_dirty = false;
                     }
+                }
+
+                if(fight->net.reported_dead)
+                {
+                    int32_t player_id = get_id_from_fighter(fight);
+
+                    if(player_id == -1)
+                    {
+                        printf("Fighter reported dead, but does not exist on networking\n");
+                    }
+
+                    byte_vector vec;
+                    vec.push_back<int32_t>(canary_start);
+                    vec.push_back<int32_t>(message::REPORT);
+                    vec.push_back<int32_t>(report::DEATH);
+                    vec.push_back<int32_t>(player_id);
+                    vec.push_back<int32_t>(0); ///no extra data
+                    vec.push_back<int32_t>(canary_end);
+
+                    udp_send(to_game, vec.ptr);
+
+                    fight->net.reported_dead = 0;
                 }
             }
 

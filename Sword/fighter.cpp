@@ -487,6 +487,8 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
 void fighter::load()
 {
+    net.reported_dead = 0;
+
     performed_death = false;
 
     net.recoil = false;
@@ -596,6 +598,8 @@ void fighter::respawn(vec2f _pos)
 
 void fighter::die()
 {
+    net.reported_dead = true;
+
     performed_death = true;
 
     //net.dead = true;
@@ -1114,6 +1118,7 @@ void fighter::tick(bool is_player)
                     ///this is the only time damage is applied to anything, ever
                     their_parent->damage((bodypart_t)(i.hit_id % COUNT), 0.4f);
 
+                    ///this is where the networking fighters get killed
                     their_parent->checked_death();
 
                     //printf("%s\n", names[i.hit_id % COUNT].c_str());
@@ -1798,6 +1803,8 @@ void fighter::overwrite_parts_from_model()
         i.update_model();
     }
 
+    ///pos.v[1] is not correct I don't think
+    ///but im not sure that matters
     pos = parts[bodypart::BODY].global_pos;
     rot = parts[bodypart::BODY].global_rot;
 

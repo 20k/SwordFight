@@ -394,6 +394,8 @@ struct networked_components
     int32_t recoil = 0; ///this is a recoil request, not necessarily saying i AM(?)
 
     bool recoil_dirty = false;
+
+    int32_t reported_dead = 0;
 };
 
 struct link
