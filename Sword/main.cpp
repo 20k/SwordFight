@@ -412,7 +412,7 @@ int main(int argc, char *argv[])
 
     ///a very high roughness is better (low spec), but then i think we need to remove the overhead lights
     ///specular component
-    floor->set_specular(0.6f);
+    floor->set_specular(0.001f);
     floor->set_diffuse(4.f);
 
     texture_manager::allocate_textures();

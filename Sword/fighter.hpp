@@ -153,6 +153,8 @@ namespace bodypart
 
     ///for all the bodyparts
     static const vec3f* default_position = init_default();
+
+    const float specular = 0.7f;
 }
 
 typedef bodypart::bodypart bodypart_t;

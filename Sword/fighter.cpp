@@ -189,6 +189,8 @@ void part::load_team_model()
 
     cpu_context->load_active();
 
+    model->set_specular(bodypart::specular);
+
     scale();
 }
 
@@ -382,6 +384,8 @@ void sword::load_team_model()
 
     cpu_context->load_active();
     scale();
+
+    model->set_specular(bodypart::specular);
 }
 
 sword::sword(object_context& cpu)
@@ -1894,6 +1898,12 @@ void fighter::set_team(int _team)
     }
 
     cpu_context->load_active();
+
+    for(auto& i : joint_links)
+    {
+        i.obj->set_specular(bodypart::specular);
+    }
+
     cpu_context->build();
     gpu_context = cpu_context->fetch();
 }
