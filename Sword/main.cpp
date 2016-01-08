@@ -680,7 +680,6 @@ int main(int argc, char *argv[])
         window.set_object_data(*cdat);
 
 
-        //text::draw();
         window.blit_to_screen();
         ///I need to reenable text drawing
         ///possibly split up window.display into display and flip
@@ -690,6 +689,8 @@ int main(int argc, char *argv[])
         ///we'll need to allow window querying to say should we draw
         ///otherwise in async we'll waste huge performance
         ///in synchronous that's not a problem
+
+        text::draw();
 
         window.flip();
 
