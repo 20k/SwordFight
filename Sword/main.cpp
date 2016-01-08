@@ -412,7 +412,7 @@ int main(int argc, char *argv[])
 
     ///a very high roughness is better (low spec), but then i think we need to remove the overhead lights
     ///specular component
-    floor->set_specular(0.001f);
+    floor->set_specular(0.01f);
     floor->set_diffuse(4.f);
 
     texture_manager::allocate_textures();
@@ -435,8 +435,8 @@ int main(int argc, char *argv[])
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
-    l.set_brightness(0.01f);
-    l.set_diffuse(10.f);
+    l.set_brightness(0.15f);
+    l.set_diffuse(1.f);
     l.set_pos({0, 10000, -300, 0});
 
     //window.add_light(&l);
@@ -681,10 +681,20 @@ int main(int argc, char *argv[])
 
 
         //text::draw();
-        window.display();
+        window.blit_to_screen();
+        ///I need to reenable text drawing
+        ///possibly split up window.display into display and flip
+        ///then have display set a flag if its appropriate to flip the screen
+        ///that way we can still keep the async rendering
+        ///but also allow drawing on top of teh 3d scene
+        ///we'll need to allow window querying to say should we draw
+        ///otherwise in async we'll waste huge performance
+        ///in synchronous that's not a problem
 
-        window.draw_bulk_objs_n();
+        window.flip();
+
         window.render_block();
+        window.draw_bulk_objs_n();
 
 
         /*vec3f world_play = my_fight->pos;
@@ -698,7 +708,7 @@ int main(int argc, char *argv[])
 
         //printf("collide %i\n", rectangle_in_wall(world_2d, real_size, map_one, 11, 12));
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 
     cl::cqueue.finish();
