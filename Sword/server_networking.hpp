@@ -18,14 +18,6 @@ struct network_player
     int32_t id = -1;
 };
 
-/*
-///NETWORKING COMPONENT DEFINITION
-///0 -> parts.size() - individual parts pos/rot
-///parts.size() -> parts.size() * 2 -> hp
-///parts.size()*2 -> parts.size() * 2 + 1 = weapon.model pos/rot
-///parts.size() * 2 + 2 = fight.net.is_blocking
-///parts.size() * 2 + 3 = fight.net.recoil*/
-
 ///parts pos/rot/hp
 ///weapon.model/pos/rot
 ///net.is_blocking
