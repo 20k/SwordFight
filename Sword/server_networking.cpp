@@ -403,6 +403,19 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
             {
                 game_info.process_gamemode_update(fetch);
             }
+
+            if(type == message::RESPAWNRESPONSE)
+            {
+                vec2f new_pos = fetch.get<vec2f>();
+
+                int32_t canary_found = fetch.get<int32_t>();
+
+                if(canary_found == canary_end)
+                {
+                    if(discovered_fighters[my_id].fight != nullptr)
+                        discovered_fighters[my_id].fight->respawn(new_pos);
+                }
+            }
         }
     }
 
@@ -519,6 +532,17 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                     fight->net.reported_dead = 0;
                 }
+            }
+
+            ///spam server with packets until it respawns us
+            if(discovered_fighters[my_id].fight->dead())
+            {
+                byte_vector vec;
+                vec.push_back<int32_t>(canary_start);
+                vec.push_back<int32_t>(message::RESPAWNREQUEST);
+                vec.push_back<int32_t>(canary_end);
+
+                udp_send(to_game, vec.ptr);
             }
 
             time_since_last_send.restart();
@@ -652,6 +676,24 @@ bool gamemode_info::game_over()
     return false;
 }
 
+///needs to be gamemode specific really
+std::string gamemode_info::get_game_over_string()
+{
+    ///team 0 wins
+    ///should really be done by who killed more
+    if(current_session_state.team_1_killed >= current_session_boundaries.max_kills)
+    {
+        return "Team " + team_defs::team_names[0] + " wins!";
+    }
+
+    if(current_session_state.team_0_killed >= current_session_boundaries.max_kills)
+    {
+        return "Team " + team_defs::team_names[1] + " wins!";
+    }
+
+    return "Its a draw!";
+}
+
 ///gamemode?
 ///centre align?
 std::string gamemode_info::get_display_string()
@@ -667,8 +709,8 @@ std::string gamemode_info::get_display_string()
     std::string tstr = std::to_string((int)current_session_state.time_elapsed / 1000);
     std::string mtstr = std::to_string((int)current_session_boundaries.max_time_ms / 1000);
 
-    std::string team_line = "Team 0 kills: " + t0str + ", " + t0remaining + " remaining!"
-                        + "\nTeam 1 kills: " + t1str + ", " + t1remaining + " remaining!";
+    std::string team_line = "Team 0 kills: " + t0str + " with " + t0remaining + " remaining!"
+                        + "\nTeam 1 kills: " + t1str + " with " + t1remaining + " remaining!";
 
     std::string team_next_line = mkstr + " kills needed total";
 

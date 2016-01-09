@@ -42,6 +42,11 @@ void load_map(objects_container* obj, const std::vector<int>& map_def, int width
 
             int world_h = map_def[y*width + x];
 
+            if(world_h == map_namespace::R || world_h == map_namespace::B)
+            {
+                world_h = 0;
+            }
+
             ///-1 so that -1 -> 0 is floor
             ///and then 0 height is floor height
             ///which means that pos.v[1] can be set to the players feet
@@ -50,8 +55,8 @@ void load_map(objects_container* obj, const std::vector<int>& map_def, int width
 
             float scale = game_map::scale;
 
-            world_pos_start = world_pos_start + (vec3f){1/2.f, 0.f, 1/2.f};
-            world_pos_end = world_pos_end + (vec3f){1/2.f, 0.f, 1/2.f};
+            world_pos_start = world_pos_start + (vec3f){0.5f, 0.f, 0.5f};
+            world_pos_end = world_pos_end + (vec3f){0.5f, 0.f, 0.5f};
 
             objects_container temp_obj;
 

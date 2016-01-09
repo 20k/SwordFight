@@ -19,6 +19,16 @@ struct network_player
     int32_t id = -1;
 };
 
+namespace team_defs
+{
+    static std::vector<std::string> team_names
+    {
+        "Red",
+        "Blue",
+        "Error"
+    };
+};
+
 ///should probably unify this
 ///put me into game_modes?
 struct gamemode_info
@@ -31,6 +41,7 @@ struct gamemode_info
     void process_gamemode_update(byte_fetch& fetch);
 
     std::string get_display_string();
+    std::string get_game_over_string();
 
     void tick();
 

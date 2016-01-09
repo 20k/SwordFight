@@ -9,7 +9,7 @@ struct objects_container;
 
 #include "../sword_server/game_server/game_modes.hpp"
 
-static std::vector<int>
+/*static std::vector<int>
 map_test =
 {
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -22,31 +22,8 @@ map_test =
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 0, 0, 0, 0, 0, 0, 0, 0, 1,
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-};
+};*/
 
-static std::vector<int>
-map_one
-{
-    1,1,1,1,1,1,1,1,1,1,1,
-    1,0,0,0,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,0,0,0,1,
-    1,0,0,1,1,1,1,1,0,0,1,
-    1,0,0,0,0,0,0,0,0,0,1,
-    1,0,0,0,1,0,1,0,0,0,1,
-    1,0,0,0,1,0,1,0,0,0,1,
-    1,0,0,0,0,0,0,0,0,0,1,
-    1,0,0,1,1,1,1,1,0,0,1,
-    1,0,0,0,0,0,0,0,0,0,1,
-    1,0,0,0,0,0,0,0,0,0,1,
-    1,1,1,1,1,1,1,1,1,1,1,
-};
-
-namespace game_map
-{
-    static float scale = 1000.f;
-    //static float floor_const =
-    #define FLOOR_CONST (bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3)
-}
 
 struct world_map
 {
