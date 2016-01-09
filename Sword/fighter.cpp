@@ -1694,11 +1694,19 @@ void fighter::update_render_positions()
     foot_heights[1] = l_bob * 0.3 + r_bob * 0.7;
     foot_heights[2] = (foot_heights[0] + foot_heights[1]) / 2.f;
 
+    const float speed = 1.5f;
+
+    ///every 3 seconds
+
     for(part& i : parts)
     {
         vec3f t_pos = i.pos;
 
         t_pos.v[1] += foot_heights[which_side[i.type]] * foot_modifiers[i.type] * overall_bob_modifier;
+
+        float idle_parameter = sin(idle_offsets[i.type] + speed * my_time / 1000.f);
+
+        t_pos.v[1] += idle_modifiers[i.type] * idle_height * idle_parameter;
 
         float twist_extra = shoulder_rotation * waggle_modifiers[i.type];
 

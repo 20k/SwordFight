@@ -90,6 +90,44 @@ namespace bodypart
 
     static float overall_bob_modifier = 1.5f;
 
+    static float idle_modifiers[COUNT] =
+    {
+        1.f/12,
+        1.f/8,
+        1.f/12,
+        1.f/8,
+        1.f/12,
+        0,
+        0,
+        1.f/4,
+        0.f/18,
+        0,
+        0.f/18,
+        0,
+        0,
+        0
+    };
+
+    static float idle_offsets[COUNT] =
+    {
+        0,
+        0,
+        -M_PI/8.f,
+        0,
+        -M_PI/8.f,
+        0,
+        0,
+        M_PI/8.f,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    };
+
+    const float idle_height = 10.f;
+
     ///hip twist in relation to weapon movement
     static float waggle_modifiers[COUNT] =
     {
