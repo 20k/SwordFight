@@ -447,42 +447,6 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 udp_send_to(to_game, vec.ptr, (const sockaddr*)&to_game_store);
             }
 
-            /*if(discovered_fighters[my_id].fight->net.reported_dead)
-            {
-                fighter* my_fighter = discovered_fighters[my_id].fight;
-
-                int32_t player_id = get_id_from_fighter(my_fighter);
-
-                if(player_id == -1)
-                {
-                    printf("Fighter reported dead, but does not exist on networking\n");
-                }
-
-                byte_vector vec;
-                vec.push_back<int32_t>(canary_start);
-                vec.push_back<int32_t>(message::REPORT);
-                vec.push_back<int32_t>(report::DEATH);
-                vec.push_back<int32_t>(player_id);
-                vec.push_back<int32_t>(0); ///no extra data
-                vec.push_back<int32_t>(canary_end);
-
-                udp_send(to_game, vec.ptr);
-
-                my_fighter->net.reported_dead = 0;
-            }
-
-            for(auto& i : discovered_fighters[my_id].fight->parts)
-            {
-                fighter* my_fighter = discovered_fighters[my_id].fight;
-
-                if(i.net.hp_dirty)
-                {
-                    network_update_element<float>(this, &i.hp, my_fighter);
-
-                    i.net.hp_dirty = false;
-                }
-            }*/
-
             ///uuh. Looking increasingly like we should just include the home fighter in this one, eh?
             for(auto& net_fighter : discovered_fighters)
             {
@@ -560,7 +524,7 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
             for(auto& i : discovered_fighters[my_id].fight->parts)
             {
-                ///I set my own HP
+                ///I set my own HP, don't update my hp with the delta
                 if(i.net.hp_dirty)
                 {
                     i.net.hp_dirty = false;
@@ -572,8 +536,6 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                     i.hp += i.net.hp_delta;
 
                     i.net.hp_delta = 0.f;
-
-                    //printf("h: %f\n", i.hp);
                 }
             }
 
