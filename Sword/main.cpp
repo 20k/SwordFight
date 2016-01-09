@@ -545,6 +545,10 @@ int main(int argc, char *argv[])
         if(!server.joined_game)
             server.set_game_to_join(0);
 
+        std::string display_string = server.game_info.get_display_string();
+
+        text::add(display_string, 0, (vec2f){window.width/2.f, window.height - 20});
+
         if(once<sf::Keyboard::B>())
         {
             my_fight->respawn();

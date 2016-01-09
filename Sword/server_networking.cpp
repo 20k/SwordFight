@@ -234,37 +234,43 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
             printf("why\n");
         }*/
 
+        ///uuh. We're currently just leaving a dangling connection on our end
+        ///that seems like poor form
+
         byte_fetch fetch;
         fetch.ptr.swap(data);
 
-        int32_t found_canary = fetch.get<int32_t>();
-
-        while(found_canary != canary_start && !fetch.finished())
+        if(!fetch.finished())
         {
-            found_canary = fetch.get<int32_t>();
-        }
+            int32_t found_canary = fetch.get<int32_t>();
 
-        int32_t type = fetch.get<int32_t>();
-
-        if(type == message::CLIENTRESPONSE)
-        {
-            auto servs = get_serverlist(fetch);
-
-            if(servs.size() > 0)
+            while(found_canary != canary_start && !fetch.finished())
             {
-                server_list = servs;
-                has_serverlist = true;
-
-                print_serverlist();
-
-                ///we're done here
-                to_master.close();
+                found_canary = fetch.get<int32_t>();
             }
-            else
-            {
-                printf("Network error or 0 gameservers available\n");
 
-                pinged = false; ///invalid response, ping again
+            int32_t type = fetch.get<int32_t>();
+
+            if(type == message::CLIENTRESPONSE)
+            {
+                auto servs = get_serverlist(fetch);
+
+                if(servs.size() > 0)
+                {
+                    server_list = servs;
+                    has_serverlist = true;
+
+                    print_serverlist();
+
+                    ///we're done here
+                    to_master.close();
+                }
+                else
+                {
+                    printf("Network error or 0 gameservers available\n");
+
+                    pinged = false; ///invalid response, ping again
+                }
             }
         }
     }
@@ -276,15 +282,12 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
         auto data = udp_receive_from(to_game, &to_game_store);
         is_init = true;
 
-        if(data.size() > 0)
-            any_recv = true;
-        else
-            any_recv = false;
+        any_recv = data.size() > 0;
 
         byte_fetch fetch;
         fetch.ptr.swap(data);
 
-        while(!fetch.finished())
+        while(!fetch.finished() && any_recv)
         {
             int32_t found_canary = fetch.get<int32_t>();
 
@@ -394,7 +397,11 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 {
                     printf("Team assign canary err\n");
                 }
+            }
 
+            if(type == message::GAMEMODEUPDATE)
+            {
+                game_info.process_gamemode_update(fetch);
             }
         }
     }
@@ -545,6 +552,8 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
         if(!i.second.fight->dead())
             i.second.fight->update_lights();
     }
+
+    game_info.tick();
 }
 
 int32_t server_networking::get_id_from_fighter(fighter* f)
@@ -599,4 +608,73 @@ void server_networking::set_my_fighter(fighter* fight)
         return;
 
     discovered_fighters[my_id] = {fight, my_id};
+}
+
+void gamemode_info::process_gamemode_update(byte_fetch& arg)
+{
+    byte_fetch fetch = arg;
+
+    current_mode = (game_mode_t)fetch.get<int32_t>();
+
+    current_session_state = fetch.get<decltype(current_session_state)>();
+    current_session_boundaries = fetch.get<decltype(current_session_boundaries)>();
+
+    /*max_time_elapsed = fetch.get<float>();
+    max_kills = fetch.get<int32_t>();*/
+
+    int32_t found_end = fetch.get<int32_t>();
+
+    if(found_end != canary_end)
+    {
+        printf("err in proces gamemode updates bad canary\n");
+        return;
+    }
+
+    arg = fetch;
+
+    clk.restart();
+}
+
+void gamemode_info::tick()
+{
+    current_session_state.time_elapsed += clk.getElapsedTime().asMicroseconds() / 1000.f / 1000.f;
+}
+
+bool gamemode_info::game_over()
+{
+    if(current_session_state.team_1_killed >= current_session_boundaries.max_kills ||
+       current_session_state.team_0_killed >= current_session_boundaries.max_kills ||
+       current_session_state.time_elapsed > current_session_boundaries.max_time_ms)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+///gamemode?
+///centre align?
+std::string gamemode_info::get_display_string()
+{
+    ///the number of kills is the opposite of who killed who
+    std::string t0str = std::to_string(current_session_state.team_1_killed);
+    std::string t1str = std::to_string(current_session_state.team_0_killed);
+    std::string mkstr = std::to_string(current_session_boundaries.max_kills);
+
+    std::string t0remaining = std::to_string(current_session_boundaries.max_kills - current_session_state.team_1_killed);
+    std::string t1remaining = std::to_string(current_session_boundaries.max_kills - current_session_state.team_0_killed);
+
+    std::string tstr = std::to_string((int)current_session_state.time_elapsed / 1000);
+    std::string mtstr = std::to_string((int)current_session_boundaries.max_time_ms / 1000);
+
+    std::string team_line = "Team 0 kills: " + t0str + ", " + t0remaining + " remaining!"
+                        + "\nTeam 1 kills: " + t1str + ", " + t1remaining + " remaining!";
+
+    std::string team_next_line = mkstr + " kills needed total";
+
+    std::string time_str = tstr + " of " + mtstr + " remaining!";
+
+    //return kstr + "/" + mkstr + "\n" + tstr + "/" + mtstr;
+
+    return team_line + "\n" + team_next_line + "\n" + time_str;
 }

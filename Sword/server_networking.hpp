@@ -3,6 +3,7 @@
 
 #include "../sword_server/master_server/network_messages.hpp"
 #include "../sword_server/master_server/server.hpp"
+#include "../sword_server/game_server/game_modes.hpp"
 #include <net/shared.hpp>
 #include <map>
 
@@ -18,6 +19,26 @@ struct network_player
     int32_t id = -1;
 };
 
+///should probably unify this
+///put me into game_modes?
+struct gamemode_info
+{
+    game_mode_t current_mode;
+
+    session_state current_session_state;
+    session_boundaries current_session_boundaries;
+
+    void process_gamemode_update(byte_fetch& fetch);
+
+    std::string get_display_string();
+
+    void tick();
+
+    bool game_over();
+
+    sf::Clock clk;
+};
+
 ///parts pos/rot/hp
 ///weapon.model/pos/rot
 ///net.is_blocking
@@ -25,6 +46,8 @@ struct network_player
 
 struct server_networking
 {
+    gamemode_info game_info;
+
     sf::Clock time_since_last_send;
     float time_between_sends_ms = 16;
 

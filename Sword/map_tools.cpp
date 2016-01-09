@@ -62,6 +62,7 @@ void load_map(objects_container* obj, const std::vector<int>& map_def, int width
         }
     }
 
+    obj->independent_subobjects = true;
     obj->isloaded = true;
 }
 
