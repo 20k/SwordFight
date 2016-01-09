@@ -592,6 +592,8 @@ void fighter::respawn(vec2f _pos)
     cpu_context->build();
     gpu_context = cpu_context->fetch();
 
+    //update_render_positions();
+
     //obj_mem_manager::g_arrange_mem();
     //obj_mem_manager::g_changeover();
 
@@ -1267,6 +1269,10 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     ///replace this with a dt
     float time_elapsed = walk_clock.getElapsedTime().asMicroseconds() / 1000.f;
 
+    const float speed_mult = 1.3f;
+
+    time_elapsed *= speed_mult;
+
     float h = 120.f;
 
     if(dir.v[0] == -1 && sprint)
@@ -1597,6 +1603,7 @@ void fighter::set_rot(vec3f _rot)
     rot = _rot;
 }
 
+///need to clamp this while attacking
 void fighter::set_rot_diff(vec3f diff)
 {
     rot_diff = diff;
