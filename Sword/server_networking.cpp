@@ -172,6 +172,7 @@ std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
         fighter_stack[c++] = get_inf(&fight->parts[i].obj()->pos);
         fighter_stack[c++] = get_inf(&fight->parts[i].obj()->rot);
         fighter_stack[c++] = get_inf(&fight->parts[i].hp);
+        fighter_stack[c++] = get_inf(&fight->parts[i].net.hp_delta);
     }
 
     fighter_stack[c++] = get_inf(&fight->weapon.model->pos);
@@ -203,7 +204,7 @@ std::map<int, ptr_info> build_host_network_stack(fighter* fight)
     {
         set_map_element(to_send, total_stack, &fight->parts[i].obj()->pos);
         set_map_element(to_send, total_stack, &fight->parts[i].obj()->rot);
-        //set_map_element(to_send, total_stack, &fight->parts[i].hp); ///wrong but useful to test
+        set_map_element(to_send, total_stack, &fight->parts[i].hp);
     }
 
     set_map_element(to_send, total_stack, &fight->weapon.model->pos);
@@ -446,7 +447,7 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 udp_send_to(to_game, vec.ptr, (const sockaddr*)&to_game_store);
             }
 
-            if(discovered_fighters[my_id].fight->net.reported_dead)
+            /*if(discovered_fighters[my_id].fight->net.reported_dead)
             {
                 fighter* my_fighter = discovered_fighters[my_id].fight;
 
@@ -480,13 +481,13 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                     i.net.hp_dirty = false;
                 }
-            }
+            }*/
 
             ///uuh. Looking increasingly like we should just include the home fighter in this one, eh?
             for(auto& net_fighter : discovered_fighters)
             {
-                if(my_id == net_fighter.first)
-                    continue;
+                //if(my_id == net_fighter.first)
+                //   continue;
 
                 fighter* fight = net_fighter.second.fight;
 
@@ -501,15 +502,27 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                     fight->net.recoil_dirty = false;
                 }
 
-                for(auto& i : fight->parts)
+                ///ok so this still doesnt work for quite a few reasons
+                ///mainly we send the delta and then 0 it, which makes parts respawn
+                ///ok so under the delta scheme, tha player never actually dies
+                ///which means that under the current method
+                ///they'll just be teleported across the map
+                ///parts don't reinitialise properly
+                if(my_id != net_fighter.first)
                 {
-                    if(i.net.hp_dirty)
+                    for(auto& i : fight->parts)
                     {
-                        network_update_element<float>(this, &i.hp, fight);
+                        if(i.net.hp_dirty)
+                        {
+                            network_update_element<float>(this, &i.net.hp_delta, fight);
 
-                        i.net.hp_dirty = false;
+                            i.net.hp_delta = 0.f;
+
+                            i.net.hp_dirty = false;
+                        }
                     }
                 }
+
 
                 if(fight->net.reported_dead)
                 {
@@ -545,6 +558,25 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 udp_send(to_game, vec.ptr);
             }
 
+            for(auto& i : discovered_fighters[my_id].fight->parts)
+            {
+                ///I set my own HP
+                if(i.net.hp_dirty)
+                {
+                    i.net.hp_dirty = false;
+                    i.net.hp_delta = 0.f;
+                }
+
+                if(i.net.hp_delta != 0.f)
+                {
+                    i.hp += i.net.hp_delta;
+
+                    i.net.hp_delta = 0.f;
+
+                    //printf("h: %f\n", i.hp);
+                }
+            }
+
             time_since_last_send.restart();
         }
     }
@@ -566,6 +598,8 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
         //if(i.second.id < 0)
         //    continue;
+
+        i.second.fight->manual_check_part_alive();
 
         i.second.fight->respawn_if_appropriate();
 

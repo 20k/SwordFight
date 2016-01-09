@@ -212,7 +212,9 @@ void part::set_quality(int _quality)
 ///temp error as this class needs gpu access
 void part::damage(float dam, bool do_effect)
 {
-    hp -= dam;
+    //hp -= dam;
+
+    set_hp(hp - dam);
 
     //printf("%f\n", hp);
 
@@ -227,7 +229,7 @@ void part::damage(float dam, bool do_effect)
         perform_death();
     }
 
-    network_hp();
+    //network_hp(dam);
 }
 
 void part::perform_death(bool do_effect)
@@ -260,15 +262,18 @@ void part::perform_death(bool do_effect)
 
 void part::set_hp(float h)
 {
+    float delta = h - hp;
+
     hp = h;
 
-    network_hp();
+    network_hp(delta);
 }
 
-void part::network_hp()
+void part::network_hp(float delta)
 {
     net.hp_dirty = true;
-    network::host_update(&hp);
+    //network::host_update(&hp);
+    net.hp_delta += delta;
 }
 
 bool part::alive()
@@ -690,6 +695,9 @@ int fighter::num_dead()
 
     for(auto& p : parts)
     {
+        ///hp_delta is predicted
+        ///this is so that network stuff wont trigger multiple deaths
+        ///by mistake
         if(p.hp <= 0)
         {
             //printf("%s\n", names[p.type].c_str());
@@ -1222,6 +1230,28 @@ void fighter::manual_check_part_death()
         {
             i.perform_death(do_explode_effect);
         }
+    }
+}
+
+void fighter::manual_check_part_alive()
+{
+    bool any = false;
+
+    for(auto& i : parts)
+    {
+        if(i.hp > 0.0001f && !i.is_active)
+        {
+            i.set_active(true);
+
+            any = true;
+        }
+    }
+
+    if(any)
+    {
+        cpu_context->load_active();
+        cpu_context->build();
+        gpu_context = cpu_context->fetch();
     }
 }
 

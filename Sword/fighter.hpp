@@ -162,6 +162,7 @@ typedef bodypart::bodypart bodypart_t;
 struct network_part
 {
     bool hp_dirty = false;
+    float hp_delta = 0.f;
 };
 
 ///need to network part hp
@@ -216,7 +217,7 @@ struct part
     object_context* cpu_context = nullptr;
 
 private:
-    void network_hp();
+    void network_hp(float delta);
     objects_container* model;
 
 };
@@ -493,6 +494,7 @@ struct fighter
 
     void tick(bool is_player = false);
     void manual_check_part_death(); ///interate over parts, if < 0 and active then die
+    void manual_check_part_alive(); ///interate over parts, if > 0 and inactive then activate
     //void walk(int which); ///temp
 
     void walk_dir(vec2f dir, bool sprint = false); ///z, x
