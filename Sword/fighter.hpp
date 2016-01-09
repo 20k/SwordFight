@@ -72,21 +72,23 @@ namespace bodypart
 
     static float foot_modifiers[COUNT] =
     {
-        1.f/12,
+        1.f/8,
         1.f/5,
         1.f/12,
         1.f/5,
         1.f/12,
         0,
         0,
-        1.f/8.f,
+        1.f/8,
+        1.f/4,
         0,
-        0,
-        0,
+        1.f/4,
         0,
         0,
         0
     };
+
+    static float overall_bob_modifier = 1.5f;
 
     ///hip twist in relation to weapon movement
     static float waggle_modifiers[COUNT] =

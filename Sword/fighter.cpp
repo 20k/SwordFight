@@ -1698,7 +1698,7 @@ void fighter::update_render_positions()
     {
         vec3f t_pos = i.pos;
 
-        t_pos.v[1] += foot_heights[which_side[i.type]] * foot_modifiers[i.type];
+        t_pos.v[1] += foot_heights[which_side[i.type]] * foot_modifiers[i.type] * overall_bob_modifier;
 
         float twist_extra = shoulder_rotation * waggle_modifiers[i.type];
 

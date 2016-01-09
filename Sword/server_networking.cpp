@@ -160,7 +160,6 @@ ptr_info get_inf(T* ptr)
     return {(void*)ptr, sizeof(T)};
 }
 
-
 std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
 {
     std::map<int, ptr_info> fighter_stack;
@@ -487,7 +486,6 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                     }
                 }
 
-
                 if(fight->net.reported_dead)
                 {
                     int32_t player_id = get_id_from_fighter(fight);
@@ -567,6 +565,8 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
         i.second.fight->overwrite_parts_from_model();
         i.second.fight->manual_check_part_death();
+
+        i.second.fight->my_cape.tick(i.second.fight);
 
         ///death is dynamically calculated from part health
         if(!i.second.fight->dead())
