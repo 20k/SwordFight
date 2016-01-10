@@ -459,6 +459,8 @@ void cape::tick(fighter* parent)
     auto buf = body_to_gpu(parent);
     int num = bodypart::COUNT + 3;
 
+    cl_float frametime = parent->frametime;
+
     arg_list cloth_args;
 
     cloth_args.push_back(&gpu_context->g_tri_mem);
@@ -484,7 +486,7 @@ void cape::tick(fighter* parent)
         death_height_offset -= 4.f;
     }
 
-    float floor_min = FLOOR_CONST + 5.f;
+    cl_float floor_min = FLOOR_CONST + 5.f;
 
     if(lp.v[1] <= floor_min)
     {
@@ -514,6 +516,9 @@ void cape::tick(fighter* parent)
     cloth_args.push_back(&wind_str);
     cloth_args.push_back(&wind_buf);
     cloth_args.push_back(&floor_const);
+    cloth_args.push_back(&frametime);
+
+    printf("Ftime %f\n", frametime);
 
     cl_uint global_ws[1] = {width*height*depth};
     cl_uint local_ws[1] = {256};
