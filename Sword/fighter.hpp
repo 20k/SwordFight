@@ -127,6 +127,7 @@ namespace bodypart
     };
 
     const float idle_height = 10.f;
+    const float idle_speed = 1.5f;
 
     ///hip twist in relation to weapon movement
     static float waggle_modifiers[COUNT] =

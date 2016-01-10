@@ -1,6 +1,17 @@
 #include "server_networking.hpp"
 #include "fighter.hpp"
 
+std::string respawn_info::get_display_string()
+{
+    float remaining = spawn_time - time_elapsed;
+
+    remaining = std::max(remaining / 1000.f, 0.f);
+
+    remaining = round(remaining);
+
+    return std::to_string((int)remaining) + "s remaining";
+}
+
 server_networking::server_networking()
 {
     ///this is a hack
@@ -414,6 +425,34 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 {
                     if(discovered_fighters[my_id].fight != nullptr)
                         discovered_fighters[my_id].fight->respawn(new_pos);
+                }
+                else
+                {
+                    printf("canary error in respawnresponse\n");
+                }
+            }
+
+            if(type == message::RESPAWNINFO)
+            {
+                /*byte_vector vec;
+                vec.push_back(canary_start);
+                vec.push_back(message::RESPAWNINFO);
+                vec.push_back(time_elapsed);
+                vec.push_back(i.time_to_respawn_ms);
+                vec.push_back(canary_end);*/
+
+                float time_elapsed = fetch.get<float>();
+                float respawn_time = fetch.get<float>();
+
+                int32_t canary_found = fetch.get<int32_t>();
+
+                if(canary_found == canary_end)
+                {
+                    respawn_inf = {time_elapsed, respawn_time};
+                }
+                else
+                {
+                    printf("canary err in respawninfo\n");
                 }
             }
         }

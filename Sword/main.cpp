@@ -554,6 +554,13 @@ int main(int argc, char *argv[])
             text::add(server.game_info.get_game_over_string(), 0, (vec2f){window.width/2.f, window.height/2.f});
         }
 
+        if(my_fight->dead())
+        {
+            std::string disp_string = server.respawn_inf.get_display_string();
+
+            text::add(disp_string, 0, (vec2f){window.width/2.f, 20});
+        }
+
         if(once<sf::Keyboard::B>())
         {
             my_fight->respawn();

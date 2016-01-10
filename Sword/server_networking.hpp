@@ -50,6 +50,14 @@ struct gamemode_info
     sf::Clock clk;
 };
 
+struct respawn_info
+{
+    float time_elapsed = 0;
+    float spawn_time = 1;
+
+    std::string get_display_string();
+};
+
 ///parts pos/rot/hp
 ///weapon.model/pos/rot
 ///net.is_blocking
@@ -57,6 +65,8 @@ struct gamemode_info
 
 struct server_networking
 {
+    respawn_info respawn_inf;
+
     gamemode_info game_info;
 
     sf::Clock time_since_last_send;
