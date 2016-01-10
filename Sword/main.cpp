@@ -706,9 +706,7 @@ int main(int argc, char *argv[])
         space_res.set_screen(window.g_screen);
         space_res.update_camera(window.c_pos, window.c_rot);
 
-        space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-10000,0});
-
-        ///point_cloud_recovery_pass
+        space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
 
         window.draw_bulk_objs_n();
         space_res.blit_space_to_screen();
