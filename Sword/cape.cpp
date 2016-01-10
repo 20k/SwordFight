@@ -518,8 +518,6 @@ void cape::tick(fighter* parent)
     cloth_args.push_back(&floor_const);
     cloth_args.push_back(&frametime);
 
-    printf("Ftime %f\n", frametime);
-
     cl_uint global_ws[1] = {width*height*depth};
     cl_uint local_ws[1] = {256};
 

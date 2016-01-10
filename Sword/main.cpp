@@ -27,6 +27,8 @@
 #include "map_tools.hpp"
 
 #include "server_networking.hpp"
+#include "../openclrenderer/game/space_manager.hpp" ///yup
+#include "../openclrenderer/game/galaxy/galaxy.hpp"
 
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
@@ -366,27 +368,6 @@ int main(int argc, char *argv[])
     fight2.set_quality(s.quality);
     fight2.set_gameplay_state(&current_state);
 
-    std::vector<fighter*> net_fighters;
-
-    ///tmp
-    /*for(int i=0; i<10; i++)
-    {
-        net_fighters.push_back(new fighter(context, *gpu_context));
-        net_fighters[i]->set_team(1);
-        net_fighters[i]->set_pos({0, 0, -3000000});
-        net_fighters[i]->set_rot({0, 0, 0});
-        net_fighters[i]->set_quality(s.quality);
-        net_fighters[i]->set_gameplay_state(&current_state);
-    }*/
-
-    //fighter* net_fighter = new fighter(context, *context.fetch());
-
-    /*fighter fight3(context, *gpu_context);
-    fight3.set_team(1);
-    fight3.set_pos({0, 0, -600});
-    fight3.set_rot({0, M_PI, 0});
-    fight3.set_quality(s.quality);
-    fight3.set_gameplay_state(&current_state);*/
 
     physics phys;
     phys.load();
@@ -399,15 +380,6 @@ int main(int argc, char *argv[])
 
     fight.set_physics(&phys);
     fight2.set_physics(&phys);
-
-    /*for(auto& i : net_fighters)
-    {
-        i->set_physics(&phys);
-
-        net_slave(*i);
-
-        i->update_render_positions();
-    }*/
 
     printf("loaded net fighters\n");
 
@@ -462,6 +434,16 @@ int main(int argc, char *argv[])
     vec3f rest_position = {0, -200, -100};
 
     fighter* my_fight = &fight;
+
+    printf("Presspace\n");
+
+    space_manager space_res;
+    space_res.init(s.width, s.height);
+
+    point_cloud stars = get_starmap(1);
+    point_cloud_info g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
+
+    printf("Postspace\n");
 
 
     ///debug;
@@ -671,7 +653,7 @@ int main(int argc, char *argv[])
         if(!my_fight->dead())
             my_fight->update_lights();
 
-        for(auto& i : net_fighters)
+        /*for(auto& i : net_fighters)
         {
             if(my_fight == i)
                 continue;
@@ -682,7 +664,7 @@ int main(int argc, char *argv[])
 
             if(!i->dead())
                 i->update_lights();
-        }
+        }*/
 
         particle_effect::tick();
 
@@ -701,8 +683,8 @@ int main(int argc, char *argv[])
 
         window.set_object_data(*cdat);
 
-
         window.blit_to_screen();
+
         ///I need to reenable text drawing
         ///possibly split up window.display into display and flip
         ///then have display set a flag if its appropriate to flip the screen
@@ -712,13 +694,24 @@ int main(int argc, char *argv[])
         ///otherwise in async we'll waste huge performance
         ///in synchronous that's not a problem
 
+        space_res.clear_buffers();
+
         text::draw();
 
         window.flip();
 
         window.render_block();
-        window.draw_bulk_objs_n();
 
+        space_res.set_depth_buffer(window.depth_buffer[window.nbuf]);
+        space_res.set_screen(window.g_screen);
+        space_res.update_camera(window.c_pos, window.c_rot);
+
+        space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-10000,0});
+
+        ///point_cloud_recovery_pass
+
+        window.draw_bulk_objs_n();
+        space_res.blit_space_to_screen();
 
         /*vec3f world_play = my_fight->pos;
 
