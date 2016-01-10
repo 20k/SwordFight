@@ -1654,12 +1654,8 @@ void fighter::set_rot_diff(vec3f diff)
         if(i.does(mov::DAMAGING))
         {
             yangle_diff = clamp(yangle_diff, -max_angle_while_damaging, max_angle_while_damaging);
-
-            printf("clamping\n");
         }
     }
-
-    //printf("yangle %f\n", yangle_diff);
 
     diff.v[1] = yangle_diff;
 
