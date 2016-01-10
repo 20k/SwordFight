@@ -92,6 +92,8 @@ struct server_networking
 
     bool joined_game = false;
 
+    bool just_new_round = false;
+
     std::vector<game_server> server_list;
 
     ///found by just accidentally receiving info

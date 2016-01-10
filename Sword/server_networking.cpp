@@ -412,7 +412,17 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
             if(type == message::GAMEMODEUPDATE)
             {
+                just_new_round = false;
+
+                bool prev_game = game_info.game_over();
+
                 game_info.process_gamemode_update(fetch);
+
+                ///just swapped from not game over to it is game over!
+                if(prev_game == true && !game_info.game_over())
+                {
+                    just_new_round = true;
+                }
             }
 
             if(type == message::RESPAWNRESPONSE)

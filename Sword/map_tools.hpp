@@ -31,6 +31,7 @@ struct world_map
     std::vector<int> map_def;
 
     void init(const std::vector<int>& _map, int w, int h);
+    void init(int map_id);
 
     std::function<void(objects_container*)> get_load_func();
 };

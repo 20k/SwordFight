@@ -311,7 +311,8 @@ int main(int argc, char *argv[])
                                   3000.f, "./res/gray.png"));*/
 
     world_map default_map;
-    default_map.init(map_namespace::map_one, 11, 12);
+    //default_map.init(map_namespace::map_one, 11, 12);
+    default_map.init(0);
 
     gameplay_state current_state;
     current_state.set_map(default_map);
@@ -552,6 +553,11 @@ int main(int argc, char *argv[])
         if(server.game_info.game_over())
         {
             text::add(server.game_info.get_game_over_string(), 0, (vec2f){window.width/2.f, window.height/2.f});
+        }
+
+        if(server.just_new_round && !my_fight->dead())
+        {
+            my_fight->die();
         }
 
         if(my_fight->dead())

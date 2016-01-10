@@ -9,6 +9,13 @@ void world_map::init(const std::vector<int>& _map, int w, int h)
     height = h;
 }
 
+void world_map::init(int map_id)
+{
+    map_def = game_map::map_list[map_id];
+    width = game_map::map_dims[map_id].v[0];
+    height = game_map::map_dims[map_id].v[1];
+}
+
 std::function<void(objects_container*)> world_map::get_load_func()
 {
     if(width == 0 || height == 0)

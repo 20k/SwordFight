@@ -226,7 +226,7 @@ void part::damage(float dam, bool do_effect)
 
         //cpu_context.load_active();
 
-        perform_death();
+        perform_death(do_effect);
     }
 
     //network_hp(dam);
@@ -242,7 +242,6 @@ void part::perform_death(bool do_effect)
         particle_effect::push(e);
     }
 
-    //set_pos({0, -1000000000, 0});
     set_active(false);
 
     cpu_context->load_active();
@@ -1046,6 +1045,9 @@ void fighter::tick(bool is_player)
 
     bool arms_are_locked = false;
 
+    ///only the first move is ever executed PER LIMB
+    ///the busy list is used purely to stop all the rest of the moves from activating
+    ///because different limbs can have different moves activating concurrently
     for(movement& i : moves)
     {
         if(std::find(busy_list.begin(), busy_list.end(), i.limb) != busy_list.end())
@@ -1636,6 +1638,31 @@ void fighter::set_rot(vec3f _rot)
 ///need to clamp this while attacking
 void fighter::set_rot_diff(vec3f diff)
 {
+    ///check movement list
+    ///if move going
+    ///and does damage
+    ///clamp
+    float max_angle_while_damaging = 6.f * frametime / 1000.f;
+
+    float yangle_diff = diff.v[1];
+
+    for(auto& i : moves)
+    {
+        if(!i.going)
+            continue;
+
+        if(i.does(mov::DAMAGING))
+        {
+            yangle_diff = clamp(yangle_diff, -max_angle_while_damaging, max_angle_while_damaging);
+
+            printf("clamping\n");
+        }
+    }
+
+    //printf("yangle %f\n", yangle_diff);
+
+    diff.v[1] = yangle_diff;
+
     rot_diff = diff;
     rot = rot + diff;
 }
