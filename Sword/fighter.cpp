@@ -594,6 +594,7 @@ void fighter::respawn(vec2f _pos)
     cpu_context->load_active();
 
     cpu_context->build();
+    cpu_context->flip();
     gpu_context = cpu_context->fetch();
 
     //update_render_positions();
@@ -685,6 +686,7 @@ void fighter::die()
     cpu_context->load_active();
 
     cpu_context->build();
+    cpu_context->flip();
     gpu_context = cpu_context->fetch();
 }
 
@@ -1862,6 +1864,8 @@ void fighter::respawn_if_appropriate()
         if(performed_death)
         {
             respawn();
+
+            printf("respawning other playern\n");
         }
     }
 
@@ -1969,6 +1973,7 @@ void fighter::set_team(int _team)
     }
 
     cpu_context->build();
+    cpu_context->flip();
     gpu_context = cpu_context->fetch();
 }
 

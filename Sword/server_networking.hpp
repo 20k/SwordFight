@@ -16,7 +16,7 @@ struct physics;
 ///should really register myself as network player
 struct network_player
 {
-    fighter* fight;
+    fighter* fight = nullptr;
     int32_t id = -1;
 };
 
@@ -67,6 +67,8 @@ struct respawn_info
 
 struct server_networking
 {
+    reliability_manager reliable_manager;
+
     respawn_info respawn_inf;
 
     gamemode_info game_info;
@@ -127,8 +129,8 @@ struct server_networking
 
 struct ptr_info
 {
-    void* ptr;
-    int size;
+    void* ptr = nullptr;
+    int size = 0;
 };
 
 std::map<int, ptr_info> build_fighter_network_stack(fighter* fight);

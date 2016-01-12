@@ -328,11 +328,23 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                     return;
                 }
 
-                if(discovered_fighters[player_id].id == -1)
+                if(discovered_fighters[player_id].id == -1 && have_id)
                 {
                     discovered_fighters[player_id] = make_networked_player(player_id, ctx, st, phys);
 
-                    printf("made a new networked player\n");
+                    printf("made a new networked player %i\n", player_id);
+
+                    continue;
+                }
+
+                ///I don't have my id yet, which means that everything might be fucked
+                ///I actually am not 100% sure if this is a problem
+
+                if(!have_id)
+                {
+                    printf("no id, skipping\n");
+                    discovered_fighters.clear();
+                    continue;
                 }
 
                 network_player play = discovered_fighters[player_id];
@@ -347,9 +359,9 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                 ptr_info comp = arg_map[component_id];
 
-                if(len != comp.size)
+                if(len != comp.size || comp.size == 0 || comp.ptr == nullptr)
                 {
-                    printf("err in argument size\n");
+                    printf("err in argument\n");
                     return;
                 }
 
@@ -395,11 +407,11 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                 int32_t canary_found = fetch.get<int32_t>();
 
-                //printf("teamassign\n");
+                //printf("teamassign id %i team %i\n", client_id, team);
 
                 if(canary_found == canary_end)
                 {
-                    if(discovered_fighters.find(client_id) != discovered_fighters.end() && discovered_fighters[client_id].fight)
+                    if(have_id && discovered_fighters.find(client_id) != discovered_fighters.end() && discovered_fighters[client_id].fight)
                         discovered_fighters[client_id].fight->set_team(team);
                     else
                         printf("teamassignskip\n");
@@ -408,6 +420,8 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 {
                     printf("Team assign canary err\n");
                 }
+
+                //printf("postteam\n");
             }
 
             if(type == message::GAMEMODEUPDATE)
@@ -433,8 +447,10 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                 if(canary_found == canary_end)
                 {
-                    if(discovered_fighters[my_id].fight != nullptr)
+                    if(have_id && discovered_fighters[my_id].fight != nullptr)
                         discovered_fighters[my_id].fight->respawn(new_pos);
+                    else
+                        printf("respawn skip\n");
                 }
                 else
                 {
@@ -464,6 +480,11 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 {
                     printf("canary err in respawninfo\n");
                 }
+            }
+
+            if(type == message::FORWARDING_RELIABLE)
+            {
+                reliable_manager.insert_forwarding_from_forwarding_reliable_into_stream(fetch);
             }
         }
     }
@@ -605,6 +626,12 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
         if(i.first == my_id)
             continue;
 
+        if(i.second.id < 0)
+        {
+            printf("super bad error, invalid fighter\n");
+            continue;
+        }
+
         //if(i.second.id < 0)
         //    continue;
 
@@ -615,7 +642,7 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
         i.second.fight->overwrite_parts_from_model();
         i.second.fight->manual_check_part_death();
 
-        i.second.fight->my_cape.tick(i.second.fight);
+        //i.second.fight->my_cape.tick(i.second.fight);
 
         ///death is dynamically calculated from part health
         if(!i.second.fight->dead())
@@ -623,6 +650,7 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
     }
 
     game_info.tick();
+    reliable_manager.tick(to_game);
 }
 
 int32_t server_networking::get_id_from_fighter(fighter* f)
@@ -667,6 +695,8 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
     network_player play;
     play.fight = net_fighter;
     play.id = id;
+
+    ctx->flip();
 
     return play;
 }
