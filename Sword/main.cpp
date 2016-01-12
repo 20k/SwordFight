@@ -694,8 +694,6 @@ int main(int argc, char *argv[])
         ///otherwise in async we'll waste huge performance
         ///in synchronous that's not a problem
 
-        space_res.clear_buffers();
-
         text::draw();
 
         window.flip();
@@ -710,6 +708,7 @@ int main(int argc, char *argv[])
 
         window.draw_bulk_objs_n();
         space_res.blit_space_to_screen();
+        space_res.clear_buffers();
 
         /*vec3f world_play = my_fight->pos;
 

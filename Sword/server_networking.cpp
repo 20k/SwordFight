@@ -706,7 +706,8 @@ void gamemode_info::process_gamemode_update(byte_fetch& arg)
 
 void gamemode_info::tick()
 {
-    current_session_state.time_elapsed += clk.getElapsedTime().asMicroseconds() / 1000.f / 1000.f;
+    current_session_state.time_elapsed += (clk.getElapsedTime().asMicroseconds() / 1000.f);
+    clk.restart();
 }
 
 bool gamemode_info::game_over()

@@ -4,6 +4,7 @@
 #include "../sword_server/master_server/network_messages.hpp"
 #include "../sword_server/master_server/server.hpp"
 #include "../sword_server/game_server/game_modes.hpp"
+#include "../sword_server/reliability_shared.hpp"
 #include <net/shared.hpp>
 #include <map>
 
@@ -19,6 +20,7 @@ struct network_player
     int32_t id = -1;
 };
 
+///merge into the map_tool definition???
 namespace team_defs
 {
     static std::vector<std::string> team_names
@@ -98,11 +100,6 @@ struct server_networking
 
     ///found by just accidentally receiving info
     ///maps player id to actual player
-    ///i mean honestly, we want to tie a unique character to this
-    //std::map<int32_t, player> discovered_players; ///???
-    //std::map<int32_t, bool> discovered_active;
-    //std::map<int32_t, fighter*> discovered_fighters; ///???
-
     std::map<int32_t, network_player> discovered_fighters;
     int32_t my_id = -1;
 
