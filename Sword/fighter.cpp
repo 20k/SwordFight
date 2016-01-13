@@ -688,6 +688,8 @@ void fighter::die()
     cpu_context->build();
     cpu_context->flip();
     gpu_context = cpu_context->fetch();
+
+    ///pipe out hp here, just to check
 }
 
 int fighter::num_dead()
@@ -718,13 +720,7 @@ int fighter::num_needed_to_die()
 
 bool fighter::should_die()
 {
-    const int num_destroyed_to_die = num_needed_to_die();
-
-    int num_destroyed = num_dead();
-
-    //printf("%i\n", num_destroyed);
-
-    if(num_destroyed >= num_destroyed_to_die && !performed_death)
+    if(num_dead() >= num_needed_to_die() && !performed_death)
         return true;
 
     return false;
@@ -1162,6 +1158,14 @@ void fighter::tick(bool is_player)
             it++;
     }
 
+    /*for(auto& i : parts)
+    {
+        if(i.hp != 1.f)
+            printf("hp %f\n", i.hp);
+    }
+
+    printf("\n");*/
+
     //static float rot = 0.f;
 
     //rot += 0.01f;
@@ -1239,6 +1243,11 @@ void fighter::manual_check_part_death()
 
 void fighter::manual_check_part_alive()
 {
+    ///do not respawn parts if the fighter is dead!
+    //if(num_dead() >= num_needed_to_die())
+    if(dead())
+        return;
+
     bool any = false;
 
     for(auto& i : parts)
@@ -1859,17 +1868,40 @@ void fighter::update_lights()
 
 void fighter::respawn_if_appropriate()
 {
-    if(num_dead() < num_needed_to_die())
-    {
-        if(performed_death)
-        {
-            respawn();
+    //printf("respawn %i %i\n", num_dead(), num_needed_to_die());
 
-            printf("respawning other playern\n");
+    ///only respawns if on full health
+    ///easiest way to get around some of the delayed dying bugs
+    ///could probably still cause issues if we go from full health to 0
+    ///in almost no time
+    for(auto& i : parts)
+    {
+        if(i.hp < 0.9999f)
+        {
+            return;
         }
     }
 
-    //printf("respawn %i %i\n", num_dead(), num_needed_to_die());
+    //if(num_dead() < num_needed_to_die())
+    {
+        if(performed_death)
+        {
+            ///this will still bloody network all the hp changes
+            respawn();
+
+            ///hack to stop it from networking the hp change
+            ///from respawning the network fighter
+            for(auto& i : parts)
+            {
+                i.net.hp_delta = 0.f;
+                i.net.hp_dirty = false;
+            }
+
+            //printf("respawning other playern\n");
+        }
+    }
+
+    //printf("post_respawn\n");
 }
 
 ///net-fighters ONLY

@@ -632,12 +632,21 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
             continue;
         }
 
-        //if(i.second.id < 0)
-        //    continue;
+        ///for some reason, its respawning the other player a 2/3 parts dead
+        ///then 3/3 parts die, and then goes to 0/3 parts
+        ///makes no sense whatsoever
+        ///perhaps because of the network update mechanism
 
+        ///ok, so its because i send the death thing
+        ///they send me the hp they have currently
+        ///this causes me to respawn the fighter
+        ///then that causes me to overwrite their hp with the spawned fighter's hp
+        ///ffs
         i.second.fight->manual_check_part_alive();
 
+        ///we need a die if appropriate too
         i.second.fight->respawn_if_appropriate();
+        i.second.fight->checked_death();
 
         i.second.fight->overwrite_parts_from_model();
         i.second.fight->manual_check_part_death();
