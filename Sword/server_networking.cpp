@@ -486,6 +486,11 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
             {
                 reliable_manager.insert_forwarding_from_forwarding_reliable_into_stream(fetch);
             }
+
+            if(type == message::FORWARDING_RELIABLE_ACK)
+            {
+                reliable_manager.process_forwarding_reliable_ack(fetch);
+            }
         }
     }
 
@@ -530,6 +535,7 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                 if(fight->net.recoil_dirty)
                 {
+                    ///make me reliable too! yay!
                     network_update_element<int32_t>(this, &fight->net.recoil, fight);
 
                     fight->net.recoil_dirty = false;
@@ -547,7 +553,7 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                     {
                         if(i.net.hp_dirty)
                         {
-                            network_update_element<float>(this, &i.net.hp_delta, fight);
+                            network_update_element_reliable<float>(this, &i.net.hp_delta, fight);
 
                             i.net.hp_delta = 0.f;
 

@@ -1230,7 +1230,14 @@ void fighter::tick(bool is_player)
 
 void fighter::manual_check_part_death()
 {
-    bool do_explode_effect = num_dead() < num_needed_to_die() - 1;
+    ///num needed to die = 3
+    ///if 1, one dead, fine
+    ///if 2, two dead, fine
+    ///if 3, 3 dead bad
+    ///therefore 2 < 3
+    ///so that's fine
+    ///i dunno why there was a -1 here originally
+    bool do_explode_effect = num_dead() < num_needed_to_die();
 
     for(auto& i : parts)
     {
