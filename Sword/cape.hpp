@@ -48,6 +48,8 @@ private:
     bool loaded;
     object_context* cpu_context;
     object_context_data* gpu_context;
+
+    sf::Clock frametime_clock;
 };
 
 #endif // CAPE_HPP_INCLUDED

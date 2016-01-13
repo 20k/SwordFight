@@ -651,7 +651,7 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
         i.second.fight->overwrite_parts_from_model();
         i.second.fight->manual_check_part_death();
 
-        //i.second.fight->my_cape.tick(i.second.fight);
+        i.second.fight->my_cape.tick(i.second.fight);
 
         ///death is dynamically calculated from part health
         if(!i.second.fight->dead())

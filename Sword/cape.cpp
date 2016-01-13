@@ -457,9 +457,17 @@ void cape::tick(fighter* parent)
     //cl_float wind_side = w.gust;
 
     auto buf = body_to_gpu(parent);
-    int num = bodypart::COUNT + 3;
+    cl_int num = bodypart::COUNT + 3;
 
-    cl_float frametime = parent->frametime;
+    //cl_float frametime = parent->frametime;
+
+    cl_float frametime = frametime_clock.getElapsedTime().asMicroseconds() / 1000.f;
+    frametime_clock.restart();
+
+    ///its fine to do this
+    ///as model gpu tri start/ends are only updated on a flip
+    ///I'm not a retard! Hooray!
+    gpu_context = cpu_context->get_current_gpu();
 
     arg_list cloth_args;
 

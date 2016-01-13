@@ -537,6 +537,8 @@ int main(int argc, char *argv[])
             text::add(server.game_info.get_game_over_string(), 0, (vec2f){window.width/2.f, window.height/2.f});
         }
 
+        ///network players don't die on a die
+        ///because dying doesn't update part hp
         if(server.just_new_round && !my_fight->dead())
         {
             my_fight->die();
@@ -721,7 +723,7 @@ int main(int argc, char *argv[])
 
         //printf("collide %i\n", rectangle_in_wall(world_2d, real_size, map_one, 11, 12));
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
     }
 
     cl::cqueue.finish();

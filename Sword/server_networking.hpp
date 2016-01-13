@@ -74,7 +74,7 @@ struct server_networking
     gamemode_info game_info;
 
     sf::Clock time_since_last_send;
-    float time_between_sends_ms = 16;
+    float time_between_sends_ms = 4;
 
     sock_info master_info;
     //sock_info game_info;
