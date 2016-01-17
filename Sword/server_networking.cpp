@@ -1,5 +1,6 @@
 #include "server_networking.hpp"
 #include "fighter.hpp"
+#include "sound.hpp"
 
 std::string respawn_info::get_display_string()
 {
@@ -183,6 +184,7 @@ std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
         fighter_stack[c++] = get_inf(&fight->parts[i].obj()->rot);
         fighter_stack[c++] = get_inf(&fight->parts[i].hp);
         fighter_stack[c++] = get_inf(&fight->parts[i].net.hp_delta);
+        fighter_stack[c++] = get_inf(&fight->parts[i].net.play_hit_audio);
     }
 
     fighter_stack[c++] = get_inf(&fight->weapon.model->pos);
@@ -192,6 +194,7 @@ std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
     fighter_stack[c++] = get_inf(&fight->net.recoil);
 
     fighter_stack[c++] = get_inf(&fight->net.reported_dead);
+    fighter_stack[c++] = get_inf(&fight->net.play_clang_audio);
 
     return fighter_stack;
 }
@@ -536,6 +539,7 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 if(fight->net.recoil_dirty)
                 {
                     ///make me reliable too! yay!
+                    ///make reliable?
                     network_update_element<int32_t>(this, &fight->net.recoil, fight);
 
                     fight->net.recoil_dirty = false;
@@ -549,6 +553,13 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 ///parts don't reinitialise properly
                 if(my_id != net_fighter.first)
                 {
+                    if(fight->net.play_clang_audio)
+                    {
+                        network_update_element_reliable<int32_t>(this, &fight->net.play_clang_audio, fight);
+
+                        fight->net.play_clang_audio = 0;
+                    }
+
                     for(auto& i : fight->parts)
                     {
                         if(i.net.hp_dirty)
@@ -558,6 +569,13 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                             i.net.hp_delta = 0.f;
 
                             i.net.hp_dirty = false;
+                        }
+
+                        if(i.net.play_hit_audio)
+                        {
+                            network_update_element_reliable<int32_t>(this, &i.net.play_hit_audio, fight);
+
+                            i.net.play_hit_audio = 0;
                         }
                     }
                 }
@@ -583,6 +601,39 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                     fight->net.reported_dead = 0;
                 }
+            }
+
+            ///if(me.recoil) //playsound
+            ///if(me.mydirty) ///playsound
+
+            ///STILL NEED TO ACTUALLY NETWORK THIS
+            if(discovered_fighters[my_id].fight->net.play_clang_audio)
+            {
+                vec3f pos = xyz_to_vec(discovered_fighters[my_id].fight->weapon.model->pos);
+
+                sound::add(1, pos);
+
+                discovered_fighters[my_id].fight->net.play_clang_audio = 0;
+            }
+
+            bool any_parts_hit = false;
+            vec3f sound_pos = {0,0,0};
+
+            for(auto& i : discovered_fighters[my_id].fight->parts)
+            {
+                if(i.net.play_hit_audio)
+                {
+                    any_parts_hit = true;
+                    sound_pos = i.global_pos;
+
+                    ///reset network state
+                    i.net.play_hit_audio = 0;
+                }
+            }
+
+            if(any_parts_hit)
+            {
+                sound::add(0, sound_pos);
             }
 
             ///spam server with packets until it respawns us

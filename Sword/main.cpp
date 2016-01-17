@@ -302,6 +302,8 @@ int main(int argc, char *argv[])
     c2.cache = false;
     c2.set_active(true);*/
 
+    sf::Clock clk;
+
     object_context context;
     object_context_data* gpu_context = context.fetch();
 
@@ -408,7 +410,7 @@ int main(int argc, char *argv[])
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
-    l.set_brightness(0.15f);
+    l.set_brightness(0.215f);
     l.set_diffuse(1.f);
     l.set_pos({0, 10000, -300, 0});
 
@@ -723,7 +725,12 @@ int main(int argc, char *argv[])
 
         //printf("collide %i\n", rectangle_in_wall(world_2d, real_size, map_one, 11, 12));
 
-        //std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+        if(key.isKeyPressed(sf::Keyboard::M))
+            std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
+
+        /*printf("TTL %f\n", clk.getElapsedTime().asMicroseconds() / 1000.f);
+
+        return 0;*/
     }
 
     cl::cqueue.finish();

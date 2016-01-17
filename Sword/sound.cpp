@@ -17,6 +17,7 @@ sf::SoundBuffer s[2];
 std::deque<sf::Sound> sounds;
 std::deque<vec3f> positions;
 
+///1 is clang, 0 is hrrk
 void sound::add(int type, vec3f pos)
 {
     static int loaded = 0;

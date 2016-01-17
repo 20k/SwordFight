@@ -25,7 +25,7 @@
 				<Option type="1" />
 				<Option compiler="mingw64" />
 				<Compiler>
-					<Add option="-Ofast" />
+					<Add option="-O2" />
 					<Add option="-march=native" />
 					<Add option="-msse3 -mavx" />
 				</Compiler>
@@ -58,6 +58,8 @@
 			<Add option="-std=gnu++14" />
 			<Add option="-Wno-unknown-pragmas" />
 			<Add option="-Wno-narrowing" />
+			<Add option="-Wno-sign-compare" />
+			<Add option="-Wno-narrowing" />
 			<Add option="-DCL_USE_DEPRECATED_OPENCL_1_1_APIS" />
 			<Add option="-DNDEBUG" />
 			<Add option="-DGLEW_STATIC" />
@@ -81,6 +83,10 @@
 			<Add option="-lopenal32" />
 			<Add option="-logg" />
 		</Linker>
+		<Unit filename="../openclrenderer/Game/Galaxy/galaxy.cpp" />
+		<Unit filename="../openclrenderer/Game/Galaxy/galaxy.hpp" />
+		<Unit filename="../openclrenderer/Game/space_manager.cpp" />
+		<Unit filename="../openclrenderer/Game/space_manager.hpp" />
 		<Unit filename="../openclrenderer/cl2.cl">
 			<Option weight="45" />
 		</Unit>
@@ -131,6 +137,8 @@
 		<Unit filename="../openclrenderer/vec.hpp" />
 		<Unit filename="../openclrenderer/vertex.cpp" />
 		<Unit filename="../openclrenderer/vertex.hpp" />
+		<Unit filename="../sword_server/reliability_shared.cpp" />
+		<Unit filename="../sword_server/reliability_shared.hpp" />
 		<Unit filename="bbox.hpp" />
 		<Unit filename="cape.cpp" />
 		<Unit filename="fighter.cpp" />
@@ -138,6 +146,8 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="map_tools.cpp" />
 		<Unit filename="map_tools.hpp" />
+		<Unit filename="music.cpp" />
+		<Unit filename="music.hpp" />
 		<Unit filename="object_cube.cpp" />
 		<Unit filename="object_cube.hpp" />
 		<Unit filename="particle_effect.cpp" />

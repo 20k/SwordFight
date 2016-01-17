@@ -1133,6 +1133,8 @@ void fighter::tick(bool is_player)
                     their_parent->damage((bodypart_t)(i.hit_id % COUNT), 0.4f);
 
                     ///this is where the networking fighters get killed
+                    ///this is no longer true, may happen here or in server_networking
+                    ///probably should remove this
                     their_parent->checked_death();
 
                     //printf("%s\n", names[i.hit_id % COUNT].c_str());

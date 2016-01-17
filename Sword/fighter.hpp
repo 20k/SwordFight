@@ -200,10 +200,12 @@ namespace bodypart
 
 typedef bodypart::bodypart bodypart_t;
 
+///this was a good idea
 struct network_part
 {
     bool hp_dirty = false;
     float hp_delta = 0.f;
+    int32_t play_hit_audio = 0;
 };
 
 ///need to network part hp
@@ -440,6 +442,8 @@ struct networked_components
     bool recoil_dirty = false;
 
     int32_t reported_dead = 0;
+
+    int32_t play_clang_audio = 0;
 };
 
 struct link

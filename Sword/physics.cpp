@@ -120,6 +120,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     bool caused_hand_recoil = false;
     cl_float4 hand_scr = {0,0,0,0};
     vec3f rel = {0,0,0};
+    fighter* fighter_hit = nullptr;
 
 
     const float block_half_angle = M_PI/3;
@@ -205,10 +206,16 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                         text::add_random("Clang!", time);
 
 
-                    network::send_audio(1, rel.v[0], rel.v[1], rel.v[2]);
+                    //network::send_audio(1, rel.v[0], rel.v[1], rel.v[2]);
                     sound::add(1, rel);
 
                     my_parent->recoil();
+
+                    ///their client needs to be updated to make a clang noise
+                    ///as they do not know (as we aren't simulating state on every client)
+                    them->net.play_clang_audio = 1;
+
+                    ///CLANG noise
 
                     return -1;
                 }
@@ -224,13 +231,18 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                         hand_scr = scr;
 
                         caused_hand_recoil = true;
+
+                        fighter_hit = them;
                     }
 
                     ///want to network them recoiling
                     ///their client will figure out whether or not it makes any sense
                     them->net.recoil = 1;
                     them->net.recoil_dirty = true;
+
+                    ///need to make HRRK noise
                     //network::host_update(&them->net.recoil);
+                    them->parts[type].net.play_hit_audio = 1;
 
                     continue;
                 }
@@ -240,8 +252,9 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 else
                     text::add_random(std::string("Crikey!") + " My " + bodypart::ui_names[i % bodypart::COUNT] + "!", time);
 
-                network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
+                //network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
                 sound::add(0, rel);
+                them->parts[type].net.play_hit_audio = 1;
 
                 return i;
             }
@@ -253,6 +266,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     ///this wont get triggered on a net client
     ///then again, do we need hands to be treated separately? could just always do damage noise on them, but then again
     ///breaks flow a little
+    ///rel incorrect here????
+    ///no, correct as confusingly set in above loop
     if(caused_hand_recoil)
     {
         if(is_player)
@@ -261,8 +276,10 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
             text::add_random("MY HAND!", time);
 
         ///did someone say "horrible coupling"?
-        network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
+        //network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
         sound::add(0, rel);
+        ///either hand
+        fighter_hit->parts[bodypart::LHAND].net.play_hit_audio = 1;
     }
 
     //vec3f end = s_pos + sword_height*dir;
