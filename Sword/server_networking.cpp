@@ -584,9 +584,11 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 {
                     int32_t player_id = get_id_from_fighter(fight);
 
+                    ///this should be impossible
                     if(player_id == -1)
                     {
                         printf("Fighter reported dead, but does not exist on networking\n");
+                        continue;
                     }
 
                     byte_vector vec;

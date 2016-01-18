@@ -30,6 +30,8 @@
 #include "../openclrenderer/game/space_manager.hpp" ///yup
 #include "../openclrenderer/game/galaxy/galaxy.hpp"
 
+#include "game_state_manager.hpp"
+
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
 bool once()
@@ -243,53 +245,6 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
     return {sub(c_pos, input.c_pos), sub(c_rot, input.c_rot)};
 }
 
-///a fighter we own has its hp determined by someone else?
-
-///slave i.hp
-/*void net_host(fighter& fight)
-{
-    for(auto& i : fight.parts)
-    {
-        network::host_object(&i.model);
-        network::slave_var(&i.hp); ///nobody owns HP
-    }
-
-    network::host_object(&fight.weapon.model);
-
-    //network::host_var(&fight.net.is_blocking);
-}*/
-
-///so, this is the total list of things that need to be networked
-/*void net_slave(fighter& fight)
-{
-    for(auto& i : fight.parts)
-    {
-        network::slave_object(i.obj());
-        network::slave_var(&i.hp); ///this is not an error, hp transmission is handled when hp takes damage
-    }
-
-    network::slave_object(fight.weapon.model);
-
-    network::slave_var(&fight.net.is_blocking);
-
-    network::slave_var(&fight.net.recoil);
-
-    //network::slave_var(&fight.net.dead);
-}*/
-
-/*void make_host(fighter& fight)
-{
-    for(auto& i : fight.parts)
-    {
-        network::transform_host_object(i.obj());
-        ///no need to touch hp here as its always a slave variable
-    }
-
-    network::transform_host_object(fight.weapon.model);
-
-    network::transform_host_var(&fight.net.is_blocking);
-}*/
-
 int main(int argc, char *argv[])
 {
     /*objects_container c1;
@@ -498,31 +453,6 @@ int main(int argc, char *argv[])
 
         window.set_input_handler(c_input);
 
-        /*if(once<sf::Keyboard::V>() && network::network_state == 0)
-        {
-            network::join(s.ip);
-
-            network::ping();
-        }
-
-        if(once<sf::Keyboard::C>() && network::network_state == 0)
-        {
-            network::host();
-
-            my_fight = net_fighters[0];
-
-            make_host(*my_fight);
-
-            my_fight->set_pos({0,0,0});
-            my_fight->set_team(0);
-
-            fight.die();
-            fight2.die();
-
-            context.load_active();
-            context.build();
-        }*/
-
         server.set_my_fighter(my_fight);
         server.tick(&context, &current_state, &phys);
 
@@ -602,16 +532,6 @@ int main(int argc, char *argv[])
 
         my_fight->tick_cape();
 
-        /*bool need_realloc = network::tick();
-
-        if(need_realloc)
-        {
-            printf("Reallocating\n");
-
-            context.load_active();
-            context.build();
-        }*/
-
         ///leave in for the moment, this is NOT reimplemnted in the new networking
         audio_packet pack;
 
@@ -620,55 +540,11 @@ int main(int argc, char *argv[])
             sound::add(pack.type, {pack.x, pack.y, pack.z});
         }
 
-        ///we've joined the game!
-        /*if(network::join_id != -1 && !network::loaded)
-        {
-            printf("In load func\n");
-
-            if(network::join_id < 10)
-            {
-                printf("Joining game\n");
-
-                my_fight = net_fighters[network::join_id];
-
-                my_fight->set_pos(fight2.pos);
-                my_fight->set_rot(fight2.rot);
-                my_fight->set_team(0);
-
-                make_host(*my_fight);
-
-                fight.die();
-                fight2.die();
-
-                context.load_active();
-                context.build();
-            }
-            else
-            {
-                printf("Full (temp)\n");
-            }
-
-            network::loaded = true;
-        }*/
-
 
         my_fight->update_render_positions();
 
         if(!my_fight->dead())
             my_fight->update_lights();
-
-        /*for(auto& i : net_fighters)
-        {
-            if(my_fight == i)
-                continue;
-
-            ///this copies the model positions back to the part global positions so that it works with the physics
-            ///ideally we'd want a net.pos and net.rot for them, would be less cumbersome?
-            i->overwrite_parts_from_model();
-
-            if(!i->dead())
-                i->update_lights();
-        }*/
 
         particle_effect::tick();
 
@@ -713,17 +589,6 @@ int main(int argc, char *argv[])
         window.draw_bulk_objs_n();
         space_res.blit_space_to_screen();
         space_res.clear_buffers();
-
-        /*vec3f world_play = my_fight->pos;
-
-        vec2f world_2d = {world_play.v[0], world_play.v[2]};
-
-        vec2f real_size = {bodypart::scale, bodypart::scale};
-
-        real_size = real_size * 2.f;
-        real_size = real_size + bodypart::scale * 2.f/5.f;*/
-
-        //printf("collide %i\n", rectangle_in_wall(world_2d, real_size, map_one, 11, 12));
 
         if(key.isKeyPressed(sf::Keyboard::M))
             std::cout << c.getElapsedTime().asMicroseconds() << std::endl;

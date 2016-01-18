@@ -35,7 +35,6 @@ void sound::add(int type, vec3f pos)
     rel = pos - listener_pos;
     rel = rel.back_rot({0,0,0}, listener_rot);
 
-
     sf::Sound sound;
 
     sounds.push_back(sound);

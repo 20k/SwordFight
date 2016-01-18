@@ -59,7 +59,6 @@
 			<Add option="-Wno-unknown-pragmas" />
 			<Add option="-Wno-narrowing" />
 			<Add option="-Wno-sign-compare" />
-			<Add option="-Wno-narrowing" />
 			<Add option="-DCL_USE_DEPRECATED_OPENCL_1_1_APIS" />
 			<Add option="-DNDEBUG" />
 			<Add option="-DGLEW_STATIC" />
@@ -143,6 +142,8 @@
 		<Unit filename="cape.cpp" />
 		<Unit filename="fighter.cpp" />
 		<Unit filename="fighter.hpp" />
+		<Unit filename="game_state_manager.cpp" />
+		<Unit filename="game_state_manager.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="map_tools.cpp" />
 		<Unit filename="map_tools.hpp" />
