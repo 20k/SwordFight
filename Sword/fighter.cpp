@@ -248,17 +248,6 @@ void part::perform_death(bool do_effect)
     cpu_context->build();
 }
 
-/*void part::tick()
-{
-    if(hp < 0.0001f && !performed_death)
-    {
-
-
-
-        performed_death = true;
-    }
-}*/
-
 void part::set_hp(float h)
 {
     float delta = h - hp;
@@ -1066,7 +1055,26 @@ void fighter::tick(bool is_player)
 
             if((i.limb == LHAND || i.limb == RHAND) && i.does(mov::START_INDEPENDENT))
                 i.start = focus_pos;
+
         }
+
+        float arm_len = (default_position[LHAND] - default_position[LUPPERARM]).length();
+
+        ///this is the head vector, but we want the tip of the sword to go through the centre
+        ///time for maths
+        vec3f head_vec = {0, default_position[HEAD].v[1], -arm_len};
+        float sword_len = weapon.length;
+
+        ///current sword tip
+        vec3f sword_vec = (vec3f){0, sword_len, 0}.rot({0,0,0}, weapon.rot) + weapon.pos;
+
+        vec3f desired_sword_vec = {sword_vec.v[0], head_vec.v[1], sword_vec.v[2]};
+
+        vec3f desired_hand_relative_sword = desired_sword_vec - (desired_sword_vec - default_position[BODY]).norm() * sword_len;
+
+        ///really we only want the height
+        float desired_hand_height = desired_hand_relative_sword.v[1];
+
 
         busy_list.push_back(i.limb);
 
@@ -1077,6 +1085,7 @@ void fighter::tick(bool is_player)
         vec3f current_pos;
 
         vec3f actual_finish = i.fin;
+        vec3f actual_start = i.start;
 
         if(i.does(mov::FINISH_INDEPENDENT))
         {
@@ -1088,22 +1097,45 @@ void fighter::tick(bool is_player)
             //arms_are_locked = true;
         }
 
+        vec3f actual_avg = (actual_start + actual_finish) / 2.f;
+
+        ///lets use mix3
+        if(i.does(mov::PASS_THROUGH_SCREEN_CENTRE))
+        {
+            actual_avg = head_vec;
+
+            actual_avg.v[1] = desired_hand_height;
+
+            ///so it looks less unnatural
+            actual_finish.v[1] = desired_hand_height;
+        }
+
+        ///scrap mix3 and slerp3 stuff, need to interpolate properly
         ///need to use a bitfield really, thisll get unmanageable
         if(i.type == 0)
         {
             ///apply a bit of smoothing
             frac = - frac * (frac - 2);
-            current_pos = mix(i.start, actual_finish, frac);
+            current_pos = mix(actual_start, actual_finish, frac); ///do a slerp3
         }
         else if(i.type == 1)
         {
             ///need to define this manually to confine it to one axis, slerp is not what i want
             frac = - frac * (frac - 2);
-            current_pos = slerp(i.start, actual_finish, frac);
+            current_pos = slerp(actual_start, actual_finish, frac);
+
+            float fsin = frac * M_PI;
+
+            float sval = sin(fsin);
+
+            //current_pos.v[1] = current_pos.v[1] * (1.f - sval) + actual_avg.v[1] * sval;
+
+            if(i.does(mov::PASS_THROUGH_SCREEN_CENTRE))
+                current_pos.v[1] = cosint3(actual_start, actual_avg, actual_finish, frac).v[1];
         }
         else
         {
-            current_pos = slerp(i.start, actual_finish, frac);
+            current_pos = slerp(actual_start, actual_finish, frac);
         }
 
         if(i.limb == LHAND || i.limb == RHAND)

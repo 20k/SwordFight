@@ -25,7 +25,8 @@ namespace mov
         FINISH_INDEPENDENT = 32, ///for hand movements, are they independent of the view
         START_INDEPENDENT = 64, ///for hand movements, are they independent of the view
         ///as a consequence of the animation system, start_independent is not necessary. I might keep it for clarity however
-        LOCKS_ARMS = 128 ///for visual reasons, some attacks might want to lock the arms
+        LOCKS_ARMS = 128, ///for visual reasons, some attacks might want to lock the arms
+        PASS_THROUGH_SCREEN_CENTRE = 256
     };
 }
 
@@ -345,7 +346,8 @@ static std::vector<movement> recoil =
 static std::vector<movement> slash =
 {
     {0, {-180, -60, -10}, 350, 0, bodypart::LHAND, mov::WINDUP}, ///windup
-    {0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS)} ///attack
+    {0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
+    //{0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
 };
 
 /*static std::vector<movement> slash =

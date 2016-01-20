@@ -532,15 +532,6 @@ int main(int argc, char *argv[])
 
         my_fight->tick_cape();
 
-        ///leave in for the moment, this is NOT reimplemnted in the new networking
-        audio_packet pack;
-
-        while(network::pop_audio(pack))
-        {
-            sound::add(pack.type, {pack.x, pack.y, pack.z});
-        }
-
-
         my_fight->update_render_positions();
 
         if(!my_fight->dead())
