@@ -484,6 +484,8 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
 void fighter::load()
 {
+    sword_rotation_offset = {0,0,0};
+
     net.reported_dead = 0;
 
     performed_death = false;
@@ -1030,6 +1032,8 @@ void fighter::tick(bool is_player)
         net.recoil = 0;
     }
 
+    ///use sword rotation offset to make sword 90 degrees at blocking
+
     bool arms_are_locked = false;
 
     ///only the first move is ever executed PER LIMB
@@ -1062,6 +1066,8 @@ void fighter::tick(bool is_player)
 
         ///this is the head vector, but we want the tip of the sword to go through the centre
         ///time for maths
+        ///really this wants to dynamically find the player's LOOK vector
+        ///but this combined with look displacement does an alright job
         vec3f head_vec = {0, default_position[HEAD].v[1], -arm_len};
         float sword_len = weapon.length;
 
@@ -1110,6 +1116,16 @@ void fighter::tick(bool is_player)
             actual_finish.v[1] = desired_hand_height;
         }
 
+        if(i.does(mov::FINISH_AT_90))
+        {
+            sword_rotation_offset.v[1] = M_PI/2.f * frac;
+        }
+        else
+        {
+            //sword_rotation_offset = {0,0,0};
+            sword_rotation_offset = sword_rotation_offset * sqrtf(1.f - frac);
+        }
+
         ///scrap mix3 and slerp3 stuff, need to interpolate properly
         ///need to use a bitfield really, thisll get unmanageable
         if(i.type == 0)
@@ -1130,6 +1146,8 @@ void fighter::tick(bool is_player)
 
             //current_pos.v[1] = current_pos.v[1] * (1.f - sval) + actual_avg.v[1] * sval;
 
+            ///so the reason this flatttens it out anyway
+            ///is because we're swappign from slerping to cosinterpolation
             if(i.does(mov::PASS_THROUGH_SCREEN_CENTRE))
                 current_pos.v[1] = cosint3(actual_start, actual_avg, actual_finish, frac).v[1];
         }
@@ -1241,6 +1259,7 @@ void fighter::tick(bool is_player)
 
     weapon.set_pos(parts[bodypart::LHAND].pos);
 
+    ///sword render stuff updated here
     update_sword_rot();
 
     parts[BODY].set_pos((parts[LUPPERARM].pos + parts[RUPPERARM].pos + rest_positions[BODY]*3.f)/5.f);
@@ -1658,7 +1677,7 @@ void fighter::update_sword_rot()
 
         weapon.dir = avg.norm();
 
-        vec3f rot = avg.get_euler();
+        vec3f rot = avg.get_euler() + sword_rotation_offset;
 
         weapon.set_rot(rot);
 
@@ -1755,6 +1774,7 @@ pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f 
 }
 
 ///note to self, make this not full of shit
+///
 void fighter::update_render_positions()
 {
     using namespace bodypart;

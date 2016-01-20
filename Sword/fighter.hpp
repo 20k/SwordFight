@@ -26,7 +26,8 @@ namespace mov
         START_INDEPENDENT = 64, ///for hand movements, are they independent of the view
         ///as a consequence of the animation system, start_independent is not necessary. I might keep it for clarity however
         LOCKS_ARMS = 128, ///for visual reasons, some attacks might want to lock the arms
-        PASS_THROUGH_SCREEN_CENTRE = 256
+        PASS_THROUGH_SCREEN_CENTRE = 256,
+        FINISH_AT_90 = 512 ///degrees, ie perpendicular to the normal sword rotation
     };
 }
 
@@ -361,12 +362,17 @@ static std::vector<movement> rest =
     {0, {0, -200, -100}, 500, 1, bodypart::LHAND, mov::NONE}
 };
 
+/*static std::vector<movement> block_old =
+{
+    {0, {-50, -80, -20}, 300, 0, bodypart::LHAND, (movement_t)(mov::BLOCKING | mov::FINISH_INDEPENDENT | mov::FINISH_AT_90)},
+    {0, {100, -150, -140}, 400, 0, bodypart::LHAND, mov::START_INDEPENDENT}
+};*/
+
 static std::vector<movement> block =
 {
-    {0, {-50, -80, -20}, 300, 0, bodypart::LHAND, (movement_t)(mov::BLOCKING | mov::FINISH_INDEPENDENT)},
+    {0, {-110, -20, -40}, 300, 0, bodypart::LHAND, (movement_t)(mov::BLOCKING | mov::FINISH_INDEPENDENT | mov::FINISH_AT_90)},
     {0, {100, -150, -140}, 400, 0, bodypart::LHAND, mov::START_INDEPENDENT}
 };
-
 
 static std::vector<movement> feint =
 {
@@ -465,6 +471,8 @@ struct light;
 ///what a clusterfuck
 struct fighter
 {
+    vec3f sword_rotation_offset;
+
     std::vector<light*> my_lights;
 
     std::vector<link> joint_links;
