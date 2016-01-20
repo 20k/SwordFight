@@ -370,7 +370,7 @@ static std::vector<movement> rest =
 
 static std::vector<movement> block =
 {
-    {0, {-110, -20, -40}, 300, 0, bodypart::LHAND, (movement_t)(mov::BLOCKING | mov::FINISH_INDEPENDENT | mov::FINISH_AT_90)},
+    {0, {-110, -40, -40}, 300, 0, bodypart::LHAND, (movement_t)(mov::BLOCKING | mov::FINISH_INDEPENDENT | mov::FINISH_AT_90)},
     {0, {100, -150, -140}, 400, 0, bodypart::LHAND, mov::START_INDEPENDENT}
 };
 

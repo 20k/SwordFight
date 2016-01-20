@@ -1118,12 +1118,19 @@ void fighter::tick(bool is_player)
 
         if(i.does(mov::FINISH_AT_90))
         {
-            sword_rotation_offset.v[1] = M_PI/2.f * frac;
+            float ffrac = -frac * (frac - 2);
+
+            sword_rotation_offset.v[1] = M_PI/2.f * pow(ffrac, 2.f);
         }
         else
         {
-            //sword_rotation_offset = {0,0,0};
-            sword_rotation_offset = sword_rotation_offset * sqrtf(1.f - frac);
+            float ffrac = -frac * (frac - 2);
+
+            if(fabs(sword_rotation_offset.v[1]) > 0.0001f)
+            {
+                sword_rotation_offset.v[1] = M_PI/2.f * pow((1.f - ffrac), 1.7f);
+            }
+            //sword_rotation_offset = sword_rotation_offset * sqrtf(1.f - frac);
         }
 
         ///scrap mix3 and slerp3 stuff, need to interpolate properly
