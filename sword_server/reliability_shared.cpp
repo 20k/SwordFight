@@ -106,8 +106,6 @@ void reliability_manager::tick(udp_sock& sock, sockaddr_storage& store)
 
         if(inf.time_elapsed > timeout_time)
         {
-            //printf("time elapsed\n");
-
             data_sending.erase(data_sending.begin() + i);
             i--;
         }
@@ -128,6 +126,7 @@ void reliability_manager::tick(udp_sock& sock, sockaddr_storage& store)
 
     ///for all of the data we've received from the server
     ///that needs to be acked
+    ///we could probably remove this entirely, and just use data_receiving
     for(int i=0; i<packet_ids_to_ack.size(); i++)
     {
         ///find the original forwarding data as that contains
@@ -311,7 +310,7 @@ void reliability_manager::process_forwarding_reliable_ack(byte_fetch& arg)
         return;
     }
 
-    printf("got ack\n");
+    //printf("got ack\n");
 
     arg = fetch;
 
@@ -320,12 +319,12 @@ void reliability_manager::process_forwarding_reliable_ack(byte_fetch& arg)
     {
         if(data_sending[i].id == reliable_id)
         {
-            printf("ack stopped a forwarding\n");
+            //printf("ack stopped a forwarding\n");
 
             data_sending.erase(data_sending.begin() + i);
             return;
         }
     }
 
-    printf("extra ack\n");
+    //printf("extra ack\n");
 }
