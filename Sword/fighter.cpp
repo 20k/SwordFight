@@ -10,6 +10,98 @@
 
 #include "../openclrenderer/light.hpp"
 
+/*vec3f jump_descriptor::get_absolute_jump_displacement_tick(float dt, fighter* fight)
+{
+    if(current_time > time_ms)
+    {
+        current_time = 0;
+        is_jumping = false;
+
+        return {0,0,0};
+    }
+
+    if(!is_jumping)
+    {
+        return {0,0,0};
+    }
+
+    vec3f offset = {0, max_height, 0};
+
+    offset.v[0] = time_ms * dir.v[0];
+    offset.v[2] = time_ms * dir.v[1];
+
+    float frac = current_time / time_ms;
+
+    offset.v[0] = offset.v[0] * frac;
+    offset.v[2] = offset.v[2] * frac;
+
+    offset.v[1] = offset.v[1] * sin(frac * M_PI);
+
+    current_time += dt;
+
+    vec3f final_pos = pre_jump_pos + offset;
+
+    ///hmm
+    //vec2f offset_2d = fight->get_wall_corrected_move({pre_jump_pos.v[0], pre_jump_pos.v[2]}, {offset.v[0], offset.v[2]});
+
+    //vec3f final_pos = pre_jump_pos + (vec3f){offset_2d.v[0], offset.v[1], offset_2d.v[2]};
+
+    vec3f diff = final_pos - fight->pos;
+
+    //return (vec3f){offset_2d.v[0], offset.v[1], offset_2d.v[2]};
+
+    vec2f offset_2d = fight->get_wall_corrected_move({fight->pos.v[0], fight->pos.v[2]}, {diff.v[0], diff.v[2]});
+
+    ///need to include the rest of the offset too.. uuh...
+    ///hmm. maybe we should have made this iterative instead ;_;
+    return {offset_2d.v[0], offset.v[1], offset_2d.v[2]};
+}*/
+
+vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fight)
+{
+    if(current_time > time_ms)
+    {
+        current_time = 0;
+        is_jumping = false;
+
+        return {0,0,0};
+    }
+
+    if(!is_jumping)
+    {
+        return {0,0,0};
+    }
+
+    vec3f offset = {0, 0, 0};
+
+    offset.v[0] = dir.v[0];
+    offset.v[2] = dir.v[1];
+
+    ///this because im an idiot in walk_dir
+    ///and movement speed is dt/2
+    vec3f dt_struct = {dt/2.f, 0, dt/2.f};
+
+    offset = offset * dt_struct * last_speed;
+
+    float frac = current_time / time_ms;
+
+    ///move in a sine curve, cos is the differential of sin
+    float dh = cos(frac * M_PI);
+
+    offset.v[1] = dh * dt;
+
+    vec2f clamped = fight->get_wall_corrected_move({fight->pos.v[0], fight->pos.v[2]}, {offset.v[0], offset.v[2]});
+
+    offset.v[0] = clamped.v[0];
+    offset.v[2] = clamped.v[1];
+
+    //printf("dh %f\n", dh);
+
+    current_time += dt;
+
+    return offset;
+}
+
 const vec3f* bodypart::init_default()
 {
     using namespace bodypart;
@@ -484,6 +576,8 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
 void fighter::load()
 {
+    jump_info = jump_descriptor();
+
     sword_rotation_offset = {0,0,0};
 
     net.reported_dead = 0;
@@ -1016,7 +1110,6 @@ void fighter::tick(bool is_player)
 
     my_time = cur_time;
 
-
     using namespace bodypart;
 
     std::vector<bodypart_t> busy_list;
@@ -1217,6 +1310,19 @@ void fighter::tick(bool is_player)
             it++;
     }
 
+    vec3f jump_displacement = jump_info.get_relative_jump_displacement_tick(frametime, this);
+
+    ///still jumping
+    if(jump_info.is_jumping)
+    {
+        pos = pos + jump_displacement;
+    }
+    else
+    {
+        pos.v[1] = 0;
+    }
+
+
     /*for(auto& i : parts)
     {
         if(i.hp != 1.f)
@@ -1354,6 +1460,36 @@ vec3f seek(vec3f cur, vec3f dest, float dist, float seek_time, float elapsed_tim
     return cur + speed * dir;
 }
 
+vec2f fighter::get_wall_corrected_move(vec2f pos, vec2f move_dir)
+{
+    bool xw = false;
+    bool yw = false;
+
+    vec2f dir_move = move_dir;
+    vec2f lpos = pos;
+
+    if(rectangle_in_wall(lpos + (vec2f){dir_move.v[0], 0.f}, get_approx_dim(), game_state))
+    {
+        dir_move.v[0] = 0.f;
+        xw = true;
+    }
+    if(rectangle_in_wall(lpos + (vec2f){0.f, dir_move.v[1]}, get_approx_dim(), game_state))
+    {
+        dir_move.v[1] = 0.f;
+        yw = true;
+    }
+
+    ///if I move into wall, but yw and xw aren't true, stop
+    ///there are some diagonal cases here which might result in funky movement
+    ///but largely should be fine
+    if(rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state) && !xw && !yw)
+    {
+        dir_move = 0.f;
+    }
+
+    return dir_move;
+}
+
 ///do I want to do a proper dynamic timing synchronisation thing?
 void fighter::walk_dir(vec2f dir, bool sprint)
 {
@@ -1362,11 +1498,21 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         printf("Warning: No gameplay state for fighter\n");
     }
 
+    if(jump_info.is_jumping)
+    {
+        walk_clock.restart();
+
+        return;
+    }
+
+    jump_info.dir = {0,0};
+
     ///try and fix the lex stiffening up a bit, but who cares
     ///make feet average out with the ground
     bool idle = dir.v[0] == 0 && dir.v[1] == 0;
 
     ///Make me a member variable?
+    ///the last valid direction
     static vec2f valid_dir = {-1, 0};
 
     if(idle)
@@ -1374,21 +1520,23 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     else
         valid_dir = dir;
 
-
     ///in ms
     ///replace this with a dt
     float time_elapsed = walk_clock.getElapsedTime().asMicroseconds() / 1000.f;
 
-    const float speed_mult = 1.3f;
-
+    float speed_mult = fighter_stats::speed;
     time_elapsed *= speed_mult;
+
+    jump_info.last_speed = speed_mult;
 
     float h = 120.f;
 
     if(dir.v[0] == -1 && sprint)
     {
-        time_elapsed *= 1.3f;
+        time_elapsed *= fighter_stats::sprint_speed;
         h *= 1.2f;
+
+        jump_info.last_speed *= fighter_stats::sprint_speed;
     }
 
     float dist = 125.f;
@@ -1425,7 +1573,7 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         float move_amount = dir_move.length();
 
         ///x move in wall
-        bool xw = false;
+        /*bool xw = false;
         bool yw = false;
 
         if(rectangle_in_wall(lpos + (vec2f){dir_move.v[0], 0.f}, get_approx_dim(), game_state))
@@ -1445,9 +1593,13 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         if(rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state) && !xw && !yw)
         {
             dir_move = 0.f;
-        }
+        }*/
+
+        dir_move = get_wall_corrected_move(lpos, dir_move);
 
         ///just in case!
+        ///disappearing may be because the pos is being destroyed by this
+        ///hypothetical
         if(!rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state))
         {
             float real_move = dir_move.length();
@@ -1471,6 +1623,9 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 
                 ldir = inv;
             }
+
+            jump_info.dir = dir_move / (time_elapsed / 2.f);
+            jump_info.last_speed *= anim_frac;
 
             pos = pos + (vec3f){dir_move.v[0], 0.f, dir_move.v[1]};
         }
@@ -1663,6 +1818,18 @@ void fighter::queue_attack(attack_t type)
 void fighter::add_move(const movement& m)
 {
     moves.push_back(m);
+}
+
+void fighter::try_jump()
+{
+    if(!jump_info.is_jumping)
+    {
+        jump_info.is_jumping = true;
+
+        jump_info.current_time = 0;
+
+        jump_info.pre_jump_pos = pos;
+    }
 }
 
 void fighter::update_sword_rot()

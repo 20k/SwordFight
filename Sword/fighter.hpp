@@ -28,6 +28,7 @@ namespace mov
         LOCKS_ARMS = 128, ///for visual reasons, some attacks might want to lock the arms
         PASS_THROUGH_SCREEN_CENTRE = 256,
         FINISH_AT_90 = 512 ///degrees, ie perpendicular to the normal sword rotation
+        ///we need a CAN_BE_COMBINED tag, which means that two movements can be applied at once
     };
 }
 
@@ -201,6 +202,12 @@ namespace bodypart
 }
 
 typedef bodypart::bodypart bodypart_t;
+
+namespace fighter_stats
+{
+    static float speed = 1.3f;
+    static float sprint_speed = 1.3f;
+}
 
 ///this was a good idea
 struct network_part
@@ -380,6 +387,11 @@ static std::vector<movement> feint =
     {0, {0, -200, -100}, 300, 1, bodypart::LHAND, mov::NONE}
 };
 
+///?
+//static std::vector<movement> jump;
+///hmm. This is probably a bad plan
+///just use a jump struct
+
 static std::map<attack_t, attack> attack_list =
 {
     {attacks::OVERHEAD, {overhead}},
@@ -429,7 +441,6 @@ private:
 
 ///define attacks in terms of a start, an end, a time, and possibly a smoothing function
 
-
 struct pos_rot
 {
     vec3f pos;
@@ -437,6 +448,23 @@ struct pos_rot
 };
 
 pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f local_rot);
+
+struct jump_descriptor
+{
+    vec2f dir = {0,0};
+
+    float current_time = 0;
+    bool is_jumping = false;
+    vec3f pre_jump_pos = {0,0,0};
+    float last_speed = 1.f;
+
+    float max_height = 300;
+    float time_ms = 1000;
+
+    ///this will let you jump into walls
+    vec3f get_absolute_jump_displacement_tick(float dt, fighter* fight);
+    vec3f get_relative_jump_displacement_tick(float dt, fighter* fight);
+};
 
 struct physics;
 
@@ -471,6 +499,8 @@ struct light;
 ///what a clusterfuck
 struct fighter
 {
+    jump_descriptor jump_info;
+
     vec3f sword_rotation_offset;
 
     std::vector<light*> my_lights;
@@ -542,15 +572,14 @@ struct fighter
     void set_stance(int _stance);
 
     void queue_attack(attack_t type);
-
     void add_move(const movement& m);
+    void try_jump();
 
     void update_sword_rot();
 
     void tick(bool is_player = false);
     void manual_check_part_death(); ///interate over parts, if < 0 and active then die
     void manual_check_part_alive(); ///interate over parts, if > 0 and inactive then activate
-    //void walk(int which); ///temp
 
     void walk_dir(vec2f dir, bool sprint = false); ///z, x
 
@@ -593,6 +622,8 @@ struct fighter
     bool dead();
 
     void tick_cape();
+
+    vec2f get_wall_corrected_move(vec2f pos, vec2f move_dir);
 
     ///rotation
     void set_look(vec3f look);

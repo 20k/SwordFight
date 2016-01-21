@@ -155,6 +155,9 @@ void debug_controls(fighter* my_fight, engine& window)
     if(key.isKeyPressed(sf::Keyboard::L))
         walk_dir.v[1] = 1;
 
+    if(key.isKeyPressed(sf::Keyboard::P))
+        my_fight->try_jump();
+
     bool sprint = key.isKeyPressed(sf::Keyboard::LShift);
 
     my_fight->walk_dir(walk_dir, sprint);
@@ -196,6 +199,9 @@ void fps_controls(fighter* my_fight, engine& window)
 
     if(once<sf::Keyboard::Q>())
         my_fight->try_feint();
+
+    if(once<sf::Keyboard::Space>())
+        my_fight->try_jump();
 
     my_fight->set_look({-window.c_rot.s[0], window.get_mouse_delta_x() / 1.f, 0});
 
