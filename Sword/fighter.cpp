@@ -1562,6 +1562,8 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     {
         ///this portion of code handles collision detection
         ///as well as ensuring the leg animations don't do anything silly
+        ///this code contains a lot of redundant variables
+        ///particularly annoying due to a lack of swizzling
         vec3f predicted = pos + global_dir;
 
         vec2f lpredict = {predicted.v[0], predicted.v[2]};
@@ -1571,29 +1573,6 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         vec2f lpos = {pos.v[0], pos.v[2]};
 
         float move_amount = dir_move.length();
-
-        ///x move in wall
-        /*bool xw = false;
-        bool yw = false;
-
-        if(rectangle_in_wall(lpos + (vec2f){dir_move.v[0], 0.f}, get_approx_dim(), game_state))
-        {
-            dir_move.v[0] = 0.f;
-            xw = true;
-        }
-        if(rectangle_in_wall(lpos + (vec2f){0.f, dir_move.v[1]}, get_approx_dim(), game_state))
-        {
-            dir_move.v[1] = 0.f;
-            yw = true;
-        }
-
-        ///if I move into wall, but yw and xw aren't true, stop
-        ///there are some diagonal cases here which might result in funky movement
-        ///but largely should be fine
-        if(rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state) && !xw && !yw)
-        {
-            dir_move = 0.f;
-        }*/
 
         dir_move = get_wall_corrected_move(lpos, dir_move);
 
@@ -1619,12 +1598,22 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 
                 inv = inv.rot(rot.v[1]);
 
-                inv = inv / (time_elapsed / 2.f);
+                ///if we cant move anywhere, prevent division by 0 and set movedir to 0
+                if(time_elapsed > 0.0001f)
+                    inv = inv / (time_elapsed / 2.f);
+                else
+                    inv = {0,0};
 
                 ldir = inv;
             }
 
+            ///time independent movement direction
+            ///however the movement direction does not account for speed variances
             jump_info.dir = dir_move / (time_elapsed / 2.f);
+            ///the animation fraction is the fraction of our speed that we keep,
+            ///due to wall intersection. Eg, a very high degree of our velocity vector
+            ///through the wall, results in a low anim frac
+            ///really_moved_distance / wanting_to_move_distances
             jump_info.last_speed *= anim_frac;
 
             pos = pos + (vec3f){dir_move.v[0], 0.f, dir_move.v[1]};
