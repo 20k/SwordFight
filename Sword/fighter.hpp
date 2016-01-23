@@ -546,6 +546,7 @@ struct fighter
     vec3f pos; ///need to swap references to body->rot and body->pos to these (unless i explicitly need them)
     vec3f rot;
     vec3f rot_diff;
+    vec2f momentum; ///global or local?
 
     physics* phys;
 

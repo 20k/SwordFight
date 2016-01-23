@@ -422,10 +422,37 @@ int main(int argc, char *argv[])
     {
         sf::Clock c;
 
-        if(window.window.pollEvent(Event))
+        while(window.window.pollEvent(Event))
         {
             if(Event.type == sf::Event::Closed)
                 window.window.close();
+
+            if(Event.type == sf::Event::Resized)
+            {
+                cl::cqueue.finish();
+                cl::cqueue2.finish();
+
+                window.load(Event.size.width, Event.size.height, 1000, "SwordFight", "../openclrenderer/cl2.cl", true);
+
+                light_data = light::build();
+
+                window.set_light_data(light_data);
+
+                context.build();
+                gpu_context = context.fetch();
+
+                g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
+
+                window.set_object_data(*gpu_context);
+                window.set_light_data(light_data);
+
+                space_res.init(window.width, window.height);
+
+                text::set_renderwindow(window.window);
+
+                cl::cqueue.finish();
+                cl::cqueue2.finish();
+            }
         }
 
         if(controls_state == 0)

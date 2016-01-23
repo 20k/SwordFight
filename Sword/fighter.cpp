@@ -576,6 +576,8 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
 void fighter::load()
 {
+    momentum = {0,0};
+
     jump_info = jump_descriptor();
 
     sword_rotation_offset = {0,0,0};
