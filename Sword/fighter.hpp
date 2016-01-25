@@ -458,8 +458,8 @@ struct jump_descriptor
     vec3f pre_jump_pos = {0,0,0};
     float last_speed = 1.f;
 
-    float max_height = 300;
-    float time_ms = 1000;
+    float max_height = 200;
+    float time_ms = 750;
 
     ///this will let you jump into walls
     vec3f get_absolute_jump_displacement_tick(float dt, fighter* fight);
