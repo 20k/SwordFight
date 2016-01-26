@@ -408,7 +408,6 @@ int main(int argc, char *argv[])
 
     printf("Postspace\n");
 
-
     ///debug;
     int controls_state = 0;
 

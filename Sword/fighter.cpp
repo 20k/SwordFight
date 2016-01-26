@@ -1976,6 +1976,34 @@ void fighter::update_render_positions()
         i.update_model();
     }
 
+    ///do head look
+    {
+        part& p = parts[HEAD];
+
+        ///extrinsic xyz
+        vec3f rotation = p.global_rot;
+
+        vec3f rvec = p.global_pos - parts[BODY].global_pos;
+
+        ///want to rotate about x
+        float look_angle = look.v[0];
+
+        vec3f rotated_vec = rvec.rot({0,0,0}, {-look_angle/2.f, 0, 0});
+
+        ///i think the - is  because of the character's retarded
+        ///z reflection
+        rotation.v[0] = -look_angle;
+
+        vec3f new_pos = p.global_pos;
+
+        new_pos = new_pos + rotated_vec - rvec;
+
+        p.set_global_pos(new_pos);
+        p.set_global_rot(rotation);
+
+        p.update_model();
+    }
+
     auto r = to_world_space(pos, rot, weapon.pos, weapon.rot);
 
     weapon.model->set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
