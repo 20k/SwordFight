@@ -93,6 +93,11 @@ void debug_controls(fighter* my_fight, engine& window)
         my_fight->queue_attack(attacks::SLASH);
     }
 
+    if(once<sf::Keyboard::F>())
+    {
+        my_fight->queue_attack(attacks::STAB);
+    }
+
     if(once<sf::Keyboard::G>())
     {
         my_fight->queue_attack(attacks::REST);

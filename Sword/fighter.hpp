@@ -324,6 +324,7 @@ namespace attacks
     {
         SLASH,
         OVERHEAD,
+        STAB,
         REST,
         BLOCK,
         COUNT,
@@ -356,6 +357,12 @@ static std::vector<movement> slash =
     {0, {-180, -60, -10}, 350, 0, bodypart::LHAND, mov::WINDUP}, ///windup
     {0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
     //{0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
+};
+
+static std::vector<movement> stab =
+{
+    {0, {-80, -120, -10}, 450, 0, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::NONE)}, ///windup
+    {0, {-40, -60, -200}, 350, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
 };
 
 /*static std::vector<movement> slash =
@@ -396,6 +403,7 @@ static std::map<attack_t, attack> attack_list =
 {
     {attacks::OVERHEAD, {overhead}},
     {attacks::SLASH, {slash}},
+    {attacks::STAB, {stab}},
     {attacks::REST, {rest}},
     {attacks::BLOCK, {block}},
     {attacks::RECOIL, {recoil}},
