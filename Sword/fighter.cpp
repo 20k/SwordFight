@@ -1279,10 +1279,12 @@ void fighter::tick(bool is_player)
                 ///if hit, need to signal the other fighter that its been hit with its hit id, relative to part num
                 if(i.hit_id != -1)
                 {
+                    //float damage_amount = attacks::damage_amounts[]
+
                     fighter* their_parent = phys->bodies[i.hit_id].parent;
 
                     ///this is the only time damage is applied to anything, ever
-                    their_parent->damage((bodypart_t)(i.hit_id % COUNT), 0.4f);
+                    their_parent->damage((bodypart_t)(i.hit_id % COUNT), i.damage);
 
                     ///this is where the networking fighters get killed
                     ///this is no longer true, may happen here or in server_networking
@@ -1800,8 +1802,11 @@ void fighter::queue_attack(attack_t type)
     if(!can_attack(a.moves.front().limb))
         return;
 
-    for(auto& i : a.moves)
+    for(auto i : a.moves)
     {
+        ///this is probably a mistake to initialise this here
+        i.damage = attacks::damage_amounts[type];
+
         add_move(i);
     }
 }

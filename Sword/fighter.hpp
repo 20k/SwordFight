@@ -316,6 +316,8 @@ struct movement
 
     movement();
     movement(int hand, vec3f end_pos, float time, int type, bodypart_t, movement_t move_type);
+
+    float damage = 0.f;
 };
 
 namespace attacks
@@ -327,9 +329,25 @@ namespace attacks
         STAB,
         REST,
         BLOCK,
-        COUNT,
         RECOIL,
-        FEINT
+        FEINT,
+        COUNT
+
+    };
+
+    ///out of 100
+    ///uuh. This won't work due to attacks just being a naive
+    ///compilation of movements
+    static std::vector<float> damage_amounts
+    {
+        0.4f,
+        0.6f,
+        0.5f,
+        0.f,
+        0.f,
+        0.f,
+        0.f,
+        0.f,
     };
 }
 

@@ -199,6 +199,9 @@ void fps_controls(fighter* my_fight, engine& window)
     if(once<sf::Mouse::Middle>())
         my_fight->queue_attack(attacks::OVERHEAD);
 
+    if(window.get_scrollwheel_delta() > 0.01)
+        my_fight->queue_attack(attacks::STAB);
+
     if(once<sf::Mouse::Right>())
         my_fight->queue_attack(attacks::BLOCK);
 
@@ -426,6 +429,8 @@ int main(int argc, char *argv[])
     {
         sf::Clock c;
 
+        window.reset_scrollwheel_delta();
+
         while(window.window.pollEvent(Event))
         {
             if(Event.type == sf::Event::Closed)
@@ -457,7 +462,16 @@ int main(int argc, char *argv[])
                 cl::cqueue.finish();
                 cl::cqueue2.finish();
             }
+
+            if(Event.type == sf::Event::MouseWheelScrolled)
+            {
+                window.update_scrollwheel_delta(Event);
+            }
+
+            //if(Event.type == )
         }
+
+        //window.reset_scrollwheel_hack();
 
         if(controls_state == 0)
             window.update_mouse();
@@ -472,6 +486,9 @@ int main(int argc, char *argv[])
             window.update_mouse(window.width/2, window.height/2, true, true);
             ///call again to reset mouse dx and dy to 0
             window.update_mouse(window.width/2, window.height/2, true, true);
+
+            ///something to do with window.setmouseposition
+            //window.set_scrollwheel_hack();
         }
 
         if(controls_state == 0)
