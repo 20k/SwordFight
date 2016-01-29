@@ -1026,7 +1026,7 @@ void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1
 
 }
 
-void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation, bool arms_are_locked)
+void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation, bool arms_are_locked, bool force_positioning)
 {
     using namespace bodypart;
 
@@ -1061,6 +1061,29 @@ void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation, bool arms
     if(arms_are_locked)
     {
         o2 = (o1 + o3) / 2.f;
+    }
+
+    if(force_positioning && (o3 - pos).length() > 1)
+    {
+        o3 = pos;
+
+        o2 = (o1 + o3) / 2.f;
+
+        ///wait. Can't I just adjust the shoulder instead, here?
+
+        /*o3 = pos;
+
+        float arm_len = (i3 - i2).length();
+
+        vec3f to_elbow = (o2 - pos).norm();
+
+        vec3f new_elbow = to_elbow * arm_len + pos;
+
+        vec3f new_shoulder = (o1 - o3).norm() * arm_len * 2 + pos;
+
+        o2 = new_elbow;
+
+        o1 = new_shoulder;*/
     }
 
     parts[upper].set_pos(o1);
@@ -1419,7 +1442,7 @@ void fighter::tick(bool is_player)
     shoulder_rotation /= 6;
 
     IK_hand(0, rot_focus, shoulder_rotation, arms_are_locked);
-    IK_hand(1, parts[LHAND].pos, shoulder_rotation, arms_are_locked);
+    IK_hand(1, parts[LHAND].pos, shoulder_rotation, arms_are_locked, true);
 
     vec3f slave_to_master = parts[LHAND].pos - parts[RHAND].pos;
 
@@ -1444,7 +1467,7 @@ void fighter::tick(bool is_player)
 
         //float dt_tsmooth = frametime * 0.1f;
 
-        parts[RLOWERARM].pos = elbow_pos;
+        //parts[RLOWERARM].pos = elbow_pos;
         //parts[RUPPERARM].pos = (new_shoulder_pos * dt_tsmooth + parts[RUPPERARM].pos) / (dt_tsmooth + 1);
     }
 
@@ -2048,11 +2071,37 @@ pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f 
     return {n_pos, total_rot};
 }
 
+void smooth(vec3f& in, vec3f old, float dt)
+{
+    vec3f diff_indep = (in - old);
+
+    diff_indep = (diff_indep / 40.f) * dt;
+
+    //in = (in + old) / 2.f;
+
+    in = old + diff_indep;
+}
+
 ///note to self, make this not full of shit
 ///
 void fighter::update_render_positions()
 {
     using namespace bodypart;
+
+    float dt_smooth = 0.1f * frametime;// *frametime* 0.1f;
+
+    float dt_shoulder =  0.05f * frametime;// *frametime* 0.05f;
+
+    /*parts[LLOWERARM].pos = (parts[LLOWERARM].pos * dt_smooth + old_pos[LLOWERARM]) / (dt_smooth + 1);
+    parts[RLOWERARM].pos = (parts[RLOWERARM].pos * dt_smooth + old_pos[RLOWERARM]) / (dt_smooth + 1);
+
+    parts[RUPPERARM].pos = (parts[RUPPERARM].pos * dt_shoulder + old_pos[RUPPERARM]) / (dt_shoulder + 1);
+    parts[LUPPERARM].pos = (parts[LUPPERARM].pos * dt_shoulder + old_pos[LUPPERARM]) / (dt_shoulder + 1);*/
+
+    smooth(parts[LLOWERARM].pos, old_pos[LLOWERARM], frametime);
+    smooth(parts[RLOWERARM].pos, old_pos[RLOWERARM], frametime);
+    smooth(parts[RUPPERARM].pos, old_pos[RUPPERARM], frametime);
+    smooth(parts[LUPPERARM].pos, old_pos[LUPPERARM], frametime);
 
     std::map<int, float> foot_heights;
 

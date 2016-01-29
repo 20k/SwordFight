@@ -317,7 +317,7 @@ int main(int argc, char *argv[])
 
     window.window.setVerticalSyncEnabled(false);
 
-    //window.window.setFramerateLimit(24.f);
+    //window.window.setFramerateLimit(60.f);
 
     printf("loaded\n");
 

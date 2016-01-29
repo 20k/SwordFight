@@ -594,7 +594,7 @@ struct fighter
 
     cape my_cape;
 
-    void IK_hand(int hand, vec3f pos, float upper_rotation = 0.f, bool arms_are_locked = false);
+    void IK_hand(int hand, vec3f pos, float upper_rotation = 0.f, bool arms_are_locked = false, bool force_positioning = false);
     void IK_foot(int foot, vec3f pos);
 
     void linear_move(int hand, vec3f pos, float time, bodypart_t b);
