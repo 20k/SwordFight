@@ -528,8 +528,11 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
     if(team == 1)
         tex = "./res/blue.png";
 
+    vec3f start = p1->pos + dir * squish;
+    vec3f finish = p2->pos - dir * squish;
+
     objects_container* o = p1->cpu_context->make_new();
-    o->set_load_func(std::bind(load_object_cube, std::placeholders::_1, p1->pos + dir * squish, p2->pos - dir * squish, thickness, tex));
+    o->set_load_func(std::bind(load_object_cube, std::placeholders::_1, start, finish, thickness, tex));
     o->cache = false;
     //o.set_normal("res/norm_body.png");
 
@@ -543,6 +546,8 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
     l.offset = offset;
 
     l.squish_frac = squish;
+
+    l.length = (finish - start).length();
 
     return l;
 }
@@ -622,6 +627,7 @@ void fighter::load()
 
     stance = 0;
 
+    ///im not sure why this is a duplicate of default_position
     rest_positions = bodypart::init_default();
 
     for(size_t i=0; i<bodypart::COUNT; i++)
@@ -1171,10 +1177,24 @@ void fighter::tick(bool is_player)
 
         vec3f desired_sword_vec = {sword_vec.v[0], head_vec.v[1], sword_vec.v[2]};
 
-        vec3f desired_hand_relative_sword = desired_sword_vec - (desired_sword_vec - default_position[BODY]).norm() * sword_len;
+        ///this worked fine before with body because they're on the same height
+        ///hmm. both are very similar in accuracy, but they're slightly stylistically different
+        ///comebacktome ???
+        ///????
+        vec3f desired_hand_relative_sword = desired_sword_vec - (desired_sword_vec - default_position[LUPPERARM]).norm() * sword_len;
 
         ///really we only want the height
         float desired_hand_height = desired_hand_relative_sword.v[1];
+
+
+        vec3f cx_sword_vec = {0.f, head_vec.v[1], sword_vec.v[2]};
+
+        vec3f cx_sword_rel = cx_sword_vec - (cx_sword_vec - default_position[LUPPERARM]).norm() * sword_len;
+
+        float desired_hand_x = cx_sword_rel.v[0];
+
+        vec3f half_hand_vec = ((vec3f){desired_hand_x, desired_hand_height, i.fin.v[2]} + i.start)/2.f;
+
 
 
         busy_list.push_back(i.limb);
@@ -1207,8 +1227,26 @@ void fighter::tick(bool is_player)
 
             actual_avg.v[1] = desired_hand_height;
 
+            //actual_avg = half_hand_vec;
+
+            //actual_avg.v[1] = desired_hand_height;
+
             ///so it looks less unnatural
             actual_finish.v[1] = desired_hand_height;
+        }
+
+        if(i.does(mov::FINISH_AT_SCREEN_CENTRE))
+        {
+            //actual_finish = desired_hand_relative_sword;
+
+            //actual_finish.v[2] = -actual_finish.v[2];
+
+            //actual_finish = head_vec;
+
+            actual_avg = half_hand_vec;
+
+            actual_finish.v[1] = desired_hand_height;
+            actual_finish.v[0] = desired_hand_x;
         }
 
         if(i.does(mov::FINISH_AT_90))
@@ -1252,6 +1290,11 @@ void fighter::tick(bool is_player)
             ///is because we're swappign from slerping to cosinterpolation
             if(i.does(mov::PASS_THROUGH_SCREEN_CENTRE))
                 current_pos.v[1] = cosint3(actual_start, actual_avg, actual_finish, frac).v[1];
+
+            if(i.does(mov::FINISH_AT_SCREEN_CENTRE))
+            {
+                //current_pos.v[0] = cosint3(actual_start, actual_avg, actual_finish, frac).v[0];
+            }
         }
         else
         {
@@ -1364,6 +1407,10 @@ void fighter::tick(bool is_player)
 
     vec2f weapon_pos = {weapon.pos.v[0], weapon.pos.v[2]};
 
+
+    //float approx_cylinder_half_size = bodypart::scale / 4.f;
+
+
     //printf("%f %f\n", EXPAND_2(weapon_pos));
 
     float wangle = weapon_pos.angle() + M_PI/2.f;
@@ -1372,7 +1419,37 @@ void fighter::tick(bool is_player)
     shoulder_rotation /= 6;
 
     IK_hand(0, rot_focus, shoulder_rotation, arms_are_locked);
-    IK_hand(1, rot_focus, shoulder_rotation, arms_are_locked);
+    IK_hand(1, parts[LHAND].pos, shoulder_rotation, arms_are_locked);
+
+    vec3f slave_to_master = parts[LHAND].pos - parts[RHAND].pos;
+
+    ///dt smoothing doesn't work because the shoulder position is calculated
+    ///dynamically from the focus position
+    ///this means it probably wants to be part of our IK step?
+    ///hands disconnected
+    if(slave_to_master.length() > 1.f)
+    {
+        parts[RHAND].pos = parts[LHAND].pos;
+
+        float arm_len = (rest_positions[LHAND] - rest_positions[LLOWERARM]).length();
+
+        vec3f original_shoulder = parts[RUPPERARM].pos;
+
+        /*vec3f slave_to_shoulder = original_shoulder - parts[RHAND].pos;
+
+        vec3f elbow_pos = slave_to_shoulder.norm() * arm_len + parts[RHAND].pos;
+        vec3f new_shoulder_pos = slave_to_shoulder.norm() * arm_len * 2 + parts[RHAND].pos;*/
+
+        vec3f elbow_pos = (parts[RHAND].pos + parts[RUPPERARM].pos)/2.f;
+
+        //float dt_tsmooth = frametime * 0.1f;
+
+        parts[RLOWERARM].pos = elbow_pos;
+        //parts[RUPPERARM].pos = (new_shoulder_pos * dt_tsmooth + parts[RUPPERARM].pos) / (dt_tsmooth + 1);
+    }
+
+
+    //IK_hand(1, rot_focus, shoulder_rotation, arms_are_locked);
 
     weapon.set_pos(parts[bodypart::LHAND].pos);
 
@@ -1385,6 +1462,34 @@ void fighter::tick(bool is_player)
 
     parts[HEAD].set_pos((parts[BODY].pos*2.f + rest_positions[HEAD] * 32.f) / (32 + 2));
 
+
+    /*float sword_len = weapon.length;
+
+    vec3f sword_dir =  (vec3f){0, 1, 0}.rot({0,0,0}, weapon.rot);
+    vec3f sword_pos = weapon.pos;
+
+    float approx_cylinder_half_size = bodypart::scale / 4.f;
+
+    vec3f to_sword = sword_pos - parts[RHAND].pos;
+
+    vec3f to_sword_along = to_sword + sword_dir * approx_cylinder_half_size;
+
+    float len = to_sword_along.length();
+
+    if(len > 1)
+    {
+        IK_hand(1, to_sword_along + parts[RHAND].pos, shoulder_rotation, arms_are_locked);
+
+        //vec3f test_euler = to_sword_along.get_euler();
+
+        vec3f new_to_sword = sword_pos - parts[RHAND].pos;
+        vec3f new_to_sword_along = new_to_sword + sword_dir * approx_cylinder_half_size;
+
+        vec3f test_euler = new_to_sword_along.get_euler();
+
+        if(new_to_sword_along.length() > 2 && new_to_sword.length() > 2)
+            parts[RHAND].set_rot(test_euler);
+    }*/
 
     ///process death
 
@@ -2009,11 +2114,17 @@ void fighter::update_render_positions()
         p.update_model();
     }
 
+    //parts[RHAND].set_global_pos(parts[LHAND].global_pos);
+    //parts[RHAND].update_model();
+
+
     auto r = to_world_space(pos, rot, weapon.pos, weapon.rot);
 
     weapon.model->set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
     weapon.model->set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
 
+    ///calculate distance between links, dynamically adjust positioning
+    ///so there's equal slack on both sides
     for(auto& i : joint_links)
     {
         bool active = i.p1->is_active && i.p2->is_active;
@@ -2022,6 +2133,8 @@ void fighter::update_render_positions()
 
         vec3f start = i.p1->global_pos;
         vec3f fin = i.p2->global_pos;
+
+        //float desired_len = (fin - start).length();
 
         start = start + i.offset;
         fin = fin + i.offset;
@@ -2035,6 +2148,20 @@ void fighter::update_render_positions()
         obj->set_pos({start.v[0], start.v[1], start.v[2]});
         obj->set_rot({rot.v[0], rot.v[1], rot.v[2]});
     }
+
+    ///sent rhand to point towards the weapon centre from its centre
+
+    /*vec3f to_centre = xyz_to_vec(weapon.model->pos) - parts[RHAND].global_pos;
+
+    vec3f sword_vec = weapon.pos
+
+    float len = to_centre.length();
+
+    if(len > 1.f)
+    {
+        parts[RHAND].set_global_rot(to_centre.get_euler());
+        parts[RHAND].update_model();
+    }*/
 
     for(int i=0; i<bodypart::COUNT; i++)
     {
@@ -2220,17 +2347,19 @@ void fighter::set_team(int _team)
 
     joint_links.clear();
 
+    float squish = -0.2f;
+
     ///now we know the team, we can add the joint parts
     using namespace bodypart;
 
-    joint_links.push_back(make_link(&parts[LUPPERARM], &parts[LLOWERARM], team, 0.1f));
-    joint_links.push_back(make_link(&parts[LLOWERARM], &parts[LHAND], team, 0.1f));
+    joint_links.push_back(make_link(&parts[LUPPERARM], &parts[LLOWERARM], team, squish));
+    joint_links.push_back(make_link(&parts[LLOWERARM], &parts[LHAND], team, squish));
 
-    joint_links.push_back(make_link(&parts[RUPPERARM], &parts[RLOWERARM], team, 0.1f));
-    joint_links.push_back(make_link(&parts[RLOWERARM], &parts[RHAND], team, 0.1f));
+    joint_links.push_back(make_link(&parts[RUPPERARM], &parts[RLOWERARM], team, squish));
+    joint_links.push_back(make_link(&parts[RLOWERARM], &parts[RHAND], team, squish));
 
-    joint_links.push_back(make_link(&parts[LUPPERARM], &parts[BODY], team, 0.1f));
-    joint_links.push_back(make_link(&parts[RUPPERARM], &parts[BODY], team, 0.1f));
+    joint_links.push_back(make_link(&parts[LUPPERARM], &parts[BODY], team, squish));
+    joint_links.push_back(make_link(&parts[RUPPERARM], &parts[BODY], team, squish));
 
     /*joint_links.push_back(make_link(&parts[LUPPERARM], &parts[RUPPERARM], 0.1f, 25.f, {0, -bodypart::scale * 0.2, 0}));
     joint_links.push_back(make_link(&parts[LUPPERARM], &parts[RUPPERARM], 0.1f, 23.f, {0, -bodypart::scale * 0.8, 0}));
@@ -2244,11 +2373,11 @@ void fighter::set_team(int _team)
 
     /*joint_links.push_back(make_link(&parts[LUPPERLEG], &parts[RUPPERLEG], 0.2f));*/
 
-    joint_links.push_back(make_link(&parts[LUPPERLEG], &parts[LLOWERLEG], team, 0.1f));
-    joint_links.push_back(make_link(&parts[RUPPERLEG], &parts[RLOWERLEG], team, 0.1f));
+    joint_links.push_back(make_link(&parts[LUPPERLEG], &parts[LLOWERLEG], team, squish));
+    joint_links.push_back(make_link(&parts[RUPPERLEG], &parts[RLOWERLEG], team, squish));
 
-    joint_links.push_back(make_link(&parts[LLOWERLEG], &parts[LFOOT], team, 0.1f));
-    joint_links.push_back(make_link(&parts[RLOWERLEG], &parts[RFOOT], team, 0.1f));
+    joint_links.push_back(make_link(&parts[LLOWERLEG], &parts[LFOOT], team, squish));
+    joint_links.push_back(make_link(&parts[RLOWERLEG], &parts[RFOOT], team, squish));
 
 
     for(auto& i : joint_links)

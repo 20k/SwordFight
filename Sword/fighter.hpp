@@ -27,8 +27,9 @@ namespace mov
         ///as a consequence of the animation system, start_independent is not necessary. I might keep it for clarity however
         LOCKS_ARMS = 128, ///for visual reasons, some attacks might want to lock the arms
         PASS_THROUGH_SCREEN_CENTRE = 256,
-        FINISH_AT_90 = 512 ///degrees, ie perpendicular to the normal sword rotation
+        FINISH_AT_90 = 512, ///degrees, ie perpendicular to the normal sword rotation
         ///we need a CAN_BE_COMBINED tag, which means that two movements can be applied at once
+        FINISH_AT_SCREEN_CENTRE = 1024
     };
 }
 
@@ -317,6 +318,10 @@ struct movement
     movement();
     movement(int hand, vec3f end_pos, float time, int type, bodypart_t, movement_t move_type);
 
+    ///this is initialised under queue_attack
+    ///this is almost certainly the wrong place
+    ///even if !i.does(damaging), still might have a damage value
+    ///if its part of an attack with some damage value to it
     float damage = 0.f;
 };
 
@@ -332,7 +337,6 @@ namespace attacks
         RECOIL,
         FEINT,
         COUNT
-
     };
 
     ///out of 100
@@ -380,7 +384,7 @@ static std::vector<movement> slash =
 static std::vector<movement> stab =
 {
     {0, {-80, -120, -10}, 450, 0, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::NONE)}, ///windup
-    {0, {-40, -60, -200}, 350, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
+    {0, {-40, -60, -200}, 350, 0, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::FINISH_AT_SCREEN_CENTRE)} ///attack
 };
 
 /*static std::vector<movement> slash =
@@ -518,6 +522,8 @@ struct link
     vec3f offset;
 
     float squish_frac;
+
+    float length = 0.f;
 };
 
 struct light;
