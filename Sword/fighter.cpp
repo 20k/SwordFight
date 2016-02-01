@@ -1132,6 +1132,20 @@ void fighter::spherical_move(int hand, vec3f pos, float time, bodypart_t b)
     moves.push_back(m);
 }
 
+float frac_smooth(float in)
+{
+    return - in * (in - 2);
+}
+
+///if we exaggerate the skew, this is workable
+float erf_smooth(float x)
+{
+    if(x < 0 || x >= 1)
+        return x;
+
+    return powf((- x * (x - 2) * (erf((x - 0.5f) * 3) + 1) / 2.f), 1.5f);
+}
+
 ///we want the hands to be slightly offset on the sword
 void fighter::tick(bool is_player)
 {
@@ -1274,13 +1288,13 @@ void fighter::tick(bool is_player)
 
         if(i.does(mov::FINISH_AT_90))
         {
-            float ffrac = -frac * (frac - 2);
+            float ffrac = frac_smooth(frac);
 
             sword_rotation_offset.v[1] = M_PI/2.f * pow(ffrac, 2.f);
         }
         else
         {
-            float ffrac = -frac * (frac - 2);
+            float ffrac = frac_smooth(frac);
 
             if(fabs(sword_rotation_offset.v[1]) > 0.0001f)
             {
@@ -1294,13 +1308,13 @@ void fighter::tick(bool is_player)
         if(i.type == 0)
         {
             ///apply a bit of smoothing
-            frac = - frac * (frac - 2);
+            frac = frac_smooth(frac);
             current_pos = mix(actual_start, actual_finish, frac); ///do a slerp3
         }
         else if(i.type == 1)
         {
             ///need to define this manually to confine it to one axis, slerp is not what i want
-            frac = - frac * (frac - 2);
+            frac = frac_smooth(frac);
             current_pos = slerp(actual_start, actual_finish, frac);
 
             float fsin = frac * M_PI;
@@ -1319,8 +1333,14 @@ void fighter::tick(bool is_player)
                 //current_pos.v[0] = cosint3(actual_start, actual_avg, actual_finish, frac).v[0];
             }
         }
-        else
+        else if(i.type == 2)
         {
+            current_pos = slerp(actual_start, actual_finish, frac);
+        }
+        else if(i.type == 3)
+        {
+            frac = erf_smooth(frac);
+
             current_pos = slerp(actual_start, actual_finish, frac);
         }
 
@@ -2083,23 +2103,18 @@ void smooth(vec3f& in, vec3f old, float dt)
 }
 
 ///note to self, make this not full of shit
-///
+///smoothing still isn't good
 void fighter::update_render_positions()
 {
     using namespace bodypart;
 
-    float dt_smooth = 0.1f * frametime;// *frametime* 0.1f;
+    /*float dt_smooth = 0.1f * frametime;// *frametime* 0.1f;
 
-    float dt_shoulder =  0.05f * frametime;// *frametime* 0.05f;
-
-    /*parts[LLOWERARM].pos = (parts[LLOWERARM].pos * dt_smooth + old_pos[LLOWERARM]) / (dt_smooth + 1);
-    parts[RLOWERARM].pos = (parts[RLOWERARM].pos * dt_smooth + old_pos[RLOWERARM]) / (dt_smooth + 1);
-
-    parts[RUPPERARM].pos = (parts[RUPPERARM].pos * dt_shoulder + old_pos[RUPPERARM]) / (dt_shoulder + 1);
-    parts[LUPPERARM].pos = (parts[LUPPERARM].pos * dt_shoulder + old_pos[LUPPERARM]) / (dt_shoulder + 1);*/
+    float dt_shoulder =  0.05f * frametime;// *frametime* 0.05f;*/
 
     smooth(parts[LLOWERARM].pos, old_pos[LLOWERARM], frametime);
     smooth(parts[RLOWERARM].pos, old_pos[RLOWERARM], frametime);
+
     smooth(parts[RUPPERARM].pos, old_pos[RUPPERARM], frametime);
     smooth(parts[LUPPERARM].pos, old_pos[LUPPERARM], frametime);
 
@@ -2511,7 +2526,7 @@ void fighter::recoil()
 
 void fighter::try_feint()
 {
-    const float unfeintable_time = 100.f;
+    const float unfeintable_time = attacks::unfeintable_time;
 
     movement lhand = action_map[bodypart::LHAND];
     movement rhand = action_map[bodypart::RHAND];

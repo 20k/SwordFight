@@ -353,6 +353,16 @@ namespace attacks
         0.f,
         0.f,
     };
+
+    ///old = 100.f;
+    ///human reaction time (of me) is ~185ms, so a perfectly timed feint
+    ///may be below the minimum reactable time
+    ///if the sword is pointed such that it starts exactly inside the enemy character
+    ///however I'm not sure that this is possible in the constraints of the game
+    ///and the attacking player would be at a large visual disadvantage for doing this
+    ///as they'd be turned completely sideways
+    ///this might be a concern for a stab
+    static float unfeintable_time = 150.f;
 }
 
 
@@ -410,10 +420,12 @@ static std::vector<movement> block =
     {0, {100, -150, -140}, 400, 0, bodypart::LHAND, mov::START_INDEPENDENT}
 };
 
+///try a third kind of movement, that starts very slow then goes normal speed
 static std::vector<movement> feint =
 {
     //{0, {-150, -80, -40}, 350, 0, bodypart::LHAND, mov::NONE}
-    {0, {0, -200, -100}, 300, 1, bodypart::LHAND, mov::NONE}
+    //{0, {0, -200, -100}, 300, 1, bodypart::LHAND, mov::NONE}
+    {0, {100, -150, -140}, 300, 3, bodypart::LHAND,  mov::NONE}
 };
 
 ///?
