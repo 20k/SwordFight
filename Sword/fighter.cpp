@@ -1589,7 +1589,7 @@ void fighter::manual_check_part_alive()
     {
         cpu_context->load_active();
         cpu_context->build();
-        gpu_context = cpu_context->fetch();
+        gpu_context = cpu_context->fetch(); ///I'm not sure this is necessary as gpu_context is a ptr
     }
 }
 
@@ -2093,6 +2093,14 @@ pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f 
 
 void smooth(vec3f& in, vec3f old, float dt)
 {
+    float diff = (in - old).length();
+
+    if(diff > 100.f)
+    {
+        return;
+    }
+
+
     vec3f diff_indep = (in - old);
 
     diff_indep = (diff_indep / 40.f) * dt;
