@@ -262,7 +262,22 @@ compute::buffer cape::fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f r
 
     compute::buffer buf = compute::buffer(cl::context, sizeof(float)*width*3, CL_MEM_READ_WRITE, nullptr);
 
-    cl_float* mem_map = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), buf.get(), CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, 0, sizeof(cl_float)*width*3, 0, NULL, NULL, NULL);
+    /*static std::vector<cl_float> gpu_dat;
+    static bool once = false;
+
+    if(!once)
+    {
+        gpu_dat.resize(width * 3);
+        once = true;
+    }*/
+
+    if(!cape_init)
+    {
+        gpu_cape.resize(width * 3);
+        cape_init = true;
+    }
+
+    //cl_float* mem_map = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), buf.get(), CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, 0, sizeof(cl_float)*width*3, 0, NULL, NULL, NULL);
 
     float sag = bodypart::scale/32.f;
 
@@ -274,14 +289,20 @@ compute::buffer cape::fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f r
 
         float yval = 4 * xf * (xf - 1) * sag + sin(xf * 30);
 
-        mem_map[i*3 + 0] = current.v[0];
+        /*mem_map[i*3 + 0] = current.v[0];
         mem_map[i*3 + 1] = current.v[1] + yval;
-        mem_map[i*3 + 2] = current.v[2];
+        mem_map[i*3 + 2] = current.v[2];*/
+
+        gpu_cape[i*3 + 0] = current.v[0];
+        gpu_cape[i*3 + 1] = current.v[1] + yval;
+        gpu_cape[i*3 + 2] = current.v[2];
 
         current = current + step;
     }
 
-    clEnqueueUnmapMemObject(cl::cqueue.get(), buf.get(), mem_map, 0, NULL, NULL);
+    clEnqueueWriteBuffer(cl::cqueue.get(), buf.get(), CL_FALSE, 0, sizeof(cl_float) * width * 3, gpu_cape.data(), 0, NULL, NULL);
+
+    //clEnqueueUnmapMemObject(cl::cqueue.get(), buf.get(), mem_map, 0, NULL, NULL);
 
     return buf;
 }

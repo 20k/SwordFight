@@ -44,6 +44,9 @@ struct cape
 
     void load(int team);
 
+    std::vector<cl_float> gpu_cape;
+    bool cape_init = false;
+
 private:
     bool loaded;
     object_context* cpu_context;

@@ -574,10 +574,6 @@ int main(int argc, char *argv[])
             }
         }
 
-        /*fight3.tick();
-        fight3.update_render_positions();
-        fight3.update_lights();*/
-
         /*int hit_p = phys.sword_collides(fight.weapon, &fight, {0, 0, -1});
         if(hit_p != -1)
             printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
@@ -610,6 +606,7 @@ int main(int argc, char *argv[])
 
         window.blit_to_screen();
 
+
         ///I need to reenable text drawing
         ///possibly split up window.display into display and flip
         ///then have display set a flag if its appropriate to flip the screen
@@ -632,6 +629,7 @@ int main(int argc, char *argv[])
         space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
 
         window.draw_bulk_objs_n();
+
         space_res.blit_space_to_screen();
         space_res.clear_buffers();
 
