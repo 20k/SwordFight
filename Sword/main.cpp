@@ -599,11 +599,11 @@ int main(int argc, char *argv[])
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
         sound::update_listeners();
 
-        context.flip();
-        object_context_data* cdat = context.fetch();
+        //window.render_block();
 
-        window.set_object_data(*cdat);
-
+        ///so, we blit space to screen, but that might not have finished before
+        ///the async event for the draw_bulk_objs_n event has finished
+        ///and this can fire
         window.blit_to_screen();
 
         ///I need to reenable text drawing
@@ -621,6 +621,11 @@ int main(int argc, char *argv[])
 
         window.render_block();
 
+        context.flip();
+        object_context_data* cdat = context.fetch();
+
+        window.set_object_data(*cdat);
+
         context.flush_locations();
 
         window.process_input();
@@ -633,9 +638,10 @@ int main(int argc, char *argv[])
 
         window.draw_bulk_objs_n();
 
-
         space_res.blit_space_to_screen();
-        space_res.clear_buffers();
+        auto event = space_res.clear_buffers();
+
+        window.set_render_event(event);
 
         if(key.isKeyPressed(sf::Keyboard::M))
             std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
