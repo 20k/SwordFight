@@ -2206,7 +2206,13 @@ void fighter::update_render_positions()
         vec3f start = i.p1->global_pos;
         vec3f fin = i.p2->global_pos;
 
-        //float desired_len = (fin - start).length();
+        float desired_len = (fin - start).length();
+        float real_len = i.length;
+
+        float diff = 0.f;
+
+        if(desired_len > real_len)
+            diff = desired_len - real_len;
 
         start = start + i.offset;
         fin = fin + i.offset;
@@ -2215,7 +2221,8 @@ void fighter::update_render_positions()
 
         vec3f dir = (fin - start);
 
-        start = start + dir * i.squish_frac;
+        //start = start + dir * i.squish_frac;
+        start = start + dir.norm() * diff/2.f;
 
         obj->set_pos({start.v[0], start.v[1], start.v[2]});
         obj->set_rot({rot.v[0], rot.v[1], rot.v[2]});
@@ -2419,7 +2426,7 @@ void fighter::set_team(int _team)
 
     joint_links.clear();
 
-    float squish = -0.2f;
+    float squish = 0.1f;//-0.2f;
 
     ///now we know the team, we can add the joint parts
     using namespace bodypart;
