@@ -312,6 +312,7 @@ int main(int argc, char *argv[])
 
     engine window;
     window.load(s.width,s.height,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
+    window.manual_input = true;
 
     window.set_camera_pos((cl_float4){-800,150,-570});
 
@@ -593,7 +594,6 @@ int main(int argc, char *argv[])
         light_data = light::build();
         window.set_light_data(light_data);
 
-        context.flush_locations();
 
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
@@ -605,7 +605,6 @@ int main(int argc, char *argv[])
         window.set_object_data(*cdat);
 
         window.blit_to_screen();
-
 
         ///I need to reenable text drawing
         ///possibly split up window.display into display and flip
@@ -622,6 +621,10 @@ int main(int argc, char *argv[])
 
         window.render_block();
 
+        context.flush_locations();
+
+        window.process_input();
+
         space_res.set_depth_buffer(window.depth_buffer[window.nbuf]);
         space_res.set_screen(window.g_screen);
         space_res.update_camera(window.c_pos, window.c_rot);
@@ -629,6 +632,7 @@ int main(int argc, char *argv[])
         space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
 
         window.draw_bulk_objs_n();
+
 
         space_res.blit_space_to_screen();
         space_res.clear_buffers();
