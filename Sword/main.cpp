@@ -426,6 +426,8 @@ int main(int argc, char *argv[])
         printf("%i\n", context.containers.size());
     }
 
+    //std::deque<compute::event> event_list;
+
     while(window.window.isOpen())
     {
         sf::Clock c;
@@ -638,10 +640,17 @@ int main(int argc, char *argv[])
 
         window.draw_bulk_objs_n();
 
-        space_res.blit_space_to_screen();
-        auto event = space_res.clear_buffers();
+        auto event = space_res.blit_space_to_screen();
+        //auto event = space_res.blit_space_to_screen();
+        //auto event = space_res.clear_buffers();
+
+        /*if(event_list.size() > 4)
+            event_list.pop_front();
+
+        event_list.push_back(event);*/
 
         window.set_render_event(event);
+
 
         if(key.isKeyPressed(sf::Keyboard::M))
             std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
@@ -652,4 +661,5 @@ int main(int argc, char *argv[])
     }
 
     cl::cqueue.finish();
+    cl::cqueue2.finish();
 }

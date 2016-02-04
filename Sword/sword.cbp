@@ -114,6 +114,8 @@
 		<Unit filename="../openclrenderer/obj_mem_manager.hpp" />
 		<Unit filename="../openclrenderer/object.cpp" />
 		<Unit filename="../openclrenderer/object.hpp" />
+		<Unit filename="../openclrenderer/object_context.cpp" />
+		<Unit filename="../openclrenderer/object_context.hpp" />
 		<Unit filename="../openclrenderer/objects_container.cpp" />
 		<Unit filename="../openclrenderer/objects_container.hpp" />
 		<Unit filename="../openclrenderer/ocl.h" />
