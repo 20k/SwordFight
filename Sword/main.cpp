@@ -426,8 +426,6 @@ int main(int argc, char *argv[])
         printf("%i\n", context.containers.size());
     }
 
-    //std::deque<compute::event> event_list;
-
     while(window.window.isOpen())
     {
         sf::Clock c;
@@ -470,11 +468,7 @@ int main(int argc, char *argv[])
             {
                 window.update_scrollwheel_delta(Event);
             }
-
-            //if(Event.type == )
         }
-
-        //window.reset_scrollwheel_hack();
 
         if(controls_state == 0)
             window.update_mouse();
@@ -601,8 +595,6 @@ int main(int argc, char *argv[])
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
         sound::update_listeners();
 
-        //window.render_block();
-
         ///so, we blit space to screen, but that might not have finished before
         ///the async event for the draw_bulk_objs_n event has finished
         ///and this can fire
@@ -621,7 +613,8 @@ int main(int argc, char *argv[])
 
         window.flip();
 
-        window.render_block();
+        ///so this + render_event is basically causing two stalls
+        window.render_block(); ///so changing render block above blit_to_screen also fixes
 
         context.flip();
         object_context_data* cdat = context.fetch();
@@ -641,16 +634,13 @@ int main(int argc, char *argv[])
         window.draw_bulk_objs_n();
 
         auto event = space_res.blit_space_to_screen();
-        //auto event = space_res.blit_space_to_screen();
-        //auto event = space_res.clear_buffers();
 
-        /*if(event_list.size() > 4)
-            event_list.pop_front();
+        ///so adding a finish here fixes stuff
 
-        event_list.push_back(event);*/
+        ///for some reason, a delay here prevents space from being blitted
 
+        ///so, we need to fix this double sync
         window.set_render_event(event);
-
 
         if(key.isKeyPressed(sf::Keyboard::M))
             std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
