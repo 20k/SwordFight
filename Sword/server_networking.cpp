@@ -712,6 +712,8 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
         i.second.fight->my_cape.tick(i.second.fight);
 
+        i.second.fight->do_foot_sounds();
+
         ///death is dynamically calculated from part health
         if(!i.second.fight->dead())
             i.second.fight->update_lights();

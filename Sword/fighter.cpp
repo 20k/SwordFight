@@ -1907,6 +1907,9 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 
 void fighter::do_foot_sounds(bool is_player)
 {
+    if(dead())
+    return;
+
     const int asphalt_start = 2;
     const int foot_nums = 8;
 

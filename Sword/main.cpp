@@ -530,7 +530,7 @@ int main(int argc, char *argv[])
 
             fight2.update_render_positions();
 
-            fight2.walk_dir({-1, -1});
+            //fight2.walk_dir({-1, -1});
 
             fight2.do_foot_sounds();
 
