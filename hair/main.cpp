@@ -136,12 +136,14 @@ namespace compute = boost::compute;
 
 struct hair
 {
-    cl_float len = 100;
+    cl_float len = 10;
     cl_int segments = 10;
     cl_float width = 5;
 
     double_buf<compute::buffer> seg_buf;
 
+    ///why does the z component crap out?
+    ///is it because it has 0 offset?
     void init()
     {
         float scale = len / segments;
@@ -154,7 +156,8 @@ struct hair
         ///this is irrelevant, its just where the nodes start, can be anywhere
         for(int i=0; i<segments; i++)
         {
-            to_init.push_back({i * scale, 0.f, 0.f});
+            //to_init.push_back({i * scale, 0.f, 0.f});
+            to_init.push_back({0.f, -i * scale, 0.f});
         }
 
         for(int i=0; i<2; i++)
@@ -163,6 +166,7 @@ struct hair
 
     ///temp hack
     std::map<cl_uint, compute::buffer> original_backup;
+    std::map<cl_uint, cl_float2> height_map;
 
     void init_bone_info(objects_container* obj, object_context* context)
     {
@@ -170,6 +174,10 @@ struct hair
         for(auto& i : obj->objs)
         {
             original_backup[i.unique_id] = compute::buffer(cl::context, sizeof(triangle) * i.tri_list.size(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, i.tri_list.data());
+
+            cl_float2 height = i.get_exact_height_bounds();
+
+            height_map[i.unique_id] = height;
         }
 
         context->build(true);
@@ -178,6 +186,8 @@ struct hair
 
     compute::event tick(engine& eng, objects_container* obj)
     {
+        compute::event event;
+
         cl_float ftime = eng.get_frametime();
 
         arg_list args;
@@ -195,7 +205,13 @@ struct hair
 
         //obj->pos.x += 0.01f * ftime / 1000.f;
 
-        auto event = run_kernel_with_string("string_simulate", {segments}, {128}, 1, args);
+        static float time = 0;
+        time += ftime / 1000.f / 1000.f;
+
+        obj->pos.x += 0.05f * sin(time);
+
+        event =
+        run_kernel_with_string("string_simulate", {segments}, {128}, 1, args);
 
         seg_buf.flip();
 
@@ -207,8 +223,10 @@ struct hair
         bone.push_back(&seg_buf.old());
         bone.push_back(&len);
         bone.push_back(&segments);
+        bone.push_back(&height_map[obj->objs[0].unique_id]);
 
-        event = run_kernel_with_string("attach_to_string", {obj->objs[0].tri_list.size()}, {128}, 1, bone);
+        //event =
+        run_kernel_with_string("attach_to_string", {obj->objs[0].tri_list.size()}, {128}, 1, bone);
 
         return event;
     }
@@ -224,8 +242,10 @@ int main(int argc, char *argv[])
     object_context context;
 
     objects_container* hc = context.make_new();
-    //hair->set_file("../openclrenderer/sp2/sp2.obj");
-    hc->set_load_func(hair_load);
+
+    hc->set_file("res/cylinder.obj");
+    //hc->set_file("../sword/res/high/bodypart_red.obj");
+    //hc->set_load_func(hair_load);
     hc->set_active(true);
     hc->cache = false;
 
@@ -246,6 +266,7 @@ int main(int argc, char *argv[])
 
     //hair->scale(100.f);
     hc->set_pos({0,0,100});
+    hc->scale(100.f);
 
     texture_manager::allocate_textures();
 
@@ -315,12 +336,13 @@ int main(int argc, char *argv[])
                 window.window.close();
         }
 
+        compute::event event;
 
         ///do manual async on thread
         window.draw_bulk_objs_n();
         //auto event = window.draw_bulk_objs_n();
 
-        auto event = hair_struct.tick(window, hc);
+        event = hair_struct.tick(window, hc);
 
         window.set_render_event(event);
 
