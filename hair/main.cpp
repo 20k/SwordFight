@@ -136,7 +136,7 @@ namespace compute = boost::compute;
 
 struct hair
 {
-    cl_float len = 10;
+    cl_float len = 300;
     cl_int segments = 10;
     cl_float width = 5;
 
