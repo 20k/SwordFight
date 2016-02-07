@@ -208,7 +208,7 @@ struct hair
         static float time = 0;
         time += ftime / 1000.f / 1000.f;
 
-        obj->pos.x += 0.05f * sin(time);
+        obj->pos.x += 0.1f * sin(time);
 
         event =
         run_kernel_with_string("string_simulate", {segments}, {128}, 1, args);
