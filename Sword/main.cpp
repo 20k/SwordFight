@@ -261,27 +261,10 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 
 int main(int argc, char *argv[])
 {
-    /*objects_container c1;
-    c1.set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0, 0, 0}, (vec3f){0, 100, -100}, 20.f));
-    c1.cache = false;
-    c1.set_active(true);
-
-    objects_container c2;
-    c2.set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0, 0, 0}, (vec3f){100, -100, 100}, 20.f));
-    c2.cache = false;
-    c2.set_active(true);*/
-
     sf::Clock clk;
 
     object_context context;
     object_context_data* gpu_context = context.fetch();
-
-    ///really old and wrong, ignore me
-    /*objects_container* floor = context.make_new();
-    floor->set_load_func(std::bind(load_object_cube, std::placeholders::_1,
-                                  (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0},
-                                  (vec3f){0, bodypart::default_position[bodypart::LFOOT].v[1] - 42.f, 0},
-                                  3000.f, "./res/gray.png"));*/
 
     world_map default_map;
     //default_map.init(map_namespace::map_one, 11, 12);
@@ -300,12 +283,6 @@ int main(int argc, char *argv[])
     //floor->set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
     floor->offset_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
 
-
-    /*objects_container* file_map = context.make_new();
-    file_map->set_file("./res/map2.obj");
-    file_map->set_active(false);
-    file_map->set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3 - 0, 0});*/
-    //file_map.set_normal("res/norm_body.png");
 
     settings s;
     s.load("./res/settings.txt");
@@ -383,8 +360,6 @@ int main(int argc, char *argv[])
     l.set_brightness(0.215f);
     l.set_diffuse(1.f);
     l.set_pos({0, 10000, -300, 0});
-
-    //window.add_light(&l);
 
     light::add_light(&l);
 
@@ -483,9 +458,6 @@ int main(int argc, char *argv[])
             window.update_mouse(window.width/2, window.height/2, true, true);
             ///call again to reset mouse dx and dy to 0
             window.update_mouse(window.width/2, window.height/2, true, true);
-
-            ///something to do with window.setmouseposition
-            //window.set_scrollwheel_hack();
         }
 
         if(controls_state == 0)
