@@ -54,11 +54,12 @@ void hair_load(objects_container* pobj)
         for(int i=0; i<3; i++)
             tri2.vertices[i].set_vt({0.3f, 0.5f});
 
+        ///the y axis is the bone axis
         quad q;
-        q.p1 = { i * scale, width, 0.f};
-        q.p2 = { i * scale, -width, 0.f};
-        q.p3 = { (i + 1) * scale, width, 0.f};
-        q.p4 = { (i + 1) * scale, -width, 0.f};
+        q.p1 = { width, i * scale, 0.f};
+        q.p2 = { -width, i * scale, 0.f};
+        q.p3 = {  width, (i + 1) * scale,0.f};
+        q.p4 = { -width, (i + 1) * scale, 0.f};
 
         std::array<cl_float4, 6> pos = q.decompose();
 
@@ -95,17 +96,17 @@ struct double_buf
         n = (n + 1) % 2;
     }
 
-    T cur()
+    T& cur()
     {
         return bufs[n];
     }
 
-    T next()
+    T& next()
     {
         return bufs[(n + 1) % 2];
     }
 
-    T old()
+    T& old()
     {
         return next();
     }
@@ -130,12 +131,14 @@ struct double_buf
 ///ie proper bone stuff
 ///ie we take a model of length x, then deform along a bone based on the bone
 ///we want thick dwarven tassles
+///so really this is a proper bone system, but don't tell anyone
 namespace compute = boost::compute;
 
 struct hair
 {
-    float len = 100;
-    int segments = 10;
+    cl_float len = 100;
+    cl_int segments = 10;
+    cl_float width = 5;
 
     double_buf<compute::buffer> seg_buf;
 
@@ -147,34 +150,84 @@ struct hair
         ///everywhere else on the face of the planet i'm using arrays of cl_float
         std::vector< vec<3, cl_float> > to_init;
 
+        ///5 segments means 6 nodes
+        ///this is irrelevant, its just where the nodes start, can be anywhere
         for(int i=0; i<segments; i++)
         {
-            to_init.push_back({segments * scale, 0.f, 0.f});
+            to_init.push_back({i * scale, 0.f, 0.f});
         }
 
         for(int i=0; i<2; i++)
             seg_buf[i] = compute::buffer(cl::context, segments * sizeof(to_init.front()), CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, to_init.data());
     }
 
-    void tick()
-    {
+    ///temp hack
+    std::map<cl_uint, compute::buffer> original_backup;
 
+    void init_bone_info(objects_container* obj, object_context* context)
+    {
+        ///with bone backup, this probably isn't necessary anymore
+        for(auto& i : obj->objs)
+        {
+            original_backup[i.unique_id] = compute::buffer(cl::context, sizeof(triangle) * i.tri_list.size(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, i.tri_list.data());
+        }
+
+        context->build(true);
+        ///no need to flip on a force
+    }
+
+    compute::event tick(engine& eng, objects_container* obj)
+    {
+        cl_float ftime = eng.get_frametime();
+
+        arg_list args;
+        args.push_back(&eng.obj_data->g_tri_mem);
+        args.push_back(&obj->objs[0].gpu_tri_start);
+        args.push_back(&obj->objs[0].gpu_tri_end);
+        args.push_back(&segments);
+        args.push_back(&len);
+        args.push_back(&width);
+        args.push_back(&seg_buf.cur());
+        args.push_back(&seg_buf.next());
+        args.push_back(&obj->pos);
+        args.push_back(&ftime);
+        args.push_back(&eng.g_screen);
+
+        //obj->pos.x += 0.01f * ftime / 1000.f;
+
+        auto event = run_kernel_with_string("string_simulate", {segments}, {128}, 1, args);
+
+        seg_buf.flip();
+
+        arg_list bone;
+        bone.push_back(&eng.obj_data->g_tri_mem);
+        bone.push_back(&obj->objs[0].gpu_tri_start);
+        bone.push_back(&obj->objs[0].gpu_tri_end);
+        bone.push_back(&original_backup[obj->objs[0].unique_id]);
+        bone.push_back(&seg_buf.old());
+        bone.push_back(&len);
+        bone.push_back(&segments);
+
+        event = run_kernel_with_string("attach_to_string", {obj->objs[0].tri_list.size()}, {128}, 1, bone);
+
+        return event;
     }
 };
 
-///gamma correct mipmap filtering
+///gamma correct mipmap filtering?
 ///7ish pre tile deferred
+///need to test fixing oob tris, ie culling the fragments
 int main(int argc, char *argv[])
 {
     sf::Clock load_time;
 
     object_context context;
 
-    objects_container* hair = context.make_new();
+    objects_container* hc = context.make_new();
     //hair->set_file("../openclrenderer/sp2/sp2.obj");
-    hair->set_load_func(hair_load);
-    hair->set_active(true);
-    hair->cache = false;
+    hc->set_load_func(hair_load);
+    hc->set_active(true);
+    hc->cache = false;
 
     engine window;
 
@@ -192,7 +245,7 @@ int main(int argc, char *argv[])
     context.load_active();
 
     //hair->scale(100.f);
-    hair->set_pos({0,0,100});
+    hc->set_pos({0,0,100});
 
     texture_manager::allocate_textures();
 
@@ -242,6 +295,10 @@ int main(int argc, char *argv[])
         }
     }*/
 
+    hair hair_struct;
+    hair_struct.init();
+
+    hair_struct.init_bone_info(hc, &context);
 
     sf::Keyboard key;
 
@@ -258,8 +315,12 @@ int main(int argc, char *argv[])
                 window.window.close();
         }
 
+
         ///do manual async on thread
-        auto event = window.draw_bulk_objs_n();
+        window.draw_bulk_objs_n();
+        //auto event = window.draw_bulk_objs_n();
+
+        auto event = hair_struct.tick(window, hc);
 
         window.set_render_event(event);
 
