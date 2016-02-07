@@ -12,7 +12,7 @@ void sound::set_listener(vec3f pos, vec3f rot)
     listener_rot = rot;
 }
 
-sf::SoundBuffer s[2];
+sf::SoundBuffer s[10];
 
 std::deque<sf::Sound> sounds;
 std::deque<vec3f> positions;
@@ -24,8 +24,17 @@ void sound::add(int type, vec3f pos)
 
     if(!loaded)
     {
-        s[0].loadFromFile("res/hitm.wav");
-        s[1].loadFromFile("res/clangm.wav");
+        s[0].loadFromFile("Res/hitm.wav");
+        s[1].loadFromFile("Res/clangm.wav");
+
+        s[2].loadFromFile("Res/footsteps/asphalt/1.wav");
+        s[3].loadFromFile("Res/footsteps/asphalt/2.wav");
+        s[4].loadFromFile("Res/footsteps/asphalt/3.wav");
+        s[5].loadFromFile("Res/footsteps/asphalt/4.wav");
+        s[6].loadFromFile("Res/footsteps/asphalt/5.wav");
+        s[7].loadFromFile("Res/footsteps/asphalt/6.wav");
+        s[8].loadFromFile("Res/footsteps/asphalt/7.wav");
+        s[9].loadFromFile("Res/footsteps/asphalt/8.wav");
 
         loaded = 1;
     }

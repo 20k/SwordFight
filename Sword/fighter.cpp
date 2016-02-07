@@ -656,6 +656,9 @@ void fighter::load()
     focus_pos = weapon.pos;
 
     shoulder_rotation = 0.f;
+
+    left_foot_sound = true;
+    right_foot_sound = true;
 }
 
 void fighter::respawn(vec2f _pos)
@@ -1110,7 +1113,7 @@ void fighter::IK_foot(int which_foot, vec3f pos)
     //printf("%f\n", o2.v[2]);
 
     parts[upper].set_pos(o1);
-    parts[lower].set_pos((o2 + old_pos[lower]*5)/6.f);
+    parts[lower].set_pos((o2 + old_pos[lower]*5.f)/6.f);
     parts[hand].set_pos(o3);
 }
 
@@ -1898,6 +1901,70 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     }
 
     walk_clock.restart();
+}
+
+#include "sound.hpp"
+
+void fighter::do_foot_sounds()
+{
+    const int asphalt_start = 2;
+    const int foot_nums = 8;
+
+    static int current_num = 0;
+    current_num %= foot_nums;
+
+    using namespace bodypart;
+
+    part& lfoot = parts[LFOOT];
+    part& rfoot = parts[RFOOT];
+
+    float ldiff = fabs(lfoot.global_pos.v[1] - rest_positions[LFOOT].v[1]);
+    float rdiff = fabs(rfoot.global_pos.v[1] - rest_positions[RFOOT].v[1]);
+
+    if(ldiff < 5.f)
+    {
+        if(!left_foot_sound)
+        {
+            sound::add(current_num + asphalt_start, lfoot.global_pos);
+
+            current_num = (current_num + 1) % foot_nums;
+
+            left_foot_sound = true;
+        }
+    }
+    else
+    {
+        left_foot_sound = false;
+    }
+
+    if(rdiff < 5.f)
+    {
+        if(!right_foot_sound)
+        {
+            sound::add(current_num + asphalt_start, rfoot.global_pos);
+
+            current_num = (current_num + 1) % foot_nums;
+
+            right_foot_sound = true;
+        }
+    }
+    else
+    {
+        right_foot_sound = false;
+    }
+
+    /*for(auto& i : {lfoot, rfoot})
+    {
+        float ydiff = i.global_pos.v[1] - rest_positions[i.type].v[1];
+
+        ydiff = fabs(ydiff);
+
+        if(ydiff < 5.f &&)
+        {
+
+        }
+    }*/
+
 }
 
 void fighter::set_stance(int _stance)

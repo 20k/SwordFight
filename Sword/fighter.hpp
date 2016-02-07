@@ -678,6 +678,8 @@ struct fighter
 
     void set_contexts(object_context* _cpu, object_context_data* _gpu);
 
+    void do_foot_sounds();
+
 private:
     size_t left_id;
     size_t right_id;
@@ -702,6 +704,9 @@ private:
 
     object_context* cpu_context = nullptr;
     object_context_data* gpu_context = nullptr;
+
+    bool left_foot_sound;
+    bool right_foot_sound;
 };
 
 

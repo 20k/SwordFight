@@ -530,6 +530,8 @@ int main(int argc, char *argv[])
 
             fight2.update_render_positions();
 
+            fight2.do_foot_sounds();
+
             if(!fight2.dead())
                 fight2.update_lights();
 
@@ -552,6 +554,12 @@ int main(int argc, char *argv[])
         my_fight->tick_cape();
 
         my_fight->update_render_positions();
+
+        my_fight->do_foot_sounds();
+
+        ///we can use the foot rest position to play a sound when the
+        ///current foot position is near that
+        ///remember, only the y component!
 
         if(!my_fight->dead())
             my_fight->update_lights();
