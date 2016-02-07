@@ -530,6 +530,8 @@ int main(int argc, char *argv[])
 
             fight2.update_render_positions();
 
+            fight2.walk_dir({-1, -1});
+
             fight2.do_foot_sounds();
 
             if(!fight2.dead())
@@ -555,8 +557,6 @@ int main(int argc, char *argv[])
 
         my_fight->update_render_positions();
 
-        my_fight->do_foot_sounds();
-
         ///we can use the foot rest position to play a sound when the
         ///current foot position is near that
         ///remember, only the y component!
@@ -573,6 +573,10 @@ int main(int argc, char *argv[])
 
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
+
+        ///so that the listener position is exactly the body part
+        my_fight->do_foot_sounds(true);
+
         sound::update_listeners();
 
         ///so, we blit space to screen, but that might not have finished before

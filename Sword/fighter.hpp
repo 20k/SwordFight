@@ -678,7 +678,7 @@ struct fighter
 
     void set_contexts(object_context* _cpu, object_context_data* _gpu);
 
-    void do_foot_sounds();
+    void do_foot_sounds(bool is_player = false);
 
 private:
     size_t left_id;

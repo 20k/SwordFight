@@ -16,9 +16,13 @@ sf::SoundBuffer s[10];
 
 std::deque<sf::Sound> sounds;
 std::deque<vec3f> positions;
+std::deque<bool> relative_positioning;
 
 ///1 is clang, 0 is hrrk
-void sound::add(int type, vec3f pos)
+///we need per-sound attenuation
+///also, the distance needs to drop much more rapidly. This has likely just never been noticed
+///because not playing with 4+ players
+void sound::add(int type, vec3f pos, bool relative)
 {
     static int loaded = 0;
 
@@ -48,6 +52,7 @@ void sound::add(int type, vec3f pos)
 
     sounds.push_back(sound);
     positions.push_back(pos);
+    relative_positioning.push_back(relative);
 
     sf::Sound& sd = sounds.back();
 
@@ -72,6 +77,7 @@ void sound::add(int type, vec3f pos)
         {
             sounds.erase(sounds.begin() + i);
             positions.erase(positions.begin() + i);
+            relative_positioning.erase(relative_positioning.begin() + i);
             i--;
         }
     }
@@ -79,9 +85,11 @@ void sound::add(int type, vec3f pos)
 
 void sound::update_listeners()
 {
-    //for(auto& sd : sounds)
     for(int i=0; i<sounds.size(); i++)
     {
+        if(relative_positioning[i])
+            continue;
+
         sf::Sound& sd = sounds[i];
         vec3f pos = positions[i];
 

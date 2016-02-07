@@ -1905,13 +1905,15 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 
 #include "sound.hpp"
 
-void fighter::do_foot_sounds()
+void fighter::do_foot_sounds(bool is_player)
 {
     const int asphalt_start = 2;
     const int foot_nums = 8;
 
     static int current_num = 0;
     current_num %= foot_nums;
+
+    bool is_relative = is_player;
 
     using namespace bodypart;
 
@@ -1921,11 +1923,19 @@ void fighter::do_foot_sounds()
     float ldiff = fabs(lfoot.global_pos.v[1] - rest_positions[LFOOT].v[1]);
     float rdiff = fabs(rfoot.global_pos.v[1] - rest_positions[RFOOT].v[1]);
 
-    if(ldiff < 5.f)
+    ///so, because the sound isn't tracking
+    ///after its played, itll then be exposed to the 3d audio system
+    vec3f centre = (lfoot.global_pos + rfoot.global_pos) / 2.f;
+
+    centre = parts[BODY].global_pos;
+
+    float cutoff = 1.f;
+
+    if(ldiff < cutoff)
     {
         if(!left_foot_sound)
         {
-            sound::add(current_num + asphalt_start, lfoot.global_pos);
+            sound::add(current_num + asphalt_start, centre, is_relative);
 
             current_num = (current_num + 1) % foot_nums;
 
@@ -1937,11 +1947,11 @@ void fighter::do_foot_sounds()
         left_foot_sound = false;
     }
 
-    if(rdiff < 5.f)
+    if(rdiff < cutoff)
     {
         if(!right_foot_sound)
         {
-            sound::add(current_num + asphalt_start, rfoot.global_pos);
+            sound::add(current_num + asphalt_start, centre, is_relative);
 
             current_num = (current_num + 1) % foot_nums;
 
@@ -1952,19 +1962,6 @@ void fighter::do_foot_sounds()
     {
         right_foot_sound = false;
     }
-
-    /*for(auto& i : {lfoot, rfoot})
-    {
-        float ydiff = i.global_pos.v[1] - rest_positions[i.type].v[1];
-
-        ydiff = fabs(ydiff);
-
-        if(ydiff < 5.f &&)
-        {
-
-        }
-    }*/
-
 }
 
 void fighter::set_stance(int _stance)
