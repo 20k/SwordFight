@@ -748,7 +748,7 @@ void fighter::respawn(vec2f _pos)
 
     team = old_team;
 
-    ///need to randomise this really
+    ///this doesn't work properly for some reason
     pos = {_pos.v[0],0,_pos.v[1]};
     rot = {0,0,0};
 
