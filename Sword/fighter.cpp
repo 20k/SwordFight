@@ -10,6 +10,8 @@
 
 #include "../openclrenderer/light.hpp"
 
+#include "../openclrenderer/obj_load.hpp"
+
 /*vec3f jump_descriptor::get_absolute_jump_displacement_tick(float dt, fighter* fight)
 {
     if(current_time > time_ms)
@@ -154,12 +156,14 @@ void part::set_type(bodypart_t t)
     set_hp(1.f);
 }
 
+///need to make textures unique optionally
 part::part(object_context& context)
 {
     //performed_death = false;
 
     cpu_context = &context;
     model = context.make_new();
+    //hp_display = context.make_new();
 
     is_active = false;
 
@@ -173,9 +177,14 @@ part::part(object_context& context)
 
     model->set_file("./Res/bodypart_red.obj");
 
+    model->set_unique_textures(true);
+
     team = -1;
 
     quality = 0;
+
+    ///128x128
+    //tex.create(128, 128);
 }
 
 part::part(bodypart_t t, object_context& context) : part(context)
@@ -191,6 +200,7 @@ part::~part()
 void part::set_active(bool active)
 {
     model->set_active(active);
+    //hp_display->set_active(active);
 
     is_active = active;
 }
@@ -230,10 +240,20 @@ void part::set_global_rot(vec3f _global_rot)
     global_rot = _global_rot;
 }
 
+///wait, if we've got dynamic texture update
+///I can just go from red -> dark red -> black
+///yay!
 void part::update_model()
 {
     model->set_pos({global_pos.v[0], global_pos.v[1], global_pos.v[2]});
     model->set_rot({global_rot.v[0], global_rot.v[1], global_rot.v[2]});
+
+    /*vec3f vec = {0, 20, 0};
+
+    vec3f rvec = vec.rot(0.f, global_rot) + global_pos;
+
+    hp_display->set_pos({rvec.v[0], rvec.v[1], rvec.v[2]});
+    hp_display->set_rot(model->rot);*/
 }
 
 void part::set_team(int _team)
@@ -246,6 +266,7 @@ void part::set_team(int _team)
         load_team_model();
 }
 
+///might currently leak texture memory
 void part::load_team_model()
 {
     ///this is not the place to define these
@@ -271,6 +292,13 @@ void part::load_team_model()
             to_load = high_blue;
     }
 
+    /*display_tex.type = 0;
+    display_tex.set_unique();
+    display_tex.set_load_func(std::bind(texture_make_blank, std::placeholders::_1, 256, 256, sf::Color(255, 255, 255)));
+
+    hp_display->set_load_func(std::bind(obj_rect, std::placeholders::_1, display_tex, (cl_float2){100, 100}));*/
+
+    model->cache = false; ///?
     model->set_file(to_load);
 
     model->set_normal("res/norm_body.png");
@@ -312,16 +340,67 @@ void part::damage(float dam, bool do_effect)
 
     if(is_active && hp < 0.0001f)
     {
-        //printf("I blowed up %s\n", bodypart::names[type].c_str());
-
-        //model->hide();
-
-        //cpu_context.load_active();
-
         perform_death(do_effect);
     }
 
+    ///so, lets do this elsewhere
+
+
+
+    /*cl_float4 rcol = {248, 63, 95};
+    cl_float4 bcol = {63, 95, 248};
+
+    cl_float4 pcol = team == 0 ? rcol : bcol;
+
+    if(!model->isactive || !model->isloaded)
+        return;
+
+    ///if this is async this might break
+    if(hp > 0)
+    {
+        pcol.x *= hp;
+        pcol.y *= hp;
+        pcol.z *= hp;
+
+        cl_uint tid = model->objs[0].tid;
+
+        texture* tex = texture_manager::texture_by_id(tid);
+
+        tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu);
+    }*/
+
+
     //network_hp(dam);
+}
+
+void part::update_texture_by_hp()
+{
+    if(old_hp != hp)
+    {
+        old_hp = hp;
+
+        cl_float4 rcol = {248, 63, 95};
+        cl_float4 bcol = {63, 95, 248};
+
+        cl_float4 pcol = team == 0 ? rcol : bcol;
+
+        if(!model->isactive || !model->isloaded)
+            return;
+
+        ///if this is async this might break
+        if(hp > 0)
+        {
+            pcol.x *= hp;
+            pcol.y *= hp;
+            pcol.z *= hp;
+
+            cl_uint tid = model->objs[0].tid;
+
+            texture* tex = texture_manager::texture_by_id(tid);
+
+            tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu);
+        }
+    }
 }
 
 void part::perform_death(bool do_effect)
@@ -2468,6 +2547,14 @@ void fighter::overwrite_parts_from_model()
     }*/
 
     ///do not need to update weapon because it does not currently have a global position stored (not a part)
+}
+
+void fighter::update_texture_by_part_hp()
+{
+    for(auto& i : parts)
+    {
+        i.update_texture_by_hp();
+    }
 }
 
 void fighter::set_team(int _team)

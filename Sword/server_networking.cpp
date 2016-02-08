@@ -714,6 +714,8 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
         i.second.fight->do_foot_sounds();
 
+        i.second.fight->update_texture_by_part_hp();
+
         ///death is dynamically calculated from part health
         if(!i.second.fight->dead())
             i.second.fight->update_lights();

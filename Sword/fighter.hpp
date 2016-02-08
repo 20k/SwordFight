@@ -269,10 +269,18 @@ struct part
 
     object_context* cpu_context = nullptr;
 
+    void update_texture_by_hp();
+
 private:
     void network_hp(float delta);
     objects_container* model;
+    float old_hp = 0.f; ///purely for the purpose of updating model tex
 
+    /*objects_container* hp_display;
+    texture display_tex;*/
+
+    //sf::Texture tex;
+    //texture cylinder_tex;
 };
 
 ///one single movement
@@ -640,6 +648,7 @@ struct fighter
     void respawn_if_appropriate(); ///network
     void update_lights();
     void overwrite_parts_from_model();
+    void update_texture_by_part_hp();
 
     void set_team(int _team);
 

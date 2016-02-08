@@ -32,6 +32,8 @@
 
 #include "game_state_manager.hpp"
 
+#include "../openclrenderer/obj_load.hpp"
+
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
 bool once()
@@ -259,8 +261,17 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
     return {sub(c_pos, input.c_pos), sub(c_rot, input.c_rot)};
 }
 
+///make textures go from start to dark to end
+///need to make sound not play multiple times
 int main(int argc, char *argv[])
 {
+    texture tex;
+    tex.type = 0;
+    tex.set_unique();
+    //tex.set_texture_location("res/blue.png");
+    tex.set_load_func(std::bind(texture_make_blank, std::placeholders::_1, 256, 256, sf::Color(255, 255, 255)));
+    tex.push();
+
     sf::Clock clk;
 
     object_context context;
@@ -282,6 +293,13 @@ int main(int argc, char *argv[])
     floor->set_active(true);
     //floor->set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
     floor->offset_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
+
+
+    objects_container* rect = context.make_new();
+
+    rect->set_load_func(std::bind(obj_rect, std::placeholders::_1, tex, (cl_float2){100, 100}));
+    rect->cache = false;
+    rect->set_active(true);
 
 
     settings s;
@@ -338,13 +356,18 @@ int main(int argc, char *argv[])
     floor->set_diffuse(4.f);
 
     texture_manager::allocate_textures();
-    auto tex_gpu = texture_manager::build_descriptors();
+    //auto tex_gpu = texture_manager::build_descriptors();
 
-    window.set_tex_data(tex_gpu);
+    //window.set_tex_data(tex_gpu);
 
     printf("textures\n");
 
-    context.build();
+    context.build(true);
+
+    //context.fetch()->tex_gpu = tex_gpu;
+
+    ///should be a constant ptr
+    window.set_tex_data(context.fetch()->tex_gpu);
 
     auto ctx = context.fetch();
     window.set_object_data(*ctx);
@@ -534,6 +557,8 @@ int main(int argc, char *argv[])
 
             fight2.do_foot_sounds();
 
+            fight2.update_texture_by_part_hp();
+
             if(!fight2.dead())
                 fight2.update_lights();
 
@@ -557,6 +582,8 @@ int main(int argc, char *argv[])
 
         my_fight->update_render_positions();
 
+        my_fight->update_texture_by_part_hp();
+
         ///we can use the foot rest position to play a sound when the
         ///current foot position is near that
         ///remember, only the y component!
@@ -569,7 +596,6 @@ int main(int argc, char *argv[])
         ///about 0.2ms slower than not doing this
         light_data = light::build();
         window.set_light_data(light_data);
-
 
         ///ergh
         sound::set_listener(my_fight->parts[bodypart::BODY].global_pos, my_fight->parts[bodypart::BODY].global_rot);
@@ -602,6 +628,9 @@ int main(int argc, char *argv[])
 
         context.flip();
         object_context_data* cdat = context.fetch();
+
+        //window.set_tex_data(cdat->tex_gpu);
+
 
         window.set_object_data(*cdat);
 
