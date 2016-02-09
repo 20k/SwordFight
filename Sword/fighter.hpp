@@ -615,7 +615,7 @@ struct fighter
     cape my_cape;
 
     void IK_hand(int hand, vec3f pos, float upper_rotation = 0.f, bool arms_are_locked = false, bool force_positioning = false);
-    void IK_foot(int foot, vec3f pos);
+    void IK_foot(int foot, vec3f pos, vec3f off1 = {0,0,0}, vec3f off2 = {0,0,0}, vec3f off3 = {0,0,0});
 
     void linear_move(int hand, vec3f pos, float time, bodypart_t b);
     void spherical_move(int hand, vec3f pos, float time, bodypart_t b);
@@ -635,6 +635,7 @@ struct fighter
     void manual_check_part_alive(); ///interate over parts, if > 0 and inactive then activate
 
     void walk_dir(vec2f dir, bool sprint = false); ///z, x
+    void crouch_tick(bool do_crouch);
 
     void set_pos(vec3f);
     void set_rot(vec3f);
@@ -688,6 +689,8 @@ struct fighter
     void set_contexts(object_context* _cpu, object_context_data* _gpu);
 
     void do_foot_sounds(bool is_player = false);
+
+    float crouch_frac = 0.f;
 
 private:
     size_t left_id;

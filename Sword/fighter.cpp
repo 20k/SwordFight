@@ -699,6 +699,8 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
 void fighter::load()
 {
+    crouch_frac = 0.f;
+
     momentum = {0,0};
 
     jump_info = jump_descriptor();
@@ -1045,7 +1047,11 @@ float get_joint_angle_foot(vec3f end_pos, vec3f start_pos, float s2, float s3)
 
     s1 = clamp(s1, 0.f, s2 + s3);
 
-    float angle = acos ( (s2 * s2 + s3 * s3 - s1 * s1) / (2 * s2 * s3) );
+    float ic = (s2 * s2 + s3 * s3 - s1 * s1) / (2 * s2 * s3);
+
+    ic = clamp(ic, -1, 1);
+
+    float angle = acos ( ic );
 
     //printf("%f\n", angle);
 
@@ -1214,7 +1220,7 @@ void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation, bool arms
 }
 
 
-void fighter::IK_foot(int which_foot, vec3f pos)
+void fighter::IK_foot(int which_foot, vec3f pos, vec3f off1, vec3f off2, vec3f off3)
 {
     using namespace bodypart;
 
@@ -1226,7 +1232,8 @@ void fighter::IK_foot(int which_foot, vec3f pos)
 
     vec3f o1, o2, o3;
 
-    inverse_kinematic_foot(pos, rest_positions[upper], rest_positions[lower], rest_positions[hand], o1, o2, o3);
+    ///put offsets into this function
+    inverse_kinematic_foot(pos, rest_positions[upper] + off1, rest_positions[lower] + off2, rest_positions[hand] + off3, o1, o2, o3);
 
     //printf("%f\n", o2.v[2]);
 
@@ -1582,6 +1589,7 @@ void fighter::tick(bool is_player)
     shoulder_rotation += (wangle - shoulder_rotation) + shoulder_rotation * 5.f;
     shoulder_rotation /= 6;
 
+
     IK_hand(0, rot_focus, shoulder_rotation, arms_are_locked);
     IK_hand(1, parts[LHAND].pos, shoulder_rotation, arms_are_locked, true);
 
@@ -1625,6 +1633,40 @@ void fighter::tick(bool is_player)
     //parts[BODY].set_pos((parts[BODY].pos * 20 + parts[RUPPERLEG].pos + parts[LUPPERLEG].pos)/(20 + 2));
 
     parts[HEAD].set_pos((parts[BODY].pos*2.f + rest_positions[HEAD] * 32.f) / (32 + 2));
+
+
+
+
+    float cdist = 3 * bodypart::scale / 2.f;
+
+    //float tdiff = fdiff / time_to_crouch_s;
+
+    /*for(auto& i : {HEAD, BODY, LUPPERARM, RUPPERARM, LLOWERARM, RLOWERARM})
+    {
+        auto type = i;
+
+        vec3f pos = parts[type].pos;
+
+        pos.v[1] -= cdist * crouch_frac;
+
+        parts[type].set_pos(pos);
+    }
+
+    for(auto& type : {LUPPERLEG, RUPPERLEG})
+    {
+        vec3f pos = parts[type].pos;
+
+        pos.v[1] -= cdist * crouch_frac / 2.f;
+
+        parts[type].set_pos(pos);
+    }*/
+
+    /*auto upper = which_foot ? RUPPERLEG : LUPPERLEG;
+    auto lower = which_foot ? RLOWERLEG : LLOWERLEG;
+    auto hand = which_foot ? RFOOT : LFOOT;*/
+
+    IK_foot(0, parts[LFOOT].pos, {0, -cdist * crouch_frac, 0}, {0, -cdist * crouch_frac, 0}, {0,0,0});
+    IK_foot(1, parts[RFOOT].pos, {0, -cdist * crouch_frac, 0}, {0, -cdist * crouch_frac, 0}, {0,0,0});
 
 
     /*float sword_len = weapon.length;
@@ -2019,6 +2061,38 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     }
 
     walk_clock.restart();
+}
+
+void fighter::crouch_tick(bool do_crouch)
+{
+    using namespace bodypart;
+
+    ///milliseconds
+    float fdiff = frametime / 1000.f;
+
+    const float time_to_crouch_s = 0.5f;
+
+    /*float cdist = bodypart::scale / 2.f;
+
+    float tdiff = fdiff / time_to_crouch_s;
+
+    for(auto& i : {HEAD, BODY, LUPPERARM, RUPPERARM, LLOWERARM, RLOWERARM, LUPPERLEG, RUPPERLEG})
+    {
+        auto type = i;
+
+        vec3f pos = parts[type].pos;
+
+        //pos.v[1] += cdist * (fdiff / time_to_crouch_s);
+
+        parts[type].set_pos(pos);
+    }*/
+
+    if(do_crouch)
+        crouch_frac += fdiff / time_to_crouch_s;
+    else
+        crouch_frac -= fdiff / time_to_crouch_s;
+
+    crouch_frac = clamp(crouch_frac, 0.f, 1.f);
 }
 
 #include "sound.hpp"

@@ -168,6 +168,10 @@ void debug_controls(fighter* my_fight, engine& window)
     bool sprint = key.isKeyPressed(sf::Keyboard::LShift);
 
     my_fight->walk_dir(walk_dir, sprint);
+
+    bool crouching = key.isKeyPressed(sf::Keyboard::LControl);
+
+    my_fight->crouch_tick(crouching);
 }
 
 void fps_controls(fighter* my_fight, engine& window)
@@ -212,6 +216,10 @@ void fps_controls(fighter* my_fight, engine& window)
 
     if(once<sf::Keyboard::Space>())
         my_fight->try_jump();
+
+    bool crouching = key.isKeyPressed(sf::Keyboard::LControl);
+
+    my_fight->crouch_tick(crouching);
 
     window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
 
