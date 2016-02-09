@@ -213,6 +213,8 @@ void fps_controls(fighter* my_fight, engine& window)
     if(once<sf::Keyboard::Space>())
         my_fight->try_jump();
 
+    window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
+
     my_fight->set_look({-window.c_rot.s[0], window.get_mouse_delta_x() / 1.f, 0});
 
     //part* head = &my_fight->parts[bodypart::HEAD];
@@ -637,6 +639,8 @@ int main(int argc, char *argv[])
         context.flush_locations();
 
         window.process_input();
+        window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
+
 
         space_res.set_depth_buffer(window.depth_buffer[window.nbuf]);
         space_res.set_screen(window.g_screen);

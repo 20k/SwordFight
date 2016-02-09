@@ -398,10 +398,6 @@ void part::update_texture_by_hp()
 
             cl_float4 dcol = pcol;
 
-            /*dcol.x /= 2.f * 255.f;
-            dcol.y /= 2.f * 255.f;
-            dcol.z /= 2.f * 255.f;*/
-
             dcol = {20, 20, 20};
 
             dcol.x /= 255.f;
