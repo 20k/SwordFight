@@ -265,12 +265,12 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 ///need to make sound not play multiple times
 int main(int argc, char *argv[])
 {
-    texture tex;
+    /*texture tex;
     tex.type = 0;
     tex.set_unique();
     //tex.set_texture_location("res/blue.png");
     tex.set_load_func(std::bind(texture_make_blank, std::placeholders::_1, 256, 256, sf::Color(255, 255, 255)));
-    tex.push();
+    tex.push();*/
 
     sf::Clock clk;
 
@@ -295,11 +295,11 @@ int main(int argc, char *argv[])
     floor->offset_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
 
 
-    objects_container* rect = context.make_new();
+    /*objects_container* rect = context.make_new();
 
     rect->set_load_func(std::bind(obj_rect, std::placeholders::_1, tex, (cl_float2){100, 100}));
     rect->cache = false;
-    rect->set_active(true);
+    rect->set_active(true);*/
 
 
     settings s;
@@ -380,7 +380,7 @@ int main(int argc, char *argv[])
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
-    l.set_brightness(0.215f);
+    l.set_brightness(0.415f);
     l.set_diffuse(1.f);
     l.set_pos({0, 10000, -300, 0});
 

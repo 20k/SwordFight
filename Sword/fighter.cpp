@@ -301,7 +301,7 @@ void part::load_team_model()
     model->cache = false; ///?
     model->set_file(to_load);
 
-    model->set_normal("res/norm_body.png");
+    //model->set_normal("res/norm_body.png");
 
     model->unload();
 
@@ -398,7 +398,8 @@ void part::update_texture_by_hp()
 
             texture* tex = texture_manager::texture_by_id(tid);
 
-            tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu);
+            //tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu);
+            tex->update_random_lines(10, cpu_context->fetch()->tex_gpu);
         }
     }
 }

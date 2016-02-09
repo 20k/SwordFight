@@ -12,9 +12,9 @@ void sound::set_listener(vec3f pos, vec3f rot)
     listener_rot = rot;
 }
 
-sf::SoundBuffer s[10];
+sf::SoundBuffer s[11];
 
-std::deque<sf::Sound> sounds;
+std::deque<sf::Sound*> sounds;
 std::deque<vec3f> positions;
 std::deque<bool> relative_positioning;
 
@@ -40,21 +40,28 @@ void sound::add(int type, vec3f pos, bool relative)
         s[8].loadFromFile("Res/footsteps/asphalt/7.wav");
         s[9].loadFromFile("Res/footsteps/asphalt/8.wav");
 
+        s[10].loadFromFile("Res/emphasis.wav");
+
         loaded = 1;
     }
+
+    /*if(type == 0 || type == 1)
+    {
+        add(10, pos, relative);
+    }*/
 
     vec3f rel = {0,0,0};
 
     rel = pos - listener_pos;
     rel = rel.back_rot({0,0,0}, listener_rot);
 
-    sf::Sound sound;
+    sf::Sound* sound = new sf::Sound;
 
     sounds.push_back(sound);
     positions.push_back(pos);
     relative_positioning.push_back(relative);
 
-    sf::Sound& sd = sounds.back();
+    sf::Sound& sd = *sounds.back();
 
     sd.setBuffer(s[type]);
     sd.setPitch(randf_s(0.8f, 1.20f));
@@ -73,8 +80,10 @@ void sound::add(int type, vec3f pos, bool relative)
 
     for(int i=0; i<sounds.size(); i++)
     {
-        if(sounds[i].getStatus() == sf::Sound::Status::Stopped)
+        if(sounds[i]->getStatus() == sf::Sound::Status::Stopped)
         {
+            delete sounds[i];
+
             sounds.erase(sounds.begin() + i);
             positions.erase(positions.begin() + i);
             relative_positioning.erase(relative_positioning.begin() + i);
@@ -90,7 +99,7 @@ void sound::update_listeners()
         if(relative_positioning[i])
             continue;
 
-        sf::Sound& sd = sounds[i];
+        sf::Sound& sd = *sounds[i];
         vec3f pos = positions[i];
 
         vec3f rel = {0,0,0};

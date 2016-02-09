@@ -27,7 +27,7 @@ void server_networking::join_master()
     {
         master_info = tcp_connect(MASTER_IP, MASTER_PORT, 1, 0);
 
-        printf("master tcp\n");
+        //printf("master tcp\n");
     }
 
     if(master_info.valid())
@@ -551,6 +551,7 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
                 ///which means that under the current method
                 ///they'll just be teleported across the map
                 ///parts don't reinitialise properly
+                ///I believe this is fixed now
                 if(my_id != net_fighter.first)
                 {
                     if(fight->net.play_clang_audio)
@@ -608,7 +609,8 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
             ///if(me.recoil) //playsound
             ///if(me.mydirty) ///playsound
 
-            ///STILL NEED TO ACTUALLY NETWORK THIS
+            ///so. If two different fighters who aren't me hit each other
+            ///there'll be no audio
             if(discovered_fighters[my_id].fight->net.play_clang_audio)
             {
                 vec3f pos = xyz_to_vec(discovered_fighters[my_id].fight->weapon.model->pos);
