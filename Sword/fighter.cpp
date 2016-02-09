@@ -373,6 +373,8 @@ void part::damage(float dam, bool do_effect)
     //network_hp(dam);
 }
 
+#include <vec/vec.hpp>
+
 void part::update_texture_by_hp()
 {
     if(old_hp != hp)
@@ -388,18 +390,58 @@ void part::update_texture_by_hp()
             return;
 
         ///if this is async this might break
-        if(hp > 0)
+        if(hp > 0 && hp != 1.f)
         {
             pcol.x *= hp;
             pcol.y *= hp;
             pcol.z *= hp;
 
+            cl_float4 dcol = pcol;
+
+            /*dcol.x /= 2.f * 255.f;
+            dcol.y /= 2.f * 255.f;
+            dcol.z /= 2.f * 255.f;*/
+
+            dcol = {20, 20, 20};
+
+            dcol.x /= 255.f;
+            dcol.y /= 255.f;
+            dcol.z /= 255.f;
+
             cl_uint tid = model->objs[0].tid;
 
             texture* tex = texture_manager::texture_by_id(tid);
 
-            //tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu);
-            tex->update_random_lines(10, cpu_context->fetch()->tex_gpu);
+            int rnum = 10;
+
+            for(int i=0; i<rnum; i++)
+            {
+                float width = tex->get_largest_dimension();
+
+                vec2f rpos = randf<2, float>(width * 0.2f, width * 0.8f) * (vec2f){tex->c_image.getSize().x, tex->c_image.getSize().y};
+
+                rpos = rpos / width;
+
+                //tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu);
+                /*tex->update_random_lines(5, {rpos.v[0], rpos.v[1]}, {1, 0}, cpu_context->fetch()->tex_gpu);
+                tex->update_random_lines(5, {rpos.v[0], rpos.v[1]}, {-1, 1}, cpu_context->fetch()->tex_gpu);
+                tex->update_random_lines(5, {rpos.v[0], rpos.v[1]}, {1, 1}, cpu_context->fetch()->tex_gpu);*/
+
+                float angle = randf_s() * 2 * M_PI;
+
+                vec2f dir = {cos(angle), sin(angle)};
+
+                tex->update_random_lines(40, dcol, {rpos.v[0], rpos.v[1]}, {dir.v[0], dir.v[1]}, cpu_context->fetch()->tex_gpu);
+            }
+        }
+
+        if(hp == 1.f)
+        {
+            cl_uint tid = model->objs[0].tid;
+
+            texture* tex = texture_manager::texture_by_id(tid);
+
+            tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu);
         }
     }
 }
