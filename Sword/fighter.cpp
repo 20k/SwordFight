@@ -1028,7 +1028,11 @@ float get_joint_angle(vec3f end_pos, vec3f start_pos, float s2, float s3)
 
     s1 = clamp(s1, 0.f, s2 + s3);
 
-    float angle = acos ( (s2 * s2 + s3 * s3 - s1 * s1) / (2 * s2 * s3) );
+    float ic = (s2 * s2 + s3 * s3 - s1 * s1) / (2 * s2 * s3);
+
+    ic = clamp(ic, -1, 1);
+
+    float angle = acos ( ic );
 
     //printf("%f\n", angle);
 
@@ -1104,28 +1108,17 @@ void inverse_kinematic(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec
     o_p1 = p1 + halfway_dir * shoulder_move_amount;
 }
 
-///p1 shoulder, p2 elbow, p3 hand
-void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec3f& o_p2, vec3f& o_p3)
+///p1 shoulder, p2 elbow, p3 hand/foot
+void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f off1, vec3f off2, vec3f off3, vec3f& o_p1, vec3f& o_p2, vec3f& o_p3)
 {
-    float s1 = (p3 - p1).length();
+    float s1 = (p3 - p1 - off1).length();
     float s2 = (p2 - p1).length();
     float s3 = (p3 - p2).length();
 
-    float joint_angle = M_PI + get_joint_angle_foot(pos, p1, s2, s3);
 
-    //o_p1 = p1;
+    float joint_angle = M_PI + get_joint_angle_foot(pos, p1 + off1, s2, s3);
 
-    float max_len = (p3 - p1).length();
-
-    float to_target = (pos - p1).length();
-
-    //float len = std::min(max_len, to_target);
-
-    vec3f dir = (pos - p1).norm();
-
-    //o_p3 = p1 + dir * len;
     o_p3 = pos;
-
 
     float area = 0.5f * s2 * s3 * sin(joint_angle);
 
@@ -1133,24 +1126,22 @@ void inverse_kinematic_foot(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1
 
     float height = 2 * area / s1;
 
-    vec3f d1 = (o_p3 - p1);
+    vec3f d1 = (o_p3 - p1 - off1);
     vec3f d2 = {1, 0, 0};
 
     vec3f d3 = cross(d1, d2);
 
     d3 = d3.norm();
 
-    vec3f half = (p1 + o_p3)/2.f;
+    vec3f half = (p1 + off1 + o_p3)/2.f;
 
     ///set this to std::max(height, 30.f) if you want beelzebub strolling around
     o_p2 = half + std::min(height, -5.f) * d3;
 
-    vec3f d = (o_p3 - p1).norm();
+    vec3f d = (o_p3 - p1 - off1).norm();
 
-    const float leg_move_amount = 10.f;
-
-    o_p1 = p1 + d.norm() * (vec3f){20.f, 4.f, 20.f};
-
+    ///no wait, this is defining hip wiggle
+    o_p1 = p1 + off1 + d.norm() * (vec3f){20.f, 4.f, 20.f};
 }
 
 void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation, bool arms_are_locked, bool force_positioning)
@@ -1219,7 +1210,8 @@ void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation, bool arms
     parts[hand].set_pos(o3);
 }
 
-
+///ergh. merge offsets into inverse kinematic foot as separate arguments
+///so we dont mess up length calculations
 void fighter::IK_foot(int which_foot, vec3f pos, vec3f off1, vec3f off2, vec3f off3)
 {
     using namespace bodypart;
@@ -1233,7 +1225,7 @@ void fighter::IK_foot(int which_foot, vec3f pos, vec3f off1, vec3f off2, vec3f o
     vec3f o1, o2, o3;
 
     ///put offsets into this function
-    inverse_kinematic_foot(pos, rest_positions[upper] + off1, rest_positions[lower] + off2, rest_positions[hand] + off3, o1, o2, o3);
+    inverse_kinematic_foot(pos, rest_positions[upper], rest_positions[lower], rest_positions[hand], off1, off2, off3, o1, o2, o3);
 
     //printf("%f\n", o2.v[2]);
 
@@ -1623,7 +1615,6 @@ void fighter::tick(bool is_player)
 
     //IK_hand(1, rot_focus, shoulder_rotation, arms_are_locked);
 
-    weapon.set_pos(parts[bodypart::LHAND].pos);
 
     ///sword render stuff updated here
     update_sword_rot();
@@ -1637,11 +1628,12 @@ void fighter::tick(bool is_player)
 
 
 
-    float cdist = 3 * bodypart::scale / 2.f;
+    float cdist = 2 * bodypart::scale / 2.f;
+    //float cdist = 3 * bodypart::scale / 2.f;
 
     //float tdiff = fdiff / time_to_crouch_s;
 
-    /*for(auto& i : {HEAD, BODY, LUPPERARM, RUPPERARM, LLOWERARM, RLOWERARM})
+    for(auto& i : {HEAD, BODY, LUPPERARM, RUPPERARM, LLOWERARM, RLOWERARM, LHAND, RHAND})
     {
         auto type = i;
 
@@ -1652,7 +1644,7 @@ void fighter::tick(bool is_player)
         parts[type].set_pos(pos);
     }
 
-    for(auto& type : {LUPPERLEG, RUPPERLEG})
+    /*for(auto& type : {LUPPERLEG, RUPPERLEG})
     {
         vec3f pos = parts[type].pos;
 
@@ -1661,13 +1653,10 @@ void fighter::tick(bool is_player)
         parts[type].set_pos(pos);
     }*/
 
-    /*auto upper = which_foot ? RUPPERLEG : LUPPERLEG;
-    auto lower = which_foot ? RLOWERLEG : LLOWERLEG;
-    auto hand = which_foot ? RFOOT : LFOOT;*/
-
     IK_foot(0, parts[LFOOT].pos, {0, -cdist * crouch_frac, 0}, {0, -cdist * crouch_frac, 0}, {0,0,0});
     IK_foot(1, parts[RFOOT].pos, {0, -cdist * crouch_frac, 0}, {0, -cdist * crouch_frac, 0}, {0,0,0});
 
+    weapon.set_pos(parts[bodypart::LHAND].pos);
 
     /*float sword_len = weapon.length;
 
@@ -2070,7 +2059,7 @@ void fighter::crouch_tick(bool do_crouch)
     ///milliseconds
     float fdiff = frametime / 1000.f;
 
-    const float time_to_crouch_s = 0.5f;
+    const float time_to_crouch_s = 0.1f;
 
     /*float cdist = bodypart::scale / 2.f;
 
@@ -2359,10 +2348,11 @@ void smooth(vec3f& in, vec3f old, float dt)
         return;
     }
 
+    vec3f vec_frac = {40.f, 35.f, 40.f};
 
     vec3f diff_indep = (in - old);
 
-    diff_indep = (diff_indep / 40.f) * dt;
+    diff_indep = (diff_indep / vec_frac) * dt;
 
     //in = (in + old) / 2.f;
 

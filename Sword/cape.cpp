@@ -389,6 +389,9 @@ compute::buffer body_to_gpu(fighter* parent)
     pos.push_back({half3.v[0], half3.v[1], half3.v[2]});
 
     compute::buffer buf = compute::buffer(cl::context, sizeof(cl_float4)*pos.size(), CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, pos.data());
+    //compute::buffer buf = compute::buffer(cl::context, sizeof(cl_float4)*pos.size(), CL_MEM_READ_WRITE, nullptr);
+
+    //clEnqueueWriteBuffer(cl::cqueue.get(), buf.get(), CL_FALSE, 0, sizeof(cl_float4)*pos.size(), pos.data(), 0, nullptr, nullptr);
 
     return buf;
 }
