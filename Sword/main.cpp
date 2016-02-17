@@ -34,6 +34,8 @@
 
 #include "../openclrenderer/obj_load.hpp"
 
+#include "version.h"
+
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
 bool once()
@@ -311,12 +313,14 @@ int main(int argc, char *argv[])
     rect->cache = false;
     rect->set_active(true);*/
 
+    const std::string title = std::string("SwordFight V") + std::to_string(AutoVersion::MAJOR) + "." + std::to_string(AutoVersion::MINOR);
+
 
     settings s;
     s.load("./res/settings.txt");
 
     engine window;
-    window.load(s.width,s.height,1000, "SwordFight", "../openclrenderer/cl2.cl", true);
+    window.load(s.width,s.height,1000, title, "../openclrenderer/cl2.cl", true);
     window.manual_input = true;
 
     window.set_camera_pos((cl_float4){-800,150,-570});
@@ -440,6 +444,11 @@ int main(int argc, char *argv[])
 
         window.reset_scrollwheel_delta();
 
+        bool fullscreen = window.is_fullscreen;
+        bool do_resize = false;
+        int r_x = window.get_width();
+        int r_y = window.get_height();
+
         while(window.window.pollEvent(Event))
         {
             if(Event.type == sf::Event::Closed)
@@ -447,53 +456,88 @@ int main(int argc, char *argv[])
 
             if(Event.type == sf::Event::Resized)
             {
-                window.render_block();
+                do_resize = true;
 
-                cl::cqueue.finish();
-                cl::cqueue2.finish();
-
-                for(auto& i : context.containers)
-                {
-                    for(auto& j : i->objs)
-                    {
-                        for(auto& k : j.write_events)
-                        {
-                            clReleaseEvent(k);
-                        }
-
-                        j.write_events.clear();
-                    }
-                }
-
-                window.load(Event.size.width, Event.size.height, 1000, "SwordFight", "../openclrenderer/cl2.cl", true);
-
-                light_data = light::build();
-
-                window.set_light_data(light_data);
-
-                context.load_active();
-                context.build(true);
-
-                gpu_context = context.fetch();
-
-                g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
-
-                window.set_object_data(*gpu_context);
-                window.set_light_data(light_data);
-                window.set_tex_data(gpu_context->tex_gpu);
-
-                space_res.init(window.width, window.height);
-
-                text::set_renderwindow(window.window);
-
-                cl::cqueue.finish();
-                cl::cqueue2.finish();
+                r_x = Event.size.width;
+                r_y = Event.size.height;
             }
 
             if(Event.type == sf::Event::MouseWheelScrolled)
             {
                 window.update_scrollwheel_delta(Event);
             }
+
+            if(Event.type == sf::Event::GainedFocus)
+            {
+                window.set_focus(true);
+            }
+
+            if(Event.type == sf::Event::LostFocus)
+            {
+                window.set_focus(false);
+            }
+        }
+
+        ///need to deal with focus
+        if(window.check_alt_enter() && window.focus)
+        {
+            sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+
+            do_resize = true;
+            fullscreen = !fullscreen;
+
+            r_x = desktop.width;
+            r_y = desktop.height;
+        }
+
+        if(do_resize)
+        {
+            window.render_block();
+
+            cl::cqueue.finish();
+            cl::cqueue2.finish();
+
+            for(auto& i : context.containers)
+            {
+                for(auto& j : i->objs)
+                {
+                    for(auto& k : j.write_events)
+                    {
+                        clReleaseEvent(k);
+                    }
+
+                    j.write_events.clear();
+                }
+            }
+
+            window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
+
+            if(fullscreen)
+            {
+                window.window.setPosition({0,0});
+            }
+
+            light_data = light::build();
+
+            window.set_light_data(light_data);
+
+            context.load_active();
+            context.build(true);
+
+            gpu_context = context.fetch();
+
+            g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
+
+            window.set_object_data(*gpu_context);
+            window.set_light_data(light_data);
+            window.set_tex_data(gpu_context->tex_gpu);
+
+            space_res.init(window.width, window.height);
+
+            text::set_renderwindow(window.window);
+
+            cl::cqueue.finish();
+            cl::cqueue2.finish();
         }
 
         if(controls_state == 0)
