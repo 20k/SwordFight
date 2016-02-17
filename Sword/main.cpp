@@ -345,7 +345,6 @@ int main(int argc, char *argv[])
     fight2.set_quality(s.quality);
     fight2.set_gameplay_state(&current_state);
 
-
     physics phys;
     phys.load();
 
@@ -390,7 +389,8 @@ int main(int argc, char *argv[])
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(0);
-    l.set_brightness(0.415f);
+    l.set_brightness(0.515f);
+    //l.set_brightness(0.415f);
     l.set_diffuse(1.f);
     l.set_pos({0, 10000, -300, 0});
 
@@ -447,8 +447,23 @@ int main(int argc, char *argv[])
 
             if(Event.type == sf::Event::Resized)
             {
+                window.render_block();
+
                 cl::cqueue.finish();
                 cl::cqueue2.finish();
+
+                for(auto& i : context.containers)
+                {
+                    for(auto& j : i->objs)
+                    {
+                        for(auto& k : j.write_events)
+                        {
+                            clReleaseEvent(k);
+                        }
+
+                        j.write_events.clear();
+                    }
+                }
 
                 window.load(Event.size.width, Event.size.height, 1000, "SwordFight", "../openclrenderer/cl2.cl", true);
 
@@ -456,13 +471,16 @@ int main(int argc, char *argv[])
 
                 window.set_light_data(light_data);
 
-                context.build();
+                context.load_active();
+                context.build(true);
+
                 gpu_context = context.fetch();
 
                 g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
 
                 window.set_object_data(*gpu_context);
                 window.set_light_data(light_data);
+                window.set_tex_data(gpu_context->tex_gpu);
 
                 space_res.init(window.width, window.height);
 
@@ -569,6 +587,8 @@ int main(int argc, char *argv[])
 
             fight2.update_texture_by_part_hp();
 
+            //fight2.crouch_tick(true);
+
             if(!fight2.dead())
                 fight2.update_lights();
 
@@ -641,7 +661,6 @@ int main(int argc, char *argv[])
 
         //window.set_tex_data(cdat->tex_gpu);
 
-
         window.set_object_data(*cdat);
 
         context.flush_locations();
@@ -658,6 +677,8 @@ int main(int argc, char *argv[])
 
         window.draw_bulk_objs_n();
 
+        ///it might be this event which is causing a hang
+        ///YUP
         auto event = space_res.blit_space_to_screen();
 
         ///so adding a finish here fixes stuff
