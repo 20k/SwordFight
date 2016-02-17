@@ -156,7 +156,6 @@ struct hair
         ///this is irrelevant, its just where the nodes start, can be anywhere
         for(int i=0; i<segments; i++)
         {
-            //to_init.push_back({i * scale, 0.f, 0.f});
             to_init.push_back({0.f, -i * scale, 0.f});
         }
 
