@@ -29,7 +29,8 @@ namespace mov
         PASS_THROUGH_SCREEN_CENTRE = 256,
         FINISH_AT_90 = 512, ///degrees, ie perpendicular to the normal sword rotation
         ///we need a CAN_BE_COMBINED tag, which means that two movements can be applied at once
-        FINISH_AT_SCREEN_CENTRE = 1024
+        FINISH_AT_SCREEN_CENTRE = 1024,
+        OVERHEAD_HACK = 2048 ///hack to fix overhead through centre
     };
 }
 
@@ -384,7 +385,7 @@ struct attack
 static std::vector<movement> overhead =
 {
     {0, {-150, -0, -40}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
-    {0, {100, -150, -140}, 500, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
+    {0, {100, -150, -140}, 500, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE | mov::OVERHEAD_HACK)} ///attack
 };
 
 static std::vector<movement> recoil =
@@ -402,7 +403,7 @@ static std::vector<movement> slash =
 static std::vector<movement> stab =
 {
     {0, {-80, -120, -10}, 450, 0, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::NONE)}, ///windup
-    {0, {-40, -60, -200}, 350, 0, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::FINISH_AT_SCREEN_CENTRE)} ///attack
+    {0, {-40, -60, -180}, 350, 0, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::FINISH_AT_SCREEN_CENTRE)} ///attack
 };
 
 /*static std::vector<movement> slash =

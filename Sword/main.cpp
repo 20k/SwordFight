@@ -694,6 +694,16 @@ int main(int argc, char *argv[])
 
         text::draw();
 
+        ///make this a proper centre cursor
+        #ifdef CENTRE_BOX
+        sf::RectangleShape shape;
+        shape.setSize({10, 10});
+
+        shape.setPosition({window.width/2.f - 5.f, window.height/2.f - 5.f});
+
+        window.window.draw(shape);
+        #endif
+
         window.flip();
 
         ///so this + render_event is basically causing two stalls

@@ -1334,6 +1334,9 @@ void fighter::tick(bool is_player)
 
         vec3f desired_sword_vec = {sword_vec.v[0], head_vec.v[1], sword_vec.v[2]};
 
+        if(i.does(mov::OVERHEAD_HACK))
+            desired_sword_vec = desired_sword_vec.norm() * sword_len;
+
         ///this worked fine before with body because they're on the same height
         ///hmm. both are very similar in accuracy, but they're slightly stylistically different
         ///comebacktome ???
