@@ -429,6 +429,8 @@ void part::update_texture_by_hp()
 
                 tex->update_random_lines(40, dcol, {rpos.v[0], rpos.v[1]}, {dir.v[0], dir.v[1]}, cpu_context->fetch()->tex_gpu);
             }
+
+            tex->update_gpu_mipmaps(cpu_context->fetch()->tex_gpu);
         }
 
         if(hp == 1.f)
