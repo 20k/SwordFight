@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
     s.load("./res/settings.txt");
 
     engine window;
-    window.load(s.width,s.height,1000, title, "../openclrenderer/cl2.cl", true);
+    window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true);
     window.manual_input = true;
 
     window.set_camera_pos((cl_float4){-800,150,-570});
@@ -478,7 +478,6 @@ int main(int argc, char *argv[])
             }
         }
 
-        ///need to deal with focus
         if(window.check_alt_enter() && window.focus)
         {
             sf::VideoMode desktop = sf::VideoMode::getDesktopMode();

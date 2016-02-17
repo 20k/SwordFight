@@ -1389,7 +1389,7 @@ void fighter::tick(bool is_player)
             //actual_avg.v[1] = desired_hand_height;
 
             ///so it looks less unnatural
-            actual_finish.v[1] = desired_hand_height;
+            //actual_finish.v[1] = desired_hand_height;
         }
 
         if(i.does(mov::FINISH_AT_SCREEN_CENTRE))
@@ -1439,14 +1439,15 @@ void fighter::tick(bool is_player)
 
             float fsin = frac * M_PI;
 
-            float sval = sin(fsin);
+            //float sval = sin(fsin);
 
             //current_pos.v[1] = current_pos.v[1] * (1.f - sval) + actual_avg.v[1] * sval;
 
             ///so the reason this flatttens it out anyway
             ///is because we're swappign from slerping to cosinterpolation
             if(i.does(mov::PASS_THROUGH_SCREEN_CENTRE))
-                current_pos.v[1] = cosint3(actual_start, actual_avg, actual_finish, frac).v[1];
+            //    current_pos.v[1] = cosif3(actual_start.v[1], actual_avg.v[1], actual_finish.v[1], frac);
+                current_pos.v[1] = mix3(actual_start, actual_avg, actual_finish, frac).v[1];
 
             if(i.does(mov::FINISH_AT_SCREEN_CENTRE))
             {
