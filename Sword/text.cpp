@@ -6,7 +6,7 @@ std::vector<vec2f> text::pos;
 
 std::vector<sf::Clock> text::elapsed;
 
-sf::RenderWindow* text::win;
+//sf::RenderWindow* text::win;
 int text::width;
 int text::height;
 
@@ -40,15 +40,15 @@ void text::add_random(const std::string& str, int time)
     add(str, time, ran);
 }
 
-void text::set_renderwindow(sf::RenderWindow& w)
+/*void text::set_renderwindow(sf::RenderWindow& w)
 {
     win = &w;
 
     width = win->getSize().x;
     height = win->getSize().y;
-}
+}*/
 
-void text::draw()
+void text::draw(sf::RenderTarget* draw_to)
 {
     static int loaded = 0;
 
@@ -60,8 +60,11 @@ void text::draw()
         loaded = 1;
     }
 
-    if(win == nullptr)
+    if(draw_to == nullptr)
         return;
+
+    width = draw_to->getSize().x;
+    height = draw_to->getSize().y;
 
     for(int i=0; i<txt.size(); i++)
     {
@@ -80,7 +83,7 @@ void text::draw()
         to_draw.setCharacterSize(12);
         to_draw.setColor(sf::Color(255, 255, 255, 255));
 
-        win->draw(to_draw);
+        draw_to->draw(to_draw);
 
 
         float t = alive_milliseconds[i];

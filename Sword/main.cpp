@@ -331,7 +331,7 @@ int main(int argc, char *argv[])
 
     printf("loaded\n");
 
-    text::set_renderwindow(window.window);
+    //text::set_renderwindow(window.window);
 
     window.set_camera_pos({-1009.17, -94.6033, -317.804});
     window.set_camera_rot({0, 1.6817, 0});
@@ -534,7 +534,7 @@ int main(int argc, char *argv[])
 
             space_res.init(window.width, window.height);
 
-            text::set_renderwindow(window.window);
+            //text::set_renderwindow(window.window);
 
             cl::cqueue.finish();
             cl::cqueue2.finish();
@@ -698,7 +698,7 @@ int main(int argc, char *argv[])
         ///otherwise in async we'll waste huge performance
         ///in synchronous that's not a problem
 
-        text::draw();
+        text::draw(&window.window);
 
         if(central_pip)
         {
