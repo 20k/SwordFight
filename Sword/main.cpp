@@ -763,11 +763,15 @@ int main(int argc, char *argv[])
 
         if(window.can_render())
         {
-            window.draw_bulk_objs_n(*transparency_context.fetch());
+            object_context_data* tctx = transparency_context.fetch();
+
+            window.draw_bulk_objs_n(*tctx);
 
             window.swap_depth_buffers();
 
             window.increase_render_events();
+
+            window.blend(*tctx, *cdat);
         }
 
         ///it might be this event which is causing a hang
