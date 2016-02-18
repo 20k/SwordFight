@@ -10,6 +10,10 @@ std::vector<sf::Clock> text::elapsed;
 int text::width;
 int text::height;
 
+sf::Font font;
+int loaded = 0;
+
+
 void text::add(const std::string& str, int time, vec2f p)
 {
     txt.push_back(str);
@@ -50,17 +54,13 @@ void text::add_random(const std::string& str, int time)
 
 void text::draw(sf::RenderTarget* draw_to)
 {
-    static int loaded = 0;
-
-    static sf::Font font;
-
     if(!loaded)
     {
         font.loadFromFile("Res/VeraMono.ttf");
         loaded = 1;
     }
 
-    if(draw_to == nullptr)
+    if(!draw_to)
         return;
 
     width = draw_to->getSize().x;
@@ -85,7 +85,6 @@ void text::draw(sf::RenderTarget* draw_to)
 
         draw_to->draw(to_draw);
 
-
         float t = alive_milliseconds[i];
         float cur_t = elapsed[i].getElapsedTime().asMicroseconds() / 1000.f;
 
@@ -99,4 +98,28 @@ void text::draw(sf::RenderTarget* draw_to)
             i--;
         }
     }
+}
+
+void text::immediate(sf::RenderTarget* draw_to, const std::string& cur, vec2f pos)
+{
+    if(!loaded)
+    {
+        font.loadFromFile("Res/VeraMono.ttf");
+        loaded = 1;
+    }
+
+    if(!draw_to)
+        return;
+
+    sf::String str = cur;
+
+    sf::Text to_draw;
+
+    to_draw.setString(str);
+    to_draw.setFont(font);
+    to_draw.setPosition(pos.v[0], draw_to->getSize().y - pos.v[1]);
+    to_draw.setCharacterSize(12);
+    to_draw.setColor(sf::Color(255, 255, 255, 255));
+
+    draw_to->draw(to_draw);
 }
