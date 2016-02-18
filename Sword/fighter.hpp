@@ -691,7 +691,12 @@ struct fighter
 
     void do_foot_sounds(bool is_player = false);
 
+    void set_name(const std::string& _name);
+    void set_secondary_context(object_context* _transparency_context);
+
     float crouch_frac = 0.f;
+
+    std::string network_name;
 
 private:
     size_t left_id;
@@ -717,6 +722,14 @@ private:
 
     object_context* cpu_context = nullptr;
     object_context_data* gpu_context = nullptr;
+
+    object_context* transparency_context = nullptr;
+
+    objects_container* name_container = nullptr;
+
+    sf::RenderTexture name_tex;
+
+    texture name_tex_gpu;
 
     bool left_foot_sound;
     bool right_foot_sound;

@@ -2844,3 +2844,32 @@ void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)
     if(_gpu)
         gpu_context = _gpu;
 }
+
+void fighter::set_name(const std::string& name)
+{
+    network_name = name;
+}
+
+void fighter::set_secondary_context(object_context* _transparency_context)
+{
+    if(name_container)
+    {
+        name_container->set_active(false);
+    }
+
+    transparency_context = _transparency_context;
+
+    name_tex.create(128, 128);
+
+    name_tex_gpu.set_texture_location("Res/128x128.png");
+    name_tex_gpu.push();
+
+    name_container = transparency_context->make_new();
+    name_container->set_load_func(std::bind(obj_rect, std::placeholders::_1, name_tex_gpu, (cl_float2){128, 128}));
+
+    name_container->cache = false;
+    name_container->set_active(true);
+
+    transparency_context->load_active();
+    transparency_context->build();
+}

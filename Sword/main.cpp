@@ -289,6 +289,8 @@ int main(int argc, char *argv[])
     object_context context;
     object_context_data* gpu_context = context.fetch();
 
+    object_context transparency_context;
+
     world_map default_map;
     //default_map.init(map_namespace::map_one, 11, 12);
     default_map.init(0);
@@ -438,6 +440,12 @@ int main(int argc, char *argv[])
     {
         printf("%i\n", context.containers.size());
     }
+
+    fight.set_secondary_context(&transparency_context);
+    fight2.set_secondary_context(&transparency_context);
+
+    fight.set_name("James");
+    fight2.set_name("Jim");
 
     while(window.window.isOpen())
     {
@@ -739,7 +747,7 @@ int main(int argc, char *argv[])
 
         space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
 
-        window.draw_bulk_objs_n();
+        window.draw_bulk_objs_n(*cdat);
 
         ///it might be this event which is causing a hang
         ///YUP
