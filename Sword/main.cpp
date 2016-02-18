@@ -442,10 +442,10 @@ int main(int argc, char *argv[])
     }
 
     fight.set_secondary_context(&transparency_context);
-    fight2.set_secondary_context(&transparency_context);
+    //fight2.set_secondary_context(&context);
 
     fight.set_name("James");
-    fight2.set_name("Jim");
+    //fight2.set_name("Jim");
 
     while(window.window.isOpen())
     {

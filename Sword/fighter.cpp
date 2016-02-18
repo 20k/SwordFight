@@ -12,6 +12,8 @@
 
 #include "../openclrenderer/obj_load.hpp"
 
+#include "text.hpp"
+
 /*vec3f jump_descriptor::get_absolute_jump_displacement_tick(float dt, fighter* fight)
 {
     if(current_time > time_ms)
@@ -298,7 +300,7 @@ void part::load_team_model()
 
     hp_display->set_load_func(std::bind(obj_rect, std::placeholders::_1, display_tex, (cl_float2){100, 100}));*/
 
-    model->cache = false; ///?
+    //model->cache = false; ///?
     model->set_file(to_load);
 
     //model->set_normal("res/norm_body.png");
@@ -2848,6 +2850,19 @@ void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)
 void fighter::set_name(const std::string& name)
 {
     network_name = name;
+
+    text::immediate(&name_tex, network_name, {25, 64});
+
+    name_tex.display();
+
+    //name_tex.clear(sf::Color(0, 0, 0));
+
+    texture* tex = texture_manager::texture_by_id(name_tex_gpu.id);
+
+    //tex->update_gpu_texture_col({0.f, 255.f, 0.f, 255.f}, transparency_context->fetch()->tex_gpu);
+    //name_tex_gpu.update_random_lines(100, {1.f, 1.f, 1.f, 1.f}, {10, 10}, {1, 1}, transparency_context->fetch()->tex_gpu);
+    tex->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
+    tex->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);
 }
 
 void fighter::set_secondary_context(object_context* _transparency_context)
@@ -2860,10 +2875,12 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     transparency_context = _transparency_context;
 
     name_tex.create(128, 128);
-    name_tex.clear(sf::Color(255, 255, 255, 255));
+    name_tex.clear(sf::Color(0, 0, 0, 0));
     name_tex.display();
 
     name_tex_gpu.set_texture_location("Res/128x128.png");
+    name_tex_gpu.set_unique();
+    name_tex_gpu.cacheable = false;
     name_tex_gpu.push();
 
     name_container = transparency_context->make_new();
@@ -2873,8 +2890,12 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     name_container->set_active(true);
 
     transparency_context->load_active();
-    transparency_context->build();
 
-    name_tex_gpu.update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
-    name_tex_gpu.update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);
+    name_container->set_two_sided(true);
+    name_container->set_diffuse(10.f);
+
+    transparency_context->build(true);
+
+    //name_tex_gpu.update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
+    //name_tex_gpu.update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);
 }
