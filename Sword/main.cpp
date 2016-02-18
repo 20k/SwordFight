@@ -431,6 +431,7 @@ int main(int argc, char *argv[])
 
     ///debug;
     int controls_state = 0;
+    bool central_pip = false;
 
     printf("loop\n");
 
@@ -570,6 +571,11 @@ int main(int argc, char *argv[])
 
         window.set_input_handler(c_input);
 
+        if(once<sf::Keyboard::U>())
+        {
+            central_pip = !central_pip;
+        }
+
         server.set_my_fighter(my_fight);
         server.tick(&context, &current_state, &phys);
 
@@ -694,15 +700,20 @@ int main(int argc, char *argv[])
 
         text::draw();
 
-        ///make this a proper centre cursor
-        #ifdef CENTRE_BOX
-        sf::RectangleShape shape;
-        shape.setSize({10, 10});
+        if(central_pip)
+        {
+            float rad = 2;
 
-        shape.setPosition({window.width/2.f - 5.f, window.height/2.f - 5.f});
+            sf::CircleShape circle;
+            circle.setRadius(rad);
+            circle.setOutlineThickness(1.f);
+            circle.setOutlineColor(sf::Color(255, 255, 255, 128));
+            circle.setPointCount(100);
 
-        window.window.draw(shape);
-        #endif
+            circle.setPosition({window.width/2.f - (rad + 0.5f), window.height/2.f - (rad + 0.5f)});
+
+            window.window.draw(circle);
+        }
 
         window.flip();
 
