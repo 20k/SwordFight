@@ -2860,6 +2860,8 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     transparency_context = _transparency_context;
 
     name_tex.create(128, 128);
+    name_tex.clear(sf::Color(255, 255, 255, 255));
+    name_tex.display();
 
     name_tex_gpu.set_texture_location("Res/128x128.png");
     name_tex_gpu.push();
@@ -2872,4 +2874,7 @@ void fighter::set_secondary_context(object_context* _transparency_context)
 
     transparency_context->load_active();
     transparency_context->build();
+
+    name_tex_gpu.update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
+    name_tex_gpu.update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);
 }

@@ -695,7 +695,7 @@ int main(int argc, char *argv[])
         ///so, we blit space to screen, but that might not have finished before
         ///the async event for the draw_bulk_objs_n event has finished
         ///and this can fire
-        window.blit_to_screen();
+        window.blit_to_screen(*context.fetch());
 
         ///I need to reenable text drawing
         ///possibly split up window.display into display and flip
@@ -740,18 +740,38 @@ int main(int argc, char *argv[])
         window.process_input();
         window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
 
-
-        space_res.set_depth_buffer(window.depth_buffer[window.nbuf]);
-        space_res.set_screen(window.g_screen);
         space_res.update_camera(window.c_pos, window.c_rot);
 
-        space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
+        space_res.set_depth_buffer(window.depth_buffer[window.nbuf]);
+        space_res.set_screen(cdat->g_screen);
 
-        window.draw_bulk_objs_n(*cdat);
+        compute::event event;
+
+        if(window.can_render())
+        {
+            ///if we make this after and put the clear in here, we can then do blit_space every time
+            ///with no flickering, fewer atomics, and better performance
+            ///marginally though
+            space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
+
+            window.draw_bulk_objs_n(*cdat);
+
+            window.swap_depth_buffers();
+        }
+
+        event = space_res.blit_space_to_screen(*cdat);
+
+        if(window.can_render())
+        {
+            window.draw_bulk_objs_n(*transparency_context.fetch());
+
+            window.swap_depth_buffers();
+
+            window.increase_render_events();
+        }
 
         ///it might be this event which is causing a hang
         ///YUP
-        auto event = space_res.blit_space_to_screen();
 
         ///so adding a finish here fixes stuff
 
