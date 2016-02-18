@@ -2849,15 +2849,20 @@ void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)
 
 void fighter::set_name(const std::string& name)
 {
-    network_name = name;
+    texture* tex = texture_manager::texture_by_id(name_tex_gpu.id);
 
-    text::immediate(&name_tex, network_name, {25, 64});
+    if(!tex)
+        return;
+
+    local_name = name;
+
+    vec2f fname = {name_dim.x, name_dim.y};
+
+    text::immediate(&name_tex, local_name, fname/2.f, 16, true);
 
     name_tex.display();
 
     //name_tex.clear(sf::Color(0, 0, 0));
-
-    texture* tex = texture_manager::texture_by_id(name_tex_gpu.id);
 
     //tex->update_gpu_texture_col({0.f, 255.f, 0.f, 255.f}, transparency_context->fetch()->tex_gpu);
     //name_tex_gpu.update_random_lines(100, {1.f, 1.f, 1.f, 1.f}, {10, 10}, {1, 1}, transparency_context->fetch()->tex_gpu);
@@ -2874,17 +2879,17 @@ void fighter::set_secondary_context(object_context* _transparency_context)
 
     transparency_context = _transparency_context;
 
-    name_tex.create(128, 128);
+    name_tex.create(name_dim.x, name_dim.y);
     name_tex.clear(sf::Color(0, 0, 0, 0));
     name_tex.display();
 
     name_tex_gpu.set_texture_location("Res/128x128.png");
     name_tex_gpu.set_unique();
-    name_tex_gpu.cacheable = false;
+    //name_tex_gpu.cacheable = false;
     name_tex_gpu.push();
 
     name_container = transparency_context->make_new();
-    name_container->set_load_func(std::bind(obj_rect, std::placeholders::_1, name_tex_gpu, (cl_float2){128, 128}));
+    name_container->set_load_func(std::bind(obj_rect, std::placeholders::_1, name_tex_gpu, name_obj_dim));
 
     name_container->cache = false;
     name_container->set_active(true);
@@ -2898,4 +2903,17 @@ void fighter::set_secondary_context(object_context* _transparency_context)
 
     //name_tex_gpu.update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
     //name_tex_gpu.update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);
+}
+
+void fighter::update_name_position()
+{
+    if(!name_container)
+        return;
+
+    vec3f head_pos = parts[bodypart::HEAD].global_pos;
+
+    float offset = bodypart::scale;
+
+    name_container->set_pos({head_pos.v[0], head_pos.v[1] + offset, head_pos.v[2]});
+    name_container->set_rot({rot.v[0], rot.v[1], rot.v[2]});
 }

@@ -196,6 +196,8 @@ std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
     fighter_stack[c++] = get_inf(&fight->net.reported_dead);
     fighter_stack[c++] = get_inf(&fight->net.play_clang_audio);
 
+    fighter_stack[c++] = get_inf(&fight->net.net_name);
+
     return fighter_stack;
 }
 
@@ -228,7 +230,7 @@ std::map<int, ptr_info> build_host_network_stack(fighter* fight)
     return to_send;
 }
 
-void server_networking::tick(object_context* ctx, gameplay_state* st, physics* phys)
+void server_networking::tick(object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys)
 {
     ///tries to join
     join_master();
@@ -333,7 +335,7 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                 if(discovered_fighters[player_id].id == -1 && have_id)
                 {
-                    discovered_fighters[player_id] = make_networked_player(player_id, ctx, st, phys);
+                    discovered_fighters[player_id] = make_networked_player(player_id, ctx, tctx, st, phys);
 
                     printf("made a new networked player %i\n", player_id);
 
@@ -534,7 +536,10 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                 ///? should be impossibru
                 if(!fight)
+                {
+                    printf("Null fighter, should be impossible\n");
                     continue;
+                }
 
                 if(fight->net.recoil_dirty)
                 {
@@ -604,7 +609,37 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
                     fight->net.reported_dead = 0;
                 }
+
+                /*if(strcmp(fight->local_name.c_str(), &fight->net.net_name.v[0]) != 0)
+                {
+                    fight->local_name.clear();
+
+                    for(int i=0; i<MAX_NAME_LENGTH && fight->net.net_name.v[i] != 0; i++)
+                    {
+                        fight->local_name.push_back(fight->net.net_name.v[i]);
+                    }
+
+                    fight->set_name(fight->local_name);
+                }*/
             }
+
+            /*fighter* my_fighter = discovered_fighters[my_id].fight;
+
+            ///my name is not my network name
+            ///update my network name and pipe to other clients
+            if(strcmp(my_fighter->local_name.c_str(), &my_fighter->net.net_name.v[0]) != 0)
+            {
+                for(int i=0; i<MAX_NAME_LENGTH && i < my_fighter->local_name.size(); i++)
+                {
+                    const char c = my_fighter->local_name[i];
+
+                    my_fighter->net.net_name.v[i] = c;
+
+                    network_update_element_reliable<vec<MAX_NAME_LENGTH + 1, char>>(this, &my_fighter->net.net_name, my_fighter);
+
+                    printf("updated network name\n");
+                }
+            }*/
 
             ///if(me.recoil) //playsound
             ///if(me.mydirty) ///playsound
@@ -718,9 +753,14 @@ void server_networking::tick(object_context* ctx, gameplay_state* st, physics* p
 
         i.second.fight->update_texture_by_part_hp();
 
+
         ///death is dynamically calculated from part health
         if(!i.second.fight->dead())
+        {
+            i.second.fight->update_name_position();
+
             i.second.fight->update_lights();
+        }
     }
 
     game_info.tick();
@@ -746,7 +786,7 @@ void server_networking::print_serverlist()
     }
 }
 
-network_player server_networking::make_networked_player(int32_t id, object_context* ctx, gameplay_state* current_state, physics* phys)
+network_player server_networking::make_networked_player(int32_t id, object_context* ctx, object_context* tctx, gameplay_state* current_state, physics* phys)
 {
     fighter* net_fighter = new fighter(*ctx, *ctx->fetch());
 
@@ -771,6 +811,8 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
     play.id = id;
 
     ctx->flip();
+
+    play.fight->set_secondary_context(tctx);
 
     return play;
 }

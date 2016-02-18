@@ -114,14 +114,14 @@ struct server_networking
     void set_game_to_join(int id);
     void disconnect_game();
 
-    network_player make_networked_player(int32_t id, object_context* ctx, gameplay_state* st, physics* phys);
+    network_player make_networked_player(int32_t id, object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys);
 
     int32_t get_id_from_fighter(fighter* f);
 
     std::vector<game_server> get_serverlist(byte_fetch& fetch);
 
     void print_serverlist(); ///debugging really
-    void tick(object_context* ctx, gameplay_state* st, physics* phys);
+    void tick(object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys);
     void ping_master();
 
     void set_my_fighter(fighter* fight);
@@ -224,8 +224,6 @@ network_update_element_reliable(server_networking* net, T* element, fighter* fig
     }
 
     byte_vector vec;
-    //vec.push_back(canary_start);
-    //vec.push_back(message::FORWARDING);
     vec.push_back<int32_t>(network_id);
     vec.push_back<int32_t>(pos);
 
@@ -233,13 +231,8 @@ network_update_element_reliable(server_networking* net, T* element, fighter* fig
 
     vec.push_back<int32_t>(S);
     vec.push_back((uint8_t*)element, S);
-    //vec.push_back(canary_end);
-
-    //byte_vector stripped = net->reliable_manager.strip_forwarding(vec);
 
     net->reliable_manager.add(vec);
-
-    //udp_send_to(net->to_game, vec.ptr, (const sockaddr*)&net->to_game_store);
 }
 
 #endif // SERVER_NETWORKING_HPP_INCLUDED

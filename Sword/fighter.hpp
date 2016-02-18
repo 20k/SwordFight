@@ -351,7 +351,7 @@ namespace attacks
     ///out of 100
     ///uuh. This won't work due to attacks just being a naive
     ///compilation of movements
-    static std::vector<float> damage_amounts
+    const static std::vector<float> damage_amounts
     {
         0.4f,
         0.6f,
@@ -371,7 +371,7 @@ namespace attacks
     ///and the attacking player would be at a large visual disadvantage for doing this
     ///as they'd be turned completely sideways
     ///this might be a concern for a stab
-    static float unfeintable_time = 150.f;
+    const static float unfeintable_time = 150.f;
 }
 
 
@@ -517,7 +517,14 @@ struct jump_descriptor
     vec3f get_relative_jump_displacement_tick(float dt, fighter* fight);
 };
 
+#define MAX_NAME_LENGTH 16
+
 struct physics;
+
+/*struct name_struct
+{
+    char v[MAX_NAME_LENGTH + 1] = {0};
+};*/
 
 struct networked_components
 {
@@ -531,6 +538,10 @@ struct networked_components
     int32_t reported_dead = 0;
 
     int32_t play_clang_audio = 0;
+
+    //char network_name[MAX_NAME_LENGTH + 1] = {0};
+    //name_struct net_name;
+    vec<MAX_NAME_LENGTH + 1, char> net_name;
 };
 
 struct link
@@ -693,10 +704,11 @@ struct fighter
 
     void set_name(const std::string& _name);
     void set_secondary_context(object_context* _transparency_context);
+    void update_name_position();
 
     float crouch_frac = 0.f;
 
-    std::string network_name;
+    std::string local_name;
 
 private:
     size_t left_id;
@@ -718,7 +730,7 @@ private:
     vec2f move_dir;
 
     sf::Clock walk_clock;
-    std::map<bodypart_t, vec3f> up_pos;
+    //std::map<bodypart_t, vec3f> up_pos;
 
     object_context* cpu_context = nullptr;
     object_context_data* gpu_context = nullptr;
@@ -730,6 +742,8 @@ private:
     sf::RenderTexture name_tex;
 
     texture name_tex_gpu;
+    cl_float2 name_dim = (cl_float2){128, 128};
+    cl_float2 name_obj_dim = (cl_float2){128, 128};
 
     bool left_foot_sound;
     bool right_foot_sound;

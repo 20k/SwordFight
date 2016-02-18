@@ -11,7 +11,7 @@ struct text
     static void add(const std::string& str, int time, vec2f pos);
     static void add_random(const std::string& str, int time);
     static void draw(sf::RenderTarget* draw_to);
-    static void immediate(sf::RenderTarget* draw_to, const std::string& str, vec2f pos);
+    static void immediate(sf::RenderTarget* draw_to, const std::string& str, vec2f pos, int size, bool centre = false);
     //static void set_renderwindow(sf::RenderWindow& win);
 
 private:

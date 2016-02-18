@@ -442,11 +442,12 @@ int main(int argc, char *argv[])
     }
 
     fight.set_secondary_context(&transparency_context);
-    //fight2.set_secondary_context(&context);
+    fight2.set_secondary_context(&transparency_context);
 
-    fight.set_name("James");
-    //fight2.set_name("Jim");
+    fight.set_name("Jamesiscool");
+    fight2.set_name("Philip");
 
+    ///fix depth ordering  with transparency
     while(window.window.isOpen())
     {
         sf::Clock c;
@@ -585,7 +586,7 @@ int main(int argc, char *argv[])
         }
 
         server.set_my_fighter(my_fight);
-        server.tick(&context, &current_state, &phys);
+        server.tick(&context, &transparency_context, &current_state, &phys);
 
         ///debugging
         if(!server.joined_game)
@@ -647,7 +648,11 @@ int main(int argc, char *argv[])
             //fight2.crouch_tick(true);
 
             if(!fight2.dead())
+            {
+                fight2.update_name_position();
+
                 fight2.update_lights();
+            }
 
             if(once<sf::Keyboard::N>())
             {
@@ -671,12 +676,17 @@ int main(int argc, char *argv[])
 
         my_fight->update_texture_by_part_hp();
 
+
         ///we can use the foot rest position to play a sound when the
         ///current foot position is near that
         ///remember, only the y component!
 
         if(!my_fight->dead())
+        {
+            my_fight->update_name_position();
+
             my_fight->update_lights();
+        }
 
         particle_effect::tick();
 
@@ -716,6 +726,8 @@ int main(int argc, char *argv[])
             circle.setRadius(rad);
             circle.setOutlineThickness(1.f);
             circle.setOutlineColor(sf::Color(255, 255, 255, 128));
+            circle.setFillColor(sf::Color(255, 255, 255, 255));
+
             circle.setPointCount(100);
 
             circle.setPosition({window.width/2.f - (rad + 0.5f), window.height/2.f - (rad + 0.5f)});
@@ -736,6 +748,7 @@ int main(int argc, char *argv[])
         window.set_object_data(*cdat);
 
         context.flush_locations();
+        transparency_context.flush_locations();
 
         window.process_input();
         window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
