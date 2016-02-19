@@ -91,6 +91,7 @@
 			<Option weight="45" />
 		</Unit>
 		<Unit filename="../openclrenderer/clstate.cpp" />
+		<Unit filename="../openclrenderer/clstate.h" />
 		<Unit filename="../openclrenderer/controls.cpp" />
 		<Unit filename="../openclrenderer/controls.hpp" />
 		<Unit filename="../openclrenderer/engine.cpp" />

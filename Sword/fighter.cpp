@@ -2887,7 +2887,7 @@ void fighter::set_secondary_context(object_context* _transparency_context)
 
     name_tex_gpu.set_texture_location("Res/128x128.png");
     name_tex_gpu.set_unique();
-    name_tex_gpu.cacheable = false;
+    //name_tex_gpu.cacheable = false;
     name_tex_gpu.push();
 
     name_container = transparency_context->make_new();
