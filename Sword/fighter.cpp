@@ -181,6 +181,8 @@ part::part(object_context& context)
 
     model->set_unique_textures(true);
 
+    //model->cache = false;
+
     team = -1;
 
     quality = 0;
@@ -2885,7 +2887,7 @@ void fighter::set_secondary_context(object_context* _transparency_context)
 
     name_tex_gpu.set_texture_location("Res/128x128.png");
     name_tex_gpu.set_unique();
-    //name_tex_gpu.cacheable = false;
+    name_tex_gpu.cacheable = false;
     name_tex_gpu.push();
 
     name_container = transparency_context->make_new();
@@ -2899,7 +2901,7 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     name_container->set_two_sided(true);
     name_container->set_diffuse(10.f);
 
-    transparency_context->build(true);
+    transparency_context->build();
 
     //name_tex_gpu.update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
     //name_tex_gpu.update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);

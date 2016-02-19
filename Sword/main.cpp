@@ -549,6 +549,11 @@ int main(int argc, char *argv[])
             cl::cqueue2.finish();
         }
 
+        if(once<sf::Keyboard::Tab>())
+        {
+            server.make_networked_player(100, &context, &transparency_context, &current_state, &phys);
+        }
+
         if(controls_state == 0)
             window.update_mouse();
         if(controls_state == 1)
