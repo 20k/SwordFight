@@ -108,6 +108,56 @@ int main(int argc, char *argv[])
         context.flip();
     }
 
+    texture trp;
+    trp.set_create_colour(sf::Color(255, 255, 255, 200), 128, 128);
+    trp.push();
+
+    object_context tctx;
+
+    objects_container* transp = tctx.make_new();
+    transp->set_load_func(std::bind(obj_rect, std::placeholders::_1, trp, (cl_float2){128, 128}));
+    transp->set_active(true);
+
+    tctx.load_active();
+
+    transp->scale(2.f);
+    transp->set_two_sided(true);
+
+    tctx.build();
+
+    tctx.flip();
+
+    transp->set_pos({0, 0, -200});
+
+    for(int i=0; i<5; i++)
+    {
+        auto ctr = context.make_new();
+
+        ctr->set_file("../sword/res/low/bodypart_red.obj");
+        ctr->cache = false;
+        ctr->set_unique_textures(true);
+        ctr->set_pos({(i + 1) * 100, (i+1) + 200, 0});
+
+        ctr->set_active(true);
+
+        context.load_active();
+
+        ctr->scale(100.f);
+
+        context.build();
+
+        context.flip();
+    }
+
+    ///reallocating the textures of one context
+    ///requires invaliding the textures of the second context
+    ///this is because textures are global
+    ///lets fix this... next time, with JAMES!!!!
+
+    context.build(true);
+    tctx.build(true);
+
+
     for(auto& i : context.containers)
     {
         //texture* tex = texture_manager::texture_by_id(i->objs[0].tid);
@@ -138,11 +188,17 @@ int main(int argc, char *argv[])
         if(window.can_render())
         {
             ///do manual async on thread
-            event = window.draw_bulk_objs_n(*context.fetch());
+            window.draw_bulk_objs_n(*context.fetch());
 
             window.set_render_event(event);
 
             window.swap_depth_buffers();
+
+            event = window.draw_bulk_objs_n(*tctx.fetch());
+
+            window.swap_depth_buffers();
+
+            window.blend(*tctx.fetch(), *context.fetch());
 
             window.increase_render_events();
         }
@@ -155,6 +211,11 @@ int main(int argc, char *argv[])
         window.render_block();
 
         context.flush_locations();
+        tctx.flush_locations();
+
+        context.flip();
+        tctx.flip();
+
 
         if(key.isKeyPressed(sf::Keyboard::M))
             std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
