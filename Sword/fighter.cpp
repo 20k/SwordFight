@@ -410,7 +410,7 @@ void part::update_texture_by_hp()
 
             cl_uint tid = model->objs[0].tid;
 
-            texture* tex = texture_manager::texture_by_id(tid);
+            texture* tex = model->parent->tex_ctx.id_to_tex(tid);
 
             int rnum = 10;
 
@@ -441,7 +441,7 @@ void part::update_texture_by_hp()
         {
             cl_uint tid = model->objs[0].tid;
 
-            texture* tex = texture_manager::texture_by_id(tid);
+            texture* tex = model->parent->tex_ctx.id_to_tex(tid);
 
             tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu_ctx);
         }
@@ -2852,7 +2852,6 @@ void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)
 void fighter::set_name(const std::string& name)
 {
     //texture* tex = texture_manager::texture_by_id(name_tex_gpu.id);
-
 
     if(!name_tex_gpu)
         return;
