@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     auto object_dat = context.fetch();
     window.set_object_data(*object_dat);
 
-    window.set_tex_data(context.fetch()->tex_gpu);
+    //window.set_tex_data(context.fetch()->tex_gpu);
 
     sf::Event Event;
 
@@ -108,14 +108,17 @@ int main(int argc, char *argv[])
         context.flip();
     }
 
-    texture trp;
+    /*texture trp;
     trp.set_create_colour(sf::Color(255, 255, 255, 200), 128, 128);
-    trp.push();
+    trp.push();*/
 
     object_context tctx;
 
+    texture* trp = tctx.tex_ctx.make_new();
+    trp->set_create_colour(sf::Color(255, 255, 255, 200), 128, 128);
+
     objects_container* transp = tctx.make_new();
-    transp->set_load_func(std::bind(obj_rect, std::placeholders::_1, trp, (cl_float2){128, 128}));
+    transp->set_load_func(std::bind(obj_rect, std::placeholders::_1, *trp, (cl_float2){128, 128}));
     transp->set_active(true);
 
     tctx.load_active();
