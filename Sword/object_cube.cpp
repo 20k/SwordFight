@@ -136,27 +136,36 @@ void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float siz
     tris.push_back(points_to_tri(out[0], size, len, 1));
     tris.push_back(points_to_tri(out[1], size, len, 1));
 
-    texture tex;
+    /*texture tex;
     tex.type = 0;
     tex.set_texture_location(tex_name.c_str());
-    tex.push();
+    tex.push();*/
 
-    texture normal;
+    texture_context* tex_ctx = &pobj->parent->tex_ctx;
+
+    ///remember to set location if its just making new
+    texture* tex = tex_ctx->make_new_cached(tex_name.c_str());
+
+    cl_uint normal_id = -1;
+    texture* normal = nullptr;
 
     if(pobj->normal_map != "")
     {
-        normal.type = 0;
+        /*normal.type = 0;
         normal.set_texture_location(pobj->normal_map.c_str());
-        normal.push();
+        normal.push();*/
+
+        normal = tex_ctx->make_new_cached(pobj->normal_map.c_str());
+        normal_id = normal->id;
     }
 
     object obj;
     obj.tri_list = tris;
 
     obj.tri_num = obj.tri_list.size();
-    obj.tid = tex.id;
+    obj.tid = tex->id;
     obj.bid = -1;
-    obj.rid = normal.id;
+    obj.rid = normal_id;
     obj.has_bump = 0;
 
     ///???

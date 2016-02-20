@@ -66,6 +66,7 @@ void load_map(objects_container* obj, const std::vector<int>& map_def, int width
             world_pos_end = world_pos_end + (vec3f){0.5f, 0.f, 0.5f};
 
             objects_container temp_obj;
+            temp_obj.parent = obj->parent;
 
             load_object_cube(&temp_obj, world_pos_start * scale, world_pos_end * scale, scale/2, "./Res/gray.png");
 

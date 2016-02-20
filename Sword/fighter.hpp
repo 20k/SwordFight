@@ -57,7 +57,7 @@ namespace bodypart
         COUNT
     };
 
-    static int which_side[COUNT] =
+    constexpr static int which_side[COUNT] =
     {
         2,
         0,
@@ -75,7 +75,7 @@ namespace bodypart
         1
     };
 
-    static float foot_modifiers[COUNT] =
+    constexpr static float foot_modifiers[COUNT] =
     {
         1.f/8,
         1.f/5,
@@ -93,9 +93,9 @@ namespace bodypart
         0
     };
 
-    static float overall_bob_modifier = 1.5f;
+    constexpr static float overall_bob_modifier = 1.5f;
 
-    static float idle_modifiers[COUNT] =
+    constexpr static float idle_modifiers[COUNT] =
     {
         1.f/12,
         1.f/8,
@@ -113,7 +113,7 @@ namespace bodypart
         0
     };
 
-    static float idle_offsets[COUNT] =
+    constexpr static float idle_offsets[COUNT] =
     {
         0,
         0,
@@ -131,11 +131,11 @@ namespace bodypart
         0
     };
 
-    const float idle_height = 10.f;
-    const float idle_speed = 1.5f;
+    constexpr const float idle_height = 10.f;
+    constexpr const float idle_speed = 1.5f;
 
     ///hip twist in relation to weapon movement
-    static float waggle_modifiers[COUNT] =
+    constexpr static float waggle_modifiers[COUNT] =
     {
         0.f,
         0.f,
@@ -192,7 +192,7 @@ namespace bodypart
         "Uh oh, something broke"
     };
 
-    static float scale = 100.f;
+    constexpr static float scale = 100.f;
 
     ///internal storage
     extern const vec3f* init_default();
@@ -200,15 +200,15 @@ namespace bodypart
     ///for all the bodyparts
     static const vec3f* default_position = init_default();
 
-    const float specular = 0.75f;
+    constexpr const float specular = 0.75f;
 }
 
 typedef bodypart::bodypart bodypart_t;
 
 namespace fighter_stats
 {
-    static float speed = 1.3f;
-    static float sprint_speed = 1.3f;
+    const static float speed = 1.3f;
+    const static float sprint_speed = 1.3f;
 }
 
 ///this was a good idea
@@ -741,7 +741,7 @@ private:
 
     sf::RenderTexture name_tex;
 
-    texture name_tex_gpu;
+    texture* name_tex_gpu = nullptr;
     cl_float2 name_dim = (cl_float2){128, 128};
     cl_float2 name_obj_dim = (cl_float2){128, 128};
 

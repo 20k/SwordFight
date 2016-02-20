@@ -431,10 +431,10 @@ void part::update_texture_by_hp()
 
                 vec2f dir = {cos(angle), sin(angle)};
 
-                tex->update_random_lines(40, dcol, {rpos.v[0], rpos.v[1]}, {dir.v[0], dir.v[1]}, cpu_context->fetch()->tex_gpu);
+                tex->update_random_lines(40, dcol, {rpos.v[0], rpos.v[1]}, {dir.v[0], dir.v[1]}, cpu_context->fetch()->tex_gpu_ctx);
             }
 
-            tex->update_gpu_mipmaps(cpu_context->fetch()->tex_gpu);
+            tex->update_gpu_mipmaps(cpu_context->fetch()->tex_gpu_ctx);
         }
 
         if(hp == 1.f)
@@ -443,7 +443,7 @@ void part::update_texture_by_hp()
 
             texture* tex = texture_manager::texture_by_id(tid);
 
-            tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu);
+            tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu_ctx);
         }
     }
 }
@@ -2851,9 +2851,10 @@ void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)
 
 void fighter::set_name(const std::string& name)
 {
-    texture* tex = texture_manager::texture_by_id(name_tex_gpu.id);
+    //texture* tex = texture_manager::texture_by_id(name_tex_gpu.id);
 
-    if(!tex)
+
+    if(!name_tex_gpu)
         return;
 
     local_name = name;
@@ -2868,8 +2869,9 @@ void fighter::set_name(const std::string& name)
 
     //tex->update_gpu_texture_col({0.f, 255.f, 0.f, 255.f}, transparency_context->fetch()->tex_gpu);
     //name_tex_gpu.update_random_lines(100, {1.f, 1.f, 1.f, 1.f}, {10, 10}, {1, 1}, transparency_context->fetch()->tex_gpu);
-    tex->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
-    tex->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);
+
+    name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx);
+    name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx);
 }
 
 void fighter::set_secondary_context(object_context* _transparency_context)
@@ -2885,13 +2887,17 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     name_tex.clear(sf::Color(0, 0, 0, 0));
     name_tex.display();
 
-    name_tex_gpu.set_texture_location("Res/128x128.png");
+    /*name_tex_gpu.set_texture_location("Res/128x128.png");
     name_tex_gpu.set_unique();
-    //name_tex_gpu.cacheable = false;
-    name_tex_gpu.push();
+    name_tex_gpu.push();*/
+
+    ///destroy name_tex_gpu
+
+    name_tex_gpu = _transparency_context->tex_ctx.make_new_cached("Res/128x128.png");
+    name_tex_gpu->set_location("Res/128x128.png");
 
     name_container = transparency_context->make_new();
-    name_container->set_load_func(std::bind(obj_rect, std::placeholders::_1, name_tex_gpu, name_obj_dim));
+    name_container->set_load_func(std::bind(obj_rect, std::placeholders::_1, *name_tex_gpu, name_obj_dim));
 
     name_container->cache = false;
     name_container->set_active(true);

@@ -382,7 +382,7 @@ int main(int argc, char *argv[])
     //context.fetch()->tex_gpu = tex_gpu;
 
     ///should be a constant ptr
-    window.set_tex_data(context.fetch()->tex_gpu);
+    //window.set_tex_data(context.fetch()->tex_gpu);
 
     auto ctx = context.fetch();
     window.set_object_data(*ctx);
@@ -539,7 +539,7 @@ int main(int argc, char *argv[])
 
             window.set_object_data(*gpu_context);
             window.set_light_data(light_data);
-            window.set_tex_data(gpu_context->tex_gpu);
+            //window.set_tex_data(gpu_context->tex_gpu);
 
             space_res.init(window.width, window.height);
 
@@ -636,7 +636,6 @@ int main(int argc, char *argv[])
             context.flip();
             transparency_context.flip();
         }
-
 
         //static float debug_look = 0;
         //my_fight->set_look({sin(debug_look), 0, 0});

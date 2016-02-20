@@ -81,23 +81,35 @@ void cape::load_cape(objects_container* pobj, int team)
         tris.push_back(t);
     }
 
-    texture tex;
-    tex.type = 0;
+    //texture tex;
+
+    texture_context* tex_ctx = &pobj->parent->tex_ctx;
+
+    texture* tex;
 
     if(team == 0)
+    {
+        tex = tex_ctx->make_new_cached("./res/red.png");
+    }
+    else
+    {
+        tex = tex_ctx->make_new_cached("./res/blue.png");
+    }
+
+    /*if(team == 0)
         tex.set_texture_location("./res/red.png");
     else
         tex.set_texture_location("./res/blue.png");
 
-    tex.push();
+    tex.push();*/
 
-    texture normal;
+    cl_uint normal_id = -1;
+    texture* normal;
 
     if(pobj->normal_map != "")
     {
-        normal.type = 0;
-        normal.set_texture_location(pobj->normal_map.c_str());
-        normal.push();
+        normal = tex_ctx->make_new_cached(pobj->normal_map.c_str());
+        normal_id = normal->id;
     }
 
     object obj;
@@ -105,9 +117,9 @@ void cape::load_cape(objects_container* pobj, int team)
 
     obj.tri_num = obj.tri_list.size();
 
-    obj.tid = tex.id;
+    obj.tid = tex->id;
     obj.bid = -1;
-    obj.rid = normal.id;
+    obj.rid = normal_id;
 
     obj.has_bump = 0;
 
