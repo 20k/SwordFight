@@ -302,7 +302,6 @@ void part::load_team_model()
 
     hp_display->set_load_func(std::bind(obj_rect, std::placeholders::_1, display_tex, (cl_float2){100, 100}));*/
 
-    //model->cache = false; ///?
     model->set_file(to_load);
 
     //model->set_normal("res/norm_body.png");
@@ -588,8 +587,6 @@ void sword::load_team_model()
     model->unload();
 
     model->set_active(true);
-
-    //model->cache = false;
 
     cpu_context->load_active();
     scale();
@@ -2849,6 +2846,8 @@ void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)
         gpu_context = _gpu;
 }
 
+///problem is, whenever someone's name gets updated, everyone else's old name gets overwritten
+///we need to update all fighters whenever there's an update, or a new fighter created
 void fighter::set_name(const std::string& name)
 {
     //texture* tex = texture_manager::texture_by_id(name_tex_gpu.id);
@@ -2898,6 +2897,7 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     name_container = transparency_context->make_new();
     name_container->set_load_func(std::bind(obj_rect, std::placeholders::_1, *name_tex_gpu, name_obj_dim));
 
+    //name_container->set_unique_textures(true);
     name_container->cache = false;
     name_container->set_active(true);
 
@@ -2907,6 +2907,7 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     name_container->set_diffuse(10.f);
 
     transparency_context->build();
+
 
     //name_tex_gpu.update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
     //name_tex_gpu.update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);

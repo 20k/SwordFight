@@ -563,6 +563,9 @@ struct light;
 ///what a clusterfuck
 struct fighter
 {
+    const float name_resend_time = 5000.f; ///ms
+    sf::Clock name_resend_timer;
+
     jump_descriptor jump_info;
 
     vec3f sword_rotation_offset;

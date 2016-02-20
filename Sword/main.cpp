@@ -732,7 +732,8 @@ int main(int argc, char *argv[])
         ///otherwise in async we'll waste huge performance
         ///in synchronous that's not a problem
 
-        text::draw(&window.window);
+        if(window.render_me)
+            text::draw(&window.window);
 
         if(central_pip)
         {
@@ -757,6 +758,7 @@ int main(int argc, char *argv[])
         window.render_block(); ///so changing render block above blit_to_screen also fixes
 
         context.flip();
+        transparency_context.flip();
         object_context_data* cdat = context.fetch();
 
         //window.set_tex_data(cdat->tex_gpu);
@@ -800,7 +802,7 @@ int main(int argc, char *argv[])
 
             window.increase_render_events();
 
-            window.blend(*tctx, *cdat);
+            event = window.blend(*tctx, *cdat);
         }
 
         ///it might be this event which is causing a hang

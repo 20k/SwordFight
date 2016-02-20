@@ -505,7 +505,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         {
             std::map<int, ptr_info> host_stack = build_host_network_stack(discovered_fighters[my_id].fight);
 
-            //for(int i=0; i<host_stack.size(); i++)
+            ///update remote fighters about me
             for(auto& i : host_stack)
             {
                 ptr_info inf = i.second;
@@ -529,10 +529,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             ///uuh. Looking increasingly like we should just include the home fighter in this one, eh?
             for(auto& net_fighter : discovered_fighters)
             {
-                //if(my_id == net_fighter.first)
-                //   continue;
-
                 fighter* fight = net_fighter.second.fight;
+                int fight_id = net_fighter.first;
 
                 ///? should be impossibru
                 if(!fight)
@@ -610,7 +608,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     fight->net.reported_dead = 0;
                 }
 
-                /*if(strcmp(fight->local_name.c_str(), &fight->net.net_name.v[0]) != 0)
+                if(strcmp(fight->local_name.c_str(), &fight->net.net_name.v[0]) != 0 &&
+                   fight_id != my_id)
                 {
                     fight->local_name.clear();
 
@@ -620,14 +619,17 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     }
 
                     fight->set_name(fight->local_name);
-                }*/
+
+                    printf("received name %s\n", fight->local_name.c_str());
+                }
             }
 
-            /*fighter* my_fighter = discovered_fighters[my_id].fight;
+            fighter* my_fighter = discovered_fighters[my_id].fight;
 
             ///my name is not my network name
             ///update my network name and pipe to other clients
-            if(strcmp(my_fighter->local_name.c_str(), &my_fighter->net.net_name.v[0]) != 0)
+            if(strcmp(my_fighter->local_name.c_str(), &my_fighter->net.net_name.v[0]) != 0 ||
+               my_fighter->name_resend_timer.getElapsedTime().asMilliseconds() > my_fighter->name_resend_time)
             {
                 for(int i=0; i<MAX_NAME_LENGTH && i < my_fighter->local_name.size(); i++)
                 {
@@ -635,11 +637,13 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                     my_fighter->net.net_name.v[i] = c;
 
-                    network_update_element_reliable<vec<MAX_NAME_LENGTH + 1, char>>(this, &my_fighter->net.net_name, my_fighter);
-
-                    printf("updated network name\n");
+                    network_update_element<vec<MAX_NAME_LENGTH + 1, char>>(this, &my_fighter->net.net_name, my_fighter);
                 }
-            }*/
+
+                printf("updated network name\n");
+
+                my_fighter->name_resend_timer.restart();
+            }
 
             ///if(me.recoil) //playsound
             ///if(me.mydirty) ///playsound
