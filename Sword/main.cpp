@@ -370,7 +370,6 @@ int main(int argc, char *argv[])
     floor->set_specular(0.01f);
     floor->set_diffuse(4.f);
 
-    texture_manager::allocate_textures();
     //auto tex_gpu = texture_manager::build_descriptors();
 
     //window.set_tex_data(tex_gpu);

@@ -5,6 +5,7 @@
 
 std::vector<effect*> particle_effect::effects;
 
+///this is probably a big reason for the slowdown on dying?
 void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int _num, object_context& _cpu_context)
 {
     cpu_context = &_cpu_context;
