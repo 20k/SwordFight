@@ -398,6 +398,7 @@ int main(int argc, char *argv[])
     //l.set_brightness(0.415f);
     l.set_diffuse(1.f);
     l.set_pos({0, 10000, -300, 0});
+    //l.set_godray_intensity(0.5f);
 
     light::add_light(&l);
 
@@ -540,7 +541,7 @@ int main(int argc, char *argv[])
             cl::cqueue2.finish();
         }
 
-        if(once<sf::Keyboard::Tab>())
+        /*if(once<sf::Keyboard::Tab>())
         {
             network_player play = server.make_networked_player(100, &context, &transparency_context, &current_state, &phys);
 
@@ -576,7 +577,7 @@ int main(int argc, char *argv[])
 
                 net_test->update_lights();
             }
-        }
+        }*/
 
         if(controls_state == 0)
             window.update_mouse();
@@ -813,6 +814,8 @@ int main(int argc, char *argv[])
             space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
 
             window.draw_bulk_objs_n(*cdat);
+
+            //window.draw_godrays(*cdat);
 
             window.swap_depth_buffers();
         }
