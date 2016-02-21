@@ -2962,15 +2962,10 @@ void fighter::update_name_info(bool networked_fighter)
 
             str.push_back(0);
 
-            //str.append(&net.net_name.v[0], MAX_NAME_LENGTH + 1);
-
             printf("fighter network name %s\n", str.c_str());
 
-            ///so there's actually something wrong with constructing it from parts
-            ///for some reason, sfml is not liking me constructing a string such as above
-            ///it wants a freshly constructed one
-            ///so I have to do this hack
-            set_name(std::string(str.c_str()));
+            ///turns out the hack was just disguising the real problem (rendering an invalid string)
+            set_name(str);
         }
 
         name_reset_timer.restart();
