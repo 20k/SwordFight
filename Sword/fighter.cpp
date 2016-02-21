@@ -2924,7 +2924,7 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     name_container->set_two_sided(true);
     name_container->set_diffuse(10.f);
 
-    transparency_context->build(true);
+    transparency_context->build();
     transparency_context->flip();
 
     //name_tex_gpu.update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);

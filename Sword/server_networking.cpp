@@ -828,6 +828,8 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
 
     play.fight->set_secondary_context(tctx);
 
+    play.fight->set_name("Loading");
+
     return play;
 }
 

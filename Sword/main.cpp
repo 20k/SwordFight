@@ -561,7 +561,7 @@ int main(int argc, char *argv[])
 
             memcpy(&net_test->net.net_name.v[0], "testing", strlen("testing"));
 
-            //play.fight->set_name("WHY");
+            play.fight->set_name("Loading");
         }
 
         if(net_test)
