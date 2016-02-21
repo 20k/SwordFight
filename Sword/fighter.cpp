@@ -2862,8 +2862,12 @@ void fighter::set_name(std::string name)
     name_tex.clear(sf::Color(0,0,0,0));
     name_tex.display();
 
+    name_tex.setActive(true);
+
     name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false);
     name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx);
+
+    name_tex.setActive(false);
 
     text::immediate(&name_tex, local_name, fname/2.f, 16, true);
     name_tex.display();
@@ -2956,9 +2960,15 @@ void fighter::update_name_info(bool networked_fighter)
                 str.push_back(net.net_name.v[i]);
             }
 
-            printf("fighter network name %s\n", str.c_str());
+            str.push_back(0);
 
-            set_name(str);
+            //printf("fighter network name %s\n", str.c_str());
+
+            ///so there's actually something wrong with constructing it from parts
+            ///for some reason, sfml is not liking me constructing a string such as above
+            ///it wants a freshly constructed one
+            ///so I have to do this hack
+            set_name(std::string(str.c_str()));
         }
 
         name_reset_timer.restart();
