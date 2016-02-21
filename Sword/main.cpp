@@ -532,6 +532,9 @@ int main(int argc, char *argv[])
             context.load_active();
             context.build(true);
 
+            transparency_context.load_active();
+            transparency_context.build(true);
+
             gpu_context = context.fetch();
 
             g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
@@ -550,7 +553,9 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::Tab>())
         {
-            server.make_networked_player(100, &context, &transparency_context, &current_state, &phys);
+            network_player play = server.make_networked_player(100, &context, &transparency_context, &current_state, &phys);
+
+            //play.fight->set_name("WHY");
         }
 
         if(controls_state == 0)
@@ -665,7 +670,7 @@ int main(int argc, char *argv[])
 
             if(!fight2.dead())
             {
-                fight2.update_name_position();
+                fight2.update_name_info();
 
                 fight2.update_lights();
             }
@@ -699,7 +704,7 @@ int main(int argc, char *argv[])
 
         if(!my_fight->dead())
         {
-            my_fight->update_name_position();
+            my_fight->update_name_info();
 
             my_fight->update_lights();
         }

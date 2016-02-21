@@ -2848,7 +2848,7 @@ void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)
 
 ///problem is, whenever someone's name gets updated, everyone else's old name gets overwritten
 ///we need to update all fighters whenever there's an update, or a new fighter created
-void fighter::set_name(const std::string& name)
+void fighter::set_name(std::string name)
 {
     //texture* tex = texture_manager::texture_by_id(name_tex_gpu.id);
 
@@ -2874,6 +2874,13 @@ void fighter::set_name(const std::string& name)
 
 void fighter::set_secondary_context(object_context* _transparency_context)
 {
+    if(_transparency_context == nullptr)
+    {
+        printf("massive error in set_secondary_context\n");
+
+        exit(44334);
+    }
+
     if(name_container)
     {
         name_container->set_active(false);
@@ -2891,13 +2898,14 @@ void fighter::set_secondary_context(object_context* _transparency_context)
 
     ///destroy name_tex_gpu
 
-    name_tex_gpu = _transparency_context->tex_ctx.make_new_cached("Res/128x128.png");
+    name_tex_gpu = _transparency_context->tex_ctx.make_new();
     name_tex_gpu->set_location("Res/128x128.png");
+    //name_tex_gpu->set_unique();
 
     name_container = transparency_context->make_new();
     name_container->set_load_func(std::bind(obj_rect, std::placeholders::_1, *name_tex_gpu, name_obj_dim));
 
-    //name_container->set_unique_textures(true);
+    name_container->set_unique_textures(true);
     name_container->cache = false;
     name_container->set_active(true);
 
@@ -2906,14 +2914,16 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     name_container->set_two_sided(true);
     name_container->set_diffuse(10.f);
 
-    transparency_context->build();
+    transparency_context->build(true);
+    transparency_context->flip();
+
 
 
     //name_tex_gpu.update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
     //name_tex_gpu.update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);
 }
 
-void fighter::update_name_position()
+void fighter::update_name_info(bool networked_fighter)
 {
     if(!name_container)
         return;
@@ -2924,4 +2934,56 @@ void fighter::update_name_position()
 
     name_container->set_pos({head_pos.v[0], head_pos.v[1] + offset, head_pos.v[2]});
     name_container->set_rot({rot.v[0], rot.v[1], rot.v[2]});
+
+    if(!name_tex_gpu)
+        return;
+
+
+    if(name_reset_timer.getElapsedTime().asMilliseconds() > 1000.f)
+    {
+        /*bool is_net = false;
+
+        if(strcmp(local_name.c_str(), &net.net_name.v[0]) != 0)
+        {
+            if(local_name == "")
+            {
+                local_name.clear();
+
+                for(int i=0; i<MAX_NAME_LENGTH && net.net_name.v[i] != 0; i++)
+                {
+                    local_name.push_back(net.net_name.v[i]);
+                }
+
+                local_name.push_back(0);
+
+                is_net = true;
+            }
+        }*/
+
+        //printf("local %s network %s\n", local_name.c_str(), &net.net_name.v[0]);
+
+        //name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx);
+        //name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx);
+
+        set_secondary_context(transparency_context);
+
+        ///we've got the correct local name, but it wont blit for some reason
+        if(!networked_fighter)
+            set_name("hi there");
+        else
+        {
+            local_name.clear();
+
+            for(int i=0; i<MAX_NAME_LENGTH && net.net_name.v[i] != 0; i++)
+            {
+                local_name.push_back(net.net_name.v[i]);
+            }
+
+            local_name.push_back(0);
+
+            set_name("hello");
+        }
+
+        name_reset_timer.restart();
+    }
 }

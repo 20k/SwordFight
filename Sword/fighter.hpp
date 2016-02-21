@@ -541,7 +541,7 @@ struct networked_components
 
     //char network_name[MAX_NAME_LENGTH + 1] = {0};
     //name_struct net_name;
-    vec<MAX_NAME_LENGTH + 1, char> net_name;
+    vec<MAX_NAME_LENGTH + 1, char> net_name = {0};
 };
 
 struct link
@@ -565,6 +565,7 @@ struct fighter
 {
     const float name_resend_time = 5000.f; ///ms
     sf::Clock name_resend_timer;
+    sf::Clock name_reset_timer;
 
     jump_descriptor jump_info;
 
@@ -705,9 +706,9 @@ struct fighter
 
     void do_foot_sounds(bool is_player = false);
 
-    void set_name(const std::string& _name);
+    void set_name(std::string _name);
     void set_secondary_context(object_context* _transparency_context);
-    void update_name_position();
+    void update_name_info(bool networked_fighter = false);
 
     float crouch_frac = 0.f;
 

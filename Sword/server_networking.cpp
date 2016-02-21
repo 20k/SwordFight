@@ -337,6 +337,12 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 {
                     discovered_fighters[player_id] = make_networked_player(player_id, ctx, tctx, st, phys);
 
+                    for(auto& i : discovered_fighters)
+                    {
+                        if(i.first == player_id)
+                            continue;
+                    }
+
                     printf("made a new networked player %i\n", player_id);
 
                     continue;
@@ -608,8 +614,9 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     fight->net.reported_dead = 0;
                 }
 
-                if(strcmp(fight->local_name.c_str(), &fight->net.net_name.v[0]) != 0 &&
-                   fight_id != my_id)
+                //if(strcmp(fight->local_name.c_str(), &fight->net.net_name.v[0]) != 0 &&
+                //   fight_id != my_id)
+                /*if(fight_id != my_id && fight->name_reset_timer.getElapsedTime().asMilliseconds() > 5000.f)
                 {
                     fight->local_name.clear();
 
@@ -621,24 +628,26 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     fight->set_name(fight->local_name);
 
                     printf("received name %s\n", fight->local_name.c_str());
-                }
+
+                    fight->name_reset_timer.restart();
+                }*/
             }
 
             fighter* my_fighter = discovered_fighters[my_id].fight;
 
             ///my name is not my network name
             ///update my network name and pipe to other clients
-            if(strcmp(my_fighter->local_name.c_str(), &my_fighter->net.net_name.v[0]) != 0 ||
-               my_fighter->name_resend_timer.getElapsedTime().asMilliseconds() > my_fighter->name_resend_time)
+            //if(strcmp(my_fighter->local_name.c_str(), &my_fighter->net.net_name.v[0]) != 0 ||
+            if(my_fighter->name_resend_timer.getElapsedTime().asMilliseconds() > my_fighter->name_resend_time)
             {
                 for(int i=0; i<MAX_NAME_LENGTH && i < my_fighter->local_name.size(); i++)
                 {
                     const char c = my_fighter->local_name[i];
 
                     my_fighter->net.net_name.v[i] = c;
-
-                    network_update_element<vec<MAX_NAME_LENGTH + 1, char>>(this, &my_fighter->net.net_name, my_fighter);
                 }
+
+                network_update_element<vec<MAX_NAME_LENGTH + 1, char>>(this, &my_fighter->net.net_name, my_fighter);
 
                 printf("updated network name\n");
 
@@ -761,7 +770,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         ///death is dynamically calculated from part health
         if(!i.second.fight->dead())
         {
-            i.second.fight->update_name_position();
+            i.second.fight->update_name_info(true);
 
             i.second.fight->update_lights();
         }
@@ -790,6 +799,8 @@ void server_networking::print_serverlist()
     }
 }
 
+///so, its possible that the spamming of no id is causing problems
+///nope, thatll just leak memory, which is uuh. Fine? Probably causing huge memory leaks?
 network_player server_networking::make_networked_player(int32_t id, object_context* ctx, object_context* tctx, gameplay_state* current_state, physics* phys)
 {
     fighter* net_fighter = new fighter(*ctx, *ctx->fetch());
@@ -814,7 +825,7 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
     play.fight = net_fighter;
     play.id = id;
 
-    ctx->flip();
+    //ctx->flip();
 
     play.fight->set_secondary_context(tctx);
 
