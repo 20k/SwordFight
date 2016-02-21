@@ -2414,7 +2414,7 @@ void fighter::update_render_positions()
         i.update_model();
     }
 
-    ///do head look
+    /*///do head look
     {
         part& p = parts[HEAD];
 
@@ -2438,6 +2438,60 @@ void fighter::update_render_positions()
 
         p.set_global_pos(new_pos);
         p.set_global_rot(rotation);
+
+        p.update_model();
+    }*/
+
+    ///the above headlook never worked
+
+    {
+        part& p = parts[HEAD];
+
+        /*///extrinsic xyz
+        vec3f rotation = p.global_rot;
+
+        vec3f rvec = p.global_pos - parts[BODY].global_pos;
+
+        ///want to rotate about x
+        float look_angle = look.v[0];
+
+        vec3f rotated_vec = rvec.rot({0,0,0}, {-look_angle/2.f, 0, 0});
+
+        ///i think the - is  because of the character's retarded
+        ///z reflection
+        rotation.v[0] = -look_angle;
+
+        vec3f new_pos = p.global_pos;
+
+        new_pos = new_pos + rotated_vec - rvec;
+
+        p.set_global_pos(new_pos);
+        p.set_global_rot(rotation);*/
+
+        //vec3f rvec = p.pos - parts[BODY].pos;
+
+        vec3f rvec = default_position[HEAD] - default_position[BODY];
+
+        vec3f wvec = (p.pos - parts[BODY].pos);
+
+        rvec = wvec * 0.1f + rvec * 0.9f;
+
+        float look_angle = look.v[0];
+
+        ///-look_angle/2.f
+
+        vec3f r1 = rvec.rot({0,0,0}, {-look_angle/2.f, 0, 0});
+
+        vec3f total_rot = {rot.v[0], rot.v[1], rot.v[2]};
+
+        vec3f rotated_vec = r1.rot({0,0,0}, total_rot);
+
+        vec3f angles = rotated_vec.get_euler();
+
+
+        p.set_global_pos(rotated_vec + pos - rvec + p.pos);
+        p.set_global_rot(angles);
+
 
         p.update_model();
     }
