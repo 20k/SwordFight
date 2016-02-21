@@ -446,6 +446,8 @@ int main(int argc, char *argv[])
     fight.set_name("Jamesiscool");
     fight2.set_name("Philip");
 
+    fighter* net_test = nullptr;
+
     ///fix depth ordering  with transparency
     while(window.window.isOpen())
     {
@@ -555,7 +557,36 @@ int main(int argc, char *argv[])
         {
             network_player play = server.make_networked_player(100, &context, &transparency_context, &current_state, &phys);
 
+            net_test = play.fight;
+
             //play.fight->set_name("WHY");
+        }
+
+        if(net_test)
+        {
+            net_test->manual_check_part_alive();
+
+            ///we need a die if appropriate too
+            net_test->respawn_if_appropriate();
+            net_test->checked_death();
+
+            net_test->overwrite_parts_from_model();
+            net_test->manual_check_part_death();
+
+            net_test->my_cape.tick(net_test);
+
+            net_test->do_foot_sounds();
+
+            net_test->update_texture_by_part_hp();
+
+
+            ///death is dynamically calculated from part health
+            if(!net_test->dead())
+            {
+                net_test->update_name_info(true);
+
+                net_test->update_lights();
+            }
         }
 
         if(controls_state == 0)

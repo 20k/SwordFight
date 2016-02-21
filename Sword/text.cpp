@@ -111,14 +111,14 @@ void text::immediate(sf::RenderTarget* draw_to, const std::string& cur, vec2f po
     if(!draw_to)
         return;
 
-    sf::String str = cur;
+    //sf::String str = cur;
 
-    sf::Text to_draw;
+    sf::Text to_draw(cur.c_str(), font, size);
 
-    to_draw.setString(str);
-    to_draw.setFont(font);
+    //to_draw.setString(str);
+    //to_draw.setFont(font);
     to_draw.setPosition(pos.v[0], draw_to->getSize().y - pos.v[1]);
-    to_draw.setCharacterSize(size);
+    //to_draw.setCharacterSize(size);
     to_draw.setColor(sf::Color(255, 255, 255, 255));
 
     if(centre)

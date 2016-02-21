@@ -2859,17 +2859,23 @@ void fighter::set_name(std::string name)
 
     vec2f fname = {name_dim.x, name_dim.y};
 
-    text::immediate(&name_tex, local_name, fname/2.f, 16, true);
-
+    name_tex.clear(sf::Color(0,0,0,0));
     name_tex.display();
-
-    //name_tex.clear(sf::Color(0, 0, 0));
-
-    //tex->update_gpu_texture_col({0.f, 255.f, 0.f, 255.f}, transparency_context->fetch()->tex_gpu);
-    //name_tex_gpu.update_random_lines(100, {1.f, 1.f, 1.f, 1.f}, {10, 10}, {1, 1}, transparency_context->fetch()->tex_gpu);
 
     name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx);
     name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx);
+
+    text::immediate(&name_tex, local_name, fname/2.f, 16, true);
+    name_tex.display();
+
+    //tex->update_gpu_texture_col({0.f, 255.f, 0.f, 255.f}, transparency_context->fetch()->tex_gpu);
+
+    name_tex.setActive(true);
+
+    name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx);
+    name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx);
+
+    name_tex.setActive(false);
 }
 
 void fighter::set_secondary_context(object_context* _transparency_context)
@@ -2917,8 +2923,6 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     transparency_context->build(true);
     transparency_context->flip();
 
-
-
     //name_tex_gpu.update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
     //name_tex_gpu.update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);
 }
@@ -2938,50 +2942,23 @@ void fighter::update_name_info(bool networked_fighter)
     if(!name_tex_gpu)
         return;
 
-
     if(name_reset_timer.getElapsedTime().asMilliseconds() > 1000.f)
     {
-        /*bool is_net = false;
-
-        if(strcmp(local_name.c_str(), &net.net_name.v[0]) != 0)
-        {
-            if(local_name == "")
-            {
-                local_name.clear();
-
-                for(int i=0; i<MAX_NAME_LENGTH && net.net_name.v[i] != 0; i++)
-                {
-                    local_name.push_back(net.net_name.v[i]);
-                }
-
-                local_name.push_back(0);
-
-                is_net = true;
-            }
-        }*/
-
-        //printf("local %s network %s\n", local_name.c_str(), &net.net_name.v[0]);
-
-        //name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx);
-        //name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx);
-
-        set_secondary_context(transparency_context);
-
         ///we've got the correct local name, but it wont blit for some reason
         if(!networked_fighter)
-            set_name("hi there");
+            set_name(local_name);
         else
         {
-            local_name.clear();
+            std::string str;
 
             for(int i=0; i<MAX_NAME_LENGTH && net.net_name.v[i] != 0; i++)
             {
-                local_name.push_back(net.net_name.v[i]);
+                str.push_back(net.net_name.v[i]);
             }
 
-            local_name.push_back(0);
+            printf("fighter network name %s\n", str.c_str());
 
-            set_name("hello");
+            set_name(str);
         }
 
         name_reset_timer.restart();
