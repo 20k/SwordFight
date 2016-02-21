@@ -712,7 +712,7 @@ struct fighter
 
     float crouch_frac = 0.f;
 
-    std::string local_name;
+    std::string local_name = "Err";
 
 private:
     size_t left_id;

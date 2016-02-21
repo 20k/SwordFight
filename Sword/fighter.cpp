@@ -2447,29 +2447,6 @@ void fighter::update_render_positions()
     {
         part& p = parts[HEAD];
 
-        /*///extrinsic xyz
-        vec3f rotation = p.global_rot;
-
-        vec3f rvec = p.global_pos - parts[BODY].global_pos;
-
-        ///want to rotate about x
-        float look_angle = look.v[0];
-
-        vec3f rotated_vec = rvec.rot({0,0,0}, {-look_angle/2.f, 0, 0});
-
-        ///i think the - is  because of the character's retarded
-        ///z reflection
-        rotation.v[0] = -look_angle;
-
-        vec3f new_pos = p.global_pos;
-
-        new_pos = new_pos + rotated_vec - rvec;
-
-        p.set_global_pos(new_pos);
-        p.set_global_rot(rotation);*/
-
-        //vec3f rvec = p.pos - parts[BODY].pos;
-
         vec3f rvec = default_position[HEAD] - default_position[BODY];
 
         vec3f wvec = (p.pos - parts[BODY].pos);
@@ -2486,12 +2463,20 @@ void fighter::update_render_positions()
 
         vec3f rotated_vec = r1.rot({0,0,0}, total_rot);
 
-        vec3f angles = rotated_vec.get_euler();
+        //vec3f angles = rotated_vec.get_euler();
 
+        mat3f a1;
+        a1.load_rotation_matrix((vec3f){-look_angle/2.f, 0, 0});
+
+        mat3f a2;
+        a2.load_rotation_matrix(rot);
+
+        mat3f a3 = a2 * a1;
+
+        vec3f angles = a3.get_rotation();
 
         p.set_global_pos(rotated_vec + pos - rvec + p.pos);
         p.set_global_rot(angles);
-
 
         p.update_model();
     }
@@ -3014,9 +2999,13 @@ void fighter::update_name_info(bool networked_fighter)
                 str.push_back(net.net_name.v[i]);
             }
 
+            ///Don't think i need to null terminate this myself
             str.push_back(0);
 
             printf("fighter network name %s\n", str.c_str());
+
+            if(str == "")
+                str = "Invalid Name";
 
             ///turns out the hack was just disguising the real problem (rendering an invalid string)
             set_name(str);
