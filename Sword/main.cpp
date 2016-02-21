@@ -443,7 +443,7 @@ int main(int argc, char *argv[])
     fight.set_secondary_context(&transparency_context);
     fight2.set_secondary_context(&transparency_context);
 
-    fight.set_name("Jamesiscool");
+    fight.set_name(s.name);
     fight2.set_name("Philip");
 
     fighter* net_test = nullptr;

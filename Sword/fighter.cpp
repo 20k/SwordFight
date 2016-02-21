@@ -2962,7 +2962,9 @@ void fighter::update_name_info(bool networked_fighter)
 
             str.push_back(0);
 
-            //printf("fighter network name %s\n", str.c_str());
+            //str.append(&net.net_name.v[0], MAX_NAME_LENGTH + 1);
+
+            printf("fighter network name %s\n", str.c_str());
 
             ///so there's actually something wrong with constructing it from parts
             ///for some reason, sfml is not liking me constructing a string such as above
