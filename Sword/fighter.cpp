@@ -2862,7 +2862,7 @@ void fighter::set_name(std::string name)
     name_tex.clear(sf::Color(0,0,0,0));
     name_tex.display();
 
-    name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx);
+    name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false);
     name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx);
 
     text::immediate(&name_tex, local_name, fname/2.f, 16, true);
@@ -2872,7 +2872,7 @@ void fighter::set_name(std::string name)
 
     name_tex.setActive(true);
 
-    name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx);
+    name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false);
     name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx);
 
     name_tex.setActive(false);
@@ -2942,7 +2942,7 @@ void fighter::update_name_info(bool networked_fighter)
     if(!name_tex_gpu)
         return;
 
-    if(name_reset_timer.getElapsedTime().asMilliseconds() > 5000.f)
+    if(name_reset_timer.getElapsedTime().asMilliseconds() > 1000.f)
     {
         ///we've got the correct local name, but it wont blit for some reason
         if(!networked_fighter)
@@ -2956,7 +2956,7 @@ void fighter::update_name_info(bool networked_fighter)
                 str.push_back(net.net_name.v[i]);
             }
 
-            //printf("fighter network name %s\n", str.c_str());
+            printf("fighter network name %s\n", str.c_str());
 
             set_name(str);
         }
