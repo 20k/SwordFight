@@ -507,19 +507,6 @@ int main(int argc, char *argv[])
             cl::cqueue.finish();
             cl::cqueue2.finish();
 
-            for(auto& i : context.containers)
-            {
-                for(auto& j : i->objs)
-                {
-                    for(auto& k : j.write_events)
-                    {
-                        clReleaseEvent(k);
-                    }
-
-                    j.write_events.clear();
-                }
-            }
-
             window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
 
             if(fullscreen)
@@ -534,6 +521,7 @@ int main(int argc, char *argv[])
             context.load_active();
             context.build(true);
 
+            ///probably broken because texture realloc will say no
             transparency_context.load_active();
             transparency_context.build(true);
 
@@ -830,6 +818,7 @@ int main(int argc, char *argv[])
             window.swap_depth_buffers();
         }
 
+        //if(window.can_render())
         event = space_res.blit_space_to_screen(*cdat);
 
         if(window.can_render())
