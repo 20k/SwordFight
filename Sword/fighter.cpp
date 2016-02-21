@@ -2942,7 +2942,7 @@ void fighter::update_name_info(bool networked_fighter)
     if(!name_tex_gpu)
         return;
 
-    if(name_reset_timer.getElapsedTime().asMilliseconds() > 1000.f)
+    if(name_reset_timer.getElapsedTime().asMilliseconds() > 5000.f)
     {
         ///we've got the correct local name, but it wont blit for some reason
         if(!networked_fighter)
@@ -2956,7 +2956,7 @@ void fighter::update_name_info(bool networked_fighter)
                 str.push_back(net.net_name.v[i]);
             }
 
-            printf("fighter network name %s\n", str.c_str());
+            //printf("fighter network name %s\n", str.c_str());
 
             set_name(str);
         }

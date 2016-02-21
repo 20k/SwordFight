@@ -637,7 +637,6 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
             ///my name is not my network name
             ///update my network name and pipe to other clients
-            //if(strcmp(my_fighter->local_name.c_str(), &my_fighter->net.net_name.v[0]) != 0 ||
             if(my_fighter->name_resend_timer.getElapsedTime().asMilliseconds() > my_fighter->name_resend_time)
             {
                 for(int i=0; i<MAX_NAME_LENGTH && i < my_fighter->local_name.size(); i++)
@@ -649,7 +648,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 network_update_element<vec<MAX_NAME_LENGTH + 1, char>>(this, &my_fighter->net.net_name, my_fighter);
 
-                printf("updated network name\n");
+                //printf("updated network name\n");
 
                 my_fighter->name_resend_timer.restart();
             }

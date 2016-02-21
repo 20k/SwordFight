@@ -75,12 +75,9 @@ void text::draw(sf::RenderTarget* draw_to)
 
         str = cur;
 
-        sf::Text to_draw;
+        sf::Text to_draw(cur, font, 12);
 
-        to_draw.setString(str);
-        to_draw.setFont(font);
         to_draw.setPosition(loc.v[0], height - loc.v[1]);
-        to_draw.setCharacterSize(12);
         to_draw.setColor(sf::Color(255, 255, 255, 255));
 
         draw_to->draw(to_draw);

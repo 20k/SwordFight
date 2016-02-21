@@ -769,9 +769,11 @@ int main(int argc, char *argv[])
         ///in synchronous that's not a problem
 
         if(window.render_me)
+        {
             text::draw(&window.window);
+        }
 
-        if(central_pip)
+        if(window.render_me && central_pip)
         {
             float rad = 2;
 
