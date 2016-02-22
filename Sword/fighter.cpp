@@ -1808,6 +1808,9 @@ vec2f fighter::get_external_fighter_corrected_move(vec2f pos, vec2f move_dir, co
         if(i == this)
             continue;
 
+        if(i->dead())
+            continue;
+
         vec2f their_pos = s_xz(i->pos);
 
         float cur_len = (pos - their_pos).length();
