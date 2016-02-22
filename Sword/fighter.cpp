@@ -680,6 +680,8 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
         parts.push_back(part(_cpu_context));
     }
 
+    cosmetic.tophat = cpu_context->make_new();
+
     quality = 0;
 
     light l1;
@@ -780,6 +782,8 @@ void fighter::load()
     right_foot_sound = true;
 
     just_spawned = true;
+
+    cosmetic.set_active(true);
 }
 
 void fighter::respawn(vec2f _pos)
@@ -843,6 +847,8 @@ void fighter::die()
     {
         i.obj->set_active(false);
     }
+
+    cosmetic.set_active(false);
 
     ///spawn in some kind of swanky effect here
 
@@ -2604,6 +2610,17 @@ void fighter::update_render_positions()
     {
         old_pos[i] = parts[i].pos;
     }
+}
+
+void fighter::position_cosmetics()
+{
+    vec3f hpos = parts[bodypart::HEAD].global_pos;
+
+    ///partscale = scale/3.f
+
+    vec3f offset = hpos + (vec3f){0, bodypart::scale/3.f, 0};
+
+    cosmetic.tophat->set_pos({offset.v[0], offset.v[1], offset.v[2]});
 }
 
 void fighter::network_update_render_positions()

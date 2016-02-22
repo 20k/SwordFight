@@ -142,6 +142,7 @@
 		<Unit filename="../sword_server/reliability_shared.hpp" />
 		<Unit filename="bbox.hpp" />
 		<Unit filename="cape.cpp" />
+		<Unit filename="colour_defines.hpp" />
 		<Unit filename="fighter.cpp" />
 		<Unit filename="fighter.hpp" />
 		<Unit filename="game_state_manager.cpp" />
@@ -149,6 +150,8 @@
 		<Unit filename="main.cpp" />
 		<Unit filename="map_tools.cpp" />
 		<Unit filename="map_tools.hpp" />
+		<Unit filename="menu.cpp" />
+		<Unit filename="menu.hpp" />
 		<Unit filename="music.cpp" />
 		<Unit filename="music.hpp" />
 		<Unit filename="object_cube.cpp" />
@@ -165,6 +168,7 @@
 		<Unit filename="sound.hpp" />
 		<Unit filename="text.cpp" />
 		<Unit filename="text.hpp" />
+		<Unit filename="util.hpp" />
 		<Unit filename="version.h" />
 		<Extensions>
 			<code_completion />

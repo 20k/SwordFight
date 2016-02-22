@@ -540,6 +540,7 @@ int main(int argc, char *argv[])
 
             net_test->check_and_play_sounds();
 
+            net_test->position_cosmetics();
 
             ///death is dynamically calculated from part health
             if(!net_test->dead())
@@ -672,6 +673,8 @@ int main(int argc, char *argv[])
 
             fight2.check_and_play_sounds();
 
+            fight2.position_cosmetics();
+
             //fight2.crouch_tick(true);
 
             if(!fight2.dead())
@@ -704,6 +707,8 @@ int main(int argc, char *argv[])
         my_fight->update_texture_by_part_hp();
 
         my_fight->check_and_play_sounds();
+
+        my_fight->position_cosmetics();
 
 
         ///we can use the foot rest position to play a sound when the

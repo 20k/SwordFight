@@ -572,11 +572,27 @@ struct link
     float length = 0.f;
 };
 
+struct cosmetics
+{
+    objects_container* tophat = nullptr;
+
+    void set_active(bool status)
+    {
+        return;
+
+        tophat->set_file("./res/tophat.obj");
+
+        tophat->set_active(status);
+    }
+};
+
 struct light;
 
 ///what a clusterfuck
 struct fighter
 {
+    cosmetics cosmetic;
+
     const float name_resend_time = 5000.f; ///ms
     sf::Clock name_resend_timer;
     sf::Clock name_reset_timer;
@@ -681,6 +697,8 @@ struct fighter
     void update_lights();
     void overwrite_parts_from_model();
     void update_texture_by_part_hp();
+
+    void position_cosmetics();
 
     void set_team(int _team);
 
