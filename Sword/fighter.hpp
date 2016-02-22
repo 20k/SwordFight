@@ -774,6 +774,8 @@ private:
 
     bool left_foot_sound;
     bool right_foot_sound;
+
+    bool just_spawned = true;
 };
 
 

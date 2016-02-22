@@ -778,6 +778,8 @@ void fighter::load()
 
     left_foot_sound = true;
     right_foot_sound = true;
+
+    just_spawned = true;
 }
 
 void fighter::respawn(vec2f _pos)
@@ -2413,11 +2415,16 @@ void fighter::update_render_positions()
 
     float dt_shoulder =  0.05f * frametime;// *frametime* 0.05f;*/
 
-    smooth(parts[LLOWERARM].pos, old_pos[LLOWERARM], frametime);
-    smooth(parts[RLOWERARM].pos, old_pos[RLOWERARM], frametime);
+    if(!just_spawned)
+    {
+        smooth(parts[LLOWERARM].pos, old_pos[LLOWERARM], frametime);
+        smooth(parts[RLOWERARM].pos, old_pos[RLOWERARM], frametime);
 
-    smooth(parts[RUPPERARM].pos, old_pos[RUPPERARM], frametime);
-    smooth(parts[LUPPERARM].pos, old_pos[LUPPERARM], frametime);
+        smooth(parts[RUPPERARM].pos, old_pos[RUPPERARM], frametime);
+        smooth(parts[LUPPERARM].pos, old_pos[LUPPERARM], frametime);
+    }
+
+    just_spawned = false;
 
     std::map<int, float> foot_heights;
 
