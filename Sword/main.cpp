@@ -821,7 +821,7 @@ int main(int argc, char *argv[])
 
         space_res.update_camera(window.c_pos, window.c_rot);
 
-        space_res.set_depth_buffer(window.depth_buffer[window.nbuf]);
+        space_res.set_depth_buffer(cdat->depth_buffer[cdat->nbuf]);
         space_res.set_screen(cdat->g_screen);
 
         compute::event event;
@@ -836,8 +836,6 @@ int main(int argc, char *argv[])
             window.draw_bulk_objs_n(*cdat);
 
             //window.draw_godrays(*cdat);
-
-            window.swap_depth_buffers();
         }
 
         if(window.can_render())
@@ -849,11 +847,12 @@ int main(int argc, char *argv[])
 
             window.draw_bulk_objs_n(*tctx);
 
-            window.swap_depth_buffers();
+            event = window.blend_with_depth(*tctx, *cdat);
+
+            cdat->swap_depth_buffers();
+            tctx->swap_depth_buffers();
 
             window.increase_render_events();
-
-            event = window.blend(*tctx, *cdat);
         }
 
         ///it might be this event which is causing a hang
