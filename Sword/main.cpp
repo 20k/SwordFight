@@ -34,52 +34,11 @@
 
 #include "../openclrenderer/obj_load.hpp"
 
+#include "menu.hpp"
+
 #include "version.h"
 
-///has the button been pressed once, and only once
-template<sf::Keyboard::Key k>
-bool once()
-{
-    static bool last;
-
-    sf::Keyboard key;
-
-    if(key.isKeyPressed(k) && !last)
-    {
-        last = true;
-
-        return true;
-    }
-
-    if(!key.isKeyPressed(k))
-    {
-        last = false;
-    }
-
-    return false;
-}
-
-template<sf::Mouse::Button b>
-bool once()
-{
-    static bool last;
-
-    sf::Mouse m;
-
-    if(m.isButtonPressed(b) && !last)
-    {
-        last = true;
-
-        return true;
-    }
-
-    if(!m.isButtonPressed(b))
-    {
-        last = false;
-    }
-
-    return false;
-}
+#include "util.hpp"
 
 ///none of these affect the camera, so engine does not care about them
 ///assume main is blocking
@@ -449,10 +408,14 @@ int main(int argc, char *argv[])
 
     fighter* net_test = nullptr;
 
+    menu_system menu_handler;
+
     ///fix depth ordering  with transparency
     while(window.window.isOpen())
     {
         sf::Clock c;
+
+        bool in_menu = menu_handler.should_do_menu();
 
         ///if(do_menu) {do_menu = menu(); continue;} ???
         ///would be an easy way to hack in the menu system
@@ -544,7 +507,7 @@ int main(int argc, char *argv[])
             cl::cqueue2.finish();
         }
 
-        if(once<sf::Keyboard::Tab>())
+        /*if(once<sf::Keyboard::Tab>() && window.focus)
         {
             network_player play = server.make_networked_player(100, &context, &transparency_context, &current_state, &phys);
 
@@ -585,14 +548,14 @@ int main(int argc, char *argv[])
 
                 net_test->update_lights();
             }
-        }
+        }*/
 
-        if(controls_state == 0)
+        if(controls_state == 0 && window.focus && !in_menu)
             window.update_mouse();
-        if(controls_state == 1)
+        if(controls_state == 1 && window.focus && !in_menu)
             window.update_mouse(window.width/2, window.height/2, true, true);
 
-        if(once<sf::Keyboard::X>())
+        if(once<sf::Keyboard::X>() && window.focus)
         {
             controls_state = (controls_state + 1) % 2;
 
@@ -602,9 +565,9 @@ int main(int argc, char *argv[])
             window.update_mouse(window.width/2, window.height/2, true, true);
         }
 
-        if(controls_state == 0)
+        if(controls_state == 0 && window.focus && !in_menu)
             debug_controls(my_fight, window);
-        if(controls_state == 1)
+        if(controls_state == 1 && window.focus && !in_menu)
             fps_controls(my_fight, window);
 
         control_input c_input;
@@ -624,10 +587,12 @@ int main(int argc, char *argv[])
         }
 
         server.set_my_fighter(my_fight);
-        server.tick(&context, &transparency_context, &current_state, &phys);
+
+        if(!in_menu)
+            server.tick(&context, &transparency_context, &current_state, &phys);
 
         ///debugging
-        if(!server.joined_game)
+        if(!server.joined_game && !in_menu)
             server.set_game_to_join(0);
 
         std::string display_string = server.game_info.get_display_string();
@@ -653,7 +618,7 @@ int main(int argc, char *argv[])
             text::add(disp_string, 0, (vec2f){window.width/2.f, 20});
         }
 
-        if(once<sf::Keyboard::B>())
+        if(once<sf::Keyboard::B>() && window.focus)
         {
             my_fight->respawn();
         }
@@ -661,7 +626,7 @@ int main(int argc, char *argv[])
         ///so just respawning doesnt fix, sometimes (mostly) doing enter does
         ///but not always
         ///something very odd. Rewrite texturing
-        if(once<sf::Keyboard::Return>())
+        if(once<sf::Keyboard::Return>() && window.focus)
         {
             context.build(true);
             transparency_context.build(true);
@@ -690,7 +655,6 @@ int main(int argc, char *argv[])
 
         my_fight->set_other_fighters(fighter_list);
 
-        if(network::network_state == 0)
         {
             fight2.queue_attack(attacks::SLASH);
             //fight2.queue_attack(attacks::BLOCK);
@@ -781,7 +745,7 @@ int main(int argc, char *argv[])
         ///otherwise in async we'll waste huge performance
         ///in synchronous that's not a problem
 
-        if(window.render_me)
+        if(window.render_me && !in_menu)
         {
             text::draw(&window.window);
         }
@@ -803,10 +767,19 @@ int main(int argc, char *argv[])
             window.window.draw(circle);
         }
 
+
+        ///this is pretty dodgey to do the menu like this
+        if(menu_handler.should_do_menu())
+        {
+            menu_handler.do_menu(window);
+        }
+        //else
+
         window.flip();
 
         ///so this + render_event is basically causing two stalls
         window.render_block(); ///so changing render block above blit_to_screen also fixes
+
 
         context.flip();
         transparency_context.flip();
@@ -818,7 +791,9 @@ int main(int argc, char *argv[])
         context.flush_locations();
         transparency_context.flush_locations();
 
-        window.process_input();
+        if(!in_menu)
+            window.process_input();
+
         window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
 
         space_res.update_camera(window.c_pos, window.c_rot);

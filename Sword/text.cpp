@@ -97,7 +97,7 @@ void text::draw(sf::RenderTarget* draw_to)
     }
 }
 
-void text::immediate(sf::RenderTarget* draw_to, const std::string& cur, vec2f pos, int size, bool centre)
+void text::immediate(sf::RenderTarget* draw_to, const std::string& cur, vec2f pos, int size, bool centre, vec3f col)
 {
     if(!loaded)
     {
@@ -116,13 +116,19 @@ void text::immediate(sf::RenderTarget* draw_to, const std::string& cur, vec2f po
     //to_draw.setFont(font);
     to_draw.setPosition(pos.v[0], draw_to->getSize().y - pos.v[1]);
     //to_draw.setCharacterSize(size);
-    to_draw.setColor(sf::Color(255, 255, 255, 255));
+
+    col = clamp(col, 0.f, 1.f);
+
+    col = col * 255;
+
+    to_draw.setColor(sf::Color(col.v[0], col.v[1], col.v[2], 255));
 
     if(centre)
     {
-        int width = to_draw.getGlobalBounds().width;
+        float width = to_draw.getLocalBounds().width;
+        float height = to_draw.getLocalBounds().height;
 
-        to_draw.setPosition(pos.v[0] - (width)/2.f, draw_to->getSize().y - pos.v[1]);
+        to_draw.setPosition(pos.v[0] - (width)/2.f, (draw_to->getSize().y - pos.v[1]) - height);
     }
 
     draw_to->draw(to_draw);
