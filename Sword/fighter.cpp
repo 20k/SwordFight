@@ -95,6 +95,8 @@ vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fi
     offset.v[1] = dh * dt;
 
     vec2f clamped = fight->get_wall_corrected_move({fight->pos.v[0], fight->pos.v[2]}, {offset.v[0], offset.v[2]});
+    clamped = fight->get_external_fighter_corrected_move(s_xz(fight->pos), clamped, fight->fighter_list);
+    clamped = fight->get_wall_corrected_move(s_xz(fight->pos), clamped);
 
     offset.v[0] = clamped.v[0];
     offset.v[2] = clamped.v[1];

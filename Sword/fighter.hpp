@@ -734,6 +734,9 @@ struct fighter
 
     void set_other_fighters(const std::vector<fighter*>& other_fight);
 
+    ///so, i guess this is including me
+    std::vector<fighter*> fighter_list;
+
 private:
     size_t left_id;
     size_t right_id;
@@ -771,9 +774,6 @@ private:
 
     bool left_foot_sound;
     bool right_foot_sound;
-
-    ///so, i guess this is including me
-    std::vector<fighter*> fighter_list;
 };
 
 

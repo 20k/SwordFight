@@ -454,6 +454,9 @@ int main(int argc, char *argv[])
     {
         sf::Clock c;
 
+        ///if(do_menu) {do_menu = menu(); continue;} ???
+        ///would be an easy way to hack in the menu system
+
         window.reset_scrollwheel_delta();
 
         bool fullscreen = window.is_fullscreen;
@@ -809,8 +812,7 @@ int main(int argc, char *argv[])
         transparency_context.flip();
         object_context_data* cdat = context.fetch();
 
-        //window.set_tex_data(cdat->tex_gpu);
-
+        ///I think this is now quite redundant
         window.set_object_data(*cdat);
 
         context.flush_locations();
