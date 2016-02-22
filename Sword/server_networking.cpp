@@ -765,6 +765,9 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
         i.second.fight->update_texture_by_part_hp();
 
+        ///this might cause a small delay as net sound will get sent NEXT tick
+        i.second.fight->check_and_play_sounds();
+
 
         ///death is dynamically calculated from part health
         if(!i.second.fight->dead())

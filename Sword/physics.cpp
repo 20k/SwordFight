@@ -207,13 +207,13 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
 
                     //network::send_audio(1, rel.v[0], rel.v[1], rel.v[2]);
-                    sound::add(1, rel);
+                    //sound::add(1, rel);
 
                     my_parent->recoil();
 
                     ///their client needs to be updated to make a clang noise
                     ///as they do not know (as we aren't simulating state on every client)
-                    them->net.play_clang_audio = 1;
+                    them->local.play_clang_audio = 1;
 
                     ///CLANG noise
 
@@ -242,7 +242,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                     ///need to make HRRK noise
                     //network::host_update(&them->net.recoil);
-                    them->parts[type].net.play_hit_audio = 1;
+                    them->parts[type].local.play_hit_audio = 1;
 
                     continue;
                 }
@@ -253,8 +253,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     text::add_random(std::string("Crikey!") + " My " + bodypart::ui_names[i % bodypart::COUNT] + "!", time);
 
                 //network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
-                sound::add(0, rel);
-                them->parts[type].net.play_hit_audio = 1;
+                //sound::add(0, rel);
+                them->parts[type].local.play_hit_audio = 1;
 
                 return i;
             }
@@ -277,9 +277,9 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
         ///did someone say "horrible coupling"?
         //network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
-        sound::add(0, rel);
+        //sound::add(0, rel);
         ///either hand
-        fighter_hit->parts[bodypart::LHAND].net.play_hit_audio = 1;
+        fighter_hit->parts[bodypart::LHAND].local.play_hit_audio = 1;
     }
 
     //vec3f end = s_pos + sword_height*dir;

@@ -219,6 +219,11 @@ struct network_part
     int32_t play_hit_audio = 0;
 };
 
+struct local_part
+{
+    int32_t play_hit_audio = 0;
+};
+
 ///need to network part hp
 struct part
 {
@@ -237,6 +242,7 @@ struct part
     float hp;
 
     network_part net;
+    local_part local;
 
     //bool performed_death;
 
@@ -544,6 +550,11 @@ struct networked_components
     vec<MAX_NAME_LENGTH + 1, char> net_name = {0};
 };
 
+struct local_components
+{
+    int32_t play_clang_audio = 0;
+};
+
 struct link
 {
     part* p1;
@@ -581,6 +592,7 @@ struct fighter
     sf::Clock frame_clock;
 
     networked_components net;
+    local_components local;
 
     int side; ///as in team?
 
@@ -713,6 +725,8 @@ struct fighter
     float crouch_frac = 0.f;
 
     std::string local_name = "Err";
+
+    void check_and_play_sounds(bool clear_state = false);
 
 private:
     size_t left_id;

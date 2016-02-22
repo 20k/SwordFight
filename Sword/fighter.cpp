@@ -3067,3 +3067,34 @@ void fighter::update_name_info(bool networked_fighter)
         name_reset_timer.restart();
     }
 }
+
+///I should probably stop the hand hits playing audio, or at least make it special
+///just sounds wrong atm
+void fighter::check_and_play_sounds(bool clear_state)
+{
+    for(auto& i : parts)
+    {
+        ///we're going to need a toggle to say we've played this sound already, dont repeat
+        if(i.local.play_hit_audio)
+        {
+            vec3f pos = i.global_pos;
+
+            sound::add(0, pos);
+
+            i.local.play_hit_audio = 0;
+
+            i.net.play_hit_audio = 1;
+        }
+    }
+
+    if(local.play_clang_audio)
+    {
+        vec3f pos = xyz_to_vec(weapon.model->pos);
+
+        sound::add(1, pos);
+
+        local.play_clang_audio = 0;
+
+        net.play_clang_audio = 1;
+    }
+}
