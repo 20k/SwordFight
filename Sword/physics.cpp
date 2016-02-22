@@ -34,6 +34,8 @@ void physics::load()
 
 }
 
+std::map<std::string, bbox> bbox_cache;
+
 bbox get_bbox(objects_container* obj)
 {
     vec3f tl = {FLT_MAX, FLT_MAX, FLT_MAX}, br = {FLT_MIN, FLT_MIN, FLT_MIN};
@@ -62,7 +64,26 @@ void physics::add_objects_container(part* _p, fighter* _parent)
     p.p = _p;
     p.parent = _parent;
 
-    bbox b = get_bbox(p.p->obj());
+    bbox b;
+
+    std::string fname = p.p->obj()->file;
+
+    #define USE_CACHE
+    #ifdef USE_CACHE
+
+    if(bbox_cache.find(fname) != bbox_cache.end() && fname != "")
+    {
+        b = bbox_cache[fname];
+    }
+    else if(fname != "")
+    {
+        bbox_cache[fname] = get_bbox(p.p->obj());
+
+        b = bbox_cache[fname];
+    }
+    #else
+    b = get_bbox(p.p->obj());
+    #endif
 
     p.min_pos = b.min;
     p.max_pos = b.max;

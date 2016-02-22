@@ -832,7 +832,7 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
     net_fighter->set_physics(phys);
     net_fighter->update_render_positions();
 
-    ctx->build();
+    ctx->build(true);
 
     net_fighter->update_lights();
 
