@@ -3075,7 +3075,7 @@ void fighter::check_and_play_sounds(bool clear_state)
     for(auto& i : parts)
     {
         ///we're going to need a toggle to say we've played this sound already, dont repeat
-        if(i.local.play_hit_audio)
+        if(i.local.play_hit_audio || i.net.play_hit_audio)
         {
             vec3f pos = i.global_pos;
 
@@ -3083,18 +3083,19 @@ void fighter::check_and_play_sounds(bool clear_state)
 
             i.local.play_hit_audio = 0;
 
-            i.net.play_hit_audio = 1;
+            i.net.play_hit_audio = 0;
         }
     }
 
-    if(local.play_clang_audio)
+    if(local.play_clang_audio || net.play_clang_audio)
     {
         vec3f pos = xyz_to_vec(weapon.model->pos);
 
         sound::add(1, pos);
 
         local.play_clang_audio = 0;
+        net.play_clang_audio = 0;
 
-        net.play_clang_audio = 1;
+        printf("clang\n");
     }
 }

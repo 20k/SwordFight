@@ -222,6 +222,7 @@ struct network_part
 struct local_part
 {
     int32_t play_hit_audio = 0;
+    int32_t send_hit_audio = 0;
 };
 
 ///need to network part hp
@@ -553,6 +554,7 @@ struct networked_components
 struct local_components
 {
     int32_t play_clang_audio = 0;
+    int32_t send_clang_audio = 0;
 };
 
 struct link

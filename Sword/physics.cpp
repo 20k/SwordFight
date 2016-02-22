@@ -214,6 +214,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     ///their client needs to be updated to make a clang noise
                     ///as they do not know (as we aren't simulating state on every client)
                     them->local.play_clang_audio = 1;
+                    them->local.send_clang_audio = 1;
 
                     ///CLANG noise
 
@@ -242,7 +243,10 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                     ///need to make HRRK noise
                     //network::host_update(&them->net.recoil);
-                    them->parts[type].local.play_hit_audio = 1;
+                    //them->parts[type].local.play_hit_audio = 1;
+                    //them->parts[type].local.send_hit_audio = 1;
+
+                    //printf("hit\n");
 
                     continue;
                 }
@@ -255,6 +259,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 //network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
                 //sound::add(0, rel);
                 them->parts[type].local.play_hit_audio = 1;
+                them->parts[type].local.send_hit_audio = 1;
 
                 return i;
             }
@@ -279,7 +284,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
         //network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
         //sound::add(0, rel);
         ///either hand
-        fighter_hit->parts[bodypart::LHAND].local.play_hit_audio = 1;
+        //fighter_hit->parts[bodypart::LHAND].local.play_hit_audio = 1;
+        //fighter_hit->parts[bodypart::LHAND].local.send_hit_audio = 1;
     }
 
     //vec3f end = s_pos + sword_height*dir;

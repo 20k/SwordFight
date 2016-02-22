@@ -563,11 +563,15 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 ///I believe this is fixed now
                 if(my_id != net_fighter.first)
                 {
-                    if(fight->net.play_clang_audio)
+                    ///maybe if fight->local?
+                    if(fight->local.send_clang_audio)
                     {
+                        fight->net.play_clang_audio = 1;
+
                         network_update_element_reliable<int32_t>(this, &fight->net.play_clang_audio, fight);
 
                         fight->net.play_clang_audio = 0;
+                        fight->local.send_clang_audio = 0;
                     }
 
                     for(auto& i : fight->parts)
@@ -581,11 +585,14 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                             i.net.hp_dirty = false;
                         }
 
-                        if(i.net.play_hit_audio)
+                        if(i.local.send_hit_audio)
                         {
+                            i.net.play_hit_audio = 1;
+
                             network_update_element_reliable<int32_t>(this, &i.net.play_hit_audio, fight);
 
                             i.net.play_hit_audio = 0;
+                            i.local.send_hit_audio = 0;
                         }
                     }
                 }
@@ -658,16 +665,22 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
             ///so. If two different fighters who aren't me hit each other
             ///there'll be no audio
-            if(discovered_fighters[my_id].fight->net.play_clang_audio)
+            ///audio is all fucked, might have to scrap entirely and redo
+            ///we need a to_send
+            ///and a have_received
+            /*if(my_fighter->net.play_clang_audio)
             {
-                vec3f pos = xyz_to_vec(discovered_fighters[my_id].fight->weapon.model->pos);
+                my_fighter->local.play_clang_audio = 1;
 
-                sound::add(1, pos);
-
-                discovered_fighters[my_id].fight->net.play_clang_audio = 0;
+                my_fighter->net.play_clang_audio = 0;
             }
 
-            bool any_parts_hit = false;
+            for(auto& i : my_fighter->parts)
+            {
+
+            }*/
+
+            /*bool any_parts_hit = false;
             vec3f sound_pos = {0,0,0};
 
             for(auto& i : discovered_fighters[my_id].fight->parts)
@@ -685,7 +698,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             if(any_parts_hit)
             {
                 sound::add(0, sound_pos);
-            }
+            }*/
 
             ///spam server with packets until it respawns us
             if(discovered_fighters[my_id].fight->dead())

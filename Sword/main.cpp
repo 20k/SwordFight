@@ -541,13 +541,16 @@ int main(int argc, char *argv[])
             cl::cqueue2.finish();
         }
 
-        /*if(once<sf::Keyboard::Tab>())
+        if(once<sf::Keyboard::Tab>())
         {
             network_player play = server.make_networked_player(100, &context, &transparency_context, &current_state, &phys);
 
             net_test = play.fight;
 
-            memcpy(&net_test->net.net_name.v[0], "testing", strlen("testing"));
+            //net_test->set_team(0);
+            //my_fight->set_team(1);
+
+            memcpy(&net_test->net.net_name.v[0], "Pierre", strlen("Pierre"));
 
             play.fight->set_name("Loading");
         }
@@ -579,7 +582,7 @@ int main(int argc, char *argv[])
 
                 net_test->update_lights();
             }
-        }*/
+        }
 
         if(controls_state == 0)
             window.update_mouse();
