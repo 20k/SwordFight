@@ -125,6 +125,8 @@ struct server_networking
     void ping_master();
 
     void set_my_fighter(fighter* fight);
+
+    std::vector<fighter*> get_fighters();
 };
 
 struct ptr_info

@@ -676,6 +676,17 @@ int main(int argc, char *argv[])
         c1.set_pos({v.v[0], v.v[1], v.v[2]});
         c1.g_flush_objects();*/
 
+        std::vector<fighter*> fighter_list = server.get_fighters();
+
+        if(std::find(fighter_list.begin(), fighter_list.end(), my_fight) == fighter_list.end())
+        {
+            fighter_list.push_back(my_fight);
+        }
+
+        fighter_list.push_back(&fight2);
+
+        my_fight->set_other_fighters(fighter_list);
+
         if(network::network_state == 0)
         {
             fight2.queue_attack(attacks::SLASH);

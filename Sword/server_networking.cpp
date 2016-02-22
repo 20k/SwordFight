@@ -944,3 +944,18 @@ std::string gamemode_info::get_display_string()
 
     return team_line + "\n" + team_next_line + "\n" + time_str;
 }
+
+std::vector<fighter*> server_networking::get_fighters()
+{
+    std::vector<fighter*> ret;
+
+    for(auto& i : discovered_fighters)
+    {
+        if(i.second.fight)
+        {
+            ret.push_back(i.second.fight);
+        }
+    }
+
+    return ret;
+}

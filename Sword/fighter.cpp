@@ -177,7 +177,7 @@ part::part(object_context& context)
     set_global_pos({0,0,0});
     set_global_rot({0,0,0});
 
-    model->set_file("./Res/bodypart_red.obj");
+    model->set_file("./Res/high/bodypart_red.obj");
 
     model->set_unique_textures(true);
 
@@ -395,13 +395,7 @@ void part::update_texture_by_hp()
         ///if this is async this might break
         if(hp > 0 && hp != 1.f)
         {
-            pcol.x *= hp;
-            pcol.y *= hp;
-            pcol.z *= hp;
-
-            cl_float4 dcol = pcol;
-
-            dcol = {20, 20, 20};
+            cl_float4 dcol = {20, 20, 20};
 
             dcol.x /= 255.f;
             dcol.y /= 255.f;
@@ -1801,6 +1795,42 @@ vec2f fighter::get_wall_corrected_move(vec2f pos, vec2f move_dir)
     return dir_move;
 }
 
+vec2f fighter::get_external_fighter_corrected_move(vec2f pos, vec2f move_dir, const std::vector<fighter*>& fighter_list)
+{
+    vec2f dim = get_approx_dim();
+
+    float bubble_rad = dim.v[0] * fighter_stats::bubble_modifier_relative_to_approx_dim;
+
+    for(auto& i : fighter_list)
+    {
+        if(i == this)
+            continue;
+
+        vec2f their_pos = s_xz(i->pos);
+
+        float cur_len = (pos - their_pos).length();
+        float predict_len = (pos + move_dir - their_pos).length();
+
+        ///write a projection and rejection function
+        if(cur_len < bubble_rad && predict_len < cur_len)
+        {
+            vec2f me_to_them = their_pos - pos;
+
+            me_to_them = me_to_them.norm();
+
+            float scalar_proj = dot(move_dir, me_to_them);
+
+            vec2f to_them_relative = scalar_proj * me_to_them;
+
+            vec2f perp = move_dir - to_them_relative;
+
+            return perp;
+        }
+    }
+
+    return move_dir;
+}
+
 ///do I want to do a proper dynamic timing synchronisation thing?
 void fighter::walk_dir(vec2f dir, bool sprint)
 {
@@ -1886,6 +1916,8 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         float move_amount = dir_move.length();
 
         dir_move = get_wall_corrected_move(lpos, dir_move);
+
+        dir_move = get_external_fighter_corrected_move(lpos, dir_move, fighter_list);
 
         ///just in case!
         ///disappearing may be because the pos is being destroyed by this
@@ -3098,4 +3130,9 @@ void fighter::check_and_play_sounds(bool clear_state)
 
         printf("clang\n");
     }
+}
+
+void fighter::set_other_fighters(const std::vector<fighter*>& other_fight)
+{
+    fighter_list = other_fight;
 }

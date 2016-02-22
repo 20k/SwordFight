@@ -209,6 +209,7 @@ namespace fighter_stats
 {
     const static float speed = 1.3f;
     const static float sprint_speed = 1.3f;
+    const static float bubble_modifier_relative_to_approx_dim = 1.f;
 }
 
 ///this was a good idea
@@ -709,6 +710,7 @@ struct fighter
     void tick_cape();
 
     vec2f get_wall_corrected_move(vec2f pos, vec2f move_dir);
+    vec2f get_external_fighter_corrected_move(vec2f pos, vec2f move_dir, const std::vector<fighter*>& fighter_list);
 
     ///rotation
     void set_look(vec3f look);
@@ -729,6 +731,8 @@ struct fighter
     std::string local_name = "Err";
 
     void check_and_play_sounds(bool clear_state = false);
+
+    void set_other_fighters(const std::vector<fighter*>& other_fight);
 
 private:
     size_t left_id;
@@ -767,6 +771,9 @@ private:
 
     bool left_foot_sound;
     bool right_foot_sound;
+
+    ///so, i guess this is including me
+    std::vector<fighter*> fighter_list;
 };
 
 
