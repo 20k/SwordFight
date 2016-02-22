@@ -773,7 +773,6 @@ int main(int argc, char *argv[])
         {
             menu_handler.do_menu(window);
         }
-        //else
 
         window.flip();
 
