@@ -30,7 +30,10 @@ namespace mov
         FINISH_AT_90 = 512, ///degrees, ie perpendicular to the normal sword rotation
         ///we need a CAN_BE_COMBINED tag, which means that two movements can be applied at once
         FINISH_AT_SCREEN_CENTRE = 1024,
-        OVERHEAD_HACK = 2048 ///hack to fix overhead through centre
+        OVERHEAD_HACK = 2048, ///hack to fix overhead through centre
+        NOSLOW_END = 4096,
+        NOSLOW_START = 8192,
+        INVERSE_OVERHEAD_HACK = 16384
     };
 }
 
@@ -408,12 +411,6 @@ static std::vector<movement> slash =
     //{0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
 };
 
-static std::vector<movement> stab =
-{
-    {0, {-80, -120, -10}, 450, 0, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::NONE)}, ///windup
-    {0, {-40, -60, -180}, 350, 0, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::FINISH_AT_SCREEN_CENTRE)} ///attack
-};
-
 /*static std::vector<movement> slash =
 {
     {0, {-150, -80, -40}, 200, 0, bodypart::LHAND, mov::WINDUP}, ///windup
@@ -424,6 +421,21 @@ static std::vector<movement> rest =
 {
     {0, {0, -200, -100}, 500, 1, bodypart::LHAND, mov::NONE}
 };
+
+
+static std::vector<movement> stab =
+{
+    //{0, {-80, -120, -10}, 450, 0, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::NONE)}, ///windup
+    //{0, {-80, -120, +100}, 450, 0, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::NONE)}, /
+    //{0, {-80, -0, -10}, 450, 0, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::NONE)},
+    {0, {-80, -120, -10}, 450, 4, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::NONE)}, ///windup
+    {0, {-40, -180, -180}, 400, 3, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::FINISH_AT_SCREEN_CENTRE)}, ///attack
+
+    //{0, {-40, -60, -180}, 350, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::FINISH_AT_SCREEN_CENTRE)}, ///attack
+    //{0, {-40, -60, -180}, 350, 0, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::FINISH_AT_SCREEN_CENTRE)} ///attack
+    //{0, {-80, -200, -100}, 200, 1, bodypart::LHAND, mov::NOSLOW_START}
+};
+
 
 /*static std::vector<movement> block_old =
 {

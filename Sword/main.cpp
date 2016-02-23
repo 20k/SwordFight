@@ -391,7 +391,7 @@ int main(int argc, char *argv[])
     printf("Postspace\n");
 
     ///debug;
-    int controls_state = 0;
+    int controls_state = 1;
     bool central_pip = false;
 
     printf("loop\n");
@@ -556,7 +556,7 @@ int main(int argc, char *argv[])
         if(controls_state == 1 && window.focus && !in_menu)
             window.update_mouse(window.width/2, window.height/2, true, true);
 
-        if(once<sf::Keyboard::X>() && window.focus)
+        if(once<sf::Keyboard::X>() && window.focus && !in_menu)
         {
             controls_state = (controls_state + 1) % 2;
 
@@ -582,7 +582,7 @@ int main(int argc, char *argv[])
 
         window.set_input_handler(c_input);
 
-        if(once<sf::Keyboard::U>())
+        if(once<sf::Keyboard::U>() && window.focus)
         {
             central_pip = !central_pip;
         }
@@ -627,14 +627,14 @@ int main(int argc, char *argv[])
         ///so just respawning doesnt fix, sometimes (mostly) doing enter does
         ///but not always
         ///something very odd. Rewrite texturing
-        if(once<sf::Keyboard::Return>() && window.focus)
+        /*if(once<sf::Keyboard::Return>() && window.focus)
         {
             context.build(true);
             transparency_context.build(true);
 
             context.flip();
             transparency_context.flip();
-        }
+        }*/
 
         //static float debug_look = 0;
         //my_fight->set_look({sin(debug_look), 0, 0});

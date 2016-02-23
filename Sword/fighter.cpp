@@ -1474,6 +1474,12 @@ void fighter::tick(bool is_player)
 
             current_pos = slerp(actual_start, actual_finish, frac);
         }
+        else if(i.type == 4)
+        {
+            frac = 1.f - erf_smooth(1.f - frac);
+
+            current_pos = slerp(actual_start, actual_finish, frac);
+        }
 
         if(i.limb == LHAND || i.limb == RHAND)
         {
@@ -3156,8 +3162,6 @@ void fighter::check_and_play_sounds(bool clear_state)
 
         local.play_clang_audio = 0;
         net.play_clang_audio = 0;
-
-        printf("clang\n");
     }
 }
 
