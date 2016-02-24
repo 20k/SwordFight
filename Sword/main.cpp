@@ -684,7 +684,7 @@ int main(int argc, char *argv[])
             //fight2.queue_attack(attacks::BLOCK);
 
             fight2.tick();
-            //fight2.tick_cape();
+            fight2.tick_cape();
 
             fight2.update_render_positions();
 
@@ -723,7 +723,7 @@ int main(int argc, char *argv[])
 
         my_fight->tick(true);
 
-        //my_fight->tick_cape();
+        my_fight->tick_cape();
 
         my_fight->update_render_positions();
 
