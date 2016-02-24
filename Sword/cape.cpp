@@ -151,9 +151,6 @@ cape::cape(object_context& cpu, object_context_data& gpu)
 
 void cape::load(int team)
 {
-    if(loaded && team == saved_team)
-        return;
-
     saved_team = team;
 
     hit_floor = false;
@@ -212,6 +209,8 @@ void cape::load(int team)
     clEnqueueUnmapMemObject(cl::cqueue.get(), out.get(), outmap, 0, NULL, NULL);
 
     loaded = true;
+
+    context_id = cpu_context->get_context_id();
 }
 
 void cape::make_stable(fighter* parent)
@@ -274,15 +273,6 @@ compute::buffer cape::fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f r
 
     compute::buffer buf = compute::buffer(cl::context, sizeof(float)*width*3, CL_MEM_READ_WRITE, nullptr);
 
-    /*static std::vector<cl_float> gpu_dat;
-    static bool once = false;
-
-    if(!once)
-    {
-        gpu_dat.resize(width * 3);
-        once = true;
-    }*/
-
     if(!cape_init)
     {
         gpu_cape.resize(width * 3);
@@ -318,68 +308,6 @@ compute::buffer cape::fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f r
 
     return buf;
 }
-
-#if 0
-compute::buffer cape::fighter_to_fixed(objects_container* l, objects_container* m, objects_container* r)
-{
-    //vec3f position = xyz_to_vec(m->pos);
-    vec3f rotation = xyz_to_vec(m->rot);
-
-    vec3f lpos = xyz_to_vec(l->pos);
-    vec3f rpos = xyz_to_vec(r->pos);
-
-    bbox lbbox = get_bbox(l);
-    bbox rbbox = get_bbox(r);
-
-    float ldepth = lbbox.max.v[2] - lbbox.min.v[2];
-    float rdepth = rbbox.max.v[2] - rbbox.min.v[2];
-
-    lpos = lpos + (vec3f){0, 0, ldepth}.rot({0,0,0}, rotation);
-    rpos = rpos + (vec3f){0, 0, rdepth}.rot({0,0,0}, rotation);
-
-    vec3f dir = rpos - lpos;
-
-    int len = width;
-
-    vec3f step = dir / (float)len;
-
-    vec3f current = lpos;
-
-    /*cl_float* xmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defx.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
-    cl_float* ymap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defy.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
-    cl_float* zmap = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), defz.get(), CL_TRUE, CL_MAP_WRITE, 0, sizeof(cl_float)*w, 0, NULL, NULL, NULL);
-
-    for(int i=0; i < len; i ++)
-    {
-        xmap[i] = current.v[0];
-        ymap[i] = current.v[1];
-        zmap[i] = current.v[2];
-
-        current = current + step;
-    }
-
-    clEnqueueUnmapMemObject(cl::cqueue.get(), defx.get(), xmap, 0, NULL, NULL);
-    clEnqueueUnmapMemObject(cl::cqueue.get(), defy.get(), ymap, 0, NULL, NULL);
-    clEnqueueUnmapMemObject(cl::cqueue.get(), defz.get(), zmap, 0, NULL, NULL);*/
-
-    compute::buffer buf = compute::buffer(cl::context, sizeof(float)*width*3, CL_MEM_READ_WRITE, nullptr);
-
-    cl_float* mem_map = (cl_float*) clEnqueueMapBuffer(cl::cqueue.get(), buf.get(), CL_TRUE, CL_MAP_WRITE_INVALIDATE_REGION, 0, sizeof(cl_float)*width*3, 0, NULL, NULL, NULL);
-
-    for(int i=0; i<len; i++)
-    {
-        mem_map[i*3 + 0] = current.v[0];
-        mem_map[i*3 + 1] = current.v[1];
-        mem_map[i*3 + 2] = current.v[2];
-
-        current = current + step;
-    }
-
-    clEnqueueUnmapMemObject(cl::cqueue.get(), buf.get(), mem_map, 0, NULL, NULL);
-
-    return buf;
-}
-#endif
 
 ///use pcie instead etc
 compute::buffer body_to_gpu(fighter* parent)
@@ -465,7 +393,7 @@ struct wind
 ///shouldn't code while tired
 void cape::tick(fighter* parent)
 {
-    if(!loaded || saved_team != parent->team)
+    if(!loaded || saved_team != parent->team || context_id != cpu_context->get_context_id())
     {
         load(parent->team);
         return;
@@ -516,6 +444,8 @@ void cape::tick(fighter* parent)
     cloth_args.push_back(&height);
     cloth_args.push_back(&depth);
 
+    ///these are invalid on a context switch
+    ///but irritatingly amd does not notice this
     compute::buffer b1 = which == 0 ? in : out;
     compute::buffer b2 = which == 0 ? out : in;
 
