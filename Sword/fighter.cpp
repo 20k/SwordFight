@@ -908,7 +908,7 @@ void fighter::die()
 
     cpu_context->load_active();
 
-    cpu_context->build();
+    cpu_context->build(true);
     cpu_context->flip();
     gpu_context = cpu_context->fetch();
 
