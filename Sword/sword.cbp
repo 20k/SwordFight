@@ -22,9 +22,7 @@
 				<Option type="1" />
 				<Option compiler="mingw64" />
 				<Compiler>
-					<Add option="-O3" />
-					<Add option="-march=native" />
-					<Add option="-msse3 -mavx" />
+					<Add option="-O2" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />

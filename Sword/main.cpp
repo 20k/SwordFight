@@ -234,18 +234,18 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 ///need to make sound not play multiple times
 int main(int argc, char *argv[])
 {
+    printf("preload\n");
+
     settings s;
     s.load("./res/settings.txt");
 
     if(!s.enable_debugging)
     {
-        std::streambuf* oldCoutStreamBuf = std::cout.rdbuf();
-        std::ofstream out("info.txt");
+        static std::ofstream out("info.txt");
         std::cout.rdbuf( out.rdbuf() );
 
         freopen("err.txt", "w", stdout);
     }
-
 
     /*texture tex;
     tex.type = 0;
@@ -285,7 +285,7 @@ int main(int argc, char *argv[])
     rect->cache = false;
     rect->set_active(true);*/
 
-    const std::string title = std::string("SwordFight V") + std::to_string(AutoVersion::MAJOR) + "." + std::to_string(AutoVersion::MINOR);
+    const std::string title = std::string("Midgard V") + std::to_string(AutoVersion::MAJOR) + "." + std::to_string(AutoVersion::MINOR);
 
 
     engine window;
