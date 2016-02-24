@@ -512,6 +512,9 @@ int main(int argc, char *argv[])
             context.increment_context_id();
             transparency_context.increment_context_id();
 
+            context.fetch()->ensure_screen_buffers(window.width, window.height);
+            transparency_context.fetch()->ensure_screen_buffers(window.width, window.height);
+
             gpu_context = context.fetch();
 
             g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
