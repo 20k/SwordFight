@@ -319,6 +319,7 @@ compute::buffer cape::fighter_to_fixed_vec(vec3f p1, vec3f p2, vec3f p3, vec3f r
     return buf;
 }
 
+#if 0
 compute::buffer cape::fighter_to_fixed(objects_container* l, objects_container* m, objects_container* r)
 {
     //vec3f position = xyz_to_vec(m->pos);
@@ -378,6 +379,7 @@ compute::buffer cape::fighter_to_fixed(objects_container* l, objects_container* 
 
     return buf;
 }
+#endif
 
 ///use pcie instead etc
 compute::buffer body_to_gpu(fighter* parent)

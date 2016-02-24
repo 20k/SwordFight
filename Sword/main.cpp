@@ -1,15 +1,11 @@
-//#include "../openclrenderer/proj.hpp"
 #include <winsock2.h>
 #include "../openclrenderer/engine.hpp"
 #include "../openclrenderer/ocl.h"
-#include "../openclrenderer/texture_manager.hpp"
 
 #include "../openclrenderer/text_handler.hpp"
 #include <sstream>
 #include <string>
 #include "../openclrenderer/vec.hpp"
-
-#include "../openclrenderer/ui_manager.hpp"
 
 #include "fighter.hpp"
 #include "text.hpp"
@@ -232,10 +228,25 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
     return {sub(c_pos, input.c_pos), sub(c_rot, input.c_rot)};
 }
 
+#include <stdio.h>
+
 ///make textures go from start to dark to end
 ///need to make sound not play multiple times
 int main(int argc, char *argv[])
 {
+    settings s;
+    s.load("./res/settings.txt");
+
+    if(!s.enable_debugging)
+    {
+        std::streambuf* oldCoutStreamBuf = std::cout.rdbuf();
+        std::ofstream out("info.txt");
+        std::cout.rdbuf( out.rdbuf() );
+
+        freopen("err.txt", "w", stdout);
+    }
+
+
     /*texture tex;
     tex.type = 0;
     tex.set_unique();
@@ -276,9 +287,6 @@ int main(int argc, char *argv[])
 
     const std::string title = std::string("SwordFight V") + std::to_string(AutoVersion::MAJOR) + "." + std::to_string(AutoVersion::MINOR);
 
-
-    settings s;
-    s.load("./res/settings.txt");
 
     engine window;
     window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true);
@@ -388,11 +396,16 @@ int main(int argc, char *argv[])
     point_cloud stars = get_starmap(1);
     point_cloud_info g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
 
+    printf("SSize %i mb\n", (g_star_cloud.g_colour_mem.size() / 1024) / 1024);
+
     printf("Postspace\n");
 
     ///debug;
     int controls_state = 1;
     bool central_pip = false;
+
+    if(s.enable_debugging)
+        controls_state = 0;
 
     printf("loop\n");
 
@@ -409,6 +422,11 @@ int main(int argc, char *argv[])
     fighter* net_test = nullptr;
 
     menu_system menu_handler;
+
+    if(s.enable_debugging)
+    {
+        menu_handler.current_menu_state = menu_system::INGAME;
+    }
 
     ///fix depth ordering  with transparency
     while(window.window.isOpen())
@@ -507,49 +525,54 @@ int main(int argc, char *argv[])
             cl::cqueue2.finish();
         }
 
-        /*if(once<sf::Keyboard::Tab>() && window.focus)
+        if(s.enable_debugging)
         {
-            network_player play = server.make_networked_player(100, &context, &transparency_context, &current_state, &phys);
-
-            net_test = play.fight;
-
-            //net_test->set_team(0);
-            //my_fight->set_team(1);
-
-            memcpy(&net_test->net.net_name.v[0], "Pierre", strlen("Pierre"));
-
-            play.fight->set_name("Loading");
-        }
-
-        if(net_test)
-        {
-            net_test->manual_check_part_alive();
-
-            ///we need a die if appropriate too
-            net_test->respawn_if_appropriate();
-            net_test->checked_death();
-
-            net_test->overwrite_parts_from_model();
-            net_test->manual_check_part_death();
-
-            net_test->my_cape.tick(net_test);
-
-            net_test->do_foot_sounds();
-
-            net_test->update_texture_by_part_hp();
-
-            net_test->check_and_play_sounds();
-
-            net_test->position_cosmetics();
-
-            ///death is dynamically calculated from part health
-            if(!net_test->dead())
+            if(once<sf::Keyboard::Tab>() && window.focus)
             {
-                net_test->update_name_info(true);
+                network_player play = server.make_networked_player(100, &context, &transparency_context, &current_state, &phys);
 
-                net_test->update_lights();
+                net_test = play.fight;
+
+                net_test->set_quality(s.quality);
+
+                //net_test->set_team(0);
+                //my_fight->set_team(1);
+
+                memcpy(&net_test->net.net_name.v[0], "Pierre", strlen("Pierre"));
+
+                play.fight->set_name("Loading");
             }
-        }*/
+
+            if(net_test)
+            {
+                net_test->manual_check_part_alive();
+
+                ///we need a die if appropriate too
+                net_test->respawn_if_appropriate();
+                net_test->checked_death();
+
+                net_test->overwrite_parts_from_model();
+                net_test->manual_check_part_death();
+
+                net_test->my_cape.tick(net_test);
+
+                net_test->do_foot_sounds();
+
+                net_test->update_texture_by_part_hp();
+
+                net_test->check_and_play_sounds();
+
+                net_test->position_cosmetics();
+
+                ///death is dynamically calculated from part health
+                if(!net_test->dead())
+                {
+                    net_test->update_name_info(true);
+
+                    net_test->update_lights();
+                }
+            }
+        }
 
         if(controls_state == 0 && window.focus && !in_menu)
             window.update_mouse();
@@ -627,14 +650,14 @@ int main(int argc, char *argv[])
         ///so just respawning doesnt fix, sometimes (mostly) doing enter does
         ///but not always
         ///something very odd. Rewrite texturing
-        /*if(once<sf::Keyboard::Return>() && window.focus)
+        if(once<sf::Keyboard::Return>() && window.focus && s.enable_debugging)
         {
             context.build(true);
             transparency_context.build(true);
 
             context.flip();
             transparency_context.flip();
-        }*/
+        }
 
         //static float debug_look = 0;
         //my_fight->set_look({sin(debug_look), 0, 0});

@@ -1612,16 +1612,16 @@ void fighter::tick(bool is_player)
     {
         parts[RHAND].pos = parts[LHAND].pos;
 
-        float arm_len = (rest_positions[LHAND] - rest_positions[LLOWERARM]).length();
+        //float arm_len = (rest_positions[LHAND] - rest_positions[LLOWERARM]).length();
 
-        vec3f original_shoulder = parts[RUPPERARM].pos;
+        //vec3f original_shoulder = parts[RUPPERARM].pos;
 
         /*vec3f slave_to_shoulder = original_shoulder - parts[RHAND].pos;
 
         vec3f elbow_pos = slave_to_shoulder.norm() * arm_len + parts[RHAND].pos;
         vec3f new_shoulder_pos = slave_to_shoulder.norm() * arm_len * 2 + parts[RHAND].pos;*/
 
-        vec3f elbow_pos = (parts[RHAND].pos + parts[RUPPERARM].pos)/2.f;
+        //vec3f elbow_pos = (parts[RHAND].pos + parts[RUPPERARM].pos)/2.f;
 
         //float dt_tsmooth = frametime * 0.1f;
 
