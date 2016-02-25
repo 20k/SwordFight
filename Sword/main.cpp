@@ -417,10 +417,19 @@ int main(int argc, char *argv[])
     fight.set_secondary_context(&transparency_context);
     fight2.set_secondary_context(&transparency_context);
 
+    printf("post set secondary context (transparency)\n");
+
     fight.set_name(s.name);
     fight2.set_name("Philip");
 
     fighter* net_test = nullptr;
+
+    printf("post name rendering\n");
+
+    context.fetch()->ensure_screen_buffers(window.width, window.height);
+    transparency_context.fetch()->ensure_screen_buffers(window.width, window.height);
+
+    printf("build screens\n");
 
     menu_system menu_handler;
 

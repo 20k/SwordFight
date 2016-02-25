@@ -29,6 +29,16 @@ void gameplay_state::set_map(world_map& _map)
     current_map = _map;
 }
 
+int get_map_loc(const std::vector<int>& map_def, vec2i pos, vec2i dim)
+{
+    int world_h = map_def[pos.v[1] * dim.v[0] + pos.v[0]];
+
+    if(world_h == map_namespace::R || world_h == map_namespace::B)
+        world_h = 0;
+
+    return world_h;
+}
+
 ///doesnt' work because each addition to the container
 ///stomps over the position of the last
 ///we need to take the position and actually statically modify
@@ -47,12 +57,7 @@ void load_map(objects_container* obj, const std::vector<int>& map_def, int width
         {
             vec2f w2d = (vec2f){x, y} - centre;
 
-            int world_h = map_def[y*width + x];
-
-            if(world_h == map_namespace::R || world_h == map_namespace::B)
-            {
-                world_h = 0;
-            }
+            int world_h = get_map_loc(map_def, {x, y}, {width, height});
 
             ///-1 so that -1 -> 0 is floor
             ///and then 0 height is floor height
