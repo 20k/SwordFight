@@ -736,7 +736,7 @@ int main(int argc, char *argv[])
 
         my_fight->update_texture_by_part_hp();
 
-        my_fight->check_and_play_sounds();
+        my_fight->check_and_play_sounds(true);
 
         my_fight->position_cosmetics();
 

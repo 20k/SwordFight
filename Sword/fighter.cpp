@@ -3137,14 +3137,19 @@ void fighter::update_name_info(bool networked_fighter)
 
 ///I should probably stop the hand hits playing audio, or at least make it special
 ///just sounds wrong atm
-void fighter::check_and_play_sounds(bool clear_state)
+void fighter::check_and_play_sounds(bool player)
 {
+    vec3f hpos = parts[bodypart::HEAD].global_pos;
+
     for(auto& i : parts)
     {
         ///we're going to need a toggle to say we've played this sound already, dont repeat
         if(i.local.play_hit_audio || i.net.play_hit_audio)
         {
             vec3f pos = i.global_pos;
+
+            //if(player)
+            //    pos = hpos;
 
             sound::add(0, pos);
 
@@ -3158,7 +3163,15 @@ void fighter::check_and_play_sounds(bool clear_state)
     {
         vec3f pos = xyz_to_vec(weapon.model->pos);
 
-        sound::add(1, pos);
+        if(player)
+        {
+            ///disable locational clang as its a bit loud and annoying. Could add a bit of locational, but later
+            sound::add(1, hpos + (vec3f){0, 0, -100}.rot(0, rot), true);
+        }
+        else
+        {
+            sound::add(1, pos);
+        }
 
         local.play_clang_audio = 0;
         net.play_clang_audio = 0;

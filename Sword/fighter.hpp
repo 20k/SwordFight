@@ -760,7 +760,7 @@ struct fighter
 
     std::string local_name = "Err";
 
-    void check_and_play_sounds(bool clear_state = false);
+    void check_and_play_sounds(bool player = false);
 
     void set_other_fighters(const std::vector<fighter*>& other_fight);
 
