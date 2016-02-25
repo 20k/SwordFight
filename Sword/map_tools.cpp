@@ -39,6 +39,21 @@ int get_map_loc(const std::vector<int>& map_def, vec2i pos, vec2i dim)
     return world_h;
 }
 
+vec3f get_world_loc(const std::vector<int>& map_def, vec2i pos, vec2i dim)
+{
+    int height = get_map_loc(map_def, pos, dim);
+
+    vec2f centre = {dim.v[0]/2.f, dim.v[1]/2.f};
+
+    vec2f w2d = (vec2f){pos.v[0], pos.v[1]} - centre;
+
+    vec3f world_pos_top = {w2d.v[0], height, w2d.v[1]};
+
+    world_pos_top = world_pos_top + (vec3f){0.5f, 0.f, 0.5f};
+
+    return world_pos_top * game_map::scale;
+}
+
 ///doesnt' work because each addition to the container
 ///stomps over the position of the last
 ///we need to take the position and actually statically modify
@@ -55,25 +70,15 @@ void load_map(objects_container* obj, const std::vector<int>& map_def, int width
     {
         for(int x=0; x<width; x++)
         {
-            vec2f w2d = (vec2f){x, y} - centre;
+            vec3f world_pos_end = get_world_loc(map_def, {x, y}, {width, height});
+            vec3f world_pos_start = world_pos_end;
 
-            int world_h = get_map_loc(map_def, {x, y}, {width, height});
-
-            ///-1 so that -1 -> 0 is floor
-            ///and then 0 height is floor height
-            ///which means that pos.v[1] can be set to the players feet
-            vec3f world_pos_start = {w2d.v[0], -1, w2d.v[1]};
-            vec3f world_pos_end = {w2d.v[0], world_h, w2d.v[1]};
-
-            float scale = game_map::scale;
-
-            world_pos_start = world_pos_start + (vec3f){0.5f, 0.f, 0.5f};
-            world_pos_end = world_pos_end + (vec3f){0.5f, 0.f, 0.5f};
+            world_pos_start.v[1] = -1;
 
             objects_container temp_obj;
             temp_obj.parent = obj->parent;
 
-            load_object_cube(&temp_obj, world_pos_start * scale, world_pos_end * scale, scale/2, "./Res/gray.png");
+            load_object_cube(&temp_obj, world_pos_start, world_pos_end, game_map::scale/2, "./Res/gray.png");
 
             ///subobject position set by obj->set_pos in load_object_cube
             obj->objs.push_back(temp_obj.objs[0]);
