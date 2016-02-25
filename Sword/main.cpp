@@ -232,6 +232,7 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 
 ///make textures go from start to dark to end
 ///need to make sound not play multiple times
+///build then flip is invalid
 int main(int argc, char *argv[])
 {
     printf("preload\n");
@@ -841,6 +842,7 @@ int main(int argc, char *argv[])
             ///if we make this after and put the clear in here, we can then do blit_space every time
             ///with no flickering, fewer atomics, and better performance
             ///marginally though
+
             space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
 
             window.draw_bulk_objs_n(*cdat);
