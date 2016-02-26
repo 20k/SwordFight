@@ -64,8 +64,6 @@ vec3f get_world_loc(const std::vector<int>& map_def, vec2i pos, vec2i dim)
 ///works now, but the above comments are still relevant
 void load_map(objects_container* obj, const std::vector<int>& map_def, int width, int height)
 {
-    vec2f centre = {width/2.f, height/2.f};
-
     for(int y=0; y<height; y++)
     {
         for(int x=0; x<width; x++)

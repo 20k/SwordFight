@@ -27,6 +27,7 @@ namespace team_defs
     {
         "Red",
         "Blue",
+        "Gold",
         "Error"
     };
 };
