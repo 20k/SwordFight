@@ -335,7 +335,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 if(discovered_fighters[player_id].id == -1 && have_id)
                 {
-                    discovered_fighters[player_id] = make_networked_player(player_id, ctx, tctx, st, phys);
+                    discovered_fighters[player_id] = make_networked_player(player_id, ctx, tctx, st, phys, graphics_settings);
 
                     for(auto& i : discovered_fighters)
                     {
@@ -818,7 +818,7 @@ void server_networking::print_serverlist()
 
 ///so, its possible that the spamming of no id is causing problems
 ///nope, thatll just leak memory, which is uuh. Fine? Probably causing huge memory leaks?
-network_player server_networking::make_networked_player(int32_t id, object_context* ctx, object_context* tctx, gameplay_state* current_state, physics* phys)
+network_player server_networking::make_networked_player(int32_t id, object_context* ctx, object_context* tctx, gameplay_state* current_state, physics* phys, int quality)
 {
     fighter* net_fighter = new fighter(*ctx, *ctx->fetch());
 
@@ -826,7 +826,7 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
     net_fighter->set_pos({0, 0, 0});
     net_fighter->set_rot({0, 0, 0});
     //net_fighter->set_quality(s.quality);
-    net_fighter->set_quality(1); ///???
+    net_fighter->set_quality(quality); ///???
     net_fighter->set_gameplay_state(current_state);
 
     ctx->load_active();
@@ -977,4 +977,9 @@ std::vector<fighter*> server_networking::get_fighters()
     }
 
     return ret;
+}
+
+void server_networking::set_graphics(int graphics)
+{
+    graphics_settings = graphics;
 }

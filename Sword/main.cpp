@@ -377,6 +377,7 @@ int main(int argc, char *argv[])
     printf("light\n");
 
     server_networking server;
+    server.set_graphics(s.quality);
 
     sf::Mouse mouse;
     sf::Keyboard key;
@@ -392,12 +393,20 @@ int main(int argc, char *argv[])
     printf("Presspace\n");
 
     space_manager space_res;
-    space_res.init(s.width, s.height);
 
-    point_cloud stars = get_starmap(1);
-    point_cloud_info g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
+    if(s.quality != 0)
+        space_res.init(s.width, s.height);
 
-    printf("SSize %i mb\n", (g_star_cloud.g_colour_mem.size() / 1024) / 1024);
+    point_cloud stars;
+    point_cloud_info g_star_cloud;
+
+    if(s.quality != 0)
+    {
+        stars = get_starmap(1);
+        g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
+    }
+
+    //printf("SSize %i mb\n", (g_star_cloud.g_colour_mem.size() / 1024) / 1024);
 
     printf("Postspace\n");
 
@@ -533,7 +542,8 @@ int main(int argc, char *argv[])
             window.set_light_data(light_data);
             //window.set_tex_data(gpu_context->tex_gpu);
 
-            space_res.init(window.width, window.height);
+            if(s.quality != 0)
+                space_res.init(window.width, window.height);
 
             //text::set_renderwindow(window.window);
 
@@ -545,11 +555,9 @@ int main(int argc, char *argv[])
         {
             if(once<sf::Keyboard::Tab>() && window.focus)
             {
-                network_player play = server.make_networked_player(100, &context, &transparency_context, &current_state, &phys);
+                network_player play = server.make_networked_player(100, &context, &transparency_context, &current_state, &phys, s.quality);
 
                 net_test = play.fight;
-
-                net_test->set_quality(s.quality);
 
                 //net_test->set_team(0);
                 //my_fight->set_team(1);
@@ -839,10 +847,13 @@ int main(int argc, char *argv[])
 
         window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
 
-        space_res.update_camera(window.c_pos, window.c_rot);
+        if(s.quality != 0)
+        {
+            space_res.update_camera(window.c_pos, window.c_rot);
 
-        space_res.set_depth_buffer(cdat->depth_buffer[cdat->nbuf]);
-        space_res.set_screen(cdat->g_screen);
+            space_res.set_depth_buffer(cdat->depth_buffer[cdat->nbuf]);
+            space_res.set_screen(cdat->g_screen);
+        }
 
         compute::event event;
 
@@ -852,7 +863,8 @@ int main(int argc, char *argv[])
             ///with no flickering, fewer atomics, and better performance
             ///marginally though
 
-            space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
+            if(s.quality != 0)
+                space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
 
             window.draw_bulk_objs_n(*cdat);
 
@@ -860,7 +872,10 @@ int main(int argc, char *argv[])
         }
 
         if(window.can_render())
-            event = space_res.blit_space_to_screen(*cdat);
+        {
+            if(s.quality != 0)
+                event = space_res.blit_space_to_screen(*cdat);
+        }
 
         if(window.can_render())
         {

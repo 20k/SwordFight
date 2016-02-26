@@ -968,6 +968,9 @@ void fighter::tick_cape()
     //if(dead())
     //    return;
 
+    if(quality == 0)
+        return;
+
     int ticks = 1;
 
     for(int i=0; i<ticks; i++)
@@ -1447,7 +1450,7 @@ void fighter::tick(bool is_player)
             frac = frac_smooth(frac);
             current_pos = slerp(actual_start, actual_finish, frac);
 
-            float fsin = frac * M_PI;
+            //float fsin = frac * M_PI;
 
             //float sval = sin(fsin);
 

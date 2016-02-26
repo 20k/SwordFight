@@ -115,7 +115,7 @@ struct server_networking
     void set_game_to_join(int id);
     void disconnect_game();
 
-    network_player make_networked_player(int32_t id, object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys);
+    network_player make_networked_player(int32_t id, object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys, int quality);
 
     int32_t get_id_from_fighter(fighter* f);
 
@@ -128,6 +128,10 @@ struct server_networking
     void set_my_fighter(fighter* fight);
 
     std::vector<fighter*> get_fighters();
+
+    void set_graphics(int graphics);
+
+    int graphics_settings = 0;
 };
 
 struct ptr_info
