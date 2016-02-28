@@ -240,6 +240,7 @@ int main(int argc, char *argv[])
     settings s;
     s.load("./res/settings.txt");
 
+    ///printf redirect not working on tester's pc
     if(!s.enable_debugging)
     {
         static std::ofstream out("info.txt");
@@ -536,14 +537,17 @@ int main(int argc, char *argv[])
 
             gpu_context = context.fetch();
 
-            g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
 
             window.set_object_data(*gpu_context);
             window.set_light_data(light_data);
             //window.set_tex_data(gpu_context->tex_gpu);
 
             if(s.quality != 0)
+            {
+                g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
+
                 space_res.init(window.width, window.height);
+            }
 
             //text::set_renderwindow(window.window);
 
