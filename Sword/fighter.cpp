@@ -702,6 +702,8 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
 void fighter::load()
 {
+    player_id_i_was_last_hit_by = -1;
+
     crouch_frac = 0.f;
 
     momentum = {0,0};

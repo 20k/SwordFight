@@ -701,7 +701,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             }*/
 
             ///spam server with packets until it respawns us
-            if(discovered_fighters[my_id].fight->dead())
+            if(my_fighter->dead())
             {
                 byte_vector vec;
                 vec.push_back<int32_t>(canary_start);
@@ -711,7 +711,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 udp_send(to_game, vec.ptr);
             }
 
-            for(auto& i : discovered_fighters[my_id].fight->parts)
+            for(auto& i : my_fighter->parts)
             {
                 ///I set my own HP, don't update my hp with the delta
                 if(i.net.hp_dirty)
@@ -725,6 +725,10 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     i.hp += i.net.damage_info.hp_delta;
 
                     i.net.damage_info.hp_delta = 0.f;
+
+                    my_fighter->player_id_i_was_last_hit_by = i.net.damage_info.id_hit_by;
+
+                    printf("You've been hit by, you've been struck by, player with id %i\n", my_fighter->player_id_i_was_last_hit_by);
                 }
             }
 

@@ -612,6 +612,7 @@ struct light;
 ///what a clusterfuck
 struct fighter
 {
+    int32_t player_id_i_was_last_hit_by = -1;
     int32_t network_id = -1;
 
     cosmetics cosmetic;
