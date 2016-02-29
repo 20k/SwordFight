@@ -335,11 +335,13 @@ void part::set_quality(int _quality)
 ///the hp stat to the destination. This is probably acceptable
 
 ///temp error as this class needs gpu access
-void part::damage(float dam, bool do_effect)
+void part::damage(float dam, bool do_effect, int32_t network_id_hit_by)
 {
     //hp -= dam;
 
     set_hp(hp - dam);
+
+    net.damage_info.id_hit_by = network_id_hit_by;
 
     //printf("%f\n", hp);
 
@@ -472,7 +474,7 @@ void part::network_hp(float delta)
 {
     net.hp_dirty = true;
     //network::host_update(&hp);
-    net.hp_delta += delta;
+    net.damage_info.hp_delta += delta;
 }
 
 bool part::alive()
@@ -1510,7 +1512,7 @@ void fighter::tick(bool is_player)
                     fighter* their_parent = phys->bodies[i.hit_id].parent;
 
                     ///this is the only time damage is applied to anything, ever
-                    their_parent->damage((bodypart_t)(i.hit_id % COUNT), i.damage);
+                    their_parent->damage((bodypart_t)(i.hit_id % COUNT), i.damage, their_parent->network_id);
 
                     ///this is where the networking fighters get killed
                     ///this is no longer true, may happen here or in server_networking
@@ -2773,7 +2775,7 @@ void fighter::respawn_if_appropriate()
             ///from respawning the network fighter
             for(auto& i : parts)
             {
-                i.net.hp_delta = 0.f;
+                i.net.damage_info.hp_delta = 0.f;
                 i.net.hp_dirty = false;
             }
 
@@ -2824,6 +2826,11 @@ void fighter::update_texture_by_part_hp()
     {
         i.update_texture_by_hp();
     }
+}
+
+void fighter::set_network_id(int32_t net_id)
+{
+    network_id = net_id;
 }
 
 void fighter::set_team(int _team)
@@ -2986,13 +2993,13 @@ void fighter::try_feint()
 
 
 ///i've taken damage. If im during the windup phase of an attack, recoil
-void fighter::damage(bodypart_t type, float d)
+void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by)
 {
     using namespace bodypart;
 
     bool do_explode_effect = num_dead() < num_needed_to_die() - 1;
 
-    parts[type].damage(d, do_explode_effect);
+    parts[type].damage(d, do_explode_effect, network_id_hit_by);
 
     net.recoil = 1;
     net.recoil_dirty = true;

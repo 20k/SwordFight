@@ -183,7 +183,7 @@ std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
         fighter_stack[c++] = get_inf(&fight->parts[i].obj()->pos);
         fighter_stack[c++] = get_inf(&fight->parts[i].obj()->rot);
         fighter_stack[c++] = get_inf(&fight->parts[i].hp);
-        fighter_stack[c++] = get_inf(&fight->parts[i].net.hp_delta);
+        fighter_stack[c++] = get_inf(&fight->parts[i].net.damage_info);
         fighter_stack[c++] = get_inf(&fight->parts[i].net.play_hit_audio);
     }
 
@@ -578,9 +578,9 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     {
                         if(i.net.hp_dirty)
                         {
-                            network_update_element_reliable<float>(this, &i.net.hp_delta, fight);
+                            network_update_element_reliable<damage_information>(this, &i.net.damage_info, fight);
 
-                            i.net.hp_delta = 0.f;
+                            i.net.damage_info.hp_delta = 0.f;
 
                             i.net.hp_dirty = false;
                         }
@@ -717,14 +717,14 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 if(i.net.hp_dirty)
                 {
                     i.net.hp_dirty = false;
-                    i.net.hp_delta = 0.f;
+                    i.net.damage_info.hp_delta = 0.f;
                 }
 
-                if(i.net.hp_delta != 0.f)
+                if(i.net.damage_info.hp_delta != 0.f)
                 {
-                    i.hp += i.net.hp_delta;
+                    i.hp += i.net.damage_info.hp_delta;
 
-                    i.net.hp_delta = 0.f;
+                    i.net.damage_info.hp_delta = 0.f;
                 }
             }
 
@@ -825,9 +825,10 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
     net_fighter->set_team(0);
     net_fighter->set_pos({0, 0, 0});
     net_fighter->set_rot({0, 0, 0});
-    //net_fighter->set_quality(s.quality);
     net_fighter->set_quality(quality); ///???
     net_fighter->set_gameplay_state(current_state);
+
+    net_fighter->set_network_id(id);
 
     ctx->load_active();
 

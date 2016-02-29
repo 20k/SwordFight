@@ -215,11 +215,20 @@ namespace fighter_stats
     const static float bubble_modifier_relative_to_approx_dim = 1.f;
 }
 
+struct damage_information
+{
+    float hp_delta = 0.f;
+    int32_t id_hit_by = -1;
+};
+
 ///this was a good idea
 struct network_part
 {
     bool hp_dirty = false;
-    float hp_delta = 0.f;
+    //float hp_delta = 0.f;
+
+    damage_information damage_info;
+
     int32_t play_hit_audio = 0;
 };
 
@@ -260,7 +269,7 @@ struct part
 
     void set_team(int _team);
     void load_team_model();
-    void damage(float dam, bool do_effect = true);
+    void damage(float dam, bool do_effect = true, int32_t network_id_hit_by = -1);
     void set_hp(float h);
     void perform_death(bool do_effect = true);
 
@@ -603,6 +612,8 @@ struct light;
 ///what a clusterfuck
 struct fighter
 {
+    int32_t network_id = -1;
+
     cosmetics cosmetic;
 
     const float name_resend_time = 5000.f; ///ms
@@ -710,6 +721,8 @@ struct fighter
     void overwrite_parts_from_model();
     void update_texture_by_part_hp();
 
+    void set_network_id(int32_t net_id);
+
     void position_cosmetics();
 
     void set_team(int _team);
@@ -726,7 +739,7 @@ struct fighter
     void checked_recoil(); ///if we're hit, do a recoil if we're in windup
     void try_feint();
 
-    void damage(bodypart_t type, float d);
+    void damage(bodypart_t type, float d, int32_t network_id_hit_by);
 
     ///resets all vars
     void respawn(vec2f pos = (vec2f){0,0});
