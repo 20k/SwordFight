@@ -728,7 +728,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                     my_fighter->player_id_i_was_last_hit_by = i.net.damage_info.id_hit_by;
 
-                    printf("You've been hit by, you've been struck by, player with id %i\n", my_fighter->player_id_i_was_last_hit_by);
+                    //printf("You've been hit by, you've been struck by, player with id %i\n", my_fighter->player_id_i_was_last_hit_by);
                 }
             }
 
