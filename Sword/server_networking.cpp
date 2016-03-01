@@ -600,6 +600,11 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 if(fight->net.reported_dead)
                 {
                     int32_t player_id = get_id_from_fighter(fight);
+                    int32_t player_who_killed_me_id = fight->player_id_i_was_last_hit_by;
+                    ///im pretty sure this is valid if fight->net.reported_dead is true
+                    ///the sequence is - fighter hits player, broadcasts hp_delta and their id for the hit into
+                    ///fight recognises his own death on every person's game and sends reported dead (checked_death) to server (this function!)
+                    ///that means that the last hit id must be valid at this point, unless there is a logic error
 
                     ///this should be impossible
                     if(player_id == -1)
@@ -608,12 +613,15 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                         continue;
                     }
 
+                    printf("fighter killed by %i\n", player_who_killed_me_id);
+
                     byte_vector vec;
                     vec.push_back<int32_t>(canary_start);
                     vec.push_back<int32_t>(message::REPORT);
                     vec.push_back<int32_t>(report::DEATH);
                     vec.push_back<int32_t>(player_id);
-                    vec.push_back<int32_t>(0); ///no extra data
+                    vec.push_back<int32_t>(sizeof(player_who_killed_me_id)); ///4 bytes of extra data
+                    vec.push_back<int32_t>(player_who_killed_me_id); ///extra data
                     vec.push_back<int32_t>(canary_end);
 
                     udp_send(to_game, vec.ptr);
@@ -711,6 +719,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 udp_send(to_game, vec.ptr);
             }
 
+            ///so, everyone receives the hp_delta of the client, but only the hoest is updating this piece of information here
             for(auto& i : my_fighter->parts)
             {
                 ///I set my own HP, don't update my hp with the delta
@@ -787,6 +796,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
         i.second.fight->position_cosmetics();
 
+        i.second.fight->update_last_hit_id();
+
 
         ///death is dynamically calculated from part health
         if(!i.second.fight->dead())
@@ -862,6 +873,8 @@ void server_networking::set_my_fighter(fighter* fight)
         return;
 
     discovered_fighters[my_id] = {fight, my_id};
+
+    fight->set_network_id(my_id);
 }
 
 void gamemode_info::process_gamemode_update(byte_fetch& arg)

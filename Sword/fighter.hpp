@@ -721,6 +721,7 @@ struct fighter
     void update_lights();
     void overwrite_parts_from_model();
     void update_texture_by_part_hp();
+    void update_last_hit_id();
 
     void set_network_id(int32_t net_id);
 

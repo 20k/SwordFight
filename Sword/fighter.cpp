@@ -343,6 +343,7 @@ void part::damage(float dam, bool do_effect, int32_t network_id_hit_by)
 
     net.damage_info.id_hit_by = network_id_hit_by;
 
+
     //printf("%f\n", hp);
 
     if(is_active && hp < 0.0001f)
@@ -1514,7 +1515,7 @@ void fighter::tick(bool is_player)
                     fighter* their_parent = phys->bodies[i.hit_id].parent;
 
                     ///this is the only time damage is applied to anything, ever
-                    their_parent->damage((bodypart_t)(i.hit_id % COUNT), i.damage, their_parent->network_id);
+                    their_parent->damage((bodypart_t)(i.hit_id % COUNT), i.damage, this->network_id);
 
                     ///this is where the networking fighters get killed
                     ///this is no longer true, may happen here or in server_networking
@@ -2830,6 +2831,28 @@ void fighter::update_texture_by_part_hp()
     }
 }
 
+void fighter::update_last_hit_id()
+{
+    int32_t last_id = -1;
+
+    for(auto& i : parts)
+    {
+        if(i.net.damage_info.hp_delta != 0.f)
+        {
+            i.net.damage_info.hp_delta = 0.f;
+
+            if(last_id != -1)
+                printf("potential conflict in last id hit, update_last_hit_id()\n");
+
+            last_id = i.net.damage_info.id_hit_by;
+
+            player_id_i_was_last_hit_by = last_id;
+
+            printf("updated last hit id\n");
+        }
+    }
+}
+
 void fighter::set_network_id(int32_t net_id)
 {
     network_id = net_id;
@@ -3002,6 +3025,10 @@ void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by)
     bool do_explode_effect = num_dead() < num_needed_to_die() - 1;
 
     parts[type].damage(d, do_explode_effect, network_id_hit_by);
+
+    printf("network hit id %i\n", network_id_hit_by);
+
+    player_id_i_was_last_hit_by = network_id_hit_by;
 
     net.recoil = 1;
     net.recoil_dirty = true;
