@@ -801,6 +801,8 @@ int main(int argc, char *argv[])
         ///otherwise in async we'll waste huge performance
         ///in synchronous that's not a problem
 
+        window.window.resetGLStates();
+
         if(window.render_me && !in_menu)
         {
             text::draw(&window.window);
