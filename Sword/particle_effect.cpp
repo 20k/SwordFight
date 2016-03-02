@@ -145,14 +145,41 @@ void light_effect::tick()
 {
     float time = elapsed_time.getElapsedTime().asMicroseconds() / 1000.f;
 
-    //pos.v[1] += 1.1f;
-
     pos = start + (vec3f){0, 0.2f, 0} * time;
 
     l->set_pos({pos.v[0], pos.v[1], pos.v[2]});
 
     if(time > duration_ms)
         finished = true;
+}
+
+void clang_light_effect::make(float duration, vec3f pos, vec3f col, float rad)
+{
+    light nl;
+
+    nl.set_pos({pos.v[0], pos.v[1], pos.v[2]});
+    nl.set_col({col.v[0], col.v[1], col.v[2]});
+    nl.set_radius(rad);
+
+    l = light::add_light(&nl);
+
+    duration_ms = duration;
+}
+
+void clang_light_effect::tick()
+{
+    float time = elapsed_time.getElapsedTime().asMicroseconds() / 1000.f;
+
+    float done_frac = time / duration_ms;
+
+    l->set_brightness(clamp(1.f - done_frac, 0.f, 1.f));
+
+    if(time > duration_ms)
+    {
+        light::remove_light(l);
+
+        finished = true;
+    }
 }
 
 void particle_effect::tick()

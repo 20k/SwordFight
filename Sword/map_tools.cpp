@@ -33,7 +33,10 @@ int get_map_loc(const std::vector<int>& map_def, vec2i pos, vec2i dim)
 {
     int world_h = map_def[pos.v[1] * dim.v[0] + pos.v[0]];
 
-    if(world_h == map_namespace::R || world_h == map_namespace::B)
+    //if(world_h == map_namespace::R || world_h == map_namespace::B)
+    //    world_h = 0;
+
+    if(world_h < 0)
         world_h = 0;
 
     return world_h;

@@ -559,7 +559,7 @@ void sword::load_team_model()
 
     texture_context* tex_ctx = &cpu_context->tex_ctx;
 
-    texture* tex = tex_ctx->id_to_tex(model->objs[0].tid);
+    //texture* tex = tex_ctx->id_to_tex(model->objs[0].tid);
 
     ///need to reference count textures
     ///for the moment we can just leak some extremely inconsequential amount of memory
@@ -3195,6 +3195,11 @@ void fighter::check_and_play_sounds(bool player)
             i.local.play_hit_audio = 0;
 
             i.net.play_hit_audio = 0;
+
+            clang_light_effect hit_effect;
+            hit_effect.make(400.f, pos, (vec3f){10.f, 10.f, 10.f}, 200.f);
+
+            particle_effect::push(hit_effect);
         }
     }
 
@@ -3214,6 +3219,11 @@ void fighter::check_and_play_sounds(bool player)
 
         local.play_clang_audio = 0;
         net.play_clang_audio = 0;
+
+        clang_light_effect clang_effect;
+        clang_effect.make(1000.f, pos, {1.f, 1.f, 1.f}, 1000.f);
+
+        particle_effect::push(clang_effect);
     }
 }
 

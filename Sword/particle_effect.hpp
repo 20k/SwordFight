@@ -55,6 +55,16 @@ struct light_effect : effect
     ~light_effect() = default;
 };
 
+struct clang_light_effect : effect
+{
+    vec3f pos;
+
+    light* l;
+
+    void tick();
+    void make(float duration, vec3f pos, vec3f col, float rad);
+};
+
 struct particle_effect
 {
     static std::vector<effect*> effects;
