@@ -910,47 +910,12 @@ void gamemode_info::tick()
 
 bool gamemode_info::game_over()
 {
-    /*if(current_session_state.team_1_killed >= current_session_boundaries.max_kills ||
-       current_session_state.team_0_killed >= current_session_boundaries.max_kills ||
-       current_session_state.time_elapsed > current_session_boundaries.max_time_ms)
-    {
-        return true;
-    }
-
-    return false;*/
-
-    /*for(int i=0; i<TEAM_NUMS; i++)
-    {
-        ///WARNING, THIS SHOULD BE TEAM KILLS
-        if(current_session_state.team_killed[i] >= current_session_boundaries.max_kills)
-            return true;
-    }
-
-    if(current_session_state.time_elapsed >= current_session_boundaries.max_time_ms)
-        return true;
-
-    return false;*/
-
     return current_session_state.game_over(current_session_boundaries);
 }
 
 ///needs to be gamemode specific really
 std::string gamemode_info::get_game_over_string()
 {
-    /*///team 0 wins
-    ///should really be done by who killed more
-    if(current_session_state.team_killed[1] >= current_session_boundaries.max_kills)
-    {
-        return "Team " + team_defs::team_names[0] + " wins!";
-    }
-
-    if(current_session_state.team_killed[0] >= current_session_boundaries.max_kills)
-    {
-        return "Team " + team_defs::team_names[1] + " wins!";
-    }
-
-    return "Its a draw!";*/
-
     return current_session_state.get_game_over_string(current_session_boundaries);
 }
 
@@ -958,28 +923,6 @@ std::string gamemode_info::get_game_over_string()
 ///centre align?
 std::string gamemode_info::get_display_string()
 {
-    /*///the number of kills is the opposite of who killed who
-    std::string t0str = std::to_string(current_session_state.team_killed[1]);
-    std::string t1str = std::to_string(current_session_state.team_killed[0]);
-    std::string mkstr = std::to_string(current_session_boundaries.max_kills);
-
-    std::string t0remaining = std::to_string(current_session_boundaries.max_kills - current_session_state.team_killed[1]);
-    std::string t1remaining = std::to_string(current_session_boundaries.max_kills - current_session_state.team_killed[0]);
-
-    std::string tstr = std::to_string((int)current_session_state.time_elapsed / 1000);
-    std::string mtstr = std::to_string((int)current_session_boundaries.max_time_ms / 1000);
-
-    std::string team_line = "Team 0 kills: " + t0str + " with " + t0remaining + " remaining!"
-                        + "\nTeam 1 kills: " + t1str + " with " + t1remaining + " remaining!";
-
-    std::string team_next_line = mkstr + " kills needed total";
-
-    std::string time_str = tstr + " of " + mtstr + " remaining!";
-
-    //return kstr + "/" + mkstr + "\n" + tstr + "/" + mtstr;
-
-    return team_line + "\n" + team_next_line + "\n" + time_str;*/
-
     return current_session_state.get_current_game_state_string(current_session_boundaries);
 }
 
