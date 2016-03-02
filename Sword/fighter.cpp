@@ -554,20 +554,33 @@ void sword::set_team(int _team)
 
 void sword::load_team_model()
 {
-    if(team == 0)
-    {
-        model->set_file("./Res/sword_red.obj");
-    }
-    else
-    {
-        model->set_file("./Res/sword_blue.obj");
-    }
+    model->set_file("./Res/sword_red.obj");
 
     model->unload();
 
     model->set_active(true);
 
     cpu_context->load_active();
+
+    texture_context* tex_ctx = &cpu_context->tex_ctx;
+
+    texture* tex = tex_ctx->id_to_tex(model->objs[0].tid);
+
+    ///need to reference count textures
+    ///for the moment we can just leak some extremely inconsequential amount of memory
+    ///(the texture will never be loaded)
+    //tex_ctx->destroy(tex);
+
+
+    texture* ntex = tex_ctx->make_new_cached(team_info::get_texture_cache_name(team));
+
+    vec3f col = team_info::get_team_col(team);
+
+    ntex->set_create_colour({col.v[0], col.v[1], col.v[2]}, 128, 128);
+
+    model->objs[0].tid = ntex->id;
+
+
     scale();
 
     model->set_specular(bodypart::specular);
@@ -622,17 +635,27 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
 {
     vec3f dir = (p2->pos - p1->pos);
 
-    std::string tex = "./res/red.png";
+    /*std::string tex = "./res/red.png";
 
     ///should really define this in a header somewhere, rather than here in shit code
     if(team == 1)
-        tex = "./res/blue.png";
+        tex = "./res/blue.png";*/
+
+
+    texture_context* tex_ctx = &p1->cpu_context->tex_ctx;
+
+    texture* ntex = tex_ctx->make_new_cached(team_info::get_texture_cache_name(team));
+
+    vec3f col = team_info::get_team_col(team);
+
+    ntex->set_create_colour({col.v[0], col.v[1], col.v[2]}, 128, 128);
+
 
     vec3f start = p1->pos + dir * squish;
     vec3f finish = p2->pos - dir * squish;
 
     objects_container* o = p1->cpu_context->make_new();
-    o->set_load_func(std::bind(load_object_cube, std::placeholders::_1, start, finish, thickness, tex));
+    o->set_load_func(std::bind(load_object_cube_tex, std::placeholders::_1, start, finish, thickness, *ntex));
     o->cache = false;
     //o.set_normal("res/norm_body.png");
 
@@ -2705,10 +2728,14 @@ void fighter::update_lights()
 
     for(auto& i : my_lights)
     {
-        if(team == 0)
+        /*if(team == 0)
             i->set_col({1.f, 0.f, 0.f, 0.f});
         else
-            i->set_col({0.f, 0.f, 1.f, 0.f});
+            i->set_col({0.f, 0.f, 1.f, 0.f});*/
+
+        vec3f col = team_info::get_team_col(team) / 255.f;
+
+        i->set_col({col.v[0], col.v[1], col.v[2]});
 
         //i->set_col({1.f, 1.f, 1.f});
     }

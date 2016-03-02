@@ -67,6 +67,19 @@ triangle points_to_tri(cl_float4 in[3], float size, float len, int which_side) /
 ///fin - start is the object direction
 void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float size, std::string tex_name)
 {
+    texture_context* tex_ctx = &pobj->parent->tex_ctx;
+
+    ///remember to set location if its just making new
+    texture* tex = tex_ctx->make_new_cached(tex_name.c_str());
+
+    return load_object_cube_tex(pobj, start, fin, size, *tex);
+}
+
+///fin - start is the object direction
+void load_object_cube_tex(objects_container* pobj, vec3f start, vec3f fin, float size, texture& tex)
+{
+    texture_context* tex_ctx = &pobj->parent->tex_ctx;
+
     start = start + xyz_to_vec(pobj->pos);
     fin = fin + xyz_to_vec(pobj->pos);
 
@@ -141,11 +154,6 @@ void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float siz
     tex.set_texture_location(tex_name.c_str());
     tex.push();*/
 
-    texture_context* tex_ctx = &pobj->parent->tex_ctx;
-
-    ///remember to set location if its just making new
-    texture* tex = tex_ctx->make_new_cached(tex_name.c_str());
-
     cl_uint normal_id = -1;
     texture* normal = nullptr;
 
@@ -163,7 +171,7 @@ void load_object_cube(objects_container* pobj, vec3f start, vec3f fin, float siz
     obj.tri_list = tris;
 
     obj.tri_num = obj.tri_list.size();
-    obj.tid = tex->id;
+    obj.tid = tex.id;
     obj.bid = -1;
     obj.rid = normal_id;
     obj.has_bump = 0;

@@ -10,6 +10,7 @@
 #include "physics.hpp"
 #include "fighter.hpp"
 #include "../openclrenderer/vec.hpp"
+#include "../sword_server/teaminfo_shared.hpp"
 
 ///10, 30
 ///8, 10
@@ -87,14 +88,21 @@ void cape::load_cape(objects_container* pobj, int team)
 
     texture* tex;
 
-    if(team == 0)
+    /*if(team == 0)
     {
         tex = tex_ctx->make_new_cached("./res/red.png");
     }
     else
     {
         tex = tex_ctx->make_new_cached("./res/blue.png");
-    }
+    }*/
+
+    tex = tex_ctx->make_new_cached(team_info::get_texture_cache_name(team));
+
+    vec3f col = team_info::get_team_col(team);
+
+    tex->set_create_colour({col.v[0], col.v[1], col.v[2]}, 128, 128);
+
 
     /*if(team == 0)
         tex.set_texture_location("./res/red.png");
