@@ -82,20 +82,12 @@ void cape::load_cape(objects_container* pobj, int team)
         tris.push_back(t);
     }
 
-    //texture tex;
+
 
     texture_context* tex_ctx = &pobj->parent->tex_ctx;
 
-    texture* tex;
 
-    /*if(team == 0)
-    {
-        tex = tex_ctx->make_new_cached("./res/red.png");
-    }
-    else
-    {
-        tex = tex_ctx->make_new_cached("./res/blue.png");
-    }*/
+    texture* tex;
 
     tex = tex_ctx->make_new_cached(team_info::get_texture_cache_name(team));
 
@@ -103,13 +95,6 @@ void cape::load_cape(objects_container* pobj, int team)
 
     tex->set_create_colour({col.v[0], col.v[1], col.v[2]}, 128, 128);
 
-
-    /*if(team == 0)
-        tex.set_texture_location("./res/red.png");
-    else
-        tex.set_texture_location("./res/blue.png");
-
-    tex.push();*/
 
     cl_uint normal_id = -1;
     texture* normal;

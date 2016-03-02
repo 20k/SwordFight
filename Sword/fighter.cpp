@@ -365,11 +365,6 @@ void part::update_texture_by_hp()
     {
         old_hp = hp;
 
-        /*cl_float4 rcol = {248, 63, 95};
-        cl_float4 bcol = {63, 95, 248};
-
-        cl_float4 pcol = team == 0 ? rcol : bcol;*/
-
         vec3f col = team_info::get_team_col(team);
 
         cl_float4 pcol = {col.v[0], col.v[1], col.v[2]};
@@ -2736,8 +2731,6 @@ void fighter::update_lights()
         vec3f col = team_info::get_team_col(team) / 255.f;
 
         i->set_col({col.v[0], col.v[1], col.v[2]});
-
-        //i->set_col({1.f, 1.f, 1.f});
     }
 
     for(auto& i : my_lights)
