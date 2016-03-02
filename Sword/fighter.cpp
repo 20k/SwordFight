@@ -277,29 +277,6 @@ void part::set_team(int _team)
 ///might currently leak texture memory
 void part::load_team_model()
 {
-    ///this is not the place to define these
-    /*const std::string low_red = "res/low/bodypart_red.obj";
-    const std::string high_red = "res/high/bodypart_red.obj";
-    const std::string low_blue = "res/low/bodypart_blue.obj";
-    const std::string high_blue = "res/high/bodypart_blue.obj";
-
-    std::string to_load = low_red;
-
-    if(quality == 0)
-    {
-        if(team == 0)
-            to_load = low_red;
-        else
-            to_load = low_blue;
-    }
-    else
-    {
-        if(team == 0)
-            to_load = high_red;
-        else
-            to_load = high_blue;
-    }*/
-
     const std::string low = "res/low/bodypart_red.obj";
     const std::string high = "res/high/bodypart_red.obj";
 
