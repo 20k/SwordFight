@@ -34,21 +34,12 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
 
         vec3f p2 = p1 + (vec3f){0, 0, len};
 
-        /*std::string tex;
-
-        if(_team == 0)
-            tex = "./res/red.png";
-        else
-            tex = "./res/blue.png";*/
 
         texture_context* tex_ctx = &cpu_context->tex_ctx;
-
         texture* ntex = tex_ctx->make_new_cached(team_info::get_texture_cache_name(_team));
 
         vec3f col = team_info::get_team_col(_team);
-
         ntex->set_create_colour({col.v[0], col.v[1], col.v[2]}, 128, 128);
-
 
 
         objects_container* o = cpu_context->make_new();
