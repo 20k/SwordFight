@@ -14,6 +14,8 @@
 
 #include "text.hpp"
 
+#include "../sword_server/teaminfo_shared.hpp"
+
 /*vec3f jump_descriptor::get_absolute_jump_displacement_tick(float dt, fighter* fight)
 {
     if(current_time > time_ms)
@@ -276,7 +278,7 @@ void part::set_team(int _team)
 void part::load_team_model()
 {
     ///this is not the place to define these
-    const std::string low_red = "res/low/bodypart_red.obj";
+    /*const std::string low_red = "res/low/bodypart_red.obj";
     const std::string high_red = "res/high/bodypart_red.obj";
     const std::string low_blue = "res/low/bodypart_blue.obj";
     const std::string high_blue = "res/high/bodypart_blue.obj";
@@ -296,7 +298,15 @@ void part::load_team_model()
             to_load = high_red;
         else
             to_load = high_blue;
-    }
+    }*/
+
+    const std::string low = "res/low/bodypart_red.obj";
+    const std::string high = "res/high/bodypart_red.obj";
+
+    std::string to_load = low;
+
+    if(quality == 1)
+        to_load = high;
 
     /*display_tex.type = 0;
     display_tex.set_unique();
@@ -313,6 +323,22 @@ void part::load_team_model()
     set_active(true);
 
     cpu_context->load_active();
+
+    texture_context* tex_ctx = &cpu_context->tex_ctx;
+
+    texture* tex = tex_ctx->id_to_tex(model->objs[0].tid);
+
+    if(tex)
+    {
+        vec3f col = team_info::get_team_col(team);
+
+        int res = 256;
+
+        if(quality == 1)
+            res = 1024;
+
+        tex->set_create_colour({col.v[0], col.v[1], col.v[2]}, res, res);
+    }
 
     model->set_specular(bodypart::specular);
 
@@ -352,33 +378,6 @@ void part::damage(float dam, bool do_effect, int32_t network_id_hit_by)
     }
 
     ///so, lets do this elsewhere
-
-
-
-    /*cl_float4 rcol = {248, 63, 95};
-    cl_float4 bcol = {63, 95, 248};
-
-    cl_float4 pcol = team == 0 ? rcol : bcol;
-
-    if(!model->isactive || !model->isloaded)
-        return;
-
-    ///if this is async this might break
-    if(hp > 0)
-    {
-        pcol.x *= hp;
-        pcol.y *= hp;
-        pcol.z *= hp;
-
-        cl_uint tid = model->objs[0].tid;
-
-        texture* tex = texture_manager::texture_by_id(tid);
-
-        tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu);
-    }*/
-
-
-    //network_hp(dam);
 }
 
 #include <vec/vec.hpp>
@@ -389,10 +388,14 @@ void part::update_texture_by_hp()
     {
         old_hp = hp;
 
-        cl_float4 rcol = {248, 63, 95};
+        /*cl_float4 rcol = {248, 63, 95};
         cl_float4 bcol = {63, 95, 248};
 
-        cl_float4 pcol = team == 0 ? rcol : bcol;
+        cl_float4 pcol = team == 0 ? rcol : bcol;*/
+
+        vec3f col = team_info::get_team_col(team);
+
+        cl_float4 pcol = {col.v[0], col.v[1], col.v[2]};
 
         if(!model->isactive || !model->isloaded)
             return;
