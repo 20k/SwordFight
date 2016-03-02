@@ -919,7 +919,7 @@ bool gamemode_info::game_over()
 
     return false;*/
 
-    for(int i=0; i<TEAM_NUMS; i++)
+    /*for(int i=0; i<TEAM_NUMS; i++)
     {
         ///WARNING, THIS SHOULD BE TEAM KILLS
         if(current_session_state.team_killed[i] >= current_session_boundaries.max_kills)
@@ -929,13 +929,15 @@ bool gamemode_info::game_over()
     if(current_session_state.time_elapsed >= current_session_boundaries.max_time_ms)
         return true;
 
-    return false;
+    return false;*/
+
+    return current_session_state.game_over(current_session_boundaries);
 }
 
 ///needs to be gamemode specific really
 std::string gamemode_info::get_game_over_string()
 {
-    ///team 0 wins
+    /*///team 0 wins
     ///should really be done by who killed more
     if(current_session_state.team_killed[1] >= current_session_boundaries.max_kills)
     {
@@ -947,19 +949,16 @@ std::string gamemode_info::get_game_over_string()
         return "Team " + team_defs::team_names[1] + " wins!";
     }
 
-    /*for(int i=0; i<NUM_TEAMS; i++)
-    {
-        return "Team " + team_defs::team_names
-    }*/
+    return "Its a draw!";*/
 
-    return "Its a draw!";
+    return current_session_state.get_game_over_string(current_session_boundaries);
 }
 
 ///gamemode?
 ///centre align?
 std::string gamemode_info::get_display_string()
 {
-    ///the number of kills is the opposite of who killed who
+    /*///the number of kills is the opposite of who killed who
     std::string t0str = std::to_string(current_session_state.team_killed[1]);
     std::string t1str = std::to_string(current_session_state.team_killed[0]);
     std::string mkstr = std::to_string(current_session_boundaries.max_kills);
@@ -979,7 +978,9 @@ std::string gamemode_info::get_display_string()
 
     //return kstr + "/" + mkstr + "\n" + tstr + "/" + mtstr;
 
-    return team_line + "\n" + team_next_line + "\n" + time_str;
+    return team_line + "\n" + team_next_line + "\n" + time_str;*/
+
+    return current_session_state.get_current_game_state_string(current_session_boundaries);
 }
 
 std::vector<fighter*> server_networking::get_fighters()
