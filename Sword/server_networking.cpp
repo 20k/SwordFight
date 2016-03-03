@@ -36,7 +36,7 @@ void server_networking::join_master()
 
         to_master = tcp_sock(master_info.get());
 
-        printf("joined master server\n");
+        lg::log("joined master server");
     }
 }
 
@@ -69,7 +69,7 @@ void server_networking::join_game_tick(const std::string& address, const std::st
         my_id = -1;
         discovered_fighters.clear();
 
-        printf("Connected gameserver %s:%s\n", address.c_str(), port.c_str());
+        lg::log("Connected gameserver ", address.c_str(), ":", port.c_str());
     }
 }
 
@@ -77,7 +77,7 @@ void server_networking::join_game_by_local_id_tick(int id)
 {
     if(id < 0 || id >= (int)server_list.size())
     {
-        printf("invalid joingame id %i\n", id);
+        lg::log("invalid joingame id ", id);
         return;
     }
 
@@ -283,7 +283,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 }
                 else
                 {
-                    printf("Network error or 0 gameservers available\n");
+                    lg::log("Network error or 0 gameservers available");
 
                     pinged = false; ///invalid response, ping again
                 }
@@ -328,7 +328,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 if(canary_end != found_end)
                 {
-                    printf("bad forward canary\n");
+                    lg::log("bad forward canary");
 
                     return;
                 }
@@ -343,7 +343,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                             continue;
                     }
 
-                    printf("made a new networked player %i\n", player_id);
+                    lg::log("made a new networked player ", player_id);
 
                     continue;
                 }
@@ -353,7 +353,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 if(!have_id)
                 {
-                    printf("no id, skipping\n");
+                    lg::log("no id, skipping");
                     discovered_fighters.clear();
                     continue;
                 }
@@ -364,7 +364,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 if(component_id < 0 || component_id >= arg_map.size())
                 {
-                    printf("err in forwarding\n");
+                    lg::log("err in forwarding");
                     return; ///?
                 }
 
@@ -372,7 +372,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 if(len != comp.size || comp.size == 0 || comp.ptr == nullptr)
                 {
-                    printf("err in argument\n");
+                    lg::log("err in argument");
                     return;
                 }
 
@@ -407,7 +407,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     have_id = true;
                     my_id = recv_id;
 
-                    printf("Got joinack, I have id: %i\n", my_id);
+                    lg::log("Got joinack, I have id: ", my_id);
                 }
             }
 
@@ -425,11 +425,11 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     if(have_id && discovered_fighters.find(client_id) != discovered_fighters.end() && discovered_fighters[client_id].fight)
                         discovered_fighters[client_id].fight->set_team(team);
                     else
-                        printf("teamassignskip\n");
+                        lg::log("teamassignskip");
                 }
                 else
                 {
-                    printf("Team assign canary err\n");
+                    lg::log("Team assign canary err");
                 }
 
                 //printf("postteam\n");
@@ -461,11 +461,11 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     if(have_id && discovered_fighters[my_id].fight != nullptr)
                         discovered_fighters[my_id].fight->respawn(new_pos);
                     else
-                        printf("respawn skip\n");
+                        lg::log("respawn skip");
                 }
                 else
                 {
-                    printf("canary error in respawnresponse\n");
+                    lg::log("canary error in respawnresponse");
                 }
             }
 
@@ -489,7 +489,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 }
                 else
                 {
-                    printf("canary err in respawninfo\n");
+                    lg::log("canary err in respawninfo");
                 }
             }
 
@@ -541,7 +541,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 ///? should be impossibru
                 if(!fight)
                 {
-                    printf("Null fighter, should be impossible\n");
+                    lg::log("Null fighter, should be impossible");
                     continue;
                 }
 
@@ -609,11 +609,11 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     ///this should be impossible
                     if(player_id == -1)
                     {
-                        printf("Fighter reported dead, but does not exist on networking\n");
+                        lg::log("Fighter reported dead, but does not exist on networking");
                         continue;
                     }
 
-                    printf("fighter killed by %i\n", player_who_killed_me_id);
+                    lg::log("fighter killed by ", player_who_killed_me_id);
 
                     byte_vector vec;
                     vec.push_back<int32_t>(canary_start);
@@ -762,7 +762,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
         if(i.second.id < 0)
         {
-            printf("super bad error, invalid fighter\n");
+            lg::log("super bad error, invalid fighter");
             continue;
         }
 
@@ -827,7 +827,7 @@ void server_networking::print_serverlist()
 {
     for(int i=0; i<(int)server_list.size(); i++)
     {
-        printf("SN: %i %s:%s\n", i, server_list[i].address.c_str(), server_list[i].their_host_port.c_str());
+        lg::log("SN: ", i, " ", server_list[i].address.c_str(), ":", server_list[i].their_host_port.c_str());
     }
 }
 
@@ -893,7 +893,7 @@ void gamemode_info::process_gamemode_update(byte_fetch& arg)
 
     if(found_end != canary_end)
     {
-        printf("err in proces gamemode updates bad canary\n");
+        lg::log("err in proces gamemode updates bad canary");
         return;
     }
 

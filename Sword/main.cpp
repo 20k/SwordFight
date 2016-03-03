@@ -35,6 +35,7 @@
 #include "version.h"
 
 #include "util.hpp"
+#include "../openclrenderer/logging.hpp"
 
 ///none of these affect the camera, so engine does not care about them
 ///assume main is blocking
@@ -235,7 +236,9 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 ///build then flip is invalid
 int main(int argc, char *argv[])
 {
-    printf("preload\n");
+    lg::set_logfile("./logging.txt");
+
+    lg::log("preload");
 
     settings s;
     s.load("./res/settings.txt");
@@ -300,7 +303,7 @@ int main(int argc, char *argv[])
 
     //window.window.setFramerateLimit(60.f);
 
-    printf("loaded\n");
+    lg::log("loaded");
 
     //text::set_renderwindow(window.window);
 
@@ -323,16 +326,16 @@ int main(int argc, char *argv[])
     physics phys;
     phys.load();
 
-    printf("preload\n");
+    lg::log("preload");
 
     context.load_active();
 
-    printf("postload\n");
+    lg::log("postload");
 
     fight.set_physics(&phys);
     fight2.set_physics(&phys);
 
-    printf("loaded net fighters\n");
+    lg::log("loaded net fighters");
 
     ///a very high roughness is better (low spec), but then i think we need to remove the overhead lights
     ///specular component
@@ -343,7 +346,7 @@ int main(int argc, char *argv[])
 
     //window.set_tex_data(tex_gpu);
 
-    printf("textures\n");
+    lg::log("textures");
 
     context.build(true);
 
@@ -355,7 +358,7 @@ int main(int argc, char *argv[])
     auto ctx = context.fetch();
     window.set_object_data(*ctx);
 
-    printf("loaded memory\n");
+    lg::log("loaded memory");
 
     sf::Event Event;
 
@@ -375,7 +378,7 @@ int main(int argc, char *argv[])
 
     window.set_light_data(light_data);
 
-    printf("light\n");
+    lg::log("light");
 
     server_networking server;
     server.set_graphics(s.quality);
@@ -391,7 +394,7 @@ int main(int argc, char *argv[])
 
     fighter* my_fight = &fight;
 
-    printf("Presspace\n");
+    lg::log("Presspace");
 
     space_manager space_res;
 
@@ -409,7 +412,7 @@ int main(int argc, char *argv[])
 
     //printf("SSize %i mb\n", (g_star_cloud.g_colour_mem.size() / 1024) / 1024);
 
-    printf("Postspace\n");
+    lg::log("Postspace");
 
     ///debug;
     int controls_state = 1;
@@ -418,28 +421,28 @@ int main(int argc, char *argv[])
     if(s.enable_debugging)
         controls_state = 0;
 
-    printf("loop\n");
+    lg::log("loop");
 
     {
-        printf("%i\n", context.containers.size());
+        lg::log(context.containers.size());
     }
 
     fight.set_secondary_context(&transparency_context);
     fight2.set_secondary_context(&transparency_context);
 
-    printf("post set secondary context (transparency)\n");
+    lg::log("post set secondary context (transparency)");
 
     fight.set_name(s.name);
     fight2.set_name("Philip");
 
     fighter* net_test = nullptr;
 
-    printf("post name rendering\n");
+    lg::log("post name rendering");
 
     context.fetch()->ensure_screen_buffers(window.width, window.height);
     transparency_context.fetch()->ensure_screen_buffers(window.width, window.height);
 
-    printf("build screens\n");
+    lg::log("build screens");
 
     menu_system menu_handler;
 

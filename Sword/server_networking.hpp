@@ -7,6 +7,7 @@
 #include "../sword_server/reliability_shared.hpp"
 #include <net/shared.hpp>
 #include <map>
+#include "../openclrenderer/logging.hpp"
 
 struct fighter;
 struct object_context;
@@ -168,7 +169,7 @@ network_update_element(server_networking* net, T* element, fighter* fight)
 
     if(pos == -1)
     {
-        printf("Error in network update element -1\n");
+        lg::log("Error in network update element -1");
         return;
     }
 
@@ -176,13 +177,13 @@ network_update_element(server_networking* net, T* element, fighter* fight)
 
     if(network_id == -1)
     {
-        printf("Error in network update netid -1\n");
+        lg::log("Error in network update netid -1");
         return;
     }
 
     if(!net->is_init || !net->to_game.valid())
     {
-        printf("Some kind of... network error, spewing errors back into the observable universe!\n");
+        lg::log("Some kind of... network error, spewing errors back into the observable universe!");
         return;
     }
 
@@ -212,7 +213,7 @@ network_update_element_reliable(server_networking* net, T* element, fighter* fig
 
     if(pos == -1)
     {
-        printf("Error in network update element -1\n");
+        lg::log("Error in reliable network update element -1");
         return;
     }
 
@@ -220,13 +221,13 @@ network_update_element_reliable(server_networking* net, T* element, fighter* fig
 
     if(network_id == -1)
     {
-        printf("Error in network update netid -1\n");
+        lg::log("Error in reliable network update netid -1");
         return;
     }
 
     if(!net->is_init || !net->to_game.valid())
     {
-        printf("Some kind of... network error, spewing errors back into the observable universe!\n");
+        lg::log("Some kind of... reliable network error, spewing errors back into the observable universe!");
         return;
     }
 

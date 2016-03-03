@@ -1,8 +1,8 @@
 #include "fighter.hpp"
 #include "physics.hpp"
-#include "../openclrenderer/obj_mem_manager.hpp"
+//#include "../openclrenderer/obj_mem_manager.hpp"
 #include <unordered_map>
-#include "../openclrenderer/network.hpp"
+//#include "../openclrenderer/network.hpp"
 
 #include "object_cube.hpp"
 
@@ -15,6 +15,8 @@
 #include "text.hpp"
 
 #include "../sword_server/teaminfo_shared.hpp"
+
+#include "../openclrenderer/logging.hpp"
 
 /*vec3f jump_descriptor::get_absolute_jump_displacement_tick(float dt, fighter* fight)
 {
@@ -1861,7 +1863,7 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 {
     if(game_state == nullptr)
     {
-        printf("Warning: No gameplay state for fighter\n");
+        lg::log("Warning: No gameplay state for fighter");
     }
 
     if(jump_info.is_jumping)
@@ -2556,7 +2558,7 @@ void fighter::update_render_positions()
     ///so there's equal slack on both sides
     for(auto& i : joint_links)
     {
-        bool active = i.p1->is_active && i.p2->is_active;
+        //bool active = i.p1->is_active && i.p2->is_active;
 
         objects_container* obj = i.obj;
 
@@ -2842,13 +2844,13 @@ void fighter::update_last_hit_id()
             i.net.damage_info.hp_delta = 0.f;
 
             if(last_id != -1)
-                printf("potential conflict in last id hit, update_last_hit_id()\n");
+                lg::log("potential conflict in last id hit, update_last_hit_id()");
 
             last_id = i.net.damage_info.id_hit_by;
 
             player_id_i_was_last_hit_by = last_id;
 
-            printf("updated last hit id\n");
+            lg::log("updated last hit id");
         }
     }
 }
@@ -3026,7 +3028,7 @@ void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by)
 
     parts[type].damage(d, do_explode_effect, network_id_hit_by);
 
-    printf("network hit id %i\n", network_id_hit_by);
+    lg::log("network hit id", network_id_hit_by);
 
     player_id_i_was_last_hit_by = network_id_hit_by;
 
@@ -3084,7 +3086,7 @@ void fighter::set_secondary_context(object_context* _transparency_context)
 {
     if(_transparency_context == nullptr)
     {
-        printf("massive error in set_secondary_context\n");
+        lg::log("massive error in set_secondary_context");
 
         exit(44334);
     }
@@ -3161,7 +3163,7 @@ void fighter::update_name_info(bool networked_fighter)
             ///Don't think i need to null terminate this myself
             str.push_back(0);
 
-            printf("fighter network name %s\n", str.c_str());
+            lg::log("fighter network name", str);
 
             if(str == "")
                 str = "Invalid Name";
