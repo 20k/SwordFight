@@ -1,6 +1,7 @@
 #include "reliability_shared.hpp"
 #include <net/shared.hpp>
 #include "master_server/network_messages.hpp"
+#include "../openclrenderer/logging.hpp"
 
 ///wraps data in forward reliable, and gives it an id
 void reliability_manager::add(const byte_vector& vec)
@@ -174,7 +175,7 @@ byte_vector reliability_manager::strip_data_from_forwarding_reliable(byte_fetch&
 
     if(found_end != canary_end)
     {
-        printf("canary error in convert_forwarding\n");
+        lg::log("canary error in convert_forwarding");
         out_reliability_id = -1;
         return byte_vector();
     }
@@ -230,7 +231,7 @@ void reliability_manager::insert_forwarding_from_forwarding_reliable_into_stream
 
     if(found_end != canary_end)
     {
-        printf("canary error in convert_forwarding\n");
+        lg::log("canary error in convert_forwarding");
         return;
     }
 
@@ -306,7 +307,7 @@ void reliability_manager::process_forwarding_reliable_ack(byte_fetch& arg)
 
     if(found_canary != canary_end)
     {
-        printf("canary error in process forwarding reliable ack\n");
+        lg::log("canary error in process forwarding reliable ack");
         return;
     }
 
