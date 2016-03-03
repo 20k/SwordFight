@@ -438,7 +438,8 @@ static std::vector<movement> stab =
     //{0, {-80, -120, +100}, 450, 0, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::NONE)}, /
     //{0, {-80, -0, -10}, 450, 0, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::NONE)},
     {0, {-80, -120, -10}, 450, 4, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::NONE)}, ///windup
-    {0, {-40, -180, -180}, 400, 3, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::FINISH_AT_SCREEN_CENTRE)}, ///attack
+    {0, {-40, -180, -180}, 400, 4, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::FINISH_AT_SCREEN_CENTRE)}, ///attack
+    {0, {100, -150, -140}, 200, 3, bodypart::LHAND,  (movement_t)(mov::NONE)} ///attack
 
     //{0, {-40, -60, -180}, 350, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::FINISH_AT_SCREEN_CENTRE)}, ///attack
     //{0, {-40, -60, -180}, 350, 0, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::FINISH_AT_SCREEN_CENTRE)} ///attack

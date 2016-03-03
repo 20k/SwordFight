@@ -785,7 +785,9 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         i.second.fight->overwrite_parts_from_model();
         i.second.fight->manual_check_part_death();
 
-        i.second.fight->my_cape.tick(i.second.fight);
+        //i.second.fight->my_cape.tick(i.second.fight);
+
+        i.second.fight->tick_cape();
 
         i.second.fight->do_foot_sounds();
 

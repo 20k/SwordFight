@@ -973,6 +973,8 @@ void fighter::tick_cape()
     //if(dead())
     //    return;
 
+    return;
+
     if(quality == 0)
         return;
 
