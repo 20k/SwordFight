@@ -307,13 +307,14 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     continue;
                 }
 
-                if(is_player)
-                    text::add("Hrrk!", time, {scr.x, scr.y});
-                else
-                    text::add_random(std::string("Crikey!") + " My " + bodypart::ui_names[i % bodypart::COUNT] + "!", time);
-
                 if(do_audiovisuals)
                 {
+                    if(is_player)
+                        text::add("Hrrk!", time, {scr.x, scr.y});
+                    else
+                        text::add_random(std::string("Crikey!") + " My " + bodypart::ui_names[i % bodypart::COUNT] + "!", time);
+
+
                     ///recoil request gets set in ::damage
                     them->parts[type].local.play_hit_audio = 1;
                     them->parts[type].local.send_hit_audio = 1;
