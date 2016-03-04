@@ -2356,7 +2356,7 @@ void fighter::set_rot_diff(vec3f diff)
         if(!i.going)
             continue;
 
-        if(i.does(mov::DAMAGING))
+        if(i.does(mov::DAMAGING) || i.does(mov::WINDUP))
         {
             yangle_diff = clamp(yangle_diff, -max_angle_while_damaging, max_angle_while_damaging);
         }
