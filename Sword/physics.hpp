@@ -35,7 +35,7 @@ struct physics
 
     //void tick();
 
-    int sword_collides(sword& w, fighter* parent, vec3f sword_move_dir, bool is_player = false);
+    int sword_collides(sword& w, fighter* parent, vec3f sword_move_dir, bool is_player = false, bool do_audiovisuals = true);
 
     //vec3f get_pos();
 };

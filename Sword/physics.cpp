@@ -94,7 +94,7 @@ void physics::add_objects_container(part* _p, fighter* _parent)
 ///this entire method seems like a hacky bunch of shite
 ///REMEMBER, DEAD OBJECTS ARE STILL CHECKED AGAINST. This is bad for performance (although who cares), but moreover its producing BUGS
 ///FIXME
-int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, bool is_player)
+int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, bool is_player, bool do_audiovisuals)
 {
     if(my_parent->num_dead() >= my_parent->num_needed_to_die())
         return -1;
@@ -239,10 +239,14 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 ///need to differentiate between forced recoil, and optional staggering recoil for windups
                 if((m1.does(mov::BLOCKING) || m2.does(mov::BLOCKING) || them->net.is_blocking) && can_block)
                 {
-                    if(is_player)
-                        text::add("Clang!", time, {scr.x, scr.y});
-                    else
-                        text::add_random("Clang!", time);
+                    if(do_audiovisuals)
+                    {
+                        if(is_player)
+                            text::add("Clang!", time, {scr.x, scr.y});
+                        else
+                            text::add_random("Clang!", time);
+                    }
+
 
                     ///If i'm the network client, this will do nothing for me
                     my_parent->recoil();
@@ -265,10 +269,14 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                     ///their client needs to be updated to make a clang noise
                     ///as they do not know (as we aren't simulating state on every client)
-                    them->local.play_clang_audio = 1;
-                    them->local.send_clang_audio = 1;
 
-                    ///CLANG noise
+                    if(do_audiovisuals)
+                    {
+                        them->local.play_clang_audio = 1;
+                        them->local.send_clang_audio = 1;
+
+                        ///CLANG noise
+                    }
 
                     return -2;
                 }
@@ -304,9 +312,12 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 else
                     text::add_random(std::string("Crikey!") + " My " + bodypart::ui_names[i % bodypart::COUNT] + "!", time);
 
-                ///recoil request gets set in ::damage
-                them->parts[type].local.play_hit_audio = 1;
-                them->parts[type].local.send_hit_audio = 1;
+                if(do_audiovisuals)
+                {
+                    ///recoil request gets set in ::damage
+                    them->parts[type].local.play_hit_audio = 1;
+                    them->parts[type].local.send_hit_audio = 1;
+                }
 
                 return i;
             }
@@ -322,10 +333,13 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     ///no, correct as confusingly set in above loop
     if(caused_hand_recoil)
     {
-        if(is_player)
-            text::add("Smack!", time, {hand_scr.x, hand_scr.y});
-        else
-            text::add_random("MY HAND!", time);
+        if(do_audiovisuals)
+        {
+            if(is_player)
+                text::add("Smack!", time, {hand_scr.x, hand_scr.y});
+            else
+                text::add_random("MY HAND!", time);
+        }
     }
 
     //vec3f end = s_pos + sword_height*dir;

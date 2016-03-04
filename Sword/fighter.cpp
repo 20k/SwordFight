@@ -2914,13 +2914,16 @@ void fighter::check_clientside_parry()
 
         //std::cout << "ohand " << parts[bodypart::LHAND].global_pos << " " << old_pos[bodypart::LHAND] << std::endl;
 
-        int hit_id = phys->sword_collides(weapon, this, move_dir.norm().back_rot({0,0,0}, rot), false);
+        int hit_id = phys->sword_collides(weapon, this, move_dir.norm().back_rot({0,0,0}, rot), false, false);
 
         ///technically we've detected a clientside hit, but we're actually ONLY looking for parries
         ///because attacks want to be attacker authoratitive, and parries want to be client authoratitive
         if(hit_id == -2)
         {
             lg::log("clientside parry\n");
+
+            local.play_clang_audio = 1;
+            local.send_clang_audio = 1;
         }
     }
 }
