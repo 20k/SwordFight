@@ -451,6 +451,8 @@ int main(int argc, char *argv[])
         menu_handler.current_menu_state = menu_system::INGAME;
     }
 
+    context.set_clear_colour({135/255.f, 206/255.f, 250/255.f});
+
     ///fix depth ordering  with transparency
     while(window.window.isOpen())
     {
@@ -872,8 +874,8 @@ int main(int argc, char *argv[])
             ///with no flickering, fewer atomics, and better performance
             ///marginally though
 
-            if(s.quality != 0)
-                space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
+            //if(s.quality != 0)
+            //    space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
 
             window.draw_bulk_objs_n(*cdat);
 
@@ -882,8 +884,8 @@ int main(int argc, char *argv[])
 
         if(window.can_render())
         {
-            if(s.quality != 0)
-                event = space_res.blit_space_to_screen(*cdat);
+            //if(s.quality != 0)
+            //    event = space_res.blit_space_to_screen(*cdat);
         }
 
         if(window.can_render())
