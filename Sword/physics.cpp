@@ -102,6 +102,10 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     if(w.model->isactive == false)
         return -1;
 
+    ///we're recoiling, definitely can't hit anything
+    if(my_parent->net.recoil == 1)
+        return -1;
+
     //vec3f s_rot = w.rot;
     vec3f s_pos = xyz_to_vec(w.model->pos); ///this is its worldspace position
 
@@ -142,6 +146,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     cl_float4 hand_scr = {0,0,0,0};
     vec3f rel = {0,0,0};
     fighter* fighter_hit = nullptr;
+
 
 
     const float block_half_angle = M_PI/3;
@@ -193,6 +198,17 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                 bool can_block = angle < block_half_angle && angle >= -block_half_angle;
 
+                ///if the sword has barely moved, assume we can block
+                ///this might cause problems for really slow backstabs
+                can_block |= sword_move_dir.length() < 0.0001f;
+
+                /*printf("them can block %i %f\n", can_block, angle);
+
+                std::cout << "tlook " << t_look.norm() << std::endl;
+                std::cout << "rsdn " << -rotated_sword_dir.norm() << std::endl;
+                std::cout << "smd " << sword_move_dir.norm() << std::endl;
+                std::cout << "rot " << my_parent->rot << std::endl;*/
+
                 ///if there is no current lhand or rhand movement in the map
                 ///movement default constructs does_block to false
                 ///this seems a bit.... hacky
@@ -219,6 +235,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                 ///recoil. Sword collides is only called for attacks that damage, so therefore this is fine
                 ///blocking recoil IS handled over the network currently
+
+                ///need to differentiate between forced recoil, and optional staggering recoil for windups
                 if((m1.does(mov::BLOCKING) || m2.does(mov::BLOCKING) || them->net.is_blocking) && can_block)
                 {
                     if(is_player)
@@ -226,11 +244,24 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     else
                         text::add_random("Clang!", time);
 
-
-                    //network::send_audio(1, rel.v[0], rel.v[1], rel.v[2]);
-                    //sound::add(1, rel);
-
+                    ///If i'm the network client, this will do nothing for me
                     my_parent->recoil();
+                    my_parent->net.force_recoil = 1;
+
+                    ///so, this will make me try and recoil in my local tick next tick
+                    ///but obviously I'm already doing this, so it hardly matters
+                    ///but if the network client is the aggressor, this will mop up that issue
+                    ///so if we're the network client, this will set recoil
+                    ///which will do a recoil request to their client
+                    ///and store the recoil on my client until their client clears it
+                    ///and we receive it
+                    ///that means on a clientside parry, we will not get damaged (as we've got a check for that)
+                    my_parent->net.recoil = 1;
+                    my_parent->net.recoil_dirty = true;
+
+                    ///only useful if we're the network client, to ensure that we don't damage
+                    ///before the recoil takes place
+                    my_parent->net.is_damaging = 0;
 
                     ///their client needs to be updated to make a clang noise
                     ///as they do not know (as we aren't simulating state on every client)
@@ -239,7 +270,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                     ///CLANG noise
 
-                    return -1;
+                    return -2;
                 }
 
                 ///we still want to recoil even if we hit THEIR hand, but no damage
@@ -261,13 +292,9 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     ///their client will figure out whether or not it makes any sense
                     them->net.recoil = 1;
                     them->net.recoil_dirty = true;
-
-                    ///need to make HRRK noise
-                    //network::host_update(&them->net.recoil);
-                    //them->parts[type].local.play_hit_audio = 1;
-                    //them->parts[type].local.send_hit_audio = 1;
-
-                    //printf("hit\n");
+                    them->net.is_damaging = 0;
+                    ///not host authoratitive, but will stop the clientside detection from crapping out
+                    ///if we hit their hand the same tick - latency and misdetecting a hit
 
                     continue;
                 }
@@ -277,8 +304,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 else
                     text::add_random(std::string("Crikey!") + " My " + bodypart::ui_names[i % bodypart::COUNT] + "!", time);
 
-                //network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
-                //sound::add(0, rel);
+                ///recoil request gets set in ::damage
                 them->parts[type].local.play_hit_audio = 1;
                 them->parts[type].local.send_hit_audio = 1;
 
@@ -300,13 +326,6 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
             text::add("Smack!", time, {hand_scr.x, hand_scr.y});
         else
             text::add_random("MY HAND!", time);
-
-        ///did someone say "horrible coupling"?
-        //network::send_audio(0, rel.v[0], rel.v[1], rel.v[2]);
-        //sound::add(0, rel);
-        ///either hand
-        //fighter_hit->parts[bodypart::LHAND].local.play_hit_audio = 1;
-        //fighter_hit->parts[bodypart::LHAND].local.send_hit_audio = 1;
     }
 
     //vec3f end = s_pos + sword_height*dir;

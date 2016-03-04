@@ -37,6 +37,8 @@
 #include "util.hpp"
 #include "../openclrenderer/logging.hpp"
 
+#include <fstream>
+
 ///none of these affect the camera, so engine does not care about them
 ///assume main is blocking
 void debug_controls(fighter* my_fight, engine& window)
@@ -250,6 +252,23 @@ int main(int argc, char *argv[])
         std::cout.rdbuf( out.rdbuf() );
 
         freopen("err.txt", "w", stdout);
+    }
+    else
+    {
+        std::streambuf* b1 = std::cout.rdbuf();
+
+        //lg::output->rdbuf(b1);
+
+        std::streambuf* b2 = lg::output->rdbuf();
+
+        //b2->rdbuf(b1);
+
+        std::ios* r1 = &std::cout;
+        std::ios* r2 = lg::output;
+
+        r2->rdbuf(b1);
+
+        //std::cout.rdbuf(lg::output->rdbuf());
     }
 
     /*texture tex;

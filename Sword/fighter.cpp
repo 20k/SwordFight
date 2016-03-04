@@ -1301,13 +1301,17 @@ void fighter::tick(bool is_player)
 
     if(net.recoil)
     {
-        if(can_recoil())
+        if(can_windup_recoil() || net.force_recoil)
             recoil();
 
+        net.force_recoil = 0;
         net.recoil = 0;
+        net.recoil_dirty = true;
     }
 
     ///use sword rotation offset to make sword 90 degrees at blocking
+
+    net.is_damaging = 0;
 
     bool arms_are_locked = false;
 
@@ -1335,6 +1339,12 @@ void fighter::tick(bool is_player)
             if((i.limb == LHAND || i.limb == RHAND) && i.does(mov::START_INDEPENDENT))
                 i.start = focus_pos;
 
+        }
+
+        ///really i need to set this per... limb?
+        if(i.does(mov::DAMAGING))
+        {
+            net.is_damaging = 1;
         }
 
         float arm_len = (default_position[LHAND] - default_position[LUPPERARM]).length();
@@ -1500,17 +1510,19 @@ void fighter::tick(bool is_player)
             ///losing a frame currently, FIXME
             ///if the sword hits something, not again until the next move
             ///make me a function?
-            if(i.hit_id == -1 && i.does(mov::DAMAGING))
+            if(i.hit_id < 0 && i.does(mov::DAMAGING))
             {
                 ///this is the GLOBAL move dir, current_pos could be all over the place due to interpolation, lag etc
                 vec3f move_dir = (focus_pos - old_pos).norm();
 
+
+                #ifdef ATTACKER_PHYS
                 ///pass direction vector into here, then do the check
                 ///returns -1 on miss
                 i.hit_id = phys->sword_collides(weapon, this, move_dir, is_player);
 
                 ///if hit, need to signal the other fighter that its been hit with its hit id, relative to part num
-                if(i.hit_id != -1)
+                if(i.hit_id >= 0)
                 {
                     //float damage_amount = attacks::damage_amounts[]
 
@@ -1526,6 +1538,7 @@ void fighter::tick(bool is_player)
 
                     //printf("%s\n", names[i.hit_id % COUNT].c_str());
                 }
+                #endif
             }
 
             if(i.does(mov::BLOCKING))
@@ -2796,6 +2809,11 @@ void fighter::respawn_if_appropriate()
 ///net-fighters ONLY
 void fighter::overwrite_parts_from_model()
 {
+    for(int i=0; i<bodypart::COUNT; i++)
+    {
+        old_pos[i] = parts[i].global_pos;
+    }
+
     for(part& i : parts)
     {
         cl_float4 pos = i.obj()->pos;
@@ -2811,8 +2829,8 @@ void fighter::overwrite_parts_from_model()
 
     ///pos.v[1] is not correct I don't think
     ///but im not sure that matters
-    pos = parts[bodypart::BODY].global_pos;
-    rot = parts[bodypart::BODY].global_rot;
+    //pos = parts[bodypart::BODY].global_pos;
+    //rot = parts[bodypart::BODY].global_rot;
 
     ///this is so that if the remote fighter is actually alive but we don't know
     ///it can die again
@@ -2853,6 +2871,56 @@ void fighter::update_last_hit_id()
             player_id_i_was_last_hit_by = last_id;
 
             lg::log("updated last hit id");
+        }
+    }
+}
+
+///
+void fighter::check_clientside_parry()
+{
+    /*if(i.hit_id == -1 && i.does(mov::DAMAGING))
+    {
+        ///this is the GLOBAL move dir, current_pos could be all over the place due to interpolation, lag etc
+        vec3f move_dir = (focus_pos - old_pos).norm();
+
+        ///pass direction vector into here, then do the check
+        ///returns -1 on miss
+        i.hit_id = phys->sword_collides(weapon, this, move_dir, is_player);
+
+        ///if hit, need to signal the other fighter that its been hit with its hit id, relative to part num
+        if(i.hit_id != -1)
+        {
+            //float damage_amount = attacks::damage_amounts[]
+
+            fighter* their_parent = phys->bodies[i.hit_id].parent;
+
+            ///this is the only time damage is applied to anything, ever
+            their_parent->damage((bodypart_t)(i.hit_id % COUNT), i.damage, this->network_id);
+
+            ///this is where the networking fighters get killed
+            ///this is no longer true, may happen here or in server_networking
+            ///probably should remove this
+            their_parent->checked_death();
+
+            //printf("%s\n", names[i.hit_id % COUNT].c_str());
+        }
+    }*/
+
+    if(net.is_damaging)
+    {
+        //printf("we're damaging network\n");
+
+        vec3f move_dir = parts[bodypart::LHAND].global_pos - old_pos[bodypart::LHAND];
+
+        //std::cout << "ohand " << parts[bodypart::LHAND].global_pos << " " << old_pos[bodypart::LHAND] << std::endl;
+
+        int hit_id = phys->sword_collides(weapon, this, move_dir.norm().back_rot({0,0,0}, rot), false);
+
+        ///technically we've detected a clientside hit, but we're actually ONLY looking for parries
+        ///because attacks want to be attacker authoratitive, and parries want to be client authoratitive
+        if(hit_id == -2)
+        {
+            lg::log("clientside parry\n");
         }
     }
 }
@@ -2970,7 +3038,7 @@ void fighter::cancel_hands()
 }
 
 ///wont recoil more than once, because recoil is not a kind of windup
-void fighter::checked_recoil()
+/*void fighter::checked_recoil()
 {
     movement lhand = action_map[bodypart::LHAND];
     movement rhand = action_map[bodypart::RHAND];
@@ -2979,14 +3047,32 @@ void fighter::checked_recoil()
     {
         recoil();
     }
-}
+}*/
 
-bool fighter::can_recoil()
+bool fighter::can_windup_recoil()
 {
     movement lhand = action_map[bodypart::LHAND];
     movement rhand = action_map[bodypart::RHAND];
 
     if(lhand.does(mov::WINDUP) || rhand.does(mov::WINDUP))
+    {
+        return true;
+    }
+
+    /*if(!lhand.does(mov::IS_RECOIL) && !rhand.does(mov::IS_RECOIL))
+    {
+        return true;
+    }*/
+
+    return false;
+}
+
+bool fighter::currently_recoiling()
+{
+    movement lhand = action_map[bodypart::LHAND];
+    movement rhand = action_map[bodypart::RHAND];
+
+    if(!lhand.does(mov::IS_RECOIL) && !rhand.does(mov::IS_RECOIL))
     {
         return true;
     }

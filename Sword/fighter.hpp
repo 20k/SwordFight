@@ -18,22 +18,23 @@ namespace mov
     {
         NONE = 0,
         DAMAGING = 1,
-        BLOCKING = 2,
-        WINDUP = 4,
-        MOVES = 8, ///physically moves character
-        CAN_STOP = 16, ///movement can be interrupted
-        FINISH_INDEPENDENT = 32, ///for hand movements, are they independent of the view
-        START_INDEPENDENT = 64, ///for hand movements, are they independent of the view
+        BLOCKING = 1 << 1,
+        WINDUP = 1 << 2,
+        MOVES = 1 << 3, ///physically moves character
+        CAN_STOP = 1 << 4, ///movement can be interrupted
+        FINISH_INDEPENDENT = 1 << 5, ///for hand movements, are they independent of the view
+        START_INDEPENDENT = 1 << 6, ///for hand movements, are they independent of the view
         ///as a consequence of the animation system, start_independent is not necessary. I might keep it for clarity however
-        LOCKS_ARMS = 128, ///for visual reasons, some attacks might want to lock the arms
-        PASS_THROUGH_SCREEN_CENTRE = 256,
-        FINISH_AT_90 = 512, ///degrees, ie perpendicular to the normal sword rotation
+        LOCKS_ARMS = 1 << 7, ///for visual reasons, some attacks might want to lock the arms
+        PASS_THROUGH_SCREEN_CENTRE = 1 << 8,
+        FINISH_AT_90 = 1 << 9, ///degrees, ie perpendicular to the normal sword rotation
         ///we need a CAN_BE_COMBINED tag, which means that two movements can be applied at once
-        FINISH_AT_SCREEN_CENTRE = 1024,
-        OVERHEAD_HACK = 2048, ///hack to fix overhead through centre
-        NOSLOW_END = 4096,
-        NOSLOW_START = 8192,
-        INVERSE_OVERHEAD_HACK = 16384
+        FINISH_AT_SCREEN_CENTRE = 1 << 10,
+        OVERHEAD_HACK = 1 << 11, ///hack to fix overhead through centre
+        NOSLOW_END = 1 << 12,
+        NOSLOW_START = 1 << 13,
+        INVERSE_OVERHEAD_HACK = 1 << 14,
+        IS_RECOIL = 1 << 15
     };
 }
 
@@ -405,12 +406,13 @@ struct attack
 static std::vector<movement> overhead =
 {
     {0, {-150, -0, -40}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
+    //{0, {-120, -0, -40}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
     {0, {100, -150, -140}, 500, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE | mov::OVERHEAD_HACK)} ///attack
 };
 
 static std::vector<movement> recoil =
 {
-    {0, {-120, -10, -60}, 800, 0, bodypart::LHAND,  (movement_t)(mov::NONE | mov::LOCKS_ARMS)} ///recoiling doesnt block or damage
+    {0, {-120, -10, -60}, 800, 0, bodypart::LHAND,  (movement_t)(mov::NONE | mov::LOCKS_ARMS | mov::IS_RECOIL)} ///recoiling doesnt block or damage
 };
 
 static std::vector<movement> slash =
@@ -559,9 +561,11 @@ struct physics;
 struct networked_components
 {
     ///this is authoritative
+    int32_t is_damaging = 0; ///currently doing a damaging attack
     int32_t is_blocking = 0;
     //int dead = 0; ///networked status of killing, can be updated remotely
     int32_t recoil = 0; ///this is a recoil request, not necessarily saying i AM(?)
+    int32_t force_recoil = 0;
 
     bool recoil_dirty = false;
 
@@ -723,6 +727,7 @@ struct fighter
     void overwrite_parts_from_model();
     void update_texture_by_part_hp();
     void update_last_hit_id();
+    void check_clientside_parry();
 
     void set_network_id(int32_t net_id);
 
@@ -738,7 +743,8 @@ struct fighter
 
     void cancel_hands();
     void recoil();
-    bool can_recoil();
+    bool can_windup_recoil();
+    bool currently_recoiling();
     void checked_recoil(); ///if we're hit, do a recoil if we're in windup
     void try_feint();
 

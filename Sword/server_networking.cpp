@@ -192,11 +192,18 @@ std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
 
     fighter_stack[c++] = get_inf(&fight->net.is_blocking);
     fighter_stack[c++] = get_inf(&fight->net.recoil);
+    fighter_stack[c++] = get_inf(&fight->net.force_recoil);
 
     fighter_stack[c++] = get_inf(&fight->net.reported_dead);
     fighter_stack[c++] = get_inf(&fight->net.play_clang_audio);
 
+    fighter_stack[c++] = get_inf(&fight->net.is_damaging);
+
     fighter_stack[c++] = get_inf(&fight->net.net_name);
+
+    fighter_stack[c++] = get_inf(&fight->pos);
+    fighter_stack[c++] = get_inf(&fight->rot);
+
 
     return fighter_stack;
 }
@@ -226,6 +233,11 @@ std::map<int, ptr_info> build_host_network_stack(fighter* fight)
     set_map_element(to_send, total_stack, &fight->weapon.model->rot);
 
     set_map_element(to_send, total_stack, &fight->net.is_blocking);
+
+    set_map_element(to_send, total_stack, &fight->net.is_damaging);
+
+    set_map_element(to_send, total_stack, &fight->pos);
+    set_map_element(to_send, total_stack, &fight->rot);
 
     return to_send;
 }
@@ -382,7 +394,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 if(player_id == my_id)
                     continue;
 
-                for(auto& i : play.fight->parts)
+                /*for(auto& i : play.fight->parts)
                 {
                     ///???
                     i.obj()->set_pos(i.obj()->pos);
@@ -393,7 +405,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 play.fight->weapon.model->set_rot(play.fight->weapon.model->rot);
 
                 play.fight->overwrite_parts_from_model();
-                play.fight->network_update_render_positions();
+                play.fight->network_update_render_positions();*/
             }
 
             if(type == message::CLIENTJOINACK)
@@ -550,6 +562,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     ///make me reliable too! yay!
                     ///make reliable?
                     network_update_element<int32_t>(this, &fight->net.recoil, fight);
+                    network_update_element<int32_t>(this, &fight->net.force_recoil, fight);
 
                     fight->net.recoil_dirty = false;
                 }
@@ -799,6 +812,13 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         i.second.fight->position_cosmetics();
 
         i.second.fight->update_last_hit_id();
+
+        i.second.fight->check_clientside_parry();
+
+        i.second.fight->network_update_render_positions();
+
+        i.second.fight->weapon.model->set_pos(i.second.fight->weapon.model->pos);
+        i.second.fight->weapon.model->set_rot(i.second.fight->weapon.model->rot);
 
 
         ///death is dynamically calculated from part health
