@@ -94,7 +94,7 @@ void physics::add_objects_container(part* _p, fighter* _parent)
 ///this entire method seems like a hacky bunch of shite
 ///REMEMBER, DEAD OBJECTS ARE STILL CHECKED AGAINST. This is bad for performance (although who cares), but moreover its producing BUGS
 ///FIXME
-int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, bool is_player, bool do_audiovisuals)
+int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, bool is_player, bool do_audiovisuals, fighter* optional_only_hit)
 {
     if(my_parent->num_dead() >= my_parent->num_needed_to_die())
         return -1;
@@ -165,6 +165,12 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 bodypart_t type = (bodypart_t)(i % bodypart::COUNT);
 
                 fighter* them = bodies[i].parent;
+
+                if(optional_only_hit)
+                {
+                    if(them != optional_only_hit)
+                        continue;
+                }
 
                 if(them->num_dead() >= them->num_needed_to_die())
                     continue;

@@ -612,11 +612,23 @@ struct cosmetics
     }
 };
 
+struct clientside_parry_info
+{
+    int32_t player_id_i_parried = -1;
+    sf::Clock clk;
+
+    ///ping + jitter + fudge (fudge incorporates if they hit slightly later).
+    ///I don't think its ping*2, we only have to wait for them to have a good laugh
+    float max_invuln_time_ms = 500.f;
+};
+
 struct light;
 
 ///what a clusterfuck
 struct fighter
 {
+    std::vector<clientside_parry_info> clientside_parry_inf;
+
     int32_t player_id_i_was_last_hit_by = -1;
     int32_t network_id = -1;
 
@@ -727,8 +739,9 @@ struct fighter
     void overwrite_parts_from_model();
     void update_texture_by_part_hp();
     void update_last_hit_id();
-    void check_clientside_parry();
+    void check_clientside_parry(fighter* non_networked_fighter);
 
+    void eliminate_clientside_parry_invulnerability_damage();
     void set_network_id(int32_t net_id);
 
     void position_cosmetics();

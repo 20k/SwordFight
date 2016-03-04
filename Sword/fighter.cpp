@@ -1515,7 +1515,7 @@ void fighter::tick(bool is_player)
                 ///this is the GLOBAL move dir, current_pos could be all over the place due to interpolation, lag etc
                 vec3f move_dir = (focus_pos - old_pos).norm();
 
-
+                #define ATTACKER_PHYS
                 #ifdef ATTACKER_PHYS
                 ///pass direction vector into here, then do the check
                 ///returns -1 on miss
@@ -1651,6 +1651,23 @@ void fighter::tick(bool is_player)
         //parts[RLOWERARM].pos = elbow_pos;
         //parts[RUPPERARM].pos = (new_shoulder_pos * dt_tsmooth + parts[RUPPERARM].pos) / (dt_tsmooth + 1);
     }
+
+    ///this feels wrong
+    //#define TPOSE
+    #ifdef TPOSE
+
+    shoulder_rotation = 0.f;
+
+    vec3f default_lhand_pos = default_position[bodypart::LHAND];
+    vec3f default_rhand_pos = default_position[bodypart::RHAND];
+
+    IK_hand(0, default_lhand_pos + (vec3f){-100.f, -5, 0}, 0.f, arms_are_locked);
+    IK_hand(1, default_rhand_pos + (vec3f){100.f, -5, 0}, 0.f, arms_are_locked);
+
+    //parts[bodypart::RHAND].rot = (parts[bodypart::RHAND].pos - parts[bodypart::RLOWERARM].pos).get_euler();
+    //parts[bodypart::LHAND].rot = (parts[bodypart::LHAND].pos - parts[bodypart::LLOWERARM].pos).get_euler();
+
+    #endif // TPOSE
 
 
     //IK_hand(1, rot_focus, shoulder_rotation, arms_are_locked);
@@ -2330,6 +2347,11 @@ void fighter::update_sword_rot()
 
         parts[LHAND].set_rot(rot);
         parts[RHAND].set_rot(rot);
+
+        #ifdef TPOSE
+        parts[bodypart::RHAND].rot = (parts[bodypart::RHAND].pos - parts[bodypart::RLOWERARM].pos).get_euler();
+        parts[bodypart::LHAND].rot = (parts[bodypart::LHAND].pos - parts[bodypart::LLOWERARM].pos).get_euler();
+        #endif // TPOSE
     }
 }
 
@@ -2876,7 +2898,7 @@ void fighter::update_last_hit_id()
 }
 
 ///
-void fighter::check_clientside_parry()
+void fighter::check_clientside_parry(fighter* non_networked_fighter)
 {
     /*if(i.hit_id == -1 && i.does(mov::DAMAGING))
     {
@@ -2914,16 +2936,62 @@ void fighter::check_clientside_parry()
 
         //std::cout << "ohand " << parts[bodypart::LHAND].global_pos << " " << old_pos[bodypart::LHAND] << std::endl;
 
-        int hit_id = phys->sword_collides(weapon, this, move_dir.norm().back_rot({0,0,0}, rot), false, false);
+        ///this is currently checking clientside parries against all players, whereas we only want to check
+        ///this networked fighter against the local player
+        ///recoil and stuff needs to be disabled unless its the correct fighter we're hitting :[
+        int hit_id = phys->sword_collides(weapon, this, move_dir.norm().back_rot({0,0,0}, rot), false, false, non_networked_fighter);
 
         ///technically we've detected a clientside hit, but we're actually ONLY looking for parries
         ///because attacks want to be attacker authoratitive, and parries want to be client authoratitive
+        ///a successful clientside parry should make you invincible from one players damage for the ping latency * 2  + jitter + fudge
+        ///but this can be up to 400ms, which is unfortunate
+        ///so how to handle overriding the damage? wait for the attacker to confirm? on the client? delay the damage for a fixed amount and negotiate
+        ///????????
         if(hit_id == -2)
         {
-            lg::log("clientside parry\n");
+            lg::log("clientside parry");
 
             local.play_clang_audio = 1;
             local.send_clang_audio = 1;
+
+            clientside_parry_info inf;
+            inf.player_id_i_parried = this->network_id;
+
+            clientside_parry_inf.push_back(inf);
+
+            ///fighter* their_parent = phys->bodies[i.hit_id].parent
+        }
+    }
+}
+
+///eliminate damage taken beacuse I am a clientside parry man now
+void fighter::eliminate_clientside_parry_invulnerability_damage()
+{
+    for(auto& i : parts)
+    {
+        for(int j=0; j<clientside_parry_inf.size(); j++)
+        {
+            clientside_parry_info inf = clientside_parry_inf[j];
+
+            float time = inf.clk.getElapsedTime().asMicroseconds() / 1000.f;
+
+            if(time >= inf.max_invuln_time_ms)
+            {
+                clientside_parry_inf.erase(clientside_parry_inf.begin() + j);
+                j--;
+                continue;
+            }
+
+            ///set i.local.play_hit_audio to false
+            ///but ignore that for the moment, useful for testing
+            if(inf.player_id_i_parried == i.net.damage_info.id_hit_by)
+            {
+                i.net.damage_info.hp_delta = 0.f;
+
+                //i.local.play_hit_audio = 0;
+
+                lg::log("eliminated hit damage due to clientside parry from playerid ", i.net.damage_info.id_hit_by);
+            }
         }
     }
 }

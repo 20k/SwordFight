@@ -732,6 +732,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 udp_send(to_game, vec.ptr);
             }
 
+            my_fighter->eliminate_clientside_parry_invulnerability_damage();
+
             ///so, everyone receives the hp_delta of the client, but only the hoest is updating this piece of information here
             for(auto& i : my_fighter->parts)
             {
@@ -813,7 +815,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
         i.second.fight->update_last_hit_id();
 
-        i.second.fight->check_clientside_parry();
+        i.second.fight->check_clientside_parry(discovered_fighters[my_id].fight);
 
         i.second.fight->network_update_render_positions();
 

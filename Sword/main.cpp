@@ -257,11 +257,7 @@ int main(int argc, char *argv[])
     {
         std::streambuf* b1 = std::cout.rdbuf();
 
-        //lg::output->rdbuf(b1);
-
         std::streambuf* b2 = lg::output->rdbuf();
-
-        //b2->rdbuf(b1);
 
         std::ios* r1 = &std::cout;
         std::ios* r2 = lg::output;
@@ -415,6 +411,8 @@ int main(int argc, char *argv[])
 
     lg::log("Presspace");
 
+    #ifdef SPACE
+
     space_manager space_res;
 
     if(s.quality != 0)
@@ -428,6 +426,7 @@ int main(int argc, char *argv[])
         stars = get_starmap(1);
         g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
     }
+    #endif
 
     //printf("SSize %i mb\n", (g_star_cloud.g_colour_mem.size() / 1024) / 1024);
 
@@ -566,12 +565,16 @@ int main(int argc, char *argv[])
             window.set_light_data(light_data);
             //window.set_tex_data(gpu_context->tex_gpu);
 
+            #ifdef SPACE
+
             if(s.quality != 0)
             {
                 g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
 
                 space_res.init(window.width, window.height);
             }
+
+            #endif
 
             //text::set_renderwindow(window.window);
 
@@ -877,6 +880,8 @@ int main(int argc, char *argv[])
 
         window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
 
+        #ifdef SPACE
+
         if(s.quality != 0)
         {
             space_res.update_camera(window.c_pos, window.c_rot);
@@ -884,6 +889,8 @@ int main(int argc, char *argv[])
             space_res.set_depth_buffer(cdat->depth_buffer[cdat->nbuf]);
             space_res.set_screen(cdat->g_screen);
         }
+
+        #endif
 
         compute::event event;
 
