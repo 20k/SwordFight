@@ -2957,9 +2957,52 @@ void fighter::check_clientside_parry(fighter* non_networked_fighter)
             clientside_parry_info inf;
             inf.player_id_i_parried = this->network_id;
 
-            clientside_parry_inf.push_back(inf);
+            non_networked_fighter->clientside_parry_inf.push_back(inf);
 
             ///fighter* their_parent = phys->bodies[i.hit_id].parent
+        }
+    }
+}
+
+void fighter::process_delayed_deltas()
+{
+    for(auto& i : parts)
+    {
+        for(int j=0; j<i.net.delayed_delt.size(); j++)
+        {
+            delayed_delta& delt = i.net.delayed_delt[j];
+
+            ///time to apply delayed delta
+            if(delt.clk.getElapsedTime().asMicroseconds() / 1000.f >= delt.delay_time_ms)
+            {
+                bool apply_damage = true;
+
+                for(int k=0; k<clientside_parry_inf.size(); k++)
+                {
+                    clientside_parry_info& info = clientside_parry_inf[k];
+
+                    ///on the clientside, i have parried this attack
+                    ///do not apply damage
+                    if(info.player_id_i_parried == delt.delayed_info.id_hit_by)
+                    {
+                        apply_damage = false;
+                    }
+                }
+
+                if(apply_damage)
+                {
+                    i.hp += delt.delayed_info.hp_delta;
+
+                    lg::log("Applied delayed damage");
+                }
+                else
+                {
+                    lg::log("Did not apply delayed damage due to client parry");
+                }
+
+                i.net.delayed_delt.erase(i.net.delayed_delt.begin() + j);
+                j--;
+            }
         }
     }
 }
@@ -2967,8 +3010,11 @@ void fighter::check_clientside_parry(fighter* non_networked_fighter)
 ///eliminate damage taken beacuse I am a clientside parry man now
 void fighter::eliminate_clientside_parry_invulnerability_damage()
 {
-    for(auto& i : parts)
+    //for(auto& i : parts)
+    for(int i=0; i<parts.size(); i++)
     {
+        part& p = parts[i];
+
         for(int j=0; j<clientside_parry_inf.size(); j++)
         {
             clientside_parry_info inf = clientside_parry_inf[j];
@@ -2982,15 +3028,22 @@ void fighter::eliminate_clientside_parry_invulnerability_damage()
                 continue;
             }
 
+            /*if(player_id_i_was_last_hit_by == p.net.damge_info.id_hit_by)
+            {
+                p.hp -= last_hp_delta;
+
+                last_hp_delta = 0;
+            }*/
+
             ///set i.local.play_hit_audio to false
             ///but ignore that for the moment, useful for testing
-            if(inf.player_id_i_parried == i.net.damage_info.id_hit_by)
+            if(inf.player_id_i_parried == p.net.damage_info.id_hit_by)
             {
-                i.net.damage_info.hp_delta = 0.f;
+                p.net.damage_info.hp_delta = 0.f;
 
                 //i.local.play_hit_audio = 0;
 
-                lg::log("eliminated hit damage due to clientside parry from playerid ", i.net.damage_info.id_hit_by);
+                lg::log("eliminated hit damage due to clientside parry from playerid ", p.net.damage_info.id_hit_by);
             }
         }
     }

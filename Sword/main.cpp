@@ -315,6 +315,7 @@ int main(int argc, char *argv[])
     window.set_camera_pos((cl_float4){-800,150,-570});
 
     window.window.setVerticalSyncEnabled(false);
+    //window.window.setFramerateLimit(15.f);
 
     //window.window.setFramerateLimit(60.f);
 

@@ -733,25 +733,38 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             }
 
             ///remove damage I've taken from player who i blocked in a clientside parry
+            my_fighter->process_delayed_deltas();
             my_fighter->eliminate_clientside_parry_invulnerability_damage();
 
             ///so, everyone receives the hp_delta of the client, but only the hoest is updating this piece of information here
-            for(auto& i : my_fighter->parts)
+            //for(auto& i : my_fighter->parts)
+            for(int i=0; i<my_fighter->parts.size(); i++)
             {
+                part& p = my_fighter->parts[i];
+
                 ///I set my own HP, don't update my hp with the delta
-                if(i.net.hp_dirty)
+                if(p.net.hp_dirty)
                 {
-                    i.net.hp_dirty = false;
-                    i.net.damage_info.hp_delta = 0.f;
+                    p.net.hp_dirty = false;
+                    p.net.damage_info.hp_delta = 0.f;
                 }
 
-                if(i.net.damage_info.hp_delta != 0.f)
+                if(p.net.damage_info.hp_delta != 0.f)
                 {
-                    i.hp += i.net.damage_info.hp_delta;
+                    //p.hp += p.net.damage_info.hp_delta;
 
-                    i.net.damage_info.hp_delta = 0.f;
+                    delayed_delta delt;
+                    delt.delayed_info = p.net.damage_info;
 
-                    my_fighter->player_id_i_was_last_hit_by = i.net.damage_info.id_hit_by;
+                    p.net.delayed_delt.push_back(delt);
+
+                    ///if two packets arrive at once, this will not work correctly
+                    my_fighter->last_hp_delta = p.net.damage_info.hp_delta;
+                    my_fighter->last_part_id = i;
+
+                    p.net.damage_info.hp_delta = 0.f;
+
+                    my_fighter->player_id_i_was_last_hit_by = p.net.damage_info.id_hit_by;
 
                     //printf("You've been hit by, you've been struck by, player with id %i\n", my_fighter->player_id_i_was_last_hit_by);
                 }

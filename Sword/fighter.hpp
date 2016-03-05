@@ -222,6 +222,13 @@ struct damage_information
     int32_t id_hit_by = -1;
 };
 
+struct delayed_delta
+{
+    damage_information delayed_info;
+    float delay_time_ms = 200.f;
+    sf::Clock clk;
+};
+
 ///this was a good idea
 struct network_part
 {
@@ -229,6 +236,8 @@ struct network_part
     //float hp_delta = 0.f;
 
     damage_information damage_info;
+
+    std::vector<delayed_delta> delayed_delt;
 
     int32_t play_hit_audio = 0;
 };
@@ -629,6 +638,8 @@ struct fighter
 {
     std::vector<clientside_parry_info> clientside_parry_inf;
 
+    int32_t last_part_id = -1;
+    float last_hp_delta = 0;
     int32_t player_id_i_was_last_hit_by = -1;
     int32_t network_id = -1;
 
@@ -741,6 +752,7 @@ struct fighter
     void update_last_hit_id();
     void check_clientside_parry(fighter* non_networked_fighter);
 
+    void process_delayed_deltas();
     void eliminate_clientside_parry_invulnerability_damage();
     void set_network_id(int32_t net_id);
 
