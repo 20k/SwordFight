@@ -732,6 +732,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 udp_send(to_game, vec.ptr);
             }
 
+            ///remove damage I've taken from player who i blocked in a clientside parry
             my_fighter->eliminate_clientside_parry_invulnerability_damage();
 
             ///so, everyone receives the hp_delta of the client, but only the hoest is updating this piece of information here
