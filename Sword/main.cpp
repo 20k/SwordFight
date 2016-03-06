@@ -613,7 +613,9 @@ int main(int argc, char *argv[])
                 net_test->overwrite_parts_from_model();
                 net_test->manual_check_part_death();
 
-                net_test->my_cape.tick(net_test);
+                //net_test->my_cape.tick(net_test);
+
+                net_test->tick_cape();
 
                 net_test->do_foot_sounds();
 
@@ -931,6 +933,9 @@ int main(int argc, char *argv[])
 
             window.increase_render_events();
         }
+
+        context.build_tick();
+        transparency_context.build_tick();
 
         ///it might be this event which is causing a hang
         ///YUP

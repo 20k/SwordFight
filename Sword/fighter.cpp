@@ -444,7 +444,7 @@ void part::perform_death(bool do_effect)
     set_active(false);
 
     cpu_context->load_active();
-    cpu_context->build();
+    cpu_context->build_request();
 }
 
 void part::set_hp(float h)
@@ -584,7 +584,6 @@ void sword::load_team_model()
     ntex->set_create_colour({col.v[0], col.v[1], col.v[2]}, 128, 128);
 
     model->objs[0].tid = ntex->id;
-
 
     scale();
 
@@ -827,9 +826,9 @@ void fighter::respawn(vec2f _pos)
 
     cpu_context->load_active();
 
-    cpu_context->build();
-    cpu_context->flip();
-    gpu_context = cpu_context->fetch();
+    cpu_context->build_request();
+    //cpu_context->flip();
+    //gpu_context = cpu_context->fetch();
 
     //update_render_positions();
 
@@ -921,9 +920,11 @@ void fighter::die()
 
     cpu_context->load_active();
 
-    cpu_context->build(true);
-    cpu_context->flip();
-    gpu_context = cpu_context->fetch();
+    //cpu_context->build(true);
+    //cpu_context->flip();
+    //gpu_context = cpu_context->fetch();
+
+    cpu_context->build_request();
 
     ///pipe out hp here, just to check
 }
@@ -1804,9 +1805,11 @@ void fighter::manual_check_part_alive()
 
     if(any)
     {
+        //cpu_context->load_active();
+        //cpu_context->build();
+        //gpu_context = cpu_context->fetch(); ///I'm not sure this is necessary as gpu_context is a ptr
         cpu_context->load_active();
-        cpu_context->build();
-        gpu_context = cpu_context->fetch(); ///I'm not sure this is necessary as gpu_context is a ptr
+        cpu_context->build_request();
     }
 }
 
@@ -3133,9 +3136,10 @@ void fighter::set_team(int _team)
         i.obj->set_specular(bodypart::specular);
     }
 
-    cpu_context->build();
-    cpu_context->flip();
-    gpu_context = cpu_context->fetch();
+    //cpu_context->build();
+    //cpu_context->flip();
+    //gpu_context = cpu_context->fetch();
+    cpu_context->build_request();
 }
 
 void fighter::set_physics(physics* _phys)
@@ -3344,8 +3348,8 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     name_container->set_two_sided(true);
     name_container->set_diffuse(10.f);
 
-    transparency_context->build();
-    transparency_context->flip();
+    transparency_context->build_request();
+    //transparency_context->flip();
 
     //name_tex_gpu.update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
     //name_tex_gpu.update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);
