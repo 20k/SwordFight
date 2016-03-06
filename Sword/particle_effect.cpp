@@ -122,6 +122,8 @@ void cube_effect::tick()
                     o->set_pos({0, 0, -30000000});
                     o->set_active(false);
 
+                    cpu_context->destroy(o);
+
                     finished = true;
                 }
             }

@@ -758,6 +758,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                     p.net.delayed_delt.push_back(delt);
 
+                    lg::log("Logging the start of a delayed delta from ", p.net.damage_info.id_hit_by);
+
                     ///if two packets arrive at once, this will not work correctly
                     my_fighter->last_hp_delta = p.net.damage_info.hp_delta;
                     my_fighter->last_part_id = i;
