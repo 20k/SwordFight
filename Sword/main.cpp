@@ -475,6 +475,8 @@ int main(int argc, char *argv[])
 
     context.set_clear_colour({135/255.f, 206/255.f, 250/255.f});
 
+    transparency_context.build(true);
+
     ///fix depth ordering  with transparency
     while(window.window.isOpen())
     {
