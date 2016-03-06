@@ -2691,30 +2691,6 @@ void fighter::update_render_positions()
 
 void fighter::update_headbob_if_sprinting(bool sprinting)
 {
-    /*if(!sprinting)
-    {
-        camera_bob_timer = 0;
-        camera_bob = {0,0,0};
-        return;
-    }
-
-    const float bob_cycle_ms = 1000.f;
-
-    float hoffset = sin(2 * M_PI * (camera_bob_timer / bob_cycle_ms));
-
-    float height = 10;
-
-    camera_bob_timer += frametime;
-
-    camera_bob.v[1] = hoffset * height;*/
-
-    /*if(!sprinting)
-    {
-        //camera_bob = {0,0,0};
-        //camera_bob_mult = 0;
-        return;
-    }*/
-
     float dir = sprinting ? 1 : -1;
 
     float modif = 100.f;
