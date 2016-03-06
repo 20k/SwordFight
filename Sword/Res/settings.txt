@@ -1,6 +1,6 @@
-1500
-800
-192.168.1.55
-1
-20k - dev
+1500 #width
+800 #height
+192.168.1.55 #unused
+1 #quality. 0 for low, 1 for high
+20k - dev #name
 DEBUG
