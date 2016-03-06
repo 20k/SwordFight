@@ -209,7 +209,9 @@ part::~part()
 
 void part::set_active(bool active)
 {
+    //if(active)
     model->set_active(active);
+
     //hp_display->set_active(active);
 
     is_active = active;
@@ -257,6 +259,12 @@ void part::update_model()
 {
     model->set_pos({global_pos.v[0], global_pos.v[1], global_pos.v[2]});
     model->set_rot({global_rot.v[0], global_rot.v[1], global_rot.v[2]});
+
+    ///in preparation for 0 cost killing
+    if(!is_active)
+    {
+        model->hide();
+    }
 
     /*vec3f vec = {0, 20, 0};
 
