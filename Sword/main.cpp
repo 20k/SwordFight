@@ -183,7 +183,7 @@ void fps_controls(fighter* my_fight, engine& window)
 
     window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
 
-    my_fight->set_look({-window.c_rot.s[0], window.get_mouse_delta_x() / 1.f, 0});
+    my_fight->set_look({-window.c_rot.s[0], window.get_mouse_sens_adjusted_x() / 1.f, 0});
 
     //part* head = &my_fight->parts[bodypart::HEAD];
 
@@ -192,8 +192,8 @@ void fps_controls(fighter* my_fight, engine& window)
     //window.set_camera_pos({pos.v[0], pos.v[1], pos.v[2]});
 
     vec2f m;
-    m.v[0] = window.get_mouse_delta_x();
-    m.v[1] = window.get_mouse_delta_y();
+    m.v[0] = window.get_mouse_sens_adjusted_x();
+    m.v[1] = window.get_mouse_sens_adjusted_y();
 
     my_fight->set_rot_diff({0, -m.v[0] / 100.f, 0.f});
 
@@ -216,8 +216,8 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
     cl_float4 c_pos = {pos.v[0], pos.v[1], pos.v[2]};
 
     vec2f m;
-    m.v[0] = window.get_mouse_delta_x();
-    m.v[1] = window.get_mouse_delta_y();
+    m.v[0] = window.get_mouse_sens_adjusted_x();
+    m.v[1] = window.get_mouse_sens_adjusted_y();
 
     vec3f o_rot = xyz_to_vec(input.c_rot);
 
@@ -311,6 +311,9 @@ int main(int argc, char *argv[])
     engine window;
     window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true);
     window.manual_input = true;
+
+
+    window.set_mouse_sens(s.mouse_sens);
 
     window.set_camera_pos((cl_float4){-800,150,-570});
 
