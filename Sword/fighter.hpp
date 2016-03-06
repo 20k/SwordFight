@@ -81,7 +81,7 @@ namespace bodypart
 
     constexpr static float foot_modifiers[COUNT] =
     {
-        1.f/8,
+        2.f/8,
         1.f/5,
         1.f/12,
         1.f/5,
@@ -694,6 +694,9 @@ struct fighter
 
     int team;
 
+    float camera_bob_mult;
+
+    vec3f camera_bob;
     vec3f pos; ///need to swap references to body->rot and body->pos to these (unless i explicitly need them)
     vec3f rot;
     vec3f rot_diff;
@@ -743,6 +746,7 @@ struct fighter
 
     movement* get_movement(size_t id);
 
+    void update_headbob_if_sprinting(bool sprinting);
     void update_render_positions();
     void network_update_render_positions(); /// only if im a network fighter
     void respawn_if_appropriate(); ///network

@@ -159,6 +159,8 @@ void fps_controls(fighter* my_fight, engine& window)
 
     my_fight->walk_dir(walk_dir, sprint);
 
+    my_fight->update_headbob_if_sprinting(sprint);
+
     if(once<sf::Mouse::Left>())
         my_fight->queue_attack(attacks::SLASH);
 
@@ -209,7 +211,7 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 {
     const part* head = &my_fight->parts[bodypart::HEAD];
 
-    vec3f pos = head->pos + my_fight->pos;
+    vec3f pos = head->pos + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult;
 
     //window.set_camera_pos({pos.v[0], pos.v[1], pos.v[2]});
 

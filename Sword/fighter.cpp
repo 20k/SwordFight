@@ -710,6 +710,10 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
 void fighter::load()
 {
+    camera_bob_mult = 0;
+
+    camera_bob = {0,0,0};
+
     player_id_i_was_last_hit_by = -1;
 
     crouch_frac = 0.f;
@@ -2563,7 +2567,18 @@ void fighter::update_render_positions()
 
         vec3f wvec = (p.pos - parts[BODY].pos);
 
-        rvec = wvec * 0.1f + rvec * 0.9f;
+        ///camera bob
+        float vanilla_v1 = (default_position[HEAD] - default_position[BODY]).v[1];
+        float with_bob_v1 = (parts[HEAD].global_pos - parts[BODY].global_pos).v[1];
+        float extra = with_bob_v1 - vanilla_v1;
+        vec3f extra_bob = {0, -extra, 0};
+        camera_bob = extra_bob;
+
+        //rvec = wvec * 0.1f + rvec * 0.9f;
+
+        //rvec = wvec;
+
+        //rvec = rvec;
 
         float look_angle = look.v[0];
 
@@ -2587,7 +2602,7 @@ void fighter::update_render_positions()
 
         vec3f angles = a3.get_rotation();
 
-        p.set_global_pos(rotated_vec + pos - rvec + p.pos);
+        p.set_global_pos(rotated_vec + pos - rvec + p.pos + extra_bob);
         p.set_global_rot(angles);
 
         p.update_model();
@@ -2672,6 +2687,41 @@ void fighter::update_render_positions()
     {
         old_pos[i] = parts[i].pos;
     }
+}
+
+void fighter::update_headbob_if_sprinting(bool sprinting)
+{
+    /*if(!sprinting)
+    {
+        camera_bob_timer = 0;
+        camera_bob = {0,0,0};
+        return;
+    }
+
+    const float bob_cycle_ms = 1000.f;
+
+    float hoffset = sin(2 * M_PI * (camera_bob_timer / bob_cycle_ms));
+
+    float height = 10;
+
+    camera_bob_timer += frametime;
+
+    camera_bob.v[1] = hoffset * height;*/
+
+    /*if(!sprinting)
+    {
+        //camera_bob = {0,0,0};
+        //camera_bob_mult = 0;
+        return;
+    }*/
+
+    float dir = sprinting ? 1 : -1;
+
+    float modif = 100.f;
+    float max_camera = 1.5f;
+
+    camera_bob_mult += dir * frametime / modif;
+    camera_bob_mult = clamp(camera_bob_mult, 0.f, max_camera);
 }
 
 void fighter::position_cosmetics()
