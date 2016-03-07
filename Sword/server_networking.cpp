@@ -399,7 +399,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     continue;
                 }
 
-                network_player play = discovered_fighters[player_id];
+                network_player& play = discovered_fighters[player_id];
 
                 std::map<int, ptr_info> arg_map = build_fighter_network_stack(play.fight);
 
@@ -422,6 +422,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 ///fucking thank christ, its not a networking issue
                 //if(is_damage_info(play.fight, comp.ptr))
                 //    lg::log("damage");
+
+                play.disconnect_timer.restart();
 
                 ///done for me now
                 if(player_id == my_id)
@@ -878,6 +880,21 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             i.second.fight->update_name_info(true);
 
             i.second.fight->update_lights();
+        }
+
+        if(i.second.disconnect_timer.getElapsedTime().asMicroseconds() / 1000.f >= i.second.disconnect_time_ms
+           && !i.second.fight->dead())
+        {
+            //i.second.fight->die();
+
+            i.second.fight->die();
+
+            for(auto& f : i.second.fight->parts)
+            {
+                f.set_hp(-1.f);
+            }
+
+            lg::log("Disconnected player ", i.second.fight->network_id);
         }
     }
 

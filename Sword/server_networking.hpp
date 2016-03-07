@@ -19,6 +19,8 @@ struct network_player
 {
     fighter* fight = nullptr;
     int32_t id = -1;
+    sf::Clock disconnect_timer;
+    float disconnect_time_ms = 10000;
 };
 
 ///merge into the map_tool definition???

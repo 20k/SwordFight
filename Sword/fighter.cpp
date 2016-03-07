@@ -855,6 +855,7 @@ void fighter::die()
 
     for(auto& i : parts)
     {
+        i.set_hp(-1.f);
         i.set_active(false);
     }
 
@@ -976,6 +977,7 @@ void fighter::checked_death()
     }
 }
 
+///so, this seems like a bug?
 bool fighter::dead()
 {
     return (num_dead() > num_needed_to_die()) || performed_death;
