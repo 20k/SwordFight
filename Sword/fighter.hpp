@@ -808,6 +808,8 @@ struct fighter
     void update_name_info(bool networked_fighter = false);
 
     float crouch_frac = 0.f;
+    float smoothed_crouch_offset = 0.f;
+    float smoothed_crouch_offset_old = 0.f;
 
     std::string local_name = "Err";
 
@@ -817,6 +819,7 @@ struct fighter
 
     ///so, i guess this is including me
     std::vector<fighter*> fighter_list;
+
 
 private:
     size_t left_id;

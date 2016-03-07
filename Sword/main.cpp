@@ -127,11 +127,14 @@ void debug_controls(fighter* my_fight, engine& window)
 
     bool sprint = key.isKeyPressed(sf::Keyboard::LShift);
 
-    my_fight->walk_dir(walk_dir, sprint);
-
     bool crouching = key.isKeyPressed(sf::Keyboard::LControl);
 
     my_fight->crouch_tick(crouching);
+
+    if(crouching)
+        sprint = false;
+
+    my_fight->walk_dir(walk_dir, sprint);
 }
 
 void fps_controls(fighter* my_fight, engine& window)
@@ -155,7 +158,14 @@ void fps_controls(fighter* my_fight, engine& window)
     if(key.isKeyPressed(sf::Keyboard::D))
         walk_dir.v[1] = 1;
 
+    bool crouching = key.isKeyPressed(sf::Keyboard::LControl);
+
+    my_fight->crouch_tick(crouching);
+
     bool sprint = key.isKeyPressed(sf::Keyboard::LShift);
+
+    if(crouching)
+        sprint = false;
 
     my_fight->walk_dir(walk_dir, sprint);
 
@@ -178,10 +188,6 @@ void fps_controls(fighter* my_fight, engine& window)
 
     if(once<sf::Keyboard::Space>())
         my_fight->try_jump();
-
-    bool crouching = key.isKeyPressed(sf::Keyboard::LControl);
-
-    my_fight->crouch_tick(crouching);
 
     window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
 
@@ -213,7 +219,20 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 
     float def_head_height = bodypart::default_position[bodypart::HEAD].v[1];// - bodypart::default_position[bodypart::BODY].v[1];
 
-    vec3f pos = (vec3f){0.f, def_head_height, 0.f}  + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult;
+    //vec3f pos = (vec3f){0.f, def_head_height, 0.f} + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult - (vec3f){0.f, bodypart::scale * my_fight->crouch_frac, 0.f};
+
+    //vec3f pos = my_fight->parts[bodypart::HEAD].global_pos;
+
+    /*pos.v[0] = my_fight->pos.v[0];
+    pos.v[1] = def_head_height;
+    pos.v[2] = my_fight->pos.v[2];*/
+
+    vec3f pos = (vec3f){0, my_fight->smoothed_crouch_offset, 0} + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult;
+
+
+    //vec3f analytical = (vec3f){0.f, def_head_height, 0.f} + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult - (vec3f){0.f, bodypart::scale * my_fight->crouch_frac, 0.f};
+
+    //pos = (analytical * 2 + pos) / 3.f;
 
     //window.set_camera_pos({pos.v[0], pos.v[1], pos.v[2]});
 

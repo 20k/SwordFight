@@ -1723,6 +1723,8 @@ void fighter::tick(bool is_player)
         parts[type].set_pos(pos);
     }
 
+    smoothed_crouch_offset = - cdist * crouch_frac;
+
     /*for(auto& type : {LUPPERLEG, RUPPERLEG})
     {
         vec3f pos = parts[type].pos;
@@ -2466,6 +2468,7 @@ pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f 
     return {n_pos, total_rot};
 }
 
+
 void smooth(vec3f& in, vec3f old, float dt)
 {
     float diff = (in - old).length();
@@ -2480,6 +2483,28 @@ void smooth(vec3f& in, vec3f old, float dt)
     vec3f diff_indep = (in - old);
 
     diff_indep = (diff_indep / vec_frac) * dt;
+
+    //in = (in + old) / 2.f;
+
+    in = old + diff_indep;
+}
+
+void smooth(float& in, float old, float dt)
+{
+    float diff = fabs(in - old);
+
+    if(diff > 100.f)
+    {
+        return;
+    }
+
+    //vec3f vec_frac = {40.f, 35.f, 40.f};
+
+    float frac = 35;
+
+    float diff_indep = (in - old);
+
+    diff_indep = (diff_indep / frac) * dt;
 
     //in = (in + old) / 2.f;
 
@@ -2505,7 +2530,10 @@ void fighter::update_render_positions()
         smooth(parts[LUPPERARM].pos, old_pos[LUPPERARM], frametime);
 
         smooth(parts[BODY].pos, old_pos[BODY], frametime);
+
+        smooth(smoothed_crouch_offset, smoothed_crouch_offset_old, frametime);
     }
+
 
     just_spawned = false;
 
@@ -2700,6 +2728,8 @@ void fighter::update_render_positions()
     {
         old_pos[i] = parts[i].pos;
     }
+
+    smoothed_crouch_offset_old = smoothed_crouch_offset;
 }
 
 void fighter::update_headbob_if_sprinting(bool sprinting)
