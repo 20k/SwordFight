@@ -885,14 +885,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         if(i.second.disconnect_timer.getElapsedTime().asMicroseconds() / 1000.f >= i.second.disconnect_time_ms
            && !i.second.fight->dead())
         {
-            //i.second.fight->die();
-
             i.second.fight->die();
-
-            for(auto& f : i.second.fight->parts)
-            {
-                f.set_hp(-1.f);
-            }
 
             lg::log("Disconnected player ", i.second.fight->network_id);
         }
