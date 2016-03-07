@@ -3060,17 +3060,12 @@ void fighter::eliminate_clientside_parry_invulnerability_damage()
 
             if(time >= inf.max_invuln_time_ms)
             {
+                lg::log("clientside parry expired");
+
                 clientside_parry_inf.erase(clientside_parry_inf.begin() + j);
                 j--;
                 continue;
             }
-
-            /*if(player_id_i_was_last_hit_by == p.net.damge_info.id_hit_by)
-            {
-                p.hp -= last_hp_delta;
-
-                last_hp_delta = 0;
-            }*/
 
             ///set i.local.play_hit_audio to false
             ///but ignore that for the moment, useful for testing

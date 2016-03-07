@@ -172,16 +172,24 @@ ptr_info get_inf(T* ptr)
     return {(void*)ptr, sizeof(T)};
 }
 
+template<int N>
+ptr_info get_inf(void* ptr)
+{
+    return {ptr, N};
+}
+
 std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
 {
     std::map<int, ptr_info> fighter_stack;
+
+    constexpr int s_f3 = sizeof(cl_float) * 3;
 
     int c = 0;
 
     for(int i=0; i<fight->parts.size(); i++)
     {
-        fighter_stack[c++] = get_inf(&fight->parts[i].obj()->pos);
-        fighter_stack[c++] = get_inf(&fight->parts[i].obj()->rot);
+        fighter_stack[c++] = get_inf<s_f3>(&fight->parts[i].obj()->pos);
+        fighter_stack[c++] = get_inf<s_f3>(&fight->parts[i].obj()->rot);
         fighter_stack[c++] = get_inf(&fight->parts[i].hp);
         fighter_stack[c++] = get_inf(&fight->parts[i].net.damage_info);
         fighter_stack[c++] = get_inf(&fight->parts[i].net.play_hit_audio);
@@ -216,16 +224,26 @@ void set_map_element(std::map<int, ptr_info>& change, std::map<int, ptr_info>& s
     change[pos] = get_inf(elem);
 }
 
+template<int N>
+void set_map_element(std::map<int, ptr_info>& change, std::map<int, ptr_info>& stk, void* elem)
+{
+    int pos = get_position_of(stk, elem);
+
+    change[pos] = get_inf<N>(elem);
+}
+
 std::map<int, ptr_info> build_host_network_stack(fighter* fight)
 {
+    constexpr int s_f3 = sizeof(cl_float) * 3;
+
     std::map<int, ptr_info> total_stack = build_fighter_network_stack(fight);
 
     std::map<int, ptr_info> to_send;
 
     for(int i=0; i<fight->parts.size(); i++)
     {
-        set_map_element(to_send, total_stack, &fight->parts[i].obj()->pos);
-        set_map_element(to_send, total_stack, &fight->parts[i].obj()->rot);
+        set_map_element<s_f3>(to_send, total_stack, &fight->parts[i].obj()->pos);
+        set_map_element<s_f3>(to_send, total_stack, &fight->parts[i].obj()->rot);
         set_map_element(to_send, total_stack, &fight->parts[i].hp);
     }
 
