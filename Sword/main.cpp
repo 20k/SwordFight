@@ -211,7 +211,9 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 {
     const part* head = &my_fight->parts[bodypart::HEAD];
 
-    vec3f pos = head->pos + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult;
+    float def_head_height = bodypart::default_position[bodypart::HEAD].v[1];// - bodypart::default_position[bodypart::BODY].v[1];
+
+    vec3f pos = (vec3f){0.f, def_head_height, 0.f}  + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult;
 
     //window.set_camera_pos({pos.v[0], pos.v[1], pos.v[2]});
 

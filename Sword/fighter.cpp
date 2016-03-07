@@ -372,6 +372,8 @@ void part::update_texture_by_hp()
 {
     if(old_hp != hp)
     {
+        float hp_store = old_hp;
+
         old_hp = hp;
 
         vec3f col = team_info::get_team_col(team);
@@ -382,7 +384,7 @@ void part::update_texture_by_hp()
             return;
 
         ///if this is async this might break
-        if(hp > 0 && hp != 1.f)
+        if(hp > 0 && hp != 1.f && hp < hp_store)
         {
             cl_float4 dcol = {20, 20, 20};
 
@@ -1688,12 +1690,20 @@ void fighter::tick(bool is_player)
     ///sword render stuff updated here
     update_sword_rot();
 
-    parts[BODY].set_pos((parts[LUPPERARM].pos + parts[RUPPERARM].pos + rest_positions[BODY]*3.f)/5.f);
+    //parts[BODY].set_pos(rest_positions[BODY]);
+
+    parts[BODY].set_pos((parts[LUPPERARM].pos + parts[RUPPERARM].pos + rest_positions[BODY]*5.f)/7.f);
 
     //parts[BODY].set_pos((parts[BODY].pos * 20 + parts[RUPPERLEG].pos + parts[LUPPERLEG].pos)/(20 + 2));
 
-    parts[HEAD].set_pos((parts[BODY].pos*2.f + rest_positions[HEAD] * 32.f) / (32 + 2));
+    //parts[HEAD].set_pos((parts[BODY].pos*2.f + rest_positions[HEAD] * 32.f) / (32 + 2));
 
+    //parts[HEAD].set_pos(rest_positions[HEAD] - )
+
+    vec3f head_rest = rest_positions[HEAD];
+    vec3f body_rest = rest_positions[BODY];
+
+    parts[HEAD].set_pos((head_rest - body_rest) + parts[BODY].pos);
 
 
 
@@ -2493,6 +2503,8 @@ void fighter::update_render_positions()
 
         smooth(parts[RUPPERARM].pos, old_pos[RUPPERARM], frametime);
         smooth(parts[LUPPERARM].pos, old_pos[LUPPERARM], frametime);
+
+        smooth(parts[BODY].pos, old_pos[BODY], frametime);
     }
 
     just_spawned = false;
@@ -2575,9 +2587,10 @@ void fighter::update_render_positions()
 
         //rvec = wvec * 0.1f + rvec * 0.9f;
 
-        //rvec = wvec;
+        rvec = wvec;
 
-        //rvec = rvec;
+        vec3f base = parts[BODY].global_pos;
+
 
         float look_angle = look.v[0];
 
@@ -2601,7 +2614,8 @@ void fighter::update_render_positions()
 
         vec3f angles = a3.get_rotation();
 
-        p.set_global_pos(rotated_vec + pos - rvec + p.pos + extra_bob);
+        p.set_global_pos(rotated_vec + base + extra_bob);
+        //p.set_global_pos(rotated_vec + pos - rvec + p.pos + extra_bob);
         p.set_global_rot(angles);
 
         p.update_model();
