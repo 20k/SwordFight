@@ -344,6 +344,8 @@ int main(int argc, char *argv[])
     fight2.set_quality(s.quality);
     fight2.set_gameplay_state(&current_state);
 
+    lg::log("loaded fighters");
+
     physics phys;
     phys.load();
 
@@ -356,7 +358,7 @@ int main(int argc, char *argv[])
     fight.set_physics(&phys);
     fight2.set_physics(&phys);
 
-    lg::log("loaded net fighters");
+    lg::log("set physics");
 
     ///a very high roughness is better (low spec), but then i think we need to remove the overhead lights
     ///specular component
@@ -367,9 +369,11 @@ int main(int argc, char *argv[])
 
     //window.set_tex_data(tex_gpu);
 
-    lg::log("textures");
+    lg::log("prebuild");
 
     context.build(true);
+
+    lg::log("postbuild");
 
     //context.fetch()->tex_gpu = tex_gpu;
 
@@ -397,6 +401,8 @@ int main(int argc, char *argv[])
 
     auto light_data = light::build();
 
+    lg::log("built light data");
+
     window.set_light_data(light_data);
 
     lg::log("light");
@@ -415,9 +421,9 @@ int main(int argc, char *argv[])
 
     fighter* my_fight = &fight;
 
-    lg::log("Presspace");
 
     #ifdef SPACE
+    lg::log("Presspace");
 
     space_manager space_res;
 
@@ -432,11 +438,12 @@ int main(int argc, char *argv[])
         stars = get_starmap(1);
         g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
     }
-    #endif
 
     //printf("SSize %i mb\n", (g_star_cloud.g_colour_mem.size() / 1024) / 1024);
 
     lg::log("Postspace");
+
+    #endif
 
     ///debug;
     int controls_state = 1;
@@ -478,6 +485,8 @@ int main(int argc, char *argv[])
     context.set_clear_colour({135/255.f, 206/255.f, 250/255.f});
 
     transparency_context.build(true);
+
+    lg::log("post transparency forced build");
 
     ///fix depth ordering  with transparency
     while(window.window.isOpen())
