@@ -1718,10 +1718,27 @@ void fighter::tick(bool is_player)
 
         vec3f pos = parts[type].pos;
 
-        pos.v[1] -= cdist * crouch_frac;
+        if(i != LHAND && i != RHAND)
+            pos.v[1] -= cdist * crouch_frac;
+        else
+            pos.v[1] += smoothed_crouch_offset;
 
         parts[type].set_pos(pos);
     }
+
+    /*IK_hand(0, parts[LHAND].pos, shoulder_rotation, arms_are_locked);
+    IK_hand(1, parts[LHAND].pos, shoulder_rotation, arms_are_locked, true);
+
+    slave_to_master = parts[LHAND].pos - parts[RHAND].pos;
+
+    ///dt smoothing doesn't work because the shoulder position is calculated
+    ///dynamically from the focus position
+    ///this means it probably wants to be part of our IK step?
+    ///hands disconnected
+    if(slave_to_master.length() > 1.f)
+    {
+        parts[RHAND].pos = parts[LHAND].pos;
+    }*/
 
     smoothed_crouch_offset = - cdist * crouch_frac;
 
@@ -2531,7 +2548,13 @@ void fighter::update_render_positions()
 
         smooth(parts[BODY].pos, old_pos[BODY], frametime);
 
-        smooth(smoothed_crouch_offset, smoothed_crouch_offset_old, frametime);
+        float s1 = smoothed_crouch_offset;
+
+        smooth(s1, smoothed_crouch_offset_old, frametime);
+
+
+
+        smooth(smoothed_crouch_offset, s1, frametime);
     }
 
 
