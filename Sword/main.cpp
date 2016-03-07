@@ -248,14 +248,14 @@ int main(int argc, char *argv[])
     s.load("./res/settings.txt");
 
     ///printf redirect not working on tester's pc
-    if(!s.enable_debugging)
+    /*if(!s.enable_debugging)
     {
         static std::ofstream out("info.txt");
         std::cout.rdbuf( out.rdbuf() );
 
         freopen("err.txt", "w", stdout);
-    }
-    else
+    }*/
+    //else
     {
         std::streambuf* b1 = std::cout.rdbuf();
 

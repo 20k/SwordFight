@@ -356,7 +356,6 @@ void part::damage(float dam, bool do_effect, int32_t network_id_hit_by)
 
     net.damage_info.id_hit_by = network_id_hit_by;
 
-
     //printf("%f\n", hp);
 
     if(is_active && hp < 0.0001f)
@@ -2920,7 +2919,7 @@ void fighter::update_last_hit_id()
     {
         if(i.net.damage_info.hp_delta != 0.f)
         {
-            i.net.damage_info.hp_delta = 0.f;
+            //i.net.damage_info.hp_delta = 0.f;
 
             if(last_id != -1)
                 lg::log("potential conflict in last id hit, update_last_hit_id()");

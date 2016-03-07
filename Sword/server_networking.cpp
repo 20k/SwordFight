@@ -232,6 +232,17 @@ void set_map_element(std::map<int, ptr_info>& change, std::map<int, ptr_info>& s
     change[pos] = get_inf<N>(elem);
 }
 
+bool is_damage_info(fighter* fight, void* ptr)
+{
+    for(auto& i : fight->parts)
+    {
+        if(&i.net.damage_info == ptr)
+            return true;
+    }
+
+    return false;
+}
+
 std::map<int, ptr_info> build_host_network_stack(fighter* fight)
 {
     constexpr int s_f3 = sizeof(cl_float) * 3;
@@ -407,6 +418,10 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 }
 
                 memmove(comp.ptr, payload, comp.size);
+
+                ///fucking thank christ, its not a networking issue
+                //if(is_damage_info(play.fight, comp.ptr))
+                //    lg::log("damage");
 
                 ///done for me now
                 if(player_id == my_id)
