@@ -98,6 +98,7 @@
 		<Unit filename="../openclrenderer/interact_manager.hpp" />
 		<Unit filename="../openclrenderer/light.cpp" />
 		<Unit filename="../openclrenderer/light.hpp" />
+		<Unit filename="../openclrenderer/logging.cpp" />
 		<Unit filename="../openclrenderer/network.cpp" />
 		<Unit filename="../openclrenderer/network.hpp" />
 		<Unit filename="../openclrenderer/obj_g_descriptor.hpp" />
