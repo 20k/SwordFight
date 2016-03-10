@@ -271,7 +271,7 @@ std::map<int, ptr_info> build_host_network_stack(fighter* fight)
     return to_send;
 }
 
-void server_networking::handle_ping_response(byte_fetch& arg)
+/*void server_networking::handle_ping_response(byte_fetch& arg)
 {
     byte_fetch fetch = arg;
 
@@ -284,7 +284,7 @@ void server_networking::handle_ping_response(byte_fetch& arg)
     }
 
     lg::log("Received ping response");
-}
+}*/
 
 void server_networking::handle_ping(byte_fetch& arg)
 {
@@ -611,7 +611,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             ///should never happen
             if(type == message::PING_RESPONSE)
             {
-                handle_ping_response(fetch);
+                /*handle_ping_response(fetch);*/
 
                 lg::log("Err, this is totally invalid, ping response");
             }
