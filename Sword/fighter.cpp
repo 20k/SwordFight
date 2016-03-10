@@ -3380,6 +3380,12 @@ void fighter::set_name(std::string name)
     if(!name_tex_gpu)
         return;
 
+    std::string ping_info = "\nPing: " + std::to_string((int)net.ping);
+
+    lg::log("nping ", net.ping);
+
+    lg::log("hithere", ping_info);
+
     local_name = name;
 
     vec2f fname = {name_dim.x, name_dim.y};
@@ -3394,7 +3400,8 @@ void fighter::set_name(std::string name)
 
     name_tex.setActive(false);
 
-    text::immediate(&name_tex, local_name, fname/2.f, 16, true);
+
+    text::immediate(&name_tex, local_name + ping_info, fname/2.f, 16, true);
     name_tex.display();
 
     //tex->update_gpu_texture_col({0.f, 255.f, 0.f, 255.f}, transparency_context->fetch()->tex_gpu);
@@ -3488,7 +3495,7 @@ void fighter::update_name_info(bool networked_fighter)
             }
 
             ///Don't think i need to null terminate this myself
-            str.push_back(0);
+            //str.push_back(0);
 
             lg::log("fighter network name", str);
 

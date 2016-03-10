@@ -302,11 +302,11 @@ void server_networking::handle_ping_data(byte_fetch& arg)
         if(net_play.id < 0)
         {
             lg::log("Invalid playerid ", net_play.id);
+
+            discovered_fighters.erase(player_id);
+
             continue;
         }
-
-        if(player_id == my_id)
-            continue;
 
         ///error
         if(net_play.fight == nullptr)
