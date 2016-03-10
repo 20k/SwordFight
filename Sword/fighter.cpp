@@ -2993,6 +2993,18 @@ void fighter::update_last_hit_id()
             if(last_id != -1)
                 lg::log("potential conflict in last id hit, update_last_hit_id()");
 
+            if(i.net.damage_info.id_hit_by == -1)
+            {
+                ///continue
+                ///but this might be broken currently
+                ///wait
+                ///this does not affect anything other than kill reporting!
+                ///we can safely skip and 0-ify hp loss?
+                ///or maybe lets just skip
+
+                continue;
+            }
+
             last_id = i.net.damage_info.id_hit_by;
 
             player_id_i_was_last_hit_by = last_id;
