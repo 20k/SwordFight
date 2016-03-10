@@ -567,6 +567,7 @@ struct physics;
     char v[MAX_NAME_LENGTH + 1] = {0};
 };*/
 
+///networked stuff
 struct networked_components
 {
     ///this is authoritative
@@ -585,6 +586,8 @@ struct networked_components
     //char network_name[MAX_NAME_LENGTH + 1] = {0};
     //name_struct net_name;
     vec<MAX_NAME_LENGTH + 1, char> net_name = {0};
+
+    float ping = 0;
 };
 
 struct local_components
@@ -610,6 +613,8 @@ struct link
 struct cosmetics
 {
     objects_container* tophat = nullptr;
+
+    ///void load()
 
     void set_active(bool status)
     {

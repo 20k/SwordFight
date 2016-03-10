@@ -138,6 +138,7 @@ struct server_networking
 
     void handle_ping_response(byte_fetch& fetch);
     void handle_ping(byte_fetch& fetch);
+    void handle_ping_data(byte_fetch& fetch);
     void ping();
 };
 

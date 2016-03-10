@@ -286,6 +286,51 @@ std::map<int, ptr_info> build_host_network_stack(fighter* fight)
     lg::log("Received ping response");
 }*/
 
+void server_networking::handle_ping_data(byte_fetch& arg)
+{
+    byte_fetch fetch = arg;
+
+    int32_t num_players = fetch.get<int32_t>();
+
+    for(int i=0; i<num_players; i++)
+    {
+        int32_t player_id = fetch.get<int32_t>();
+        float player_ping = fetch.get<float>();
+
+        network_player& net_play = discovered_fighters[player_id];
+
+        if(net_play.id < 0)
+        {
+            lg::log("Invalid playerid ", net_play.id);
+            continue;
+        }
+
+        if(player_id == my_id)
+            continue;
+
+        ///error
+        if(net_play.fight == nullptr)
+        {
+            lg::log("Oh dear, null fighter");
+            continue;
+        }
+
+        lg::log("Got ping ", player_ping, " for player ", player_id);
+
+        net_play.fight->net.ping = player_ping;
+    }
+
+    int32_t found_end = fetch.get<int32_t>();
+
+    if(found_end != canary_end)
+    {
+        lg::log("Canary error in handle ping data");
+        return;
+    }
+
+    arg = fetch;
+}
+
 void server_networking::handle_ping(byte_fetch& arg)
 {
     ///need to handle fetch. It will contain a time, then we just pipe that back?
@@ -608,6 +653,11 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 handle_ping(fetch);
             }
 
+            if(type == message::PING_DATA)
+            {
+                handle_ping_data(fetch);
+            }
+
             ///should never happen
             if(type == message::PING_RESPONSE)
             {
@@ -782,46 +832,6 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 my_fighter->name_resend_timer.restart();
             }
 
-            ///if(me.recoil) //playsound
-            ///if(me.mydirty) ///playsound
-
-            ///so. If two different fighters who aren't me hit each other
-            ///there'll be no audio
-            ///audio is all fucked, might have to scrap entirely and redo
-            ///we need a to_send
-            ///and a have_received
-            /*if(my_fighter->net.play_clang_audio)
-            {
-                my_fighter->local.play_clang_audio = 1;
-
-                my_fighter->net.play_clang_audio = 0;
-            }
-
-            for(auto& i : my_fighter->parts)
-            {
-
-            }*/
-
-            /*bool any_parts_hit = false;
-            vec3f sound_pos = {0,0,0};
-
-            for(auto& i : discovered_fighters[my_id].fight->parts)
-            {
-                if(i.net.play_hit_audio)
-                {
-                    any_parts_hit = true;
-                    sound_pos = i.global_pos;
-
-                    ///reset network state
-                    i.net.play_hit_audio = 0;
-                }
-            }
-
-            if(any_parts_hit)
-            {
-                sound::add(0, sound_pos);
-            }*/
-
             ///spam server with packets until it respawns us
             if(my_fighter->dead())
             {
@@ -856,6 +866,34 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                     delayed_delta delt;
                     delt.delayed_info = p.net.damage_info;
+
+                    int32_t id_who_hit_me = p.net.damage_info.id_hit_by;
+
+                    if(id_who_hit_me >= 0)
+                    {
+                        network_player& play = discovered_fighters[id_who_hit_me];
+
+                        if(play.id >= 0)
+                        {
+                            float my_ping = my_fighter->net.ping;
+                            float their_ping = play.fight->net.ping;
+
+                            float half_time = my_ping + their_ping;
+
+                            delt.delay_time_ms = half_time;
+
+                            lg::log("delaying by ", delt.delay_time_ms, "ms");
+                        }
+                        else
+                        {
+                            lg::log("Error, invalid fighter beginning delayed damage delta ", play.id);
+
+                            discovered_fighters.erase(id_who_hit_me);
+                        }
+
+                    }
+
+                    //delt.delay_time_ms =
 
                     p.net.delayed_delt.push_back(delt);
 
