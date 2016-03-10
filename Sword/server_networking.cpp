@@ -271,6 +271,58 @@ std::map<int, ptr_info> build_host_network_stack(fighter* fight)
     return to_send;
 }
 
+void server_networking::handle_ping_response(byte_fetch& arg)
+{
+    byte_fetch fetch = arg;
+
+    int32_t found_end = fetch.get<int32_t>();
+
+    if(found_end != canary_end)
+    {
+        lg::log("Canary error in handle ping response");
+        return;
+    }
+
+    lg::log("Received ping response");
+}
+
+void server_networking::handle_ping(byte_fetch& arg)
+{
+    ///need to handle fetch. It will contain a time, then we just pipe that back?
+    ///or should the client handle it?
+
+    byte_fetch fetch = arg;
+
+    int32_t found_end = fetch.get<int32_t>();
+
+    if(found_end != canary_end)
+    {
+        lg::log("Canary error in handle ping");
+        return;
+    }
+
+    byte_vector vec;
+
+    vec.push_back(canary_start);
+    vec.push_back(message::PING_RESPONSE);
+    vec.push_back(canary_end);
+
+    udp_send(to_game, vec.ptr);
+
+    arg = fetch;
+}
+
+void server_networking::ping()
+{
+    byte_vector vec;
+
+    vec.push_back(canary_start);
+    vec.push_back(message::PING);
+    vec.push_back(canary_end);
+
+    udp_send(to_game, vec.ptr);
+}
+
 void server_networking::tick(object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys)
 {
     ///tries to join
@@ -548,6 +600,20 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             if(type == message::FORWARDING_RELIABLE_ACK)
             {
                 reliable_manager.process_forwarding_reliable_ack(fetch);
+            }
+
+            ///we need a generic message transport system so i dont have to update the gameservers
+            if(type == message::PING)
+            {
+                handle_ping(fetch);
+            }
+
+            ///should never happen
+            if(type == message::PING_RESPONSE)
+            {
+                handle_ping_response(fetch);
+
+                lg::log("Err, this is totally invalid, ping response");
             }
         }
     }

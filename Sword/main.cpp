@@ -70,6 +70,11 @@ void debug_controls(fighter* my_fight, engine& window)
         my_fight->queue_attack(attacks::BLOCK);
     }
 
+    if(once<sf::Keyboard::V>())
+    {
+        my_fight->queue_attack(attacks::RECOIL);
+    }
+
     if(once<sf::Keyboard::H>())
     {
         my_fight->try_feint();
@@ -215,9 +220,9 @@ void fps_controls(fighter* my_fight, engine& window)
 
 input_delta fps_camera_controls(float frametime, const input_delta& input, engine& window, const fighter* my_fight)
 {
-    const part* head = &my_fight->parts[bodypart::HEAD];
+    //const part* head = &my_fight->parts[bodypart::HEAD];
 
-    float def_head_height = bodypart::default_position[bodypart::HEAD].v[1];// - bodypart::default_position[bodypart::BODY].v[1];
+    //float def_head_height = bodypart::default_position[bodypart::HEAD].v[1];// - bodypart::default_position[bodypart::BODY].v[1];
 
     //vec3f pos = (vec3f){0.f, def_head_height, 0.f} + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult - (vec3f){0.f, bodypart::scale * my_fight->crouch_frac, 0.f};
 
@@ -704,6 +709,12 @@ int main(int argc, char *argv[])
         {
             central_pip = !central_pip;
         }
+
+
+        /*if(once<sf::Keyboard::Num1>() && window.focus)
+        {
+            server.ping();
+        }*/
 
         server.set_my_fighter(my_fight);
 

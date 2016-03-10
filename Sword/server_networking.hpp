@@ -135,6 +135,10 @@ struct server_networking
     void set_graphics(int graphics);
 
     int graphics_settings = 0;
+
+    void handle_ping_response(byte_fetch& fetch);
+    void handle_ping(byte_fetch& fetch);
+    void ping();
 };
 
 struct ptr_info
