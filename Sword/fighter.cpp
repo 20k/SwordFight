@@ -3382,9 +3382,9 @@ void fighter::set_name(std::string name)
 
     std::string ping_info = "\nPing: " + std::to_string((int)net.ping);
 
-    lg::log("nping ", net.ping);
+    //lg::log("nping ", net.ping);
 
-    lg::log("hithere", ping_info);
+    //lg::log("hithere", ping_info);
 
     local_name = name;
 
