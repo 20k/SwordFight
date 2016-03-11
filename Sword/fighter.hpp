@@ -417,7 +417,7 @@ struct attack
 ///make sure we use our real sprint change in velocity, so you cant just hold shift and attack all the time
 static std::vector<movement> sprint_dummy =
 {
-    {0, {0,0,0}, 500, 0, bodypart::LHAND, mov::WINDUP}
+    {0, {0,0,0}, 500, 0, bodypart::LHAND, mov::NO_MOVEMENT}
 };
 
 static std::vector<movement> overhead =
@@ -429,8 +429,8 @@ static std::vector<movement> overhead =
 
 static std::vector<movement> recoil =
 {
-    {0, {-120, -10, -60}, 500, 4, bodypart::LHAND,  (movement_t)(mov::NONE | mov::LOCKS_ARMS | mov::IS_RECOIL)}, ///recoiling doesnt block or damage
-    {0, {-0, -150, -140}, 300, 3, bodypart::LHAND,  (movement_t)(mov::NONE | mov::IS_RECOIL)} ///attack
+    {0, {-120, -10, -60}, 300, 4, bodypart::LHAND,  (movement_t)(mov::NONE | mov::LOCKS_ARMS | mov::IS_RECOIL)}, ///recoiling doesnt block or damage
+    {0, {-0, -150, -140}, 500, 4, bodypart::LHAND,  (movement_t)(mov::NONE | mov::IS_RECOIL)} ///attack
     //{0, {-120, -10, -60}, 800, 0, bodypart::LHAND,  (movement_t)(mov::NONE | mov::LOCKS_ARMS | mov::IS_RECOIL)} ///recoiling doesnt block or damage
 };
 
