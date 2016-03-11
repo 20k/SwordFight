@@ -34,7 +34,8 @@ namespace mov
         NOSLOW_END = 1 << 12,
         NOSLOW_START = 1 << 13,
         INVERSE_OVERHEAD_HACK = 1 << 14,
-        IS_RECOIL = 1 << 15
+        IS_RECOIL = 1 << 15,
+        NO_MOVEMENT = 1 << 16
     };
 }
 
@@ -410,6 +411,13 @@ typedef attacks::attacks attack_t;
 struct attack
 {
     std::vector<movement> moves;
+};
+
+///integrate this with sprint timings, so it takes exactly 500ms to windup sprint
+///make sure we use our real sprint change in velocity, so you cant just hold shift and attack all the time
+static std::vector<movement> sprint_dummy =
+{
+    {0, {0,0,0}, 500, 0, bodypart::LHAND, mov::WINDUP}
 };
 
 static std::vector<movement> overhead =

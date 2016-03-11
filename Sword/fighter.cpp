@@ -2009,9 +2009,9 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         ///as well as ensuring the leg animations don't do anything silly
         ///this code contains a lot of redundant variables
         ///particularly annoying due to a lack of swizzling
-        vec3f predicted = pos + global_dir;
+        //vec3f predicted = pos + global_dir;
 
-        vec2f lpredict = {predicted.v[0], predicted.v[2]};
+        //vec2f lpredict = {predicted.v[0], predicted.v[2]};
 
         vec2f dir_move = {global_dir.v[0], global_dir.v[2]};
 
