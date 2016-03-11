@@ -786,7 +786,8 @@ int main(int argc, char *argv[])
         my_fight->set_other_fighters(fighter_list);
 
         {
-            fight2.queue_attack(attacks::SLASH);
+            fight2.queue_attack(attacks::OVERHEAD);
+            //fight2.queue_attack(attacks::SLASH);
             //fight2.queue_attack(attacks::BLOCK);
 
             fight2.tick();

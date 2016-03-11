@@ -35,7 +35,8 @@ namespace mov
         NOSLOW_START = 1 << 13,
         INVERSE_OVERHEAD_HACK = 1 << 14,
         IS_RECOIL = 1 << 15,
-        NO_MOVEMENT = 1 << 16
+        NO_MOVEMENT = 1 << 16,
+        ALT_ATTACK = 1 << 17
     };
 }
 
@@ -429,7 +430,7 @@ static std::vector<movement> overhead =
 
 static std::vector<movement> recoil =
 {
-    {0, {-120, -10, -60}, 300, 4, bodypart::LHAND,  (movement_t)(mov::NONE | mov::LOCKS_ARMS | mov::IS_RECOIL)}, ///recoiling doesnt block or damage
+    {0, {-120, -150, -60}, 300, 4, bodypart::LHAND,  (movement_t)(mov::NONE | mov::LOCKS_ARMS | mov::IS_RECOIL)}, ///recoiling doesnt block or damage
     {0, {-0, -150, -140}, 500, 4, bodypart::LHAND,  (movement_t)(mov::NONE | mov::IS_RECOIL)} ///attack
     //{0, {-120, -10, -60}, 800, 0, bodypart::LHAND,  (movement_t)(mov::NONE | mov::LOCKS_ARMS | mov::IS_RECOIL)} ///recoiling doesnt block or damage
 };
