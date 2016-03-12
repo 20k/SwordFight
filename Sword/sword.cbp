@@ -39,7 +39,17 @@
 				<Option compiler="mingw64" />
 				<Compiler>
 					<Add option="-O3" />
+					<Add option="-DPROFILING" />
+				</Compiler>
+			</Target>
+			<Target title="gprofile">
+				<Option output="bin/gProfile/midgard" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/gProfile/" />
+				<Option type="1" />
+				<Option compiler="mingw64" />
+				<Compiler>
 					<Add option="-pg" />
+					<Add option="-g" />
 					<Add option="-DPROFILING" />
 				</Compiler>
 				<Linker>
