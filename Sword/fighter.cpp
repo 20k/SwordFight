@@ -1391,10 +1391,7 @@ void fighter::tick(bool is_player)
         //if(i.does(mov::ALT_ATTACK))
         //    focus_limb = RUPPERARM;
 
-        if(i.does(mov::ALT_ATTACK))
-            alt_attack_or_idle = true;
-        else
-            alt_attack_or_idle = false;
+        alt_attack_or_idle = i.does(mov::ALT_ATTACK);
 
         ///this worked fine before with body because they're on the same height
         ///hmm. both are very similar in accuracy, but they're slightly stylistically different
