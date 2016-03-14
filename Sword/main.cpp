@@ -75,12 +75,6 @@ void debug_controls(fighter* my_fight, engine& window)
         my_fight->queue_attack(attacks::RECOIL);
     }
 
-    if(once<sf::Mouse::XButton1>())
-        my_fight->queue_alt_attack(attacks::SLASH);
-
-    if(once<sf::Mouse::XButton2>())
-        my_fight->queue_alt_attack(attacks::OVERHEAD);
-
     if(once<sf::Keyboard::H>())
     {
         my_fight->try_feint();
@@ -193,12 +187,6 @@ void fps_controls(fighter* my_fight, engine& window)
 
     if(once<sf::Mouse::Right>())
         my_fight->queue_attack(attacks::BLOCK);
-
-    if(once<sf::Mouse::XButton1>())
-        my_fight->queue_alt_attack(attacks::SLASH);
-
-    if(once<sf::Mouse::XButton2>())
-        my_fight->queue_alt_attack(attacks::OVERHEAD);
 
     if(once<sf::Keyboard::Q>())
         my_fight->try_feint();

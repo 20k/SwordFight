@@ -36,9 +36,7 @@ namespace mov
         INVERSE_OVERHEAD_HACK = 1 << 14,
         IS_RECOIL = 1 << 15,
         NO_MOVEMENT = 1 << 16,
-        ALT_ATTACK = 1 << 17,
-        SWORD_FINISH_ROT_LHAND = 1 << 18, ///normal sword rot
-        SWORD_FINISH_ROT_RHAND = 1 << 19 /// alt attack sword rot
+        ALT_ATTACK = 1 << 17
     };
 }
 
@@ -745,11 +743,10 @@ struct fighter
     void set_stance(int _stance);
 
     void queue_attack(attack_t type);
-    void queue_alt_attack(attack_t type);
     void add_move(const movement& m);
     void try_jump();
 
-    void update_sword_rot(float lhand_to_rhand_ratio);
+    void update_sword_rot();
 
     void tick(bool is_player = false);
     void manual_check_part_death(); ///interate over parts, if < 0 and active then die
@@ -879,11 +876,6 @@ private:
     bool right_foot_sound;
 
     bool just_spawned = true;
-
-    bool alt_attack_or_idle;
-
-    ///0 -> fully lhand, 1 -> fully rhand
-    float lhand_to_rhand_hold_ratio;
 };
 
 
