@@ -711,6 +711,10 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
 void fighter::load()
 {
+    lhand_to_rhand_hold_ratio = 0;
+
+    alt_attack_or_idle = false;
+
     camera_bob_mult = 0;
 
     camera_bob = {0,0,0};
@@ -1331,6 +1335,8 @@ void fighter::tick(bool is_player)
 
     bool arms_are_locked = false;
 
+    bool last_alt_state = alt_attack_or_idle;
+
     ///only the first move is ever executed PER LIMB
     ///the busy list is used purely to stop all the rest of the moves from activating
     ///because different limbs can have different moves activating concurrently
@@ -1380,11 +1386,21 @@ void fighter::tick(bool is_player)
         if(i.does(mov::OVERHEAD_HACK))
             desired_sword_vec = desired_sword_vec.norm() * sword_len;
 
+        auto focus_limb = LUPPERARM;
+
+        //if(i.does(mov::ALT_ATTACK))
+        //    focus_limb = RUPPERARM;
+
+        if(i.does(mov::ALT_ATTACK))
+            alt_attack_or_idle = true;
+        else
+            alt_attack_or_idle = false;
+
         ///this worked fine before with body because they're on the same height
         ///hmm. both are very similar in accuracy, but they're slightly stylistically different
         ///comebacktome ???
         ///????
-        vec3f desired_hand_relative_sword = desired_sword_vec - (desired_sword_vec - default_position[LUPPERARM]).norm() * sword_len;
+        vec3f desired_hand_relative_sword = desired_sword_vec - (desired_sword_vec - default_position[focus_limb]).norm() * sword_len;
 
         ///really we only want the height
         float desired_hand_height = desired_hand_relative_sword.v[1];
@@ -1392,7 +1408,7 @@ void fighter::tick(bool is_player)
 
         vec3f cx_sword_vec = {0.f, head_vec.v[1], sword_vec.v[2]};
 
-        vec3f cx_sword_rel = cx_sword_vec - (cx_sword_vec - default_position[LUPPERARM]).norm() * sword_len;
+        vec3f cx_sword_rel = cx_sword_vec - (cx_sword_vec - default_position[focus_limb]).norm() * sword_len;
 
         float desired_hand_x = cx_sword_rel.v[0];
 
@@ -1405,6 +1421,26 @@ void fighter::tick(bool is_player)
         float frac = i.get_frac();
 
         frac = clamp(frac, 0.f, 1.f);
+
+
+        ///we're still popping on alt attack switches
+        if(i.does(mov::SWORD_FINISH_ROT_LHAND) && lhand_to_rhand_hold_ratio > 0)
+        {
+            lhand_to_rhand_hold_ratio = 1.f - frac;
+
+            if(i.finished())
+                lhand_to_rhand_hold_ratio = 0;
+        }
+
+        if(i.does(mov::SWORD_FINISH_ROT_RHAND) && lhand_to_rhand_hold_ratio < 1)
+        {
+            lhand_to_rhand_hold_ratio = frac;
+
+            if(i.finished())
+                lhand_to_rhand_hold_ratio = 1;
+        }
+
+
 
         vec3f current_pos;
 
@@ -1483,22 +1519,10 @@ void fighter::tick(bool is_player)
             frac = frac_smooth(frac);
             current_pos = slerp(actual_start, actual_finish, frac);
 
-            //float fsin = frac * M_PI;
-
-            //float sval = sin(fsin);
-
-            //current_pos.v[1] = current_pos.v[1] * (1.f - sval) + actual_avg.v[1] * sval;
-
             ///so the reason this flatttens it out anyway
             ///is because we're swappign from slerping to cosinterpolation
             if(i.does(mov::PASS_THROUGH_SCREEN_CENTRE))
-            //    current_pos.v[1] = cosif3(actual_start.v[1], actual_avg.v[1], actual_finish.v[1], frac);
                 current_pos.v[1] = mix3(actual_start, actual_avg, actual_finish, frac).v[1];
-
-            if(i.does(mov::FINISH_AT_SCREEN_CENTRE))
-            {
-                //current_pos.v[0] = cosint3(actual_start, actual_avg, actual_finish, frac).v[0];
-            }
         }
         else if(i.type == 2)
         {
@@ -1637,35 +1661,45 @@ void fighter::tick(bool is_player)
     shoulder_rotation += (wangle - shoulder_rotation) + shoulder_rotation * 5.f;
     shoulder_rotation /= 6;
 
+    vec3f old_hand_pos = parts[LHAND].pos;
 
-    IK_hand(0, rot_focus, shoulder_rotation, arms_are_locked);
-    IK_hand(1, parts[LHAND].pos, shoulder_rotation, arms_are_locked, true);
-
-    vec3f slave_to_master = parts[LHAND].pos - parts[RHAND].pos;
-
-    ///dt smoothing doesn't work because the shoulder position is calculated
-    ///dynamically from the focus position
-    ///this means it probably wants to be part of our IK step?
-    ///hands disconnected
-    if(slave_to_master.length() > 1.f)
+    if(!alt_attack_or_idle)
     {
-        parts[RHAND].pos = parts[LHAND].pos;
+        IK_hand(0, rot_focus, shoulder_rotation, arms_are_locked);
+        IK_hand(1, parts[LHAND].pos, shoulder_rotation, arms_are_locked, true);
 
-        //float arm_len = (rest_positions[LHAND] - rest_positions[LLOWERARM]).length();
+        vec3f slave_to_master = parts[LHAND].pos - parts[RHAND].pos;
 
-        //vec3f original_shoulder = parts[RUPPERARM].pos;
+        if(slave_to_master.length() > 1.f)
+        {
+            parts[RHAND].pos = parts[LHAND].pos;
+        }
+    }
+    else
+    {
+        IK_hand(1, rot_focus, shoulder_rotation, arms_are_locked);
+        IK_hand(0, parts[RHAND].pos, shoulder_rotation, arms_are_locked, true);
 
-        /*vec3f slave_to_shoulder = original_shoulder - parts[RHAND].pos;
+        vec3f slave_to_master = parts[LHAND].pos - parts[RHAND].pos;
 
-        vec3f elbow_pos = slave_to_shoulder.norm() * arm_len + parts[RHAND].pos;
-        vec3f new_shoulder_pos = slave_to_shoulder.norm() * arm_len * 2 + parts[RHAND].pos;*/
+        if(slave_to_master.length() > 1.f)
+        {
+            parts[LHAND].pos = parts[RHAND].pos;
+        }
+    }
 
-        //vec3f elbow_pos = (parts[RHAND].pos + parts[RUPPERARM].pos)/2.f;
+    ///add finish at opposite rotation to all alt_attacks windup
+    ///add finish at normal rotation to all non alt attacks windup
+    ///keep this as a private property of the fighter, interpolate this in tick above
+    ///use to fix alt attacks
+    ///swapped alt attack states
+    if(last_alt_state != alt_attack_or_idle)
+    {
+        parts[RHAND].pos = old_hand_pos;
+        parts[LHAND].pos = old_hand_pos;
 
-        //float dt_tsmooth = frametime * 0.1f;
-
-        //parts[RLOWERARM].pos = elbow_pos;
-        //parts[RUPPERARM].pos = (new_shoulder_pos * dt_tsmooth + parts[RUPPERARM].pos) / (dt_tsmooth + 1);
+        ///why are we using focus pos, not hand positioning anyway?
+        moves[0].start = old_hand_pos;
     }
 
     ///this feels wrong
@@ -1690,7 +1724,7 @@ void fighter::tick(bool is_player)
 
 
     ///sword render stuff updated here
-    update_sword_rot();
+    update_sword_rot(lhand_to_rhand_hold_ratio);
 
     //parts[BODY].set_pos(rest_positions[BODY]);
 
@@ -2341,6 +2375,45 @@ void fighter::queue_attack(attack_t type)
     if(!can_attack(a.moves.front().limb))
         return;
 
+    for(auto& i : a.moves)
+    {
+        if(i.does(mov::WINDUP))
+        {
+            i.move_type = (movement_t)(i.move_type | mov::SWORD_FINISH_ROT_LHAND);
+        }
+    }
+
+    for(auto i : a.moves)
+    {
+        ///this is probably a mistake to initialise this here
+        i.damage = attacks::damage_amounts[type];
+
+        add_move(i);
+    }
+}
+
+///this function assumes that an attack movelist keeps a consistent bodypart
+void fighter::queue_alt_attack(attack_t type)
+{
+    if(dead())
+        return;
+
+    attack a = attack_list[type];
+
+    for(auto& i : a.moves)
+    {
+        i.fin.v[0] = -i.fin.v[0];
+        i.move_type = (movement_t)(i.move_type | mov::ALT_ATTACK);
+
+        if(i.does(mov::WINDUP))
+        {
+            i.move_type = (movement_t)(i.move_type | mov::SWORD_FINISH_ROT_RHAND);
+        }
+    }
+
+    if(!can_attack(a.moves.front().limb))
+        return;
+
     for(auto i : a.moves)
     {
         ///this is probably a mistake to initialise this here
@@ -2367,7 +2440,7 @@ void fighter::try_jump()
     }
 }
 
-void fighter::update_sword_rot()
+void fighter::update_sword_rot(float lhand_to_rhand_ratio)
 {
     using namespace bodypart;
 
@@ -2377,8 +2450,8 @@ void fighter::update_sword_rot()
         vec3f lvec = parts[LHAND].pos - parts[LUPPERARM].pos;
         vec3f rvec = parts[RHAND].pos - parts[RUPPERARM].pos;
 
-        float l_weight = 1.0f;
-        float r_weight = 0.0f;
+        float l_weight = (1.f - lhand_to_rhand_ratio);
+        float r_weight = lhand_to_rhand_ratio;
 
         float total = l_weight + r_weight;
 
