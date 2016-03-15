@@ -1299,6 +1299,22 @@ float erf_smooth(float x)
     return powf((- x * (x - 2) * (erf((x - 0.5f) * 3) + 1) / 2.f), 1.5f);
 }
 
+float rerf_smooth(float x)
+{
+    return (erf((x - 0.5f) * 3) + 1) / 2.f;
+}
+
+float derf_smooth(float x)
+{
+    if(x < 0 || x >= 1)
+        return x;
+
+    float erf1 = rerf_smooth(x);
+    float erf2 = 1.f - rerf_smooth(1.f - x);
+
+    return erf1 * (x) + erf2 * (1.f - x);
+}
+
 ///we want the hands to be slightly offset on the sword
 void fighter::tick(bool is_player)
 {
@@ -1513,6 +1529,12 @@ void fighter::tick(bool is_player)
         else if(i.type == 4)
         {
             frac = 1.f - erf_smooth(1.f - frac);
+
+            current_pos = slerp(actual_start, actual_finish, frac);
+        }
+        else if(i.type == 5)
+        {
+            frac = derf_smooth(frac);
 
             current_pos = slerp(actual_start, actual_finish, frac);
         }

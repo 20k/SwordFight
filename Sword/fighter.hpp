@@ -372,6 +372,8 @@ namespace attacks
     {
         SLASH,
         OVERHEAD,
+        SLASH_ALT,
+        OVERHEAD_ALT,
         STAB,
         REST,
         BLOCK,
@@ -428,6 +430,13 @@ static std::vector<movement> overhead =
     {0, {100, -150, -140}, 500, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE | mov::OVERHEAD_HACK)} ///attack
 };
 
+static std::vector<movement> overhead_alt =
+{
+    {0, {-150, -0, -40}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
+    //{0, {-120, -0, -40}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
+    {0, {100, -150, -140}, 500, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE | mov::OVERHEAD_HACK)} ///attack
+};
+
 static std::vector<movement> recoil =
 {
     {0, {-120, -150, -60}, 300, 4, bodypart::LHAND,  (movement_t)(mov::NONE | mov::LOCKS_ARMS | mov::IS_RECOIL)}, ///recoiling doesnt block or damage
@@ -438,7 +447,20 @@ static std::vector<movement> recoil =
 static std::vector<movement> slash =
 {
     {0, {-180, -60, -10}, 350, 0, bodypart::LHAND, mov::WINDUP}, ///windup
-    {0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
+    {0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)}, ///attack
+    {0, {0, -150, -140}, 200, 5, bodypart::LHAND,  (movement_t)(mov::NONE)} ///attack
+
+
+    //{0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
+};
+
+static std::vector<movement> slash_alt =
+{
+    {0, {120, -60, -140}, 350, 0, bodypart::LHAND, mov::WINDUP}, ///windup
+    {0, {-180, -60, -10}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)}, ///attack
+    {0, {0, -150, -140}, 200, 1, bodypart::LHAND,  (movement_t)(mov::NONE)} ///attack
+
+
     //{0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
 };
 
@@ -498,6 +520,8 @@ static std::map<attack_t, attack> attack_list =
 {
     {attacks::OVERHEAD, {overhead}},
     {attacks::SLASH, {slash}},
+    {attacks::SLASH_ALT, {slash_alt}},
+    {attacks::OVERHEAD_ALT, {overhead_alt}},
     {attacks::STAB, {stab}},
     {attacks::REST, {rest}},
     {attacks::BLOCK, {block}},
