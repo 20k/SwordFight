@@ -57,7 +57,7 @@ void menu_system::do_menu(engine& window)
 
     ///Note to self, I have totally broken the OpenGL rendering internals
     ///which makes SFML really very sad
-    glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
+    //glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
 
     //text::immediate(&window.window, "Start", {window.width/2.f, window.height/1.5f}, 60, true);
 

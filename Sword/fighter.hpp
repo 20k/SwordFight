@@ -427,14 +427,16 @@ static std::vector<movement> overhead =
 {
     {0, {-150, -0, -40}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
     //{0, {-120, -0, -40}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
-    {0, {100, -150, -140}, 500, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE | mov::OVERHEAD_HACK)} ///attack
+    {0, {100, -150, -140}, 500, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE | mov::OVERHEAD_HACK)}, ///attack
+    {0, {0, -150, -140}, 200, 1, bodypart::LHAND,  (movement_t)(mov::NONE)}
 };
 
 static std::vector<movement> overhead_alt =
 {
     {0, {-150, -0, -40}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
     //{0, {-120, -0, -40}, 400, 0, bodypart::LHAND, mov::WINDUP}, ///windup
-    {0, {100, -150, -140}, 500, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE | mov::OVERHEAD_HACK)} ///attack
+    {0, {100, -150, -140}, 500, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE | mov::OVERHEAD_HACK)}, ///attack
+    {0, {0, -150, -140}, 200, 1, bodypart::LHAND,  (movement_t)(mov::NONE)}
 };
 
 static std::vector<movement> recoil =
@@ -448,7 +450,7 @@ static std::vector<movement> slash =
 {
     {0, {-180, -60, -10}, 350, 0, bodypart::LHAND, mov::WINDUP}, ///windup
     {0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)}, ///attack
-    {0, {0, -150, -140}, 200, 5, bodypart::LHAND,  (movement_t)(mov::NONE)} ///attack
+    {0, {0, -150, -140}, 200, 5, bodypart::LHAND,  (movement_t)(mov::NONE)}
 
 
     //{0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
@@ -458,8 +460,7 @@ static std::vector<movement> slash_alt =
 {
     {0, {120, -60, -140}, 350, 0, bodypart::LHAND, mov::WINDUP}, ///windup
     {0, {-180, -60, -10}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)}, ///attack
-    {0, {0, -150, -140}, 200, 1, bodypart::LHAND,  (movement_t)(mov::NONE)} ///attack
-
+    {0, {0, -150, -140}, 200, 1, bodypart::LHAND,  (movement_t)(mov::NONE)}
 
     //{0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
 };
@@ -508,7 +509,8 @@ static std::vector<movement> feint =
 {
     //{0, {-150, -80, -40}, 350, 0, bodypart::LHAND, mov::NONE}
     //{0, {0, -200, -100}, 300, 1, bodypart::LHAND, mov::NONE}
-    {0, {100, -150, -140}, 300, 3, bodypart::LHAND,  mov::NONE}
+    //{0, {100, -150, -140}, 300, 3, bodypart::LHAND,  mov::NONE}
+    {0, {0, -150, -140}, 300, 3, bodypart::LHAND,  (movement_t)(mov::NONE)} ///attack
 };
 
 ///?

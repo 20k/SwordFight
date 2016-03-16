@@ -278,6 +278,7 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 ///make textures go from start to dark to end
 ///need to make sound not play multiple times
 ///build then flip is invalid
+///on self damage, simply queue a move for x ms to do nothing
 int main(int argc, char *argv[])
 {
     lg::set_logfile("./logging.txt");
