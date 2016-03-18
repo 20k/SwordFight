@@ -452,7 +452,6 @@ static std::vector<movement> slash =
     {0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)}, ///attack
     {0, {0, -150, -140}, 200, 5, bodypart::LHAND,  (movement_t)(mov::NONE)}
 
-
     //{0, {120, -60, -140}, 450, 1, bodypart::LHAND,  (movement_t)(mov::DAMAGING | mov::LOCKS_ARMS | mov::PASS_THROUGH_SCREEN_CENTRE)} ///attack
 };
 
