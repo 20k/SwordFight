@@ -2,6 +2,10 @@
 
 #include "../openclrenderer/vec.hpp"
 
+#include <vec/vec.hpp>
+
+#include <math.h>
+
 ///todo eventually
 ///split into dynamic and static objects
 
@@ -21,11 +25,112 @@ void callback (cl_event event, cl_int event_command_exec_status, void *user_data
     std::cout << (*(sf::Clock*)user_data).getElapsedTime().asMicroseconds()/1000.f << std::endl;
 }
 
+objects_container ctr;
+
+void lobj()
+{
+    float dim = 4;
+
+    texture tex;
+
+    obj_cube_by_extents(&ctr, tex, {dim, dim, dim});
+}
+
+std::vector<triangle> tri_to_cubes(const triangle& tri)
+{
+    std::vector<triangle> new_tris;
+
+    vec3f pos[3];
+
+    for(int i=0; i<3; i++)
+    {
+        pos[i] = xyz_to_vec(tri.vertices[i].get_pos());
+    }
+
+    int c = 0;
+
+    vec3f v1 = pos[1] - pos[0];
+    vec3f v2 = pos[2] - pos[0];
+
+    float len = v1.length();
+
+    vec3f vn = v1.norm();
+
+    //printf("L1 %f\n", len);
+
+    for(float i=0; i<len; i += 50.f)
+    {
+        vec3f p = vn * i + pos[0];
+
+        vec3f dist_to_v2 = point2line_shortest(pos[0], v2, p);
+
+        float dv2l = dist_to_v2.length();
+
+        //printf("L2 %f\n", dv2l);
+
+        for(float j=0; j<dv2l; j += 50.f)
+        {
+            c++;
+
+            vec3f p2 = p + j * dist_to_v2.norm();
+
+            //printf("%f %f %f\n", EXPAND_3(p2));
+
+            //if(c % 100 != 0)
+            //    continue;
+
+            if(std::isnan(p2.v[0]) || std::isnan(p2.v[1]) || std::isnan(p2.v[0]))
+            {
+                printf("nan\n");
+                continue;
+            }
+
+
+            std::vector<triangle> cube_tris = ctr.objs[0].tri_list;
+
+            for(auto& i : cube_tris)
+            {
+                for(auto& k : i.vertices)
+                {
+                    cl_float4 rel = add(k.get_pos(), {p2.v[0], p2.v[1], p2.v[2]});
+
+                    k.set_pos(rel);
+
+                    //k.set_pos(add(k.get_pos(), tri.vertices[0].get_pos()));
+                    //k.set_pos({p2.v[0], p2.v[1], p2.v[2]});
+                    k.set_vt(tri.vertices[0].get_vt());
+                }
+
+                new_tris.push_back(i);
+            }
+        }
+    }
+
+    return new_tris;
+}
+
+std::vector<triangle> cube_by_area(const std::vector<triangle>& in_tris)
+{
+    std::vector<triangle> new_tris;
+
+    for(auto& i : in_tris)
+    {
+        auto tris = tri_to_cubes(i);
+
+        for(auto& j : tris)
+        {
+            new_tris.push_back(j);
+        }
+    }
+
+    return new_tris;
+}
+
 std::vector<triangle> cubulate(const std::vector<triangle>& in_tris)
 {
     std::vector<triangle> tris = in_tris;
 
-    float dim = 10;
+    float dim = 4;
 
     texture tex;
 
@@ -53,7 +158,7 @@ std::vector<triangle> cubulate(const std::vector<triangle>& in_tris)
                 for(auto& k : i.vertices)
                 {
                     k.set_pos(add(k.get_pos(), vert.get_pos()));
-
+                    k.set_vt(vert.get_vt());
                 }
 
                 new_tris.push_back(i);
@@ -64,7 +169,6 @@ std::vector<triangle> cubulate(const std::vector<triangle>& in_tris)
     }
 
     return new_tris;
-
 }
 
 ///gamma correct mipmap filtering
@@ -98,6 +202,8 @@ int main(int argc, char *argv[])
 
     window.load(1680,1050,1000, "turtles", "../openclrenderer/cl2.cl", true);
 
+    lobj();
+
     window.set_camera_pos((cl_float4){-800,150,-570});
 
     //window.window.setPosition({-20, -20});
@@ -111,12 +217,23 @@ int main(int argc, char *argv[])
 
     sponza->set_specular(0.f);
 
+    int io = 0;
+
+    int acc = 0;
+
     for(object& o : sponza->objs)
     {
-        o.tri_list = cubulate(o.tri_list);
+        o.tri_list = cube_by_area(o.tri_list);
 
         o.tri_num = o.tri_list.size();
+
+        printf("Io %i %i\n", io++, sponza->objs.size());
+
+        acc += o.tri_num;
     }
+
+    printf("TNUM %i\n\n\n\n", acc);
+
 
     context.build(true);
 
