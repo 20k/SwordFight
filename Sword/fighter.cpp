@@ -3118,6 +3118,8 @@ void fighter::process_delayed_deltas()
             ///time to apply delayed delta
             if(delt.clk.getElapsedTime().asMicroseconds() / 1000.f >= half_time)
             {
+                lg::log("Processing delayed hit with RTT/2 ", half_time, " and time clock ", delt.clk.getElapsedTime().asMicroseconds() / 1000.f);
+
                 bool apply_damage = true;
 
                 for(int k=0; k<clientside_parry_inf.size(); k++)
