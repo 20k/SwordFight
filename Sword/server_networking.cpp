@@ -878,9 +878,9 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                             float my_ping = my_fighter->net.ping;
                             float their_ping = play.fight->net.ping;
 
-                            float half_time = my_ping + their_ping;
+                            float full_rtt_time = my_ping + their_ping;
 
-                            delt.delay_time_ms = half_time;
+                            delt.delay_time_ms = full_rtt_time;
 
                             lg::log("delaying by ", delt.delay_time_ms, "ms");
                         }
@@ -892,8 +892,6 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                         }
 
                     }
-
-                    //delt.delay_time_ms =
 
                     p.net.delayed_delt.push_back(delt);
 

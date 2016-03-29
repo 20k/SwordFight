@@ -216,6 +216,7 @@ namespace fighter_stats
     const static float speed = 1.3f;
     const static float sprint_speed = 1.3f;
     const static float bubble_modifier_relative_to_approx_dim = 1.f;
+    const static float flinch_time_ms = 400.f;
 }
 
 struct damage_information
@@ -821,6 +822,8 @@ struct fighter
     void try_feint();
 
     void damage(bodypart_t type, float d, int32_t network_id_hit_by);
+
+    void flinch(float time_ms);
 
     ///resets all vars
     void respawn(vec2f pos = (vec2f){0,0});

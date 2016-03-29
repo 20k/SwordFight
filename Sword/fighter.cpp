@@ -3111,8 +3111,12 @@ void fighter::process_delayed_deltas()
         {
             delayed_delta& delt = i.net.delayed_delt[j];
 
+            float RTT = delt.delay_time_ms;
+
+            float half_time = RTT / 2.f;
+
             ///time to apply delayed delta
-            if(delt.clk.getElapsedTime().asMicroseconds() / 1000.f >= delt.delay_time_ms)
+            if(delt.clk.getElapsedTime().asMicroseconds() / 1000.f >= half_time)
             {
                 bool apply_damage = true;
 
@@ -3131,6 +3135,10 @@ void fighter::process_delayed_deltas()
                 if(apply_damage)
                 {
                     i.hp += delt.delayed_info.hp_delta;
+
+                    ///hmm, so this is delayed
+                    ///so flinch will apply after the ping delay
+                    flinch(fighter_stats::flinch_time_ms);
 
                     lg::log("Applied delayed damage");
                 }
@@ -3382,6 +3390,11 @@ void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by)
     net.recoil = 1;
     net.recoil_dirty = true;
     //network::host_update(&net.recoil);
+}
+
+void fighter::flinch(float time_ms)
+{
+
 }
 
 void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)
