@@ -560,13 +560,14 @@ void sword::set_team(int _team)
 
 void sword::load_team_model()
 {
-    model->set_file("./Res/sword_red.obj");
+    //model->set_file("./Res/sword_red.obj");
 
     model->unload();
 
     model->set_active(true);
 
     cpu_context->load_active();
+
 
     texture_context* tex_ctx = &cpu_context->tex_ctx;
 
@@ -584,7 +585,14 @@ void sword::load_team_model()
 
     ntex->set_create_colour({col.v[0], col.v[1], col.v[2]}, 128, 128);
 
-    model->objs[0].tid = ntex->id;
+    ///this is to make everything red
+    for(auto& i : model->objs)
+        i.tid = ntex->id;
+
+    ///make this a default action
+    model->patch_non_square_texture_maps();
+
+    model->translate_centre({0, -0.06f, 0});
 
     scale();
 
@@ -599,27 +607,31 @@ sword::sword(object_context& cpu)
 
     model->set_pos({0, 0, -100});
     dir = {0,0,0};
-    model->set_file("./Res/sword_red.obj");
+    model->set_file("./Res/sword_upgr.obj");
+    //model->set_file("./Res/sword_red.obj");
     team = -1;
 }
 
 void sword::scale()
 {
-    model->scale(50.f);
+    model->scale(250.f);
     model->set_specular(0.4f);
 
     bound = get_bbox(model);
 
     float sword_height = 0;
 
-    for(triangle& t : model->objs[0].tri_list)
+    for(auto& i : model->objs)
     {
-        for(vertex& v : t.vertices)
+        for(triangle& t : i.tri_list)
         {
-            vec3f pos = xyz_to_vec(v.get_pos());
+            for(vertex& v : t.vertices)
+            {
+                vec3f pos = xyz_to_vec(v.get_pos());
 
-            if(pos.v[1] > sword_height)
-                sword_height = pos.v[1];
+                if(pos.v[1] > sword_height)
+                    sword_height = pos.v[1];
+            }
         }
     }
 
