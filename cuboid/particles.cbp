@@ -52,7 +52,7 @@
 			<Add option="-Wextra" />
 			<Add option="-Wall" />
 			<Add option="-fexceptions" />
-			<Add option="-std=gnu++11" />
+			<Add option="-std=gnu++14" />
 			<Add option="-Wno-unknown-pragmas" />
 			<Add option="-Wno-narrowing" />
 			<Add option="-DGLEW_STATIC" />
@@ -92,6 +92,7 @@
 		<Unit filename="../openclrenderer/interact_manager.hpp" />
 		<Unit filename="../openclrenderer/light.cpp" />
 		<Unit filename="../openclrenderer/light.hpp" />
+		<Unit filename="../openclrenderer/logging.cpp" />
 		<Unit filename="../openclrenderer/network.cpp" />
 		<Unit filename="../openclrenderer/network.hpp" />
 		<Unit filename="../openclrenderer/obj_g_descriptor.hpp" />
@@ -103,6 +104,7 @@
 		<Unit filename="../openclrenderer/obj_mem_manager.hpp" />
 		<Unit filename="../openclrenderer/object.cpp" />
 		<Unit filename="../openclrenderer/object.hpp" />
+		<Unit filename="../openclrenderer/object_context.cpp" />
 		<Unit filename="../openclrenderer/objects_container.cpp" />
 		<Unit filename="../openclrenderer/objects_container.hpp" />
 		<Unit filename="../openclrenderer/ocl.h" />
@@ -121,6 +123,7 @@
 		<Unit filename="../openclrenderer/text_handler.hpp" />
 		<Unit filename="../openclrenderer/texture.cpp" />
 		<Unit filename="../openclrenderer/texture.hpp" />
+		<Unit filename="../openclrenderer/texture_context.cpp" />
 		<Unit filename="../openclrenderer/texture_manager.cpp" />
 		<Unit filename="../openclrenderer/texture_manager.hpp" />
 		<Unit filename="../openclrenderer/triangle.cpp" />
