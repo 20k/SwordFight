@@ -175,7 +175,7 @@ std::vector<triangle> volygonate(object& o, object_context& ctx)
         }
     }
 
-    int skip_amount = 50;
+    int skip_amount = 5;
 
     for(int j=0; j<tex->get_largest_dimension(); j+=skip_amount)
     {
@@ -393,7 +393,8 @@ int main(int argc, char *argv[])
     object_context context;
 
     auto sponza = context.make_new();
-    sponza->set_file("../openclrenderer/sp2/sp2.obj");
+    //sponza->set_file("../openclrenderer/sp2/sp2.obj");
+    sponza->set_file("crappy_cylinder.obj");
     sponza->set_active(true);
     //sponza->cache = false;
 
@@ -415,6 +416,8 @@ int main(int argc, char *argv[])
     context.load_active();
 
     sponza->set_specular(0.f);
+
+    sponza->scale(100.f);
 
     int io = 0;
 
