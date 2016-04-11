@@ -79,6 +79,262 @@ float calc_rconstant_v(cl_float3 x, cl_float3 y)
     return 1.f / (x.y*y.z+x.x*(y.y-y.z)-x.z*y.y+(x.z-x.y)*y.x);
 }
 
+struct graph_vert
+{
+    std::vector<graph_vert*> vert;
+
+    vec2f pos;
+
+    graph_vert(vec2f _pos){pos = _pos;}
+
+    bool is_connected(graph_vert* v)
+    {
+        for(auto& i : vert)
+        {
+            if(i == v)
+                return true;
+        }
+
+        return false;
+    }
+
+    void rem(graph_vert* v)
+    {
+        for(int i=0; i<vert.size(); i++)
+        {
+            if(vert[i] == v)
+            {
+                vert.erase(vert.begin() + i);
+                return;
+            }
+        }
+    }
+
+    void unlink(graph_vert* v)
+    {
+        v->rem(this);
+        this->rem(v);
+    }
+
+    void link(graph_vert* v)
+    {
+        vert.push_back(v);
+        v->vert.push_back(this);
+    }
+};
+
+struct tri_n
+{
+    vec2f p[3];
+};
+
+
+///this is not a good heuristic, we need to use actual point within triangle, and then fallback to nearest 3 if none
+///actuallly.... by the definition of delauny trianglulatitnitnon, this might be correct due to the circumcircle thing
+std::vector<graph_vert*> get_nearest_3(const std::vector<graph_vert*>& graph, graph_vert* node)
+{
+    std::vector<std::pair<graph_vert*, float>> arr;
+
+    arr.resize(3);
+
+    for(auto& i : arr)
+    {
+        i.second = FLT_MAX;
+    }
+
+    std::cout << "Graph size " << graph.size() << std::endl;
+
+    for(auto& i : graph)
+    {
+        vec2f pos = i->pos;
+        vec2f mpos = node->pos;
+
+        float dist = (pos - mpos).length();
+
+        for(int j=0; j<3; j++)
+        {
+            if(dist < arr[j].second)
+            {
+                arr.insert(arr.begin() + j, {i, dist});
+                break;
+            }
+        }
+
+        arr.resize(3);
+    }
+
+    std::vector<graph_vert*> verts;
+
+    for(auto& i : arr)
+    {
+        if(i.first != nullptr)
+            verts.push_back(i.first);
+    }
+
+
+    return verts;
+}
+
+float get_vec_angle(vec2f v1, vec2f v2, vec2f v3)
+{
+    return acos(dot(v3 - v2, v1 - v2));
+}
+
+std::vector<graph_vert*> flippity_flip_flip_floppity_flip(const std::vector<graph_vert*>& graph)
+{
+    if(graph.size() < 4)
+        return graph;
+
+    for(auto& i : graph)
+    {
+        ///sort connections anticlockwise
+
+        std::vector<std::pair<float, graph_vert*>> verts;
+
+        vec2f base = i->pos;
+
+        for(auto& j : i->vert)
+        {
+            vec2f their_pos = j->pos;
+
+            vec2f rel = their_pos - base;
+
+            float angle = rel.angle();
+
+            verts.push_back({angle, j});
+        }
+
+        std::sort(verts.begin(), verts.end());
+
+        ///hmm. should it be n, n+1, n+2, check if thats delaunay?
+        ///I think thats actually equivalent
+
+
+        for(int j=0; j<verts.size(); j++)
+        {
+            int n = j;
+            int n1 = (j + 1) % verts.size();
+            int n2 = (j + 2) % verts.size();
+
+            graph_vert* v0, *v1, *v2, *v3;
+
+            v0 = i;
+            v1 = verts[n].second;
+            v2 = verts[n1].second;
+            v3 = verts[n2].second;
+
+            float a1, a2;
+
+            ///v2 is the middle point
+
+            ///so we want 0 -> 1 -> 2
+            ///0 -> 3 -> 2
+            a1 = get_vec_angle(v0->pos, v1->pos, v2->pos);
+            a2 = get_vec_angle(v0->pos, v3->pos, v2->pos);
+
+
+            if(fabs(a1) + fabs(a2) > M_PI/2.f)
+            {
+                ///swap
+                ///so we have triangulation
+                ///v0 -> v1, v1 -> v2, v2 -> v0
+                ///v0 -> v3, v3 -> v2, v2 -> v0
+                ///we want to swap it to
+                ///v0 -> v1, v1 -> v3, v3 -> v0
+                ///v1 -> v2, v2 -> v3, v3 -> v1
+
+                ///so really we only want to unlink 0 -> 2
+                ///and replace it with 3 -> 1
+                v0->unlink(v2);
+
+                v3->link(v1);
+            }
+        }
+
+        ///purely for sorting purposes
+        for(int j=0; j<verts.size(); j++)
+        {
+            i->vert[j] = verts[j].second;
+        }
+    }
+
+    return graph;
+}
+
+///node needs to be allocated memory remember!
+std::vector<graph_vert*> insert_into_graph_with_connectivity(const std::vector<graph_vert*>& graph, graph_vert* node)
+{
+    std::vector<graph_vert*> nearest = get_nearest_3(graph, node);
+
+    for(auto& i : nearest)
+    {
+        //i->vert.push_back(node);
+
+        //node->vert.push_back(i);
+
+        i->link(node);
+
+
+
+        std::cout << "npos " << i->pos << std::endl;
+    }
+
+    std::cout << "enpos " << std::endl;
+
+
+    auto ngraph = graph;
+
+    ngraph.push_back(node);
+
+
+    return flippity_flip_flip_floppity_flip(ngraph);
+}
+
+std::vector<tri_n> get_delauny(const std::vector<vec2f>& in_p)
+{
+    std::vector<graph_vert*> verts;
+
+    for(auto& i : in_p)
+    {
+        graph_vert* ng = new graph_vert(i);
+
+        std::cout << "in " << i << std::endl;
+
+        verts = insert_into_graph_with_connectivity(verts, ng);
+    }
+
+    std::vector<tri_n> ret;
+
+    for(auto& i : verts)
+    {
+        for(int j=0; j<i->vert.size(); j++)
+        {
+            int n = j;
+            int n1 = (j+1) % i->vert.size();
+
+            tri_n t1;
+
+            t1.p[0] = i->pos;
+            t1.p[1] = i->vert[n]->pos;
+            t1.p[2] = i->vert[n1]->pos;
+
+            std::cout << t1.p[0] << std::endl;
+            std::cout << t1.p[1] << std::endl;
+            std::cout << t1.p[2] << std::endl;
+
+            std::cout << std::endl;
+
+            ret.push_back(t1);
+        }
+    }
+
+    return ret;
+
+    /*vec2f none = {0};
+
+    return {{none, none, none}};*/
+}
+
 ///I mean, not ready for primetime on objects with overlapping textures or non optimal winding order for the vt coordinates vs the triangle coords
 ///but other than that, doing alright
 ///could write the winding vs the vt winding order into buffer, then flip at the end
@@ -175,6 +431,136 @@ std::vector<triangle> volygonate(object& o, object_context& ctx)
         }
     }
 
+
+    float jiggle_distance = 15.f;
+
+    int one_side_volygon_density = 20;
+
+    float scale = ((float)tex->get_largest_dimension()-1) / one_side_volygon_density;
+
+    ///seed in a rectangular grid
+    ///eliminate bad ones
+    ///jitter
+    ///elimiate (?)
+    ///generate volygon shapes somehow like voronoi
+
+    int width = tex->get_largest_dimension();
+
+    std::vector<vec2f> sample_points;
+
+    for(int j=0; j<one_side_volygon_density; j++)
+    {
+        for(int i=0; i<one_side_volygon_density; i++)
+        {
+            vec2f scale_pos = (vec2f){i, j} * scale;
+
+            float rangle = randf_s(0.f, M_PI);
+
+            float rlen = randf_s(jiggle_distance/1.f, jiggle_distance);
+
+            vec2f offset_pos = (vec2f){rlen * cos(rangle), rlen * sin(rangle)};
+
+
+            scale_pos = scale_pos + offset_pos;
+
+            ///modf eh
+            scale_pos = clamp(scale_pos, 0.f, tex->get_largest_dimension()-1.f);
+
+            sample_points.push_back(scale_pos);
+        }
+    }
+
+    auto dret = get_delauny(sample_points);
+
+    for(auto& i : dret)
+    {
+        vec2f s1, s2, s3;
+
+        s1 = i.p[0];
+        s2 = i.p[1];
+        s3 = i.p[2];
+
+        vec4f* buf = raster_buf[0];
+
+        vec4f l1, l2, l3;
+
+        l1 = buf[((int)s1.v[1])*width + (int)s1.v[0]];
+        l2 = buf[((int)s2.v[1])*width + (int)s2.v[0]];
+        l3 = buf[((int)s3.v[1])*width + (int)s3.v[0]];
+
+        triangle tri;
+        tri.vertices[0].set_pos({l1.v[0], l1.v[1], l1.v[2]});
+        tri.vertices[1].set_pos({l2.v[0], l2.v[1], l2.v[2]});
+        tri.vertices[2].set_pos({l3.v[0], l3.v[1], l3.v[2]});
+
+        ret.push_back(tri);
+    }
+
+
+    #ifdef SQ_RECONST
+    int square_half_size = 10;
+
+    for(int i=0; i<sample_points.size(); i++)
+    {
+        vec2f sample = sample_points[i];
+
+        sample = clamp(sample, 0.f, tex->get_largest_dimension()-1.f);
+
+        vec2i locs[4];
+
+        locs[0] = {sample.v[0] - square_half_size, sample.v[1] - square_half_size};
+        locs[1] = {sample.v[0] + square_half_size, sample.v[1] - square_half_size};
+        locs[2] = {sample.v[0] - square_half_size, sample.v[1] + square_half_size};
+        locs[3] = {sample.v[0] + square_half_size, sample.v[1] + square_half_size};
+
+        vec4f* buf = raster_buf[0];
+
+
+        std::vector<vec4f> points;
+
+        bool quit = false;
+
+        for(int j=0; j<4; j++)
+        {
+            locs[j] = clamp(locs[j], 0.f, tex->get_largest_dimension()-1.f);
+
+            vec4f pos = buf[((int)locs[j].v[1])*width + (int)locs[j].v[0]];
+
+            if(pos.v[3] < 1)
+            {
+                quit = true;
+                break;
+            }
+
+            points.push_back(pos);
+        }
+
+        if(quit)
+            continue;
+
+        vec4f v1 = points[0];
+        vec4f v2 = points[1];
+        vec4f v3 = points[2];
+        vec4f v4 = points[3];
+
+        triangle tri1, tri2;
+
+        tri1.vertices[0].set_pos({v1.v[0], v1.v[1], v1.v[2]});
+        tri1.vertices[1].set_pos({v2.v[0], v2.v[1], v2.v[2]});
+        tri1.vertices[2].set_pos({v3.v[0], v3.v[1], v3.v[2]});
+
+        tri2.vertices[0].set_pos({v3.v[0], v3.v[1], v3.v[2]});
+        tri2.vertices[1].set_pos({v2.v[0], v2.v[1], v2.v[2]});
+        tri2.vertices[2].set_pos({v4.v[0], v4.v[1], v4.v[2]});
+
+        ret.push_back(tri1);
+        ret.push_back(tri2);
+    }
+    #endif
+
+
+
+    #ifdef RECONSTRUCT
     int skip_amount = 5;
 
     for(int j=0; j<tex->get_largest_dimension(); j+=skip_amount)
@@ -236,6 +622,7 @@ std::vector<triangle> volygonate(object& o, object_context& ctx)
             ret.push_back(tri2);
         }
     }
+    #endif
 
     delete [] layer_0;
 
