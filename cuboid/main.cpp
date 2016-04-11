@@ -448,6 +448,9 @@ std::vector<triangle> volygonate(object& o, object_context& ctx)
 
     std::vector<vec2f> sample_points;
 
+    ///this might... actually have worked???
+    ///there's discontinuities being joined across texture boundaries which needs fixing
+    ///but for a first pass???
     for(int j=0; j<one_side_volygon_density; j++)
     {
         for(int i=0; i<one_side_volygon_density; i++)
@@ -465,6 +468,11 @@ std::vector<triangle> volygonate(object& o, object_context& ctx)
 
             ///modf eh
             scale_pos = clamp(scale_pos, 0.f, tex->get_largest_dimension()-1.f);
+
+            vec4f* buf = raster_buf[0];
+
+            if(buf[((int)scale_pos.v[1])*width + (int)scale_pos.v[0]].v[3] < 1)
+                continue;
 
             sample_points.push_back(scale_pos);
         }
