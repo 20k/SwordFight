@@ -585,14 +585,15 @@ void sword::load_team_model()
 
     ntex->set_create_colour({col.v[0], col.v[1], col.v[2]}, 128, 128);
 
+    model->patch_non_square_texture_maps();
+
     ///this is to make everything red
     for(auto& i : model->objs)
         i.tid = ntex->id;
 
     ///make this a default action
-    model->patch_non_square_texture_maps();
 
-    model->translate_centre({0, -0.06f, 0});
+    //model->translate_centre({0, -0.06f, 0});
 
     scale();
 
@@ -607,14 +608,16 @@ sword::sword(object_context& cpu)
 
     model->set_pos({0, 0, -100});
     dir = {0,0,0};
-    model->set_file("./Res/sword_upgr.obj");
-    //model->set_file("./Res/sword_red.obj");
+    //model->set_file("./Res/sword_upgr.obj");
+    //model->set_normal("./Res/Sword_LP_normal.png");
+    model->set_file("./Res/sword_red.obj");
     team = -1;
 }
 
 void sword::scale()
 {
-    model->scale(250.f);
+    model->scale(50.f);
+    //model->scale(250.f);
     model->set_specular(0.4f);
 
     bound = get_bbox(model);
@@ -2330,12 +2333,15 @@ void fighter::set_stance(int _stance)
     stance = _stance;
 }
 
+///so type is limb
 bool fighter::can_attack(bodypart_t type)
 {
     ///find the last attack of the current type
     ///if its going, and within x ms of finishing, then fine
 
-    int last_pos = -1;
+    /*int last_pos = -1;
+
+    float currently_elapsed = 0;
 
     for(int i=0; i<moves.size(); i++)
     {
@@ -2361,6 +2367,41 @@ bool fighter::can_attack(bodypart_t type)
         return true;
     }
 
+    return false;*/
+
+    int going_pos = -1;
+    int any_queued = -1;
+
+    for(int i=0; i<moves.size(); i++)
+    {
+        if(moves[i].limb == type && moves[i].going)
+        {
+            going_pos = i;
+        }
+
+        if(moves[i].limb == type)
+            any_queued = i;
+    }
+
+    ///nothing going, we can queue attack
+    if(any_queued == -1)
+        return true;
+
+    float queue_time = moves[going_pos].time_remaining();
+
+    for(int i=going_pos + 1; i<moves.size(); i++)
+    {
+        if(moves[i].limb == type)
+        {
+            queue_time += moves[i].end_time;
+        }
+    }
+
+    const float threshold = 500;
+
+    if(queue_time < threshold)
+        return true;
+
     return false;
 }
 
@@ -2372,7 +2413,7 @@ void fighter::queue_attack(attack_t type)
 
     attack a = attack_list[type];
 
-    if(!can_attack(a.moves.front().limb))
+    if(a.moves.size() > 0 && !can_attack(a.moves.front().limb))
         return;
 
     for(auto i : a.moves)
