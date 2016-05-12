@@ -30,7 +30,32 @@
 		</Build>
 		<Compiler>
 			<Add option="-Wall" />
+			<Add option="-std=gnu++14" />
+			<Add option="-DCL_USE_DEPRECATED_OPENCL_1_1_APIS" />
+			<Add option="-DNDEBUG" />
+			<Add option="-DGLEW_STATIC" />
 		</Compiler>
+		<Linker>
+			<Add option="-lmingw32" />
+			<Add option="-lsfml-graphics" />
+			<Add option="-lsfml-audio" />
+			<Add option="-lsfml-network" />
+			<Add option="-lsfml-window" />
+			<Add option="-lsfml-system" />
+			<Add option="-lfreetype" />
+			<Add option="-ljpeg" />
+			<Add option="-lopengl32" />
+			<Add option="-lglew64.dll" />
+			<Add option="-lws2_32" />
+			<Add option="-lwinmm" />
+			<Add option="-lgdi32" />
+			<Add option="-lflac" />
+			<Add option="-lopenal32" />
+			<Add option="-logg" />
+		</Linker>
+		<Unit filename="browser.cpp" />
+		<Unit filename="browser.hpp" />
+		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

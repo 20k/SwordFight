@@ -109,14 +109,12 @@
 		<Unit filename="../openclrenderer/light.cpp" />
 		<Unit filename="../openclrenderer/light.hpp" />
 		<Unit filename="../openclrenderer/logging.cpp" />
-		<Unit filename="../openclrenderer/network.cpp" />
 		<Unit filename="../openclrenderer/network.hpp" />
 		<Unit filename="../openclrenderer/obj_g_descriptor.hpp" />
 		<Unit filename="../openclrenderer/obj_info_struct.cpp" />
 		<Unit filename="../openclrenderer/obj_info_struct.hpp" />
 		<Unit filename="../openclrenderer/obj_load.cpp" />
 		<Unit filename="../openclrenderer/obj_load.hpp" />
-		<Unit filename="../openclrenderer/obj_mem_manager.cpp" />
 		<Unit filename="../openclrenderer/obj_mem_manager.hpp" />
 		<Unit filename="../openclrenderer/object.cpp" />
 		<Unit filename="../openclrenderer/object.hpp" />
@@ -138,7 +136,6 @@
 		<Unit filename="../openclrenderer/texture.hpp" />
 		<Unit filename="../openclrenderer/texture_context.cpp" />
 		<Unit filename="../openclrenderer/texture_context.hpp" />
-		<Unit filename="../openclrenderer/texture_manager.cpp" />
 		<Unit filename="../openclrenderer/texture_manager.hpp" />
 		<Unit filename="../openclrenderer/triangle.cpp" />
 		<Unit filename="../openclrenderer/triangle.hpp" />

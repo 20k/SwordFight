@@ -28,54 +28,6 @@ vec2f ui_element::get_global_pos()
     return parent->get_global_pos() + relative_pos;
 }
 
-vec2f ui_element::get_child_adjusted_global_pos()
-{
-    if(!parent)
-        return relative_pos;
-
-    ui_element* root = this;
-
-    while(root->parent != nullptr)
-    {
-        root = root->parent;
-    }
-
-    std::vector<ui_element*> depth_first;
-
-    std::vector<ui_element*> process_stack = {root};
-
-    while(process_stack.size() > 0)
-    {
-        ui_element* last = process_stack.back();
-
-        depth_first.push_back(last);
-
-        process_stack.pop_back();
-
-        ///push in reverse order, so first element in children is on the end of the queue, and gets processed first
-        for(int i=last->children.size()-1; i>=0; i--)
-        {
-            process_stack.push_back(last->children[i]);
-        }
-    }
-
-    vec2f running_disp = root->get_global_pos() + (vec2f){0, root->get_element_size().v[1] + root->vertical_pad};
-
-    ///skip root?
-    for(int i=1; i<depth_first.size(); i++)
-    {
-        ui_element* e = depth_first[i];
-
-        if(e == this)
-            return running_disp + e->get_local_pos();
-
-        running_disp.v[1] += e->get_element_size().v[1] + e->get_local_pos().v[1] + e->vertical_pad;
-        running_disp.v[0] += e->get_local_pos().v[0];
-    }
-
-    return running_disp;
-}
-
 vec2f ui_element::propagate_positions(vec2f offset)
 {
     ///to render ME at
@@ -92,8 +44,6 @@ vec2f ui_element::propagate_positions(vec2f offset)
         vec2f dim = i->propagate_positions(children_offset_base);
 
         total_voffset += dim.v[1];
-
-        //children_offset_base.v[1] += i->get_local_pos().v[1] + i->vertical_pad + dim.v[1];
 
         children_offset_base.v[1] += dim.v[1];
     }
@@ -120,6 +70,16 @@ void ui_element::set_parent(ui_element* par)
     }
 
     parent->children.push_back(this);
+}
+
+void ui_element::draw_tree(sf::RenderWindow& win)
+{
+    for(auto& i : children)
+    {
+        i->draw_tree(win);
+    }
+
+    draw(win);
 }
 
 void ui_element::draw(sf::RenderWindow& win)

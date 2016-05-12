@@ -332,7 +332,9 @@ int main(int argc, char *argv[])
     current_state.set_map(default_map);
 
     objects_container* floor = context.make_new();
-    floor->set_load_func(default_map.get_load_func());
+    //floor->set_load_func(default_map.get_load_func());
+
+    floor->set_load_func(std::bind(load_map_cube, std::placeholders::_1, map_namespace::map_cube_one, 24, 24));
 
     ///need to extend this to textures as well
     floor->set_normal("./res/norm.png");

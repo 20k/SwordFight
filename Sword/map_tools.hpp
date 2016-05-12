@@ -72,6 +72,8 @@ struct gameplay_state
 
 void load_map(objects_container* obj, const std::vector<int>& map_def, int width, int height);
 
+void load_map_cube(objects_container* obj, const std::vector<std::vector<int>>& map_def, int width, int height);
+
 ///xz, where z is y in 2d space
 bool is_wall(vec2f world_pos, const std::vector<int>& map_def, int width, int height);
 bool rectangle_in_wall(vec2f centre, vec2f dim, const std::vector<int>& map_def, int width, int height);

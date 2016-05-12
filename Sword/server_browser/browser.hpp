@@ -44,7 +44,6 @@ struct ui_element
     void set_parent(ui_element* par);
     vec2f get_global_pos();
     vec2f get_local_pos();
-    vec2f get_child_adjusted_global_pos();
 
     void draw(sf::RenderWindow& win);
 
@@ -60,6 +59,8 @@ struct ui_element
     int get_which_child_am_i(ui_element* elem);
 
     vec2f propagate_positions(vec2f offset);
+
+    void draw_tree(sf::RenderWindow& win);
 };
 
 #endif // BROWSER_HPP_INCLUDED

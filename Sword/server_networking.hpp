@@ -122,7 +122,7 @@ struct server_networking
 
     int32_t get_id_from_fighter(fighter* f);
 
-    std::vector<game_server> get_serverlist(byte_fetch& fetch);
+    static std::vector<game_server> get_serverlist(byte_fetch& fetch);
 
     void print_serverlist(); ///debugging really
     void tick(object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys);
