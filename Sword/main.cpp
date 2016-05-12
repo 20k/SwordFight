@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
     rect->cache = false;
     rect->set_active(true);*/
 
-    const std::string title = std::string("Midgard V") + std::to_string(AutoVersion::MAJOR) + "." + std::to_string(AutoVersion::MINOR);
+    const std::string title = std::string("Midguard V") + std::to_string(AutoVersion::MAJOR) + "." + std::to_string(AutoVersion::MINOR);
 
 
     engine window;

@@ -128,11 +128,9 @@ void load_map_cube(objects_container* obj, const std::vector<std::vector<int>>& 
 
             vec3f local_rotated_offset = local_offset.rot({0,len,0}, rot) + (vec3f){0,len,0};
 
+            local_rotated_offset = round(local_rotated_offset);
+
             cl_float4 pos = {local_rotated_offset.v[0], local_rotated_offset.v[1], local_rotated_offset.v[2]};
-
-            //cl_float4 pos = add(o.pos, {local_rotated_offset.v[0], local_rotated_offset.v[1], local_rotated_offset.v[2]});
-
-            //cl_float4 pos = add(o.pos, {offset.v[0], offset.v[1], offset.v[2]});
 
             o.set_pos(pos);
             o.set_rot({rot.v[0], rot.v[1], rot.v[2]});
