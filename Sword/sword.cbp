@@ -145,6 +145,7 @@
 		<Unit filename="../openclrenderer/vertex.cpp" />
 		<Unit filename="../openclrenderer/vertex.hpp" />
 		<Unit filename="../sword_server/game_server/game_modes.cpp" />
+		<Unit filename="../sword_server/game_server/game_modes.hpp" />
 		<Unit filename="../sword_server/reliability_shared.cpp" />
 		<Unit filename="../sword_server/reliability_shared.hpp" />
 		<Unit filename="../sword_server/teaminfo_shared.cpp" />

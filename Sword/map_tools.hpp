@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include "../openclrenderer/logging.hpp"
+
 struct objects_container;
 
 //#include "../openclrenderer/objects_conta
@@ -64,6 +66,142 @@ struct gameplay_state
 
     bool should_end_game_mode();
     void end_game_mode();
+};
+
+struct map_cube_info
+{
+    vec2f pos_within_plane = {0,0};
+    map_namespace::map_cube_t face = map_namespace::BOTTOM;
+
+    vec3f get_current_rotation_unsmoothed(){return map_namespace::map_cube_rotations[face];};
+
+    int which_axis(vec2f absolute_relative_pos, int dim)
+    {
+        vec2f p = absolute_relative_pos;
+
+        if(p.v[1] >= dim)
+            return 1;
+
+        if(p.v[1] < 0)
+            return 1;
+
+        if(p.v[0] >= dim)
+            return 0;
+
+        if(p.v[0] < 0)
+            return 0;
+
+        return -1;
+    }
+
+    ///we also need to translate our new position on the plane!
+    ///position relative to my plane that I'm querying
+    ///needs to handle both being oob
+    int get_connection_num(vec2f absolute_relative_pos, int dim)
+    {
+        vec2f p = absolute_relative_pos;
+
+        if(p.v[1] >= dim)
+            return 0;
+
+        if(p.v[1] < 0)
+            return 1;
+
+        if(p.v[0] >= dim)
+            return 2;
+
+        if(p.v[0] < 0)
+            return 3;
+
+        return -1;
+    }
+
+    int get_new_face(vec2f absolute_relative_pos, int dim)
+    {
+        int connection = get_connection_num(absolute_relative_pos, dim);
+
+        if(connection == -1)
+            return face;
+
+        return map_namespace::connection_map[face][connection];
+    }
+
+    vec2f get_new_coordinates(vec2f absolute_relative_pos, int dim)
+    {
+        int connection = get_connection_num(absolute_relative_pos, dim);
+
+        if(connection == -1)
+            return absolute_relative_pos;
+
+        auto mapped_face = map_namespace::connection_map[face][connection];
+
+        auto mapping_type = map_namespace::axis_map[face][connection];
+
+        vec2f to_mod = absolute_relative_pos;
+
+        int axis = which_axis(absolute_relative_pos, dim);
+
+        if(mapping_type == map_namespace::NO)
+        {
+
+        }
+
+        if(mapping_type == map_namespace::NEG)
+        {
+            to_mod.v[axis] = -to_mod.v[axis];
+        }
+
+        if(mapping_type == map_namespace::YES)
+        {
+            //std::swap(to_mod.v[axis], to_mod.v[1-axis]);
+            ///rotate 90
+
+            float intermediate = to_mod.v[axis];
+
+            to_mod.v[axis] = -to_mod.v[1-axis];
+            to_mod.v[1-axis] = intermediate;
+        }
+
+        if(mapping_type == map_namespace::YES_NEG)
+        {
+            ///rotate -90?
+            float intermediate = to_mod.v[axis];
+
+            to_mod.v[axis] = to_mod.v[1-axis];
+            to_mod.v[1-axis] = -intermediate;
+        }
+
+        to_mod = modulus_positive(to_mod, dim);
+
+        return to_mod;
+    }
+
+    vec3f get_relative_3d_coords(vec2f loc, int dim)
+    {
+        float len = dim/2.;
+
+        auto next_plane = get_new_face(loc + pos_within_plane, dim);
+
+        vec2f next_pos = get_new_coordinates(loc + pos_within_plane, dim);
+
+        //vec3f rel_pos = (vec3f){0, -len, 0}.rot({0,0,0}, map_namespace::map_cube_rotations[next_plane]) + (vec3f){0, len, 0};
+
+        ///relative to center of cube
+        vec3f relative_to_plane = {next_pos.v[0] - dim/2., -len, next_pos.v[1] - dim/2};
+
+        //printf("rel %f %f %f\n", relative_to_plane.v[0], relative_, relative_to_plane.v[2]);
+
+        lg::log("rel ", relative_to_plane.v[0], " ", relative_to_plane.v[1], " ", relative_to_plane.v[2]);
+
+        //lg::log("NP ", next_plane);
+
+        ///this is possibly not correct, I've been awake for a while
+        vec3f global_pos = relative_to_plane.rot({0,0,0}, map_namespace::map_cube_rotations[next_plane]) + (vec3f){0, len, 0};
+
+        lg::log("gpos ", global_pos.v[0], " ", global_pos.v[1], " ", global_pos.v[2]);
+
+        return global_pos;
+    }
 };
 
 ///what we really want is a map class

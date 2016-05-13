@@ -343,6 +343,11 @@ int main(int argc, char *argv[])
     //floor->set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
     floor->offset_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
 
+    objects_container* debug_cube = context.make_new();
+
+    debug_cube->set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0,0,0}, (vec3f){10,10,10}, 100, "res/blue.png"));
+    debug_cube->cache = false;
+    debug_cube->set_active(true);
 
     /*objects_container* rect = context.make_new();
 
@@ -530,6 +535,8 @@ int main(int argc, char *argv[])
     transparency_context.build(true);
 
     lg::log("post transparency forced build");
+
+    map_cube_info debug_map_cube;
 
     ///fix depth ordering  with transparency
     while(window.window.isOpen())
@@ -771,7 +778,7 @@ int main(int argc, char *argv[])
         }
 
         ///so just respawning doesnt fix, sometimes (mostly) doing enter does
-        ///but not always
+        ///but not alwaysf
         ///something very odd. Rewrite texturing
         if(once<sf::Keyboard::Return>() && window.focus && s.enable_debugging)
         {
@@ -780,6 +787,20 @@ int main(int argc, char *argv[])
 
             context.flip();
             transparency_context.flip();
+        }
+
+        ///lets do the debug stuff here
+
+        {
+            vec2f local_cpos = {window.c_pos.x, window.c_pos.z};
+
+            debug_map_cube.pos_within_plane = local_cpos + 12 * game_map::scale * (vec2f){1, 1};
+
+            //printf("debug %f %f\n", debug_map_cube.pos_within_plane.v[0], debug_map_cube.pos_within_plane.v[1]);
+
+            vec3f apos = debug_map_cube.get_relative_3d_coords((vec2f){-0, -0}, 24 * game_map::scale);
+
+            debug_cube->set_pos({apos.v[0], apos.v[1], apos.v[2]});
         }
 
         //static float debug_look = 0;
