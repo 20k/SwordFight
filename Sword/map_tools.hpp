@@ -163,7 +163,7 @@ struct map_cube_info
         return to_mod;
     }
 
-    float get_transition_angle(map_namespace::axis_are_flipped mapping_type)
+    /*float get_transition_angle(map_namespace::axis_are_flipped mapping_type)
     {
         using namespace map_namespace;
 
@@ -178,7 +178,7 @@ struct map_cube_info
             return M_PI/2;
 
         return 0;
-    }
+    }*/
 
     vec2f get_new_coordinates(vec2f absolute_relative_pos, int dim)
     {
@@ -242,7 +242,7 @@ struct map_cube_info
 
         auto mapping_type = map_namespace::axis_map[face][connection];
 
-        float mapping_angle = get_transition_angle(mapping_type);
+        //float mapping_angle = get_transition_angle(mapping_type);
 
         vec2f new_dir = get_transition_vec(current_forward, mapping_type, axis);
 
@@ -250,9 +250,61 @@ struct map_cube_info
         {
             face = (map_namespace::map_cube_t)next_plane;
             pos_within_plane = next_pos;
-            angle_offset += mapping_angle;
+            //angle_offset += mapping_angle;
             current_forward = new_dir;
         }
+    }
+
+    ///call before above
+    vec3f transition_camera(vec3f c_rot, int dim)
+    {
+        auto next_plane = get_new_face(pos_within_plane, dim);
+
+        ///0 = x, 1 = y (local, z global)
+        int axis = which_axis(pos_within_plane, dim);
+
+        ///if x oob, rotate around y and vice versa
+        vec3f local_axis = {axis, 0, 1-axis};
+
+        ///this seems incorrect
+        vec3f global_axis = local_axis.rot({0,0,0}, map_namespace::map_cube_rotations[face]);
+
+        //global_axis = {0, 0, 1};
+
+        ///lets just pretend for the moment, so we can test this all works ;_;
+        float angle = M_PI/16;
+
+        vec3f camera_dir = (vec3f){0, 0, 1}.rot({0,0,0}, c_rot);
+
+        if(next_plane != face)
+        {
+            mat3f mat_aa = axis_angle_to_mat(global_axis, angle);
+
+            mat3f current_camera;
+
+            current_camera.load_rotation_matrix(c_rot);
+
+            ///this combines them successfully... but im not sure thats what we want
+            //mat3f rotated = mat_aa * current_camera;
+
+            mat3f rotated = current_camera * mat_aa;
+
+            //vec3f rotated_cdir = mat_aa * camera_dir;
+
+            vec3f new_camera = rotated.get_rotation();
+
+            //vec3f test_mat = mat_from_dir({0,0,0}, rotated_cdir);
+
+            //new_camera = test_mat;
+
+            //new_camera = rotated_cdir.get_euler();
+
+            new_camera = rotated.get_rotation();
+
+            return new_camera;
+        }
+
+        return c_rot;
     }
 };
 
