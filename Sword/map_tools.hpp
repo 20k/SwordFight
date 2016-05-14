@@ -70,6 +70,8 @@ struct gameplay_state
 
 struct map_cube_info
 {
+    float angle_offset = 0;
+    vec2f current_forward = {0,1};
     vec2f pos_within_plane = {0,0};
     map_namespace::map_cube_t face = map_namespace::BOTTOM;
 
@@ -126,21 +128,8 @@ struct map_cube_info
         return map_namespace::connection_map[face][connection];
     }
 
-    vec2f get_new_coordinates(vec2f absolute_relative_pos, int dim)
+    vec2f get_transition_vec(vec2f to_mod, map_namespace::axis_are_flipped mapping_type, int axis)
     {
-        int connection = get_connection_num(absolute_relative_pos, dim);
-
-        if(connection == -1)
-            return absolute_relative_pos;
-
-        auto mapped_face = map_namespace::connection_map[face][connection];
-
-        auto mapping_type = map_namespace::axis_map[face][connection];
-
-        vec2f to_mod = absolute_relative_pos;
-
-        int axis = which_axis(absolute_relative_pos, dim);
-
         if(mapping_type == map_namespace::NO)
         {
 
@@ -171,12 +160,49 @@ struct map_cube_info
             to_mod.v[1-axis] = -intermediate;
         }
 
+        return to_mod;
+    }
+
+    float get_transition_angle(map_namespace::axis_are_flipped mapping_type)
+    {
+        using namespace map_namespace;
+
+        if(mapping_type == NEG)
+            return M_PI;
+
+        ///90 to the right
+        if(mapping_type == YES)
+            return -M_PI/2;
+
+        if(mapping_type == YES_NEG)
+            return M_PI/2;
+
+        return 0;
+    }
+
+    vec2f get_new_coordinates(vec2f absolute_relative_pos, int dim)
+    {
+        int connection = get_connection_num(absolute_relative_pos, dim);
+
+        if(connection == -1)
+            return absolute_relative_pos;
+
+        auto mapped_face = map_namespace::connection_map[face][connection];
+
+        auto mapping_type = map_namespace::axis_map[face][connection];
+
+        vec2f to_mod = absolute_relative_pos;
+
+        int axis = which_axis(absolute_relative_pos, dim);
+
+        to_mod = get_transition_vec(to_mod, mapping_type, axis);
+
         to_mod = modulus_positive(to_mod, dim);
 
         return to_mod;
     }
 
-    vec3f get_relative_3d_coords(vec2f loc, int dim)
+    vec3f get_absolute_3d_coords(vec2f loc, int dim)
     {
         float len = dim/2.;
 
@@ -191,16 +217,42 @@ struct map_cube_info
 
         //printf("rel %f %f %f\n", relative_to_plane.v[0], relative_, relative_to_plane.v[2]);
 
-        lg::log("rel ", relative_to_plane.v[0], " ", relative_to_plane.v[1], " ", relative_to_plane.v[2]);
+        //lg::log("rel ", relative_to_plane.v[0], " ", relative_to_plane.v[2]);
 
         //lg::log("NP ", next_plane);
 
         ///this is possibly not correct, I've been awake for a while
         vec3f global_pos = relative_to_plane.rot({0,0,0}, map_namespace::map_cube_rotations[next_plane]) + (vec3f){0, len, 0};
 
-        lg::log("gpos ", global_pos.v[0], " ", global_pos.v[1], " ", global_pos.v[2]);
+        //lg::log("gpos ", global_pos.v[0], " ", global_pos.v[1], " ", global_pos.v[2]);
 
         return global_pos;
+    }
+
+    ///transition forward direction too
+    void transition_if_appropriate(int dim)
+    {
+        auto next_plane = get_new_face(pos_within_plane, dim);
+
+        vec2f next_pos = get_new_coordinates(pos_within_plane, dim);
+
+        int axis = which_axis(pos_within_plane, dim);
+
+        auto connection = get_connection_num(pos_within_plane, dim);
+
+        auto mapping_type = map_namespace::axis_map[face][connection];
+
+        float mapping_angle = get_transition_angle(mapping_type);
+
+        vec2f new_dir = get_transition_vec(current_forward, mapping_type, axis);
+
+        if(next_plane != face)
+        {
+            face = (map_namespace::map_cube_t)next_plane;
+            pos_within_plane = next_pos;
+            angle_offset += mapping_angle;
+            current_forward = new_dir;
+        }
     }
 };
 

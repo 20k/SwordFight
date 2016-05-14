@@ -792,15 +792,37 @@ int main(int argc, char *argv[])
         ///lets do the debug stuff here
 
         {
-            vec2f local_cpos = {window.c_pos.x, window.c_pos.z};
+            vec3f apos = debug_map_cube.get_absolute_3d_coords((vec2f){-0, -0}, 24 * game_map::scale);
 
-            debug_map_cube.pos_within_plane = local_cpos + 12 * game_map::scale * (vec2f){1, 1};
+            debug_map_cube.transition_if_appropriate(24 * game_map::scale);
 
-            //printf("debug %f %f\n", debug_map_cube.pos_within_plane.v[0], debug_map_cube.pos_within_plane.v[1]);
+            vec2f mov_dir = {0,0};
 
-            vec3f apos = debug_map_cube.get_relative_3d_coords((vec2f){-0, -0}, 24 * game_map::scale);
+            mov_dir.v[0] += key.isKeyPressed(sf::Keyboard::D);
+            mov_dir.v[0] -= key.isKeyPressed(sf::Keyboard::A);
 
+            mov_dir.v[1] += key.isKeyPressed(sf::Keyboard::W);
+            mov_dir.v[1] -= key.isKeyPressed(sf::Keyboard::S);
+
+            float cur_angle = debug_map_cube.current_forward.angle();
+
+            //float cur_angle = debug_map_cube.angle_offset;
+
+            lg::log("forward angle ", cur_angle);
+
+            ///because we define relative to {0, 1} y axis, whereas .angle is relative to {1, 0}
+            ///for some reason, this does nothing
+            mov_dir = mov_dir.rot(cur_angle - M_PI/2.);
+
+            //mov_dir.rot(debug_map_cube.angle_offset);
+
+            debug_map_cube.pos_within_plane = debug_map_cube.pos_within_plane + mov_dir * window.get_frametime() / 1000.;
+
+            ///works, we need to correct for the floor though
             debug_cube->set_pos({apos.v[0], apos.v[1], apos.v[2]});
+
+            window.set_camera_pos(debug_cube->pos);
+            window.set_camera_rot(conv_implicit<cl_float4>(map_namespace::map_cube_rotations[debug_map_cube.face]));
         }
 
         //static float debug_look = 0;
@@ -968,7 +990,9 @@ int main(int argc, char *argv[])
         if(!in_menu)
             window.process_input();
 
+        #ifdef CLAMP_VIEW
         window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
+        #endif
 
         #ifdef SPACE
 
