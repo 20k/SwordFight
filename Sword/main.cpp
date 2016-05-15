@@ -813,11 +813,27 @@ int main(int argc, char *argv[])
 
                 vec3f crot = cdir.get_rotation();*/
 
+                static vec3f test_rot = {0,0,M_PI/2};
+
+                if(key.isKeyPressed(sf::Keyboard::Left))
+                    test_rot.v[1] -= 0.01f;
+
+                if(key.isKeyPressed(sf::Keyboard::Right))
+                    test_rot.v[1] += 0.01f;
+
+                if(key.isKeyPressed(sf::Keyboard::Up))
+                    test_rot.v[0] -= 0.01f;
+
+                if(key.isKeyPressed(sf::Keyboard::Down))
+                    test_rot.v[0] += 0.01f;
+
                 mat3f camera_mat;
 
-                vec3f cam = xyz_to_vec(window.c_rot);
+                //vec3f cam = xyz_to_vec(window.c_rot);
 
-                cam.v[2] = M_PI/2;
+                vec3f cam = test_rot;
+
+                //cam.v[2] = -M_PI/2;
 
                 //cam = fmod(cam, M_PI);
 
