@@ -142,9 +142,7 @@ struct map_cube_info
 
         if(mapping_type == map_namespace::YES)
         {
-            //std::swap(to_mod.v[axis], to_mod.v[1-axis]);
             ///rotate 90
-
             float intermediate = to_mod.v[axis];
 
             to_mod.v[axis] = -to_mod.v[1-axis];
@@ -272,9 +270,78 @@ struct map_cube_info
         //global_axis = {0, 0, 1};
 
         ///lets just pretend for the moment, so we can test this all works ;_;
-        float angle = M_PI/16;
 
-        vec3f camera_dir = (vec3f){0, 0, 1}.rot({0,0,0}, c_rot);
+        ///ok so, we must always go up from any edge
+        ///so +ve x, we must rotate one dir
+        ///-ve x we must rotate the other
+        ///so we can figure this one out
+        //float angle = M_PI/16;
+
+        ///ok, so i think what we want to do is
+        ///rotate camera component along the border access
+        ///but leave the up/down of that
+        ///so eg, if you strafe across border
+        ///your camera would roll
+        ///but if you run straight across, your up/down is not affected?
+        ///that way its the least irritating if you're trying to fight someone on the border
+        ///ie we define the camera as always being perpendicular to the character's head?
+
+        ///so the front view is controllable
+        ///the rotation wants to be managed
+
+        ///define an up vector, and a look vector
+        ///rotate up vector, keep look vector constant
+        ///recombine
+
+        int connection = get_connection_num(pos_within_plane, dim);
+
+        float angle = 0;
+
+        ///+ve y
+        if(connection == 0)
+            angle = M_PI/2;
+        if(connection == 1)
+            angle = -M_PI/2;
+        if(connection == 2)
+            angle = -M_PI/2;
+        if(connection == 3)
+            angle = M_PI/2;
+
+
+        vec3f up_vector = (vec3f){0, -1, 0}.rot({0,0,0}, map_namespace::map_cube_rotations[face]);
+
+        vec3f camera_vector = (vec3f){0, 0, 1}.rot({0,0,0}, c_rot);
+
+        vec3f my_up_component = projection(camera_vector, up_vector);
+
+        vec3f forward_vector = (camera_vector - my_up_component);
+
+        mat3f about_axis = axis_angle_to_mat(global_axis, angle);
+
+        vec3f rotated_up = about_axis * my_up_component;
+
+        ///I think im going to have to reconstruct this from the 3 euler axis ;_;
+
+
+        /*vec3f counter_axis = cross(rotated_up, forward_vector);
+
+        float cos_angle_from_up_to_foward_along_counter = dot(rotated_up.norm(), forward_vector.norm());
+
+        float counter_angle = acos(clamp(cos_angle_from_up_to_foward_along_counter, -1.f, 1.f));
+
+        mat3f rotation_to_forward_from_rotated_up = axis_angle_to_mat(counter_axis, counter_angle);
+
+        ///we've done the above from the up vector, but in reality angles are relative to the forward vector
+        ///but its easier to reason about like this
+        mat3f fix_my_fuckup = axis_angle_to_mat({1, 0, 0}, -M_PI/2);
+
+        mat3f overall_transformation = about_axis * rotation_to_forward_from_rotated_up * fix_my_fuckup;*/
+
+        ///recombine rotated up and forward. We might be able to construct a proper
+        ///euler thing out of a separated up and forward
+        ///hmm, forward isn't perpendicular
+        ///we're getting up wrong as well, we need to take the component of the vector along up, not the 1 length up vector
+        ///i think its dot or cross product, or skew or something
 
         if(next_plane != face)
         {
@@ -284,22 +351,9 @@ struct map_cube_info
 
             current_camera.load_rotation_matrix(c_rot);
 
-            ///this combines them successfully... but im not sure thats what we want
-            //mat3f rotated = mat_aa * current_camera;
-
             mat3f rotated = current_camera * mat_aa;
 
-            //vec3f rotated_cdir = mat_aa * camera_dir;
-
             vec3f new_camera = rotated.get_rotation();
-
-            //vec3f test_mat = mat_from_dir({0,0,0}, rotated_cdir);
-
-            //new_camera = test_mat;
-
-            //new_camera = rotated_cdir.get_euler();
-
-            new_camera = rotated.get_rotation();
 
             return new_camera;
         }

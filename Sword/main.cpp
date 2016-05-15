@@ -794,7 +794,49 @@ int main(int argc, char *argv[])
         {
             vec3f ncamera_rot = debug_map_cube.transition_camera(xyz_to_vec(window.c_rot), 24 * game_map::scale);
 
-            window.set_camera_rot(conv_implicit<cl_float4>(ncamera_rot));
+            //window.set_camera_rot(conv_implicit<cl_float4>(ncamera_rot));
+
+            {
+                ///test
+
+                /*vec3f camera_vector = (vec3f){0, 0, 1}.back_rot({0,0,0}, xyz_to_vec(window.c_rot));
+
+                //vec3f crot = camera_vector.rot({0,0,0}, xyz_to_vec(window.c_rot));
+
+                mat3f cdir = map_unit_a_to_b(camera_vector, {0,0,1});
+
+                vec3f mapped = cdir * camera_vector;
+
+                //vec3f crot = cdir.get_rotation();
+
+                //vec3f crot = mapped;
+
+                vec3f crot = cdir.get_rotation();*/
+
+                mat3f camera_mat;
+
+                camera_mat.load_rotation_matrix(xyz_to_vec(window.c_rot));
+
+                ///get rotation has some pole issues, lets fix this
+                vec3f crot = camera_mat.get_rotation();
+
+                window.set_camera_rot(conv_implicit<cl_float4>(crot));
+
+                /*vec3f camera_vector = (vec3f){0,0,1}.rot({0,0,0}, xyz_to_vec(window.c_rot));
+
+                ///I don't think we can separate these rotations :[
+                float xangle = atan2(camera_vector.v[0], camera_vector.v[2]);
+                float yangle = atan2(camera_vector.v[1], camera_vector.v[2]);
+
+                mat3f xr = axis_angle_to_mat({0, 1, 0}, xangle);
+                mat3f yr = axis_angle_to_mat({1, 0, 0}, -yangle);
+
+                mat3f comb = xr * yr;
+
+                vec3f crot = comb.get_rotation();
+
+                window.set_camera_rot(conv_implicit<cl_float4>(crot));*/
+            }
 
             vec3f apos = debug_map_cube.get_absolute_3d_coords((vec2f){-0, -0}, 24 * game_map::scale);
 
