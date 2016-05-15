@@ -815,7 +815,21 @@ int main(int argc, char *argv[])
 
                 mat3f camera_mat;
 
-                camera_mat.load_rotation_matrix(xyz_to_vec(window.c_rot));
+                vec3f cam = xyz_to_vec(window.c_rot);
+
+                cam.v[2] = M_PI/2;
+
+                //cam = fmod(cam, M_PI);
+
+                /*for(int i=0; i<3; i++)
+                {
+                    while(cam.v[i] < -M_PI)
+                        cam.v[i] += M_PI*2;
+                    while(cam.v[i] > M_PI)
+                        cam.v[i] -= M_PI*2;
+                }*/
+
+                camera_mat.load_rotation_matrix(cam);
 
                 ///get rotation has some pole issues, lets fix this
                 vec3f crot = camera_mat.get_rotation();
