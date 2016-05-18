@@ -253,6 +253,12 @@ struct map_cube_info
         }
     }
 
+    mat3f accumulated_camera = mat3f().identity();
+
+    //void rotate_entire_level();
+
+    ///you know, its actually going to be easier to rotate the whole level
+    ///fucking about with the camera is becoming pretty difficult
     ///call before above
     vec3f transition_camera(vec3f c_rot, int dim)
     {
@@ -308,7 +314,7 @@ struct map_cube_info
             angle = M_PI/2;
 
 
-        vec3f up_vector = (vec3f){0, -1, 0}.rot({0,0,0}, map_namespace::map_cube_rotations[face]);
+        /*vec3f up_vector = (vec3f){0, -1, 0}.rot({0,0,0}, map_namespace::map_cube_rotations[face]);
 
         vec3f camera_vector = (vec3f){0, 0, 1}.rot({0,0,0}, c_rot);
 
@@ -318,7 +324,7 @@ struct map_cube_info
 
         mat3f about_axis = axis_angle_to_mat(global_axis, angle);
 
-        vec3f rotated_up = about_axis * my_up_component;
+        vec3f rotated_up = about_axis * my_up_component;*/
 
         ///I think im going to have to reconstruct this from the 3 euler axis ;_;
 
@@ -343,9 +349,20 @@ struct map_cube_info
         ///we're getting up wrong as well, we need to take the component of the vector along up, not the 1 length up vector
         ///i think its dot or cross product, or skew or something
 
+        ///we only need to rotate z
         if(next_plane != face)
         {
+            ///fine, just do axis angle about camera, need to calculate correct
+            ///roll angle
             mat3f mat_aa = axis_angle_to_mat(global_axis, angle);
+
+            accumulated_camera = accumulated_camera * mat_aa;
+
+            //float zangle = M_PI/8;
+
+            //mat3f ZRot;
+
+            //ZRot = ZRot.ZRot(zangle);
 
             mat3f current_camera;
 
@@ -359,6 +376,113 @@ struct map_cube_info
         }
 
         return c_rot;
+    }
+
+    vec3f get_up_vector()
+    {
+        vec3f face_rot = map_namespace::map_cube_rotations[face];
+
+        ///pointing downwards
+        vec3f center_vec = (vec3f){0, -1, 0}.rot({0,0,0}, face_rot);
+
+        ///we want pointing to center;
+        center_vec = -center_vec;
+
+        return center_vec;
+    }
+
+    vec3f daccum = {0,0,0};
+
+    ///frametimes etc
+    ///when we transition between planes
+    ///uuh
+    ///uiuuuhh.. store transition matrix and apply to camera?
+    vec3f do_keyboard_input()
+    {
+        using namespace map_namespace;
+
+        sf::Keyboard key;
+
+        ///almost works, but sometimes up/down controls are reversed
+        mat3f srrot;
+        srrot.load_rotation_matrix(map_cube_rotations[face]);
+
+        srrot = accumulated_camera * srrot;
+
+        ///rotate this?
+        vec3f forward_test = (vec3f){0, 0, 1}.rot({0,0,0}, srrot.get_rotation());
+        //vec3f forward_test = (vec3f){0, 0, 1}.rot({0,0,0}, map_cube_rotations[face]);
+
+        vec3f yaxis = get_up_vector();
+        //vec3f forward_ax = (vec3f){0, 0, 1}.rot({0,0,0}, {daccum.v[0], 0, 0});
+        //vec3f xaxis = cross(yaxis, forward_ax).norm();
+
+        vec3f txaxis = cross(yaxis, forward_test);
+
+        vec3f fixed_up = {0, 1, 0};
+
+        float zangle = acos(dot(fixed_up, yaxis));
+
+        //printf("%f %f %f axis\n", xaxis.v[0], xaxis.v[1], xaxis.v[2]);
+
+
+        vec3f rdir = {0,0,0};
+
+        rdir.v[0] += key.isKeyPressed(sf::Keyboard::Up);
+        rdir.v[0] -= key.isKeyPressed(sf::Keyboard::Down);
+
+        rdir.v[1] += key.isKeyPressed(sf::Keyboard::Left);
+        rdir.v[1] -= key.isKeyPressed(sf::Keyboard::Right);
+
+        rdir.v[2] += key.isKeyPressed(sf::Keyboard::Insert);
+        rdir.v[2] -= key.isKeyPressed(sf::Keyboard::Delete);
+
+        rdir = rdir * 0.01f;
+
+        daccum = daccum + rdir;
+
+
+        mat3f XRot, YRot, ZRot;
+
+        ///X.XRot works, but not axis_angle_to_mat. Inviestigate when im not sotired
+        ///XRot = axis_angle_t-_mat(xaxis) is too much info
+        ///we just want the x axis, but we're rotating about the global frame
+        ///which is wrong"!
+        //XRot = XRot.XRot(daccum.v[0]);
+
+        ///work out global axis including accumulated
+        XRot = axis_angle_to_mat(txaxis, daccum.v[0]);
+        YRot = axis_angle_to_mat(yaxis, daccum.v[1]);
+
+
+        vec3f new_vec = (XRot * YRot).get_rotation();
+
+        new_vec = (vec3f){0,0,1}.rot({0,0,0}, new_vec);
+
+        //ZRot = axis_angle_to_mat(new_vec, daccum.v[2]);
+        ZRot = ZRot.ZRot(zangle);
+        //ZRot = ZRot.ZRot(daccum.v[2]);
+
+        //printf("zangle %f\n", zangle);
+
+
+        //XRot = XRot.XRot(daccum.v[0]);
+
+        //YRot = YRot.YRot(daccum.v[1]);
+
+        //mat3f accum = accumulated_camera;
+        mat3f accum = ZRot * XRot * YRot;
+
+        vec3f camera = accum.get_rotation();
+
+
+        mat3f test_camera = accumulated_camera * XRot * YRot;
+
+        camera = test_camera.get_rotation();
+
+        //camera = accumulated_camera.get_rotation();
+
+        return camera;
     }
 };
 

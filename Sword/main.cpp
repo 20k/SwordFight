@@ -792,13 +792,67 @@ int main(int argc, char *argv[])
         ///lets do the debug stuff here
 
         {
-            vec3f ncamera_rot = debug_map_cube.transition_camera(xyz_to_vec(window.c_rot), 24 * game_map::scale);
-
-            //window.set_camera_rot(conv_implicit<cl_float4>(ncamera_rot));
 
             {
+                /*vec3f backup_camera = xyz_to_vec(window.c_rot_backup);
+
+                vec3f camera_vector = (vec3f){0, 0, 1}.rot({0,0,0}, backup_camera);
+
+                vec3f up_vector = {0, 1, 0};
+
+                float up_angle = dot(up_vector, {0,1,0});
+
+                float yangle = atan2(camera_vector.v[0], camera_vector.v[2]);
+                float xangle = atan2(camera_vector.v[1], camera_vector.v[2]);
+
+                mat3f xmat, ymat;
+
+                ymat = ymat.YRot(yangle);
+                xmat = xmat.XRot(xangle);
+
+                mat3f combine = xmat * ymat;
+
+                vec3f eangle = combine.get_rotation();
+
+                //vec3f eangle = {xangle, yangle, 0};
+
+                window.set_camera_rot(conv_implicit<cl_float4>(eangle));*/
+
+                //mat3f cdir = map_unit_a_to_b(camera_vector, {0, 0, 1});
+
+                /*float angle_between = acos(dot(camera_vector, (vec3f){0, 0, 1}));
+
+                vec3f axis = cross(camera_vector, (vec3f){0,0,1});
+
+                mat3f AA = axis_angle_to_mat(axis, angle_between);
+
+                vec3f euler = AA.get_rotation();*/
+
+                //vec3f euler = cdir.get_rotation();
+
+                ///none of the above have any workable theory behind them.
+                ///we need two vectors
+
+                //window.set_camera_rot(conv_implicit<cl_float4>(euler));
+
+                //vec3f mapped = cdir * camera_vector;
+
+                /*vec3f backup_camera = xyz_to_vec(window.c_rot_backup);
+
+                window.c_rot = window.c_rot_backup;
+
+                mat3f cdir;
+
+                cdir.load_rotation_matrix(backup_camera);
+
+                vec3f camera = cdir.get_rotation();
+
+                window.set_camera_rot(conv_implicit<cl_float4>(camera));*/
+
                 ///test
 
+                ///CANNOT REUSE VECTOR AFTER GET_ROTATION
+                ///I could allow a vec to be passed in and get the one closest to that
                 /*vec3f camera_vector = (vec3f){0, 0, 1}.back_rot({0,0,0}, xyz_to_vec(window.c_rot));
 
                 //vec3f crot = camera_vector.rot({0,0,0}, xyz_to_vec(window.c_rot));
@@ -813,7 +867,7 @@ int main(int argc, char *argv[])
 
                 vec3f crot = cdir.get_rotation();*/
 
-                static vec3f test_rot = {0,0,M_PI/2};
+                /*static vec3f test_rot = {0,0,M_PI/2};
 
                 if(key.isKeyPressed(sf::Keyboard::Left))
                     test_rot.v[1] -= 0.01f;
@@ -825,13 +879,13 @@ int main(int argc, char *argv[])
                     test_rot.v[0] -= 0.01f;
 
                 if(key.isKeyPressed(sf::Keyboard::Down))
-                    test_rot.v[0] += 0.01f;
+                    test_rot.v[0] += 0.01f;*/
 
-                mat3f camera_mat;
+                //mat3f camera_mat;
 
                 //vec3f cam = xyz_to_vec(window.c_rot);
 
-                vec3f cam = test_rot;
+                //vec3f cam = test_rot;
 
                 //cam.v[2] = -M_PI/2;
 
@@ -845,12 +899,12 @@ int main(int argc, char *argv[])
                         cam.v[i] -= M_PI*2;
                 }*/
 
-                camera_mat.load_rotation_matrix(cam);
+                //camera_mat.load_rotation_matrix(cam);
 
                 ///get rotation has some pole issues, lets fix this
-                vec3f crot = camera_mat.get_rotation();
+                //vec3f crot = camera_mat.get_rotation();
 
-                window.set_camera_rot(conv_implicit<cl_float4>(crot));
+                //window.set_camera_rot(conv_implicit<cl_float4>(crot));
 
                 /*vec3f camera_vector = (vec3f){0,0,1}.rot({0,0,0}, xyz_to_vec(window.c_rot));
 
@@ -867,6 +921,16 @@ int main(int argc, char *argv[])
 
                 window.set_camera_rot(conv_implicit<cl_float4>(crot));*/
             }
+
+
+            vec3f ncamera_rot = debug_map_cube.do_keyboard_input();
+
+            //vec3f ncamera_rot = debug_map_cube.transition_camera(xyz_to_vec(window.c_rot), 24 * game_map::scale);
+
+            debug_map_cube.transition_camera(xyz_to_vec(window.c_rot), 24 * game_map::scale);
+
+            window.set_camera_rot(conv_implicit<cl_float4>(ncamera_rot));
+            ///ok, so its the roll component of the camera we need to fiddle with
 
             vec3f apos = debug_map_cube.get_absolute_3d_coords((vec2f){-0, -0}, 24 * game_map::scale);
 
@@ -1068,8 +1132,10 @@ int main(int argc, char *argv[])
         context.flush_locations();
         transparency_context.flush_locations();
 
+        #ifdef REAL_INPUT
         if(!in_menu)
             window.process_input();
+        #endif
 
         #ifdef CLAMP_VIEW
         window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
