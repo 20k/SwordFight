@@ -68,6 +68,7 @@ struct gameplay_state
     void end_game_mode();
 };
 
+///I also wish this were less complex
 struct map_cube_info
 {
     float angle_offset = 0;
@@ -116,6 +117,27 @@ struct map_cube_info
             return 3;
 
         return -1;
+    }
+
+    vec2f get_residual_distance(vec2f absolute_relative_pos, int dim)
+    {
+        vec2f residual = {0,0};
+
+        vec2f p = absolute_relative_pos;
+
+        if(p.v[1] >= dim)
+            residual.v[1] = p.v[1] - dim;
+
+        if(p.v[1] < 0)
+            residual.v[1] = p.v[1];
+
+        if(p.v[0] >= dim)
+            residual.v[0] = p.v[0] - dim;
+
+        if(p.v[0] < 0)
+            residual.v[0] = p.v[0];
+
+        return residual;
     }
 
     int get_new_face(vec2f absolute_relative_pos, int dim)
@@ -255,17 +277,15 @@ struct map_cube_info
 
     mat3f accumulated_camera = mat3f().identity();
 
-    //void rotate_entire_level();
-
     ///you know, its actually going to be easier to rotate the whole level
     ///fucking about with the camera is becoming pretty difficult
     ///call before above
-    vec3f transition_camera(vec3f c_rot, int dim)
+    mat3f get_transition_camera(mat3f mat_in, int dim, vec2f offset = {0,0})
     {
-        auto next_plane = get_new_face(pos_within_plane, dim);
+        auto next_plane = get_new_face(pos_within_plane + offset, dim);
 
         ///0 = x, 1 = y (local, z global)
-        int axis = which_axis(pos_within_plane, dim);
+        int axis = which_axis(pos_within_plane + offset, dim);
 
         ///if x oob, rotate around y and vice versa
         vec3f local_axis = {axis, 0, 1-axis};
@@ -273,33 +293,7 @@ struct map_cube_info
         ///this seems incorrect
         vec3f global_axis = local_axis.rot({0,0,0}, map_namespace::map_cube_rotations[face]);
 
-        //global_axis = {0, 0, 1};
-
-        ///lets just pretend for the moment, so we can test this all works ;_;
-
-        ///ok so, we must always go up from any edge
-        ///so +ve x, we must rotate one dir
-        ///-ve x we must rotate the other
-        ///so we can figure this one out
-        //float angle = M_PI/16;
-
-        ///ok, so i think what we want to do is
-        ///rotate camera component along the border access
-        ///but leave the up/down of that
-        ///so eg, if you strafe across border
-        ///your camera would roll
-        ///but if you run straight across, your up/down is not affected?
-        ///that way its the least irritating if you're trying to fight someone on the border
-        ///ie we define the camera as always being perpendicular to the character's head?
-
-        ///so the front view is controllable
-        ///the rotation wants to be managed
-
-        ///define an up vector, and a look vector
-        ///rotate up vector, keep look vector constant
-        ///recombine
-
-        int connection = get_connection_num(pos_within_plane, dim);
+        int connection = get_connection_num(pos_within_plane + offset, dim);
 
         float angle = 0;
 
@@ -314,35 +308,6 @@ struct map_cube_info
             angle = M_PI/2;
 
 
-        /*vec3f up_vector = (vec3f){0, -1, 0}.rot({0,0,0}, map_namespace::map_cube_rotations[face]);
-
-        vec3f camera_vector = (vec3f){0, 0, 1}.rot({0,0,0}, c_rot);
-
-        vec3f my_up_component = projection(camera_vector, up_vector);
-
-        vec3f forward_vector = (camera_vector - my_up_component);
-
-        mat3f about_axis = axis_angle_to_mat(global_axis, angle);
-
-        vec3f rotated_up = about_axis * my_up_component;*/
-
-        ///I think im going to have to reconstruct this from the 3 euler axis ;_;
-
-
-        /*vec3f counter_axis = cross(rotated_up, forward_vector);
-
-        float cos_angle_from_up_to_foward_along_counter = dot(rotated_up.norm(), forward_vector.norm());
-
-        float counter_angle = acos(clamp(cos_angle_from_up_to_foward_along_counter, -1.f, 1.f));
-
-        mat3f rotation_to_forward_from_rotated_up = axis_angle_to_mat(counter_axis, counter_angle);
-
-        ///we've done the above from the up vector, but in reality angles are relative to the forward vector
-        ///but its easier to reason about like this
-        mat3f fix_my_fuckup = axis_angle_to_mat({1, 0, 0}, -M_PI/2);
-
-        mat3f overall_transformation = about_axis * rotation_to_forward_from_rotated_up * fix_my_fuckup;*/
-
         ///recombine rotated up and forward. We might be able to construct a proper
         ///euler thing out of a separated up and forward
         ///hmm, forward isn't perpendicular
@@ -356,29 +321,18 @@ struct map_cube_info
             ///roll angle
             mat3f mat_aa = axis_angle_to_mat(global_axis, angle);
 
-            accumulated_camera = accumulated_camera * mat_aa;
-
-            //float zangle = M_PI/8;
-
-            //mat3f ZRot;
-
-            //ZRot = ZRot.ZRot(zangle);
-
-            mat3f current_camera;
-
-            current_camera.load_rotation_matrix(c_rot);
-
-            mat3f rotated = current_camera * mat_aa;
-
-            vec3f new_camera = rotated.get_rotation();
-
-            return new_camera;
+            mat_in = mat_in * mat_aa;
         }
 
-        return c_rot;
+        return mat_in;
     }
 
-    vec3f get_up_vector()
+    void transition_camera(int dim)
+    {
+        accumulated_camera = get_transition_camera(accumulated_camera, dim);
+    }
+
+    vec3f get_up_vector(int face)
     {
         vec3f face_rot = map_namespace::map_cube_rotations[face];
 
@@ -393,41 +347,72 @@ struct map_cube_info
 
     vec3f daccum = {0,0,0};
 
+    mat3f get_rotation_of(mat3f camera_acc, int face, vec3f cam)
+    {
+        vec3f txaxis = camera_acc.transp() * (vec3f){1, 0, 0};
+
+        vec3f yaxis = get_up_vector(face);
+
+        mat3f XRot, YRot;
+
+        ///work out global axis including accumulated
+        XRot = axis_angle_to_mat(txaxis, cam.v[0]);
+        YRot = axis_angle_to_mat(yaxis, cam.v[1]);
+
+        mat3f test_camera = camera_acc * XRot * YRot;
+
+        return test_camera;
+    }
+
+    mat3f get_camera_with_offset(vec2f offset, int dim)
+    {
+        auto plane = get_new_face(pos_within_plane + offset, dim);
+
+        mat3f faccumulated_camera = get_transition_camera(accumulated_camera, dim, offset);
+
+        mat3f rtest_camera = get_rotation_of(faccumulated_camera, plane, daccum);
+
+        return rtest_camera;
+    }
+
+    vec2f get_rfrac(vec2f offset, int dim)
+    {
+        vec2f residual_offset = get_residual_distance(pos_within_plane + offset, dim);
+
+        return fabs(residual_offset) / offset;
+    }
+
+    float get_axis_frac(vec2f offset, int dim)
+    {
+        int axis = which_axis(pos_within_plane + offset, dim);
+
+        return get_rfrac(offset, dim).v[axis];
+    }
+
+    quat get_interpolate(quat base, vec2f offset, int dim)
+    {
+        mat3f rtest_camera = get_camera_with_offset(offset, dim);
+
+        float axis_frac = get_axis_frac(offset, dim);
+
+        quat q2;
+
+        q2.load_from_matrix(rtest_camera);
+
+        quat qi = quat::slerp(base, q2, axis_frac);
+
+        return qi;
+    }
+
     ///frametimes etc
     ///when we transition between planes
     ///uuh
     ///uiuuuhh.. store transition matrix and apply to camera?
-    vec3f do_keyboard_input()
+    vec3f do_keyboard_input(int dim)
     {
         using namespace map_namespace;
 
         sf::Keyboard key;
-
-        ///almost works, but sometimes up/down controls are reversed
-        mat3f srrot;
-        srrot.load_rotation_matrix(map_cube_rotations[face]);
-
-        srrot = accumulated_camera;// * srrot;
-
-        ///do this but include accumulated camera?
-        //vec3f rel_right = (vec3f){1, 0, 0}.rot({0,0,0}, accumulated_camera.get_rotation());
-
-        vec3f rel_forward = (vec3f){0, 0, 1};
-
-        ///rotate this?
-        vec3f forward_test = rel_forward.rot({0,0,0}, srrot.get_rotation());
-
-        //vec3f forward_test = (vec3f){0, 0, 1}.rot({0,0,0}, map_cube_rotations[face]);
-
-        vec3f yaxis = get_up_vector();
-        //vec3f forward_ax = (vec3f){0, 0, 1}.rot({0,0,0}, {daccum.v[0], 0, 0});
-        //vec3f xaxis = cross(yaxis, forward_ax).norm();
-
-        vec3f txaxis = cross(yaxis, forward_test);
-
-        //float zangle = acos(dot(fixed_up, yaxis));
-
-        //printf("%f %f %f axis\n", xaxis.v[0], xaxis.v[1], xaxis.v[2]);
 
         vec3f rdir = {0,0,0};
 
@@ -444,49 +429,36 @@ struct map_cube_info
 
         daccum = daccum + rdir;
 
-        txaxis = accumulated_camera.transp() * (vec3f){1, 0, 0};
+        mat3f test_camera = get_rotation_of(accumulated_camera, face, daccum);
 
+        quat qbase;
+        qbase.load_from_matrix(test_camera);
 
-        mat3f XRot, YRot, ZRot;
+        /*vec2f temp_xoffset = {400, 0};
 
-        ///X.XRot works, but not axis_angle_to_mat. Inviestigate when im not sotired
-        ///XRot = axis_angle_t-_mat(xaxis) is too much info
-        ///we just want the x axis, but we're rotating about the global frame
-        ///which is wrong"!
-        //XRot = XRot.XRot(daccum.v[0]);
+        ///remember xdist goes both ways from both sides
+        ///need to get transition camera matrix
 
-        ///work out global axis including accumulated
-        XRot = axis_angle_to_mat(txaxis, daccum.v[0]);
-        YRot = axis_angle_to_mat(yaxis, daccum.v[1]);
+        mat3f rtest_camera = get_camera_with_offset(temp_xoffset, dim);
 
+        float axis_frac = get_axis_frac(temp_xoffset, dim);
 
-        //vec3f new_vec = (XRot * YRot).get_rotation();
+        quat q1, q2;
 
-        //new_vec = (vec3f){0,0,1}.rot({0,0,0}, new_vec);
+        q1.load_from_matrix(test_camera);
+        q2.load_from_matrix(rtest_camera);
 
-        //ZRot = axis_angle_to_mat(new_vec, daccum.v[2]);
-        //ZRot = ZRot.ZRot(zangle);
-        //ZRot = ZRot.ZRot(daccum.v[2]);
+        quat qi = quaternion::slerp(q1, q2, axis_frac);*/
 
-        //printf("zangle %f\n", zangle);
+        ///need to fix the corner case, but this fundamentally works
+        quat qi = get_interpolate(qbase, {400, 0}, dim);
+        qi = get_interpolate(qi, {0, 400}, dim);
 
+        mat3f ipmatrix = qi.get_rotation_matrix();
 
-        //XRot = XRot.XRot(daccum.v[0]);
+        vec3f camera = ipmatrix.get_rotation();
 
-        //YRot = YRot.YRot(daccum.v[1]);
-
-        //mat3f accum = accumulated_camera;
-
-
-        //mat3f accum = ZRot * XRot * YRot;
-        //vec3f camera = accum.get_rotation();
-
-
-        mat3f test_camera = accumulated_camera * XRot * YRot;
-
-        vec3f camera = test_camera.get_rotation();
-
-        //camera = accumulated_camera.get_rotation();
+        //vec3f camera = test_camera.get_rotation();
 
         return camera;
     }

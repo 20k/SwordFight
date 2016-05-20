@@ -923,11 +923,11 @@ int main(int argc, char *argv[])
             }
 
 
-            vec3f ncamera_rot = debug_map_cube.do_keyboard_input();
+            vec3f ncamera_rot = debug_map_cube.do_keyboard_input(24 * game_map::scale);
 
             //vec3f ncamera_rot = debug_map_cube.transition_camera(xyz_to_vec(window.c_rot), 24 * game_map::scale);
 
-            debug_map_cube.transition_camera(xyz_to_vec(window.c_rot), 24 * game_map::scale);
+            debug_map_cube.transition_camera(24 * game_map::scale);
 
             window.set_camera_rot(conv_implicit<cl_float4>(ncamera_rot));
             ///ok, so its the roll component of the camera we need to fiddle with
@@ -952,6 +952,7 @@ int main(int argc, char *argv[])
 
             ///because we define relative to {0, 1} y axis, whereas .angle is relative to {1, 0}
             ///for some reason, this does nothing
+            ///dunnae work, review
             mov_dir = mov_dir.rot(cur_angle - M_PI/2.);
 
 
