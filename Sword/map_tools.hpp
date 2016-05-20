@@ -407,10 +407,16 @@ struct map_cube_info
         mat3f srrot;
         srrot.load_rotation_matrix(map_cube_rotations[face]);
 
-        srrot = accumulated_camera * srrot;
+        srrot = accumulated_camera;// * srrot;
+
+        ///do this but include accumulated camera?
+        //vec3f rel_right = (vec3f){1, 0, 0}.rot({0,0,0}, accumulated_camera.get_rotation());
+
+        vec3f rel_forward = (vec3f){0, 0, 1};
 
         ///rotate this?
-        vec3f forward_test = (vec3f){0, 0, 1}.rot({0,0,0}, srrot.get_rotation());
+        vec3f forward_test = rel_forward.rot({0,0,0}, srrot.get_rotation());
+
         //vec3f forward_test = (vec3f){0, 0, 1}.rot({0,0,0}, map_cube_rotations[face]);
 
         vec3f yaxis = get_up_vector();
@@ -419,12 +425,9 @@ struct map_cube_info
 
         vec3f txaxis = cross(yaxis, forward_test);
 
-        vec3f fixed_up = {0, 1, 0};
-
-        float zangle = acos(dot(fixed_up, yaxis));
+        //float zangle = acos(dot(fixed_up, yaxis));
 
         //printf("%f %f %f axis\n", xaxis.v[0], xaxis.v[1], xaxis.v[2]);
-
 
         vec3f rdir = {0,0,0};
 
@@ -441,6 +444,8 @@ struct map_cube_info
 
         daccum = daccum + rdir;
 
+        txaxis = accumulated_camera.transp() * (vec3f){1, 0, 0};
+
 
         mat3f XRot, YRot, ZRot;
 
@@ -455,12 +460,12 @@ struct map_cube_info
         YRot = axis_angle_to_mat(yaxis, daccum.v[1]);
 
 
-        vec3f new_vec = (XRot * YRot).get_rotation();
+        //vec3f new_vec = (XRot * YRot).get_rotation();
 
-        new_vec = (vec3f){0,0,1}.rot({0,0,0}, new_vec);
+        //new_vec = (vec3f){0,0,1}.rot({0,0,0}, new_vec);
 
         //ZRot = axis_angle_to_mat(new_vec, daccum.v[2]);
-        ZRot = ZRot.ZRot(zangle);
+        //ZRot = ZRot.ZRot(zangle);
         //ZRot = ZRot.ZRot(daccum.v[2]);
 
         //printf("zangle %f\n", zangle);
@@ -471,14 +476,15 @@ struct map_cube_info
         //YRot = YRot.YRot(daccum.v[1]);
 
         //mat3f accum = accumulated_camera;
-        mat3f accum = ZRot * XRot * YRot;
 
-        vec3f camera = accum.get_rotation();
+
+        //mat3f accum = ZRot * XRot * YRot;
+        //vec3f camera = accum.get_rotation();
 
 
         mat3f test_camera = accumulated_camera * XRot * YRot;
 
-        camera = test_camera.get_rotation();
+        vec3f camera = test_camera.get_rotation();
 
         //camera = accumulated_camera.get_rotation();
 
