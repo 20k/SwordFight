@@ -404,6 +404,40 @@ struct map_cube_info
         return qi;
     }
 
+    std::tuple<quat, float> get_ip_camera(vec2f offset, int dim)
+    {
+        int rplane = get_new_face(pos_within_plane + offset, dim);
+        int lrplane = get_new_face(pos_within_plane - offset, dim);
+
+        mat3f rtest_camera = get_camera_with_offset(offset, dim);
+        mat3f lrtest_camera = get_camera_with_offset(-offset, dim);
+
+        ///if plane < rplane
+        ///0 -> 0.5
+        ///else 1 -> 0.5
+
+        float axis_frac = get_axis_frac(offset, dim);
+        float laxis_frac = get_axis_frac(-offset, dim);
+
+        axis_frac = fabs(axis_frac);
+
+        if(axis_frac <= 0.001f)
+        {
+            axis_frac = laxis_frac;
+            rtest_camera = lrtest_camera;
+            rplane = lrplane;
+        }
+
+        axis_frac = fabs(axis_frac);
+
+        axis_frac /= 2.f;
+
+        quat nquat;
+        nquat.load_from_matrix(rtest_camera);
+
+        return std::tie(nquat, axis_frac);
+    }
+
     ///frametimes etc
     ///when we transition between planes
     ///uuh
@@ -434,25 +468,26 @@ struct map_cube_info
         quat qbase;
         qbase.load_from_matrix(test_camera);
 
-        /*vec2f temp_xoffset = {400, 0};
+        quat rquat, lquat;
+        float raxis_frac, laxis_frac;
 
-        ///remember xdist goes both ways from both sides
-        ///need to get transition camera matrix
+        std::tie(rquat, raxis_frac) = get_ip_camera({400, 0}, dim);
+        std::tie(lquat, laxis_frac) = get_ip_camera({0, 400}, dim);
 
-        mat3f rtest_camera = get_camera_with_offset(temp_xoffset, dim);
+        quat qi;
 
-        float axis_frac = get_axis_frac(temp_xoffset, dim);
+        qi = quat::slerp(qbase, rquat, raxis_frac);
 
-        quat q1, q2;
-
-        q1.load_from_matrix(test_camera);
-        q2.load_from_matrix(rtest_camera);
-
-        quat qi = quaternion::slerp(q1, q2, axis_frac);*/
+        qi = quat::slerp(qi, lquat, laxis_frac);
 
         ///need to fix the corner case, but this fundamentally works
-        quat qi = get_interpolate(qbase, {400, 0}, dim);
-        qi = get_interpolate(qi, {0, 400}, dim);
+        ///doesn't work all the time due to axis flipping n stuff
+        ///means its totally broken
+        ///and we might want to ignore everything else and do this manually with distances to edge
+        ///not the axis stuff with offsets
+        ///ie the offsets are wrong because they're relative to the plane, and some planes are dumb
+        //quat qi = get_interpolate(qbase, {400, 0}, dim);
+        //qi = get_interpolate(qi, {0, 400}, dim);
 
         mat3f ipmatrix = qi.get_rotation_matrix();
 
