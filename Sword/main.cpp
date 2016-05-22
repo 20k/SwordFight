@@ -989,7 +989,7 @@ int main(int argc, char *argv[])
             nmov = xmove * mov_dir.v[0];
             nmov = nmov + ymove * mov_dir.v[1];
 
-            printf("cdir %f %f %f\n", EXPAND_2(rvec), (float)debug_map_cube.current_forward_with_flip.v[2]);
+            //printf("cdir %f %f %f\n", EXPAND_2(rvec), (float)debug_map_cube.current_forward_with_flip.v[2]);
 
             //mov_dir.rot(debug_map_cube.angle_offset);
 

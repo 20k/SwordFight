@@ -421,11 +421,12 @@ struct map_cube_info
         return rtest_camera;
     }
 
+    ///inf why
     vec2f get_rfrac(vec2f offset, int dim)
     {
         vec2f residual_offset = get_residual_distance(pos_within_plane + offset, dim);
 
-        return fabs(residual_offset) / offset;
+        return fabs(residual_offset) / offset.largest_elem();
     }
 
     float get_axis_frac(vec2f offset, int dim)
