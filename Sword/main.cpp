@@ -944,7 +944,9 @@ int main(int argc, char *argv[])
             mov_dir.v[1] += key.isKeyPressed(sf::Keyboard::W);
             mov_dir.v[1] -= key.isKeyPressed(sf::Keyboard::S);
 
+            ///turns out im dumb. Keep current_forward as a 1, 1 vector and use signs
             float cur_angle = debug_map_cube.current_forward.angle();
+
 
             //float cur_angle = debug_map_cube.angle_offset;
 
@@ -953,12 +955,45 @@ int main(int argc, char *argv[])
             ///because we define relative to {0, 1} y axis, whereas .angle is relative to {1, 0}
             ///for some reason, this does nothing
             ///dunnae work, review
-            mov_dir = mov_dir.rot(cur_angle - M_PI/2.);
+            //mov_dir = mov_dir.rot(cur_angle - M_PI/2.);
 
+
+            ///can't do it like this (because sometimes we swap x and y, and this becomes impossible)
+            ///we need to use a 2x2 matrix
+            //mov_dir = mov_dir * debug_map_cube.current_forward;
+
+            vec2f rvec = conv<int, float>(debug_map_cube.current_forward_with_flip.xy());
+
+            float rangle = rvec.angle();
+
+            rangle = rangle - M_PI/2;
+
+            vec2f ymove = rvec;
+            vec2f xmove = perpendicular(rvec);
+
+            ///still wrong logic
+            ///need to flip sideways axis to fowards (?)
+            if(debug_map_cube.current_forward_with_flip.v[2] < 0)
+            {
+                //rangle = -rangle;
+
+                xmove = -xmove;
+            }
+
+            //mov_dir = mov_dir.rot(rangle);
+
+            //mov_dir = xmove;
+
+            vec2f nmov = {0,0};
+
+            nmov = xmove * mov_dir.v[0];
+            nmov = nmov + ymove * mov_dir.v[1];
+
+            printf("cdir %f %f %f\n", EXPAND_2(rvec), (float)debug_map_cube.current_forward_with_flip.v[2]);
 
             //mov_dir.rot(debug_map_cube.angle_offset);
 
-            debug_map_cube.pos_within_plane = debug_map_cube.pos_within_plane + mov_dir * window.get_frametime() / 1000.f;
+            debug_map_cube.pos_within_plane = debug_map_cube.pos_within_plane + nmov * window.get_frametime() / 1000.f;
 
             ///works, we need to correct for the floor though
             debug_cube->set_pos({apos.v[0], apos.v[1], apos.v[2]});

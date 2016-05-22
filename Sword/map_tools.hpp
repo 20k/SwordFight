@@ -72,9 +72,12 @@ struct gameplay_state
 struct map_cube_info
 {
     float angle_offset = 0;
-    vec2f current_forward = {0,1};
+    vec2f current_forward = {1,1};
     vec2f pos_within_plane = {0,0};
     map_namespace::map_cube_t face = map_namespace::BOTTOM;
+
+    ///local x, local y, is flipped z
+    vec3i current_forward_with_flip = {0, 1, 1};
 
     vec3f get_current_rotation_unsmoothed(){return map_namespace::map_cube_rotations[face];};
 
@@ -183,6 +186,45 @@ struct map_cube_info
         return to_mod;
     }
 
+    ///ffs we need a matrix to describe the movement
+    ///or a 3d vector ;[
+    ///hmm, YES seems broken
+    vec3i get_direction_transition_vec(vec3i dir, map_namespace::axis_are_flipped mapping_type, int axis)
+    {
+        if(mapping_type == map_namespace::NEG)
+        {
+            dir.v[axis] = -dir.v[axis];
+
+            if(dir.v[axis] == 0)
+            {
+                dir.v[2] = -dir.v[2];
+            }
+        }
+
+        if(mapping_type == map_namespace::YES)
+        {
+            float intermediate = dir.v[axis];
+
+            dir.v[axis] = -dir.v[1-axis];
+            dir.v[1-axis] = intermediate;
+        }
+
+        if(mapping_type == map_namespace::YES_NEG)
+        {
+            float intermediate = dir.v[axis];
+
+            dir.v[axis] = dir.v[1-axis];
+            dir.v[1-axis] = -intermediate;
+
+            //dir.v[2] = -dir.v[2];
+        }
+
+        return dir;
+    }
+
+    ///do the above function but do it for the wasd controls instead
+    ///:[
+
     /*float get_transition_angle(map_namespace::axis_are_flipped mapping_type)
     {
         using namespace map_namespace;
@@ -266,12 +308,16 @@ struct map_cube_info
 
         vec2f new_dir = get_transition_vec(current_forward, mapping_type, axis);
 
+        vec3i new_front = get_direction_transition_vec(current_forward_with_flip, mapping_type, axis);
+
         if(next_plane != face)
         {
             face = (map_namespace::map_cube_t)next_plane;
             pos_within_plane = next_pos;
             //angle_offset += mapping_angle;
             current_forward = new_dir;
+
+            current_forward_with_flip = new_front;
         }
     }
 
