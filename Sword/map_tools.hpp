@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../openclrenderer/logging.hpp"
+#include "fighter.hpp"
 
 struct objects_container;
 
@@ -264,6 +265,7 @@ struct map_cube_info
         return to_mod;
     }
 
+    ///I think we need a smoothed up coordinate ;_;
     vec3f get_absolute_3d_coords(vec2f loc, int dim)
     {
         float len = dim/2.;
@@ -286,9 +288,14 @@ struct map_cube_info
         ///this is possibly not correct, I've been awake for a while
         vec3f global_pos = relative_to_plane.rot({0,0,0}, map_namespace::map_cube_rotations[next_plane]) + (vec3f){0, len, 0};
 
+        global_pos.v[1] += FLOOR_CONST;
+
+
+        //vec3f smooth_up = get_smooth_up_vector(face, {400, 400}, dim);
+
         //lg::log("gpos ", global_pos.v[0], " ", global_pos.v[1], " ", global_pos.v[2]);
 
-        return global_pos;
+        return global_pos;// + smooth_up;
     }
 
     ///transition forward direction too
@@ -389,6 +396,69 @@ struct map_cube_info
         center_vec = -center_vec;
 
         return center_vec;
+    }
+
+    vec3f get_smooth_up_vector(int face, vec2f offset, int dim)
+    {
+        return {0,0,0};
+
+        ///experimental
+
+        /*vec2f xoffset = {offset.v[0], 0};
+        vec2f yoffset = {0, offset.v[1]};
+
+        vec<4, vec2f> offsets = {xoffset, -xoffset, yoffset, -yoffset};
+        vec<4, vec2f> absolute_offsets = {xoffset, -xoffset, yoffset, -yoffset};
+
+        for(int i=0; i<4; i++)
+        {
+            absolute_offsets.v[i] = absolute_offsets.v[i] + pos_within_plane;
+        }
+
+        std::function<int(vec2f)> func = std::bind(get_new_face, this, std::placeholders::_1, dim);
+
+        vec4i new_faces = absolute_offsets.map(func);
+
+        ///float get_axis_frac(vec2f offset, int dim)
+
+        std::function<float(vec2f)> axis_frac = std::bind(get_axis_frac, this, std::placeholders::_1, dim);
+
+        vec4f residuals = offsets.map(axis_frac);
+
+        residuals = fabs(residuals);
+
+        vec2f selected_residuals = {residuals.v[0], residuals.v[2]};
+        vec2i selected_faces = {new_faces.v[0], new_faces.v[2]};
+
+        ///swap
+        if(selected_residuals.v[0] <= 0.001f)
+        {
+            selected_residuals.v[0] = residuals.v[1];
+            selected_faces.v[0] = new_faces.v[1];
+        }
+
+        if(selected_residuals.v[1] <= 0.001f)
+        {
+            selected_residuals.v[1] = residuals.v[3];
+            selected_faces.v[1] = new_faces.v[3];
+        }
+
+        selected_residuals = selected_residuals / 2.f;
+
+        vec<2, vec3f> up_vecs;
+
+        for(int i=0; i<2; i++)
+        {
+            up_vecs.v[i] = get_up_vector(selected_faces.v[i]);
+        }
+
+        vec3f cur_up = get_up_vector(face);
+
+        vec3f ip_x = up_vecs.v[0] * selected_residuals.v[0] + cur_up * (1.f - selected_residuals.v[0]);
+
+        vec3f ip_y = up_vecs.v[1] * selected_residuals.v[1] + ip_x * (1.f - selected_residuals.v[1]);
+
+        return ip_y;*/
     }
 
     vec3f daccum = {0,0,0};

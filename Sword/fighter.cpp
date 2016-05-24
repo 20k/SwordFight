@@ -18,6 +18,8 @@
 
 #include "../openclrenderer/logging.hpp"
 
+#include "map_tools.hpp"
+
 /*vec3f jump_descriptor::get_absolute_jump_displacement_tick(float dt, fighter* fight)
 {
     if(current_time > time_ms)

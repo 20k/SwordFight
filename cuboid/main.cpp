@@ -180,81 +180,91 @@ float get_vec_angle(vec2f v1, vec2f v2, vec2f v3)
     return acos(dot(v3 - v2, v1 - v2));
 }
 
+///I think this needs to be done repeatedly until its no longer flipping anything
 std::vector<graph_vert*> flippity_flip_flip_floppity_flip(const std::vector<graph_vert*>& graph)
 {
     if(graph.size() < 4)
         return graph;
 
-    for(auto& i : graph)
+    bool redo = true;
+
+    while(redo)
     {
-        ///sort connections anticlockwise
+        redo = false;
 
-        std::vector<std::pair<float, graph_vert*>> verts;
-
-        vec2f base = i->pos;
-
-        for(auto& j : i->vert)
+        for(auto& i : graph)
         {
-            vec2f their_pos = j->pos;
+            ///sort connections anticlockwise
 
-            vec2f rel = their_pos - base;
+            std::vector<std::pair<float, graph_vert*>> verts;
 
-            float angle = rel.angle();
+            vec2f base = i->pos;
 
-            verts.push_back({angle, j});
-        }
-
-        std::sort(verts.begin(), verts.end());
-
-        ///hmm. should it be n, n+1, n+2, check if thats delaunay?
-        ///I think thats actually equivalent
-
-
-        for(int j=0; j<verts.size(); j++)
-        {
-            int n = j;
-            int n1 = (j + 1) % verts.size();
-            int n2 = (j + 2) % verts.size();
-
-            graph_vert* v0, *v1, *v2, *v3;
-
-            v0 = i;
-            v1 = verts[n].second;
-            v2 = verts[n1].second;
-            v3 = verts[n2].second;
-
-            float a1, a2;
-
-            ///v2 is the middle point
-
-            ///so we want 0 -> 1 -> 2
-            ///0 -> 3 -> 2
-            a1 = get_vec_angle(v0->pos, v1->pos, v2->pos);
-            a2 = get_vec_angle(v0->pos, v3->pos, v2->pos);
-
-
-            if(fabs(a1) + fabs(a2) > M_PI/2.f)
+            for(auto& j : i->vert)
             {
-                ///swap
-                ///so we have triangulation
-                ///v0 -> v1, v1 -> v2, v2 -> v0
-                ///v0 -> v3, v3 -> v2, v2 -> v0
-                ///we want to swap it to
-                ///v0 -> v1, v1 -> v3, v3 -> v0
-                ///v1 -> v2, v2 -> v3, v3 -> v1
+                vec2f their_pos = j->pos;
 
-                ///so really we only want to unlink 0 -> 2
-                ///and replace it with 3 -> 1
-                v0->unlink(v2);
+                vec2f rel = their_pos - base;
 
-                v3->link(v1);
+                float angle = rel.angle();
+
+                verts.push_back({angle, j});
             }
-        }
 
-        ///purely for sorting purposes
-        for(int j=0; j<verts.size(); j++)
-        {
-            i->vert[j] = verts[j].second;
+            std::sort(verts.begin(), verts.end());
+
+            ///hmm. should it be n, n+1, n+2, check if thats delaunay?
+            ///I think thats actually equivalent
+
+
+            for(int j=0; j<verts.size(); j++)
+            {
+                int n = j;
+                int n1 = (j + 1) % verts.size();
+                int n2 = (j + 2) % verts.size();
+
+                graph_vert* v0, *v1, *v2, *v3;
+
+                v0 = i;
+                v1 = verts[n].second;
+                v2 = verts[n1].second;
+                v3 = verts[n2].second;
+
+                float a1, a2;
+
+                ///v2 is the middle point
+
+                ///so we want 0 -> 1 -> 2
+                ///0 -> 3 -> 2
+                a1 = get_vec_angle(v0->pos, v1->pos, v2->pos);
+                a2 = get_vec_angle(v0->pos, v3->pos, v2->pos);
+
+
+                if(fabs(a1) + fabs(a2) > M_PI/2.f)
+                {
+                    ///swap
+                    ///so we have triangulation
+                    ///v0 -> v1, v1 -> v2, v2 -> v0
+                    ///v0 -> v3, v3 -> v2, v2 -> v0
+                    ///we want to swap it to
+                    ///v0 -> v1, v1 -> v3, v3 -> v0
+                    ///v1 -> v2, v2 -> v3, v3 -> v1
+
+                    ///so really we only want to unlink 0 -> 2
+                    ///and replace it with 3 -> 1
+                    v0->unlink(v2);
+
+                    v3->link(v1);
+
+                    redo = true;
+                }
+            }
+
+            ///purely for sorting purposes
+            for(int j=0; j<verts.size(); j++)
+            {
+                i->vert[j] = verts[j].second;
+            }
         }
     }
 

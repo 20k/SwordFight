@@ -10,7 +10,7 @@
 #include "bbox.hpp"
 
 #include "cape.hpp"
-#include "map_tools.hpp"
+//#include "map_tools.hpp"
 
 namespace mov
 {
@@ -676,6 +676,7 @@ struct clientside_parry_info
 };
 
 struct light;
+struct gameplay_state;
 
 ///what a clusterfuck
 struct fighter

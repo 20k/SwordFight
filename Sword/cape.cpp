@@ -11,6 +11,7 @@
 #include "fighter.hpp"
 #include "../openclrenderer/vec.hpp"
 #include "../sword_server/teaminfo_shared.hpp"
+#include "map_tools.hpp"
 
 ///10, 30
 ///8, 10
