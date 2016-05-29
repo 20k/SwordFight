@@ -967,8 +967,9 @@ int main(int argc, char *argv[])
 
             rangle = rangle - M_PI/2;
 
+            ///so uuh. The axis axis is flipped, and im not 100% on why
             vec2f ymove = rvec;
-            vec2f xmove = perpendicular(rvec);
+            vec2f xmove = -perpendicular(rvec);
 
             ///still wrong logic
             ///need to flip sideways axis to fowards (?)

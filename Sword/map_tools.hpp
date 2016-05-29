@@ -70,6 +70,11 @@ struct gameplay_state
 };
 
 ///I also wish this were less complex
+///next up, we need to implement camera rotation movement
+///so, we want to decompose the 3d camera into just the components
+///relating to that plane
+///in fact, we only want the y rotation component (relative to the plane)
+///which should not be impossible to get
 struct map_cube_info
 {
     float angle_offset = 0;
@@ -282,7 +287,7 @@ struct map_cube_info
 
         global_pos.v[1] += FLOOR_CONST;
 
-        vec3f smooth_up = get_smooth_up_vector(face, {smooth_offset, smooth_offset}, dim);
+        vec3f smooth_up = get_smooth_up_vector(face, {smooth_offset, smooth_offset}, dim, FLOOR_CONST);
 
         global_pos = global_pos + smooth_up;
 
@@ -390,9 +395,9 @@ struct map_cube_info
     ///this should return a normalised vector
     ///stretched vector, ie 1 is normal normal, > 1 means to stretch by length of returned vector
     ///NOTHING WORTH EASY IS DOING
-    vec3f get_smooth_up_vector(int face, vec2f offset, int dim)
+    vec3f get_smooth_up_vector(int face, vec2f offset, int dim, float height_offset)
     {
-        ///experimental
+        height_offset = fabs(height_offset);
 
         vec2f xoffset = {offset.v[0], 0};
         vec2f yoffset = {0, offset.v[1]};
@@ -440,22 +445,22 @@ struct map_cube_info
 
         for(int i=0; i<2; i++)
         {
-            up_vecs.v[i] = get_up_vector(selected_faces.v[i]) * -FLOOR_CONST;
+            up_vecs.v[i] = get_up_vector(selected_faces.v[i]) * height_offset;
         }
 
         ///fit a bezier curve through the 4 points
         ///or maybe just fit a curve through sqrtf(floor_const*floor_const) at the corner?
         ///fit a circle?
         ///something incorrect in this function
-        vec3f cur_up = get_up_vector(face) * -FLOOR_CONST;
+        vec3f cur_up = get_up_vector(face) * height_offset;
 
         vec3f ip_x = up_vecs.v[0] * selected_residuals.v[0] + cur_up * (1.f - selected_residuals.v[0]);
 
-        ip_x = ip_x.norm() * -FLOOR_CONST;
+        ip_x = ip_x.norm() * height_offset;
 
         vec3f ip_y = up_vecs.v[1] * selected_residuals.v[1] + ip_x * (1.f - selected_residuals.v[1]);
 
-        ip_y = ip_y.norm() * -FLOOR_CONST;
+        ip_y = ip_y.norm() * height_offset;
 
         ///working rectangularisation of the camera movement to map it to a straight
         ///box
@@ -466,15 +471,15 @@ struct map_cube_info
 
         float tangle = tan(angle);
 
-        float odist = -FLOOR_CONST * tangle;
+        float odist = height_offset * tangle;
 
-        float vector_length = sqrtf(odist * odist + FLOOR_CONST * FLOOR_CONST);
+        float vector_length = sqrtf(odist * odist + height_offset * height_offset);
 
         ip_y = ip_y.norm() * vector_length;
 
 
         ///to circle
-        float adjacent = offset.largest_elem() - fabs(FLOOR_CONST);
+        float adjacent = offset.largest_elem() - height_offset;
 
         float hypot = adjacent / cangle;
 
