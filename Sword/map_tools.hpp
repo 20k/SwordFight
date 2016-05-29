@@ -80,6 +80,8 @@ struct map_cube_info
     ///local x, local y, is flipped z
     vec3i current_forward_with_flip = {0, 1, 1};
 
+    static constexpr float smooth_offset = 900;
+
     vec3f get_current_rotation_unsmoothed(){return map_namespace::map_cube_rotations[face];};
 
     int which_axis(vec2f absolute_relative_pos, int dim)
@@ -156,6 +158,9 @@ struct map_cube_info
 
     vec2f get_transition_vec(vec2f to_mod, map_namespace::axis_are_flipped mapping_type, int axis)
     {
+        if(axis < 0)
+            return to_mod;
+
         if(mapping_type == map_namespace::NO)
         {
 
@@ -192,6 +197,9 @@ struct map_cube_info
     ///hmm, YES seems broken
     vec3i get_direction_transition_vec(vec3i dir, map_namespace::axis_are_flipped mapping_type, int axis)
     {
+        if(axis < 0)
+            return dir;
+
         if(mapping_type == map_namespace::NEG)
         {
             dir.v[axis] = -dir.v[axis];
@@ -291,7 +299,9 @@ struct map_cube_info
         global_pos.v[1] += FLOOR_CONST;
 
 
-        //vec3f smooth_up = get_smooth_up_vector(face, {400, 400}, dim);
+        vec3f smooth_up = get_smooth_up_vector(face, {smooth_offset, smooth_offset}, dim);
+
+        global_pos = global_pos + smooth_up;
 
         //lg::log("gpos ", global_pos.v[0], " ", global_pos.v[1], " ", global_pos.v[2]);
 
@@ -398,13 +408,12 @@ struct map_cube_info
         return center_vec;
     }
 
+    ///this should return a normalised vector
     vec3f get_smooth_up_vector(int face, vec2f offset, int dim)
     {
-        return {0,0,0};
-
         ///experimental
 
-        /*vec2f xoffset = {offset.v[0], 0};
+        vec2f xoffset = {offset.v[0], 0};
         vec2f yoffset = {0, offset.v[1]};
 
         vec<4, vec2f> offsets = {xoffset, -xoffset, yoffset, -yoffset};
@@ -427,6 +436,8 @@ struct map_cube_info
 
         residuals = fabs(residuals);
 
+        //residuals = residuals / offset.largest_elem();
+
         vec2f selected_residuals = {residuals.v[0], residuals.v[2]};
         vec2i selected_faces = {new_faces.v[0], new_faces.v[2]};
 
@@ -445,20 +456,98 @@ struct map_cube_info
 
         selected_residuals = selected_residuals / 2.f;
 
+        ///floor const = -633, which is why this doesn't work right as its > offset
         vec<2, vec3f> up_vecs;
 
         for(int i=0; i<2; i++)
         {
-            up_vecs.v[i] = get_up_vector(selected_faces.v[i]);
+            up_vecs.v[i] = get_up_vector(selected_faces.v[i]) * -FLOOR_CONST;
         }
 
-        vec3f cur_up = get_up_vector(face);
+        ///fit a bezier curve through the 4 points
+        ///or maybe just fit a curve through sqrtf(floor_const*floor_const) at the corner?
+        ///fit a circle?
+        ///something incorrect in this function
+        vec3f cur_up = get_up_vector(face) * -FLOOR_CONST;
 
         vec3f ip_x = up_vecs.v[0] * selected_residuals.v[0] + cur_up * (1.f - selected_residuals.v[0]);
 
+        ip_x = ip_x.norm() * -FLOOR_CONST;
+
+        ///turns out, we want the SUM to be floor_const
+
+        //ip_x = ip_x * -FLOOR_CONST / ip_x.sum_absolute();
+
         vec3f ip_y = up_vecs.v[1] * selected_residuals.v[1] + ip_x * (1.f - selected_residuals.v[1]);
 
-        return ip_y;*/
+        //ip_y = ip_y * -FLOOR_CONST / ip_y.sum_absolute();
+        ip_y = ip_y.norm() * -FLOOR_CONST;
+
+        ///working rectangularisation of the camera movement to map it to a straight
+        ///box
+        ///now map to circle
+        float cangle = dot(cur_up.norm(), ip_y.norm());
+
+        float angle = acos(cangle);
+
+        float tangle = tan(angle);
+
+        float odist = -FLOOR_CONST * tangle;
+
+        float vector_length = sqrtf(odist * odist + FLOOR_CONST * FLOOR_CONST);
+
+        ip_y = ip_y.norm() * vector_length;
+
+        /*float cangle = dot(cur_up.norm(), ip_y.norm());
+
+        //printf("%f s\n", cangle);
+
+        //float up_len = ip_y.length();
+
+        float calculated_odist = sqrtf(FLOOR_CONST * FLOOR_CONST / 2.f);
+
+        float calculated_radius = offset.largest_elem() - calculated_odist;
+
+        ///cangle < 1, > cos(45)
+        float extra_dist = calculated_radius / cangle - calculated_radius;
+
+        ///fabs(floor_const) is probably incorrect here actually
+        float new_len = fabs(FLOOR_CONST) + extra_dist;*/
+
+
+        //ffloat sabs = ip_y.sum_absolute();
+
+        std::cout << "l " << ip_y << std::endl;
+
+        //ip_y = ip_y * new_len / ip_y.sum_absolute();
+
+        //printf("suma %f\n", sabs);
+
+        //ip_y = ip_y.norm() * new_len;
+
+        //printf("olen %f nlen %f\n", up_len, extra_dist);
+
+        //float extra_length = r / cangle -
+
+        //float angle = acos(dot(cur_up.norm(), ip_y.norm()));
+
+        ///0 -> 1-1.5 -> 0
+        //float afrac = angle / (M_PI/4);
+
+
+
+        //printf("uv1 %f\n", residuals.v[2]);
+        //printf("ip_x %f %f %f\n", EXPAND_3(ip_x));
+        //printf("ip_y %f %f %f\n", EXPAND_3(ip_y));
+
+        ///hmm, so i think this works, but we don't follow a circular trajectory (sqrtfc2);
+
+        ///so the problem with norm() * -FLOOR_CONST is that we follow a confusing as we transition
+        ///which is accurate, but not what we want
+        ///we want the... opposite of that?
+        ///we want to end up at FLOOR_CONST in the old coordinate system, at offset.v[axis]
+        //return ip_y.norm() * -FLOOR_CONST;
+        return ip_y;
     }
 
     vec3f daccum = {0,0,0};
@@ -502,6 +591,9 @@ struct map_cube_info
     float get_axis_frac(vec2f offset, int dim)
     {
         int axis = which_axis(pos_within_plane + offset, dim);
+
+        if(axis == -1)
+            return 0;
 
         return get_rfrac(offset, dim).v[axis];
     }
@@ -588,8 +680,8 @@ struct map_cube_info
         quat rquat, lquat;
         float raxis_frac, laxis_frac;
 
-        std::tie(rquat, raxis_frac) = get_ip_camera({400, 0}, dim);
-        std::tie(lquat, laxis_frac) = get_ip_camera({0, 400}, dim);
+        std::tie(rquat, raxis_frac) = get_ip_camera({smooth_offset, 0}, dim);
+        std::tie(lquat, laxis_frac) = get_ip_camera({0, smooth_offset}, dim);
 
         quat qi;
 

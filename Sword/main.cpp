@@ -469,7 +469,6 @@ int main(int argc, char *argv[])
 
     fighter* my_fight = &fight;
 
-
     #ifdef SPACE
     lg::log("Presspace");
 
