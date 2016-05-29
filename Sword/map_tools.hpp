@@ -80,7 +80,7 @@ struct map_cube_info
     ///local x, local y, is flipped z
     vec3i current_forward_with_flip = {0, 1, 1};
 
-    static constexpr float smooth_offset = 900;
+    static constexpr float smooth_offset = 400;
 
     vec3f get_current_rotation_unsmoothed(){return map_namespace::map_cube_rotations[face];};
 
@@ -498,6 +498,20 @@ struct map_cube_info
 
         ip_y = ip_y.norm() * vector_length;
 
+
+
+        float adjacent = offset.largest_elem() - fabs(FLOOR_CONST);
+
+        float hypot = adjacent / cangle;
+
+        float extra = hypot - adjacent;
+
+        float total = extra + ip_y.length();
+
+        ip_y = ip_y.norm() * total;
+
+        //float calculated_odist = sqrtf(FLOOR_CONST * FLOOR_CONST)
+
         /*float cangle = dot(cur_up.norm(), ip_y.norm());
 
         //printf("%f s\n", cangle);
@@ -517,7 +531,7 @@ struct map_cube_info
 
         //ffloat sabs = ip_y.sum_absolute();
 
-        std::cout << "l " << ip_y << std::endl;
+        //std::cout << "l " << ip_y << std::endl;
 
         //ip_y = ip_y * new_len / ip_y.sum_absolute();
 
