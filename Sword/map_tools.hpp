@@ -409,6 +409,7 @@ struct map_cube_info
     }
 
     ///this should return a normalised vector
+    ///stretched vector, ie 1 is normal normal, > 1 means to stretch by length of returned vector
     vec3f get_smooth_up_vector(int face, vec2f offset, int dim)
     {
         ///experimental
@@ -435,8 +436,6 @@ struct map_cube_info
         vec4f residuals = offsets.map(axis_frac);
 
         residuals = fabs(residuals);
-
-        //residuals = residuals / offset.largest_elem();
 
         vec2f selected_residuals = {residuals.v[0], residuals.v[2]};
         vec2i selected_faces = {new_faces.v[0], new_faces.v[2]};
@@ -474,13 +473,8 @@ struct map_cube_info
 
         ip_x = ip_x.norm() * -FLOOR_CONST;
 
-        ///turns out, we want the SUM to be floor_const
-
-        //ip_x = ip_x * -FLOOR_CONST / ip_x.sum_absolute();
-
         vec3f ip_y = up_vecs.v[1] * selected_residuals.v[1] + ip_x * (1.f - selected_residuals.v[1]);
 
-        //ip_y = ip_y * -FLOOR_CONST / ip_y.sum_absolute();
         ip_y = ip_y.norm() * -FLOOR_CONST;
 
         ///working rectangularisation of the camera movement to map it to a straight
@@ -510,57 +504,6 @@ struct map_cube_info
 
         ip_y = ip_y.norm() * total;
 
-        //float calculated_odist = sqrtf(FLOOR_CONST * FLOOR_CONST)
-
-        /*float cangle = dot(cur_up.norm(), ip_y.norm());
-
-        //printf("%f s\n", cangle);
-
-        //float up_len = ip_y.length();
-
-        float calculated_odist = sqrtf(FLOOR_CONST * FLOOR_CONST / 2.f);
-
-        float calculated_radius = offset.largest_elem() - calculated_odist;
-
-        ///cangle < 1, > cos(45)
-        float extra_dist = calculated_radius / cangle - calculated_radius;
-
-        ///fabs(floor_const) is probably incorrect here actually
-        float new_len = fabs(FLOOR_CONST) + extra_dist;*/
-
-
-        //ffloat sabs = ip_y.sum_absolute();
-
-        //std::cout << "l " << ip_y << std::endl;
-
-        //ip_y = ip_y * new_len / ip_y.sum_absolute();
-
-        //printf("suma %f\n", sabs);
-
-        //ip_y = ip_y.norm() * new_len;
-
-        //printf("olen %f nlen %f\n", up_len, extra_dist);
-
-        //float extra_length = r / cangle -
-
-        //float angle = acos(dot(cur_up.norm(), ip_y.norm()));
-
-        ///0 -> 1-1.5 -> 0
-        //float afrac = angle / (M_PI/4);
-
-
-
-        //printf("uv1 %f\n", residuals.v[2]);
-        //printf("ip_x %f %f %f\n", EXPAND_3(ip_x));
-        //printf("ip_y %f %f %f\n", EXPAND_3(ip_y));
-
-        ///hmm, so i think this works, but we don't follow a circular trajectory (sqrtfc2);
-
-        ///so the problem with norm() * -FLOOR_CONST is that we follow a confusing as we transition
-        ///which is accurate, but not what we want
-        ///we want the... opposite of that?
-        ///we want to end up at FLOOR_CONST in the old coordinate system, at offset.v[axis]
-        //return ip_y.norm() * -FLOOR_CONST;
         return ip_y;
     }
 
