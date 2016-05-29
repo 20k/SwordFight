@@ -156,6 +156,8 @@ struct map_cube_info
         return map_namespace::connection_map[face][connection];
     }
 
+    ///I think this is broken between left/right and top
+    ///this corresponds to neg
     vec2f get_transition_vec(vec2f to_mod, map_namespace::axis_are_flipped mapping_type, int axis)
     {
         if(axis < 0)
@@ -169,6 +171,15 @@ struct map_cube_info
         if(mapping_type == map_namespace::NEG)
         {
             to_mod.v[axis] = -to_mod.v[axis];
+            ///this is where the axis flipping metaphor breaks down
+            ///only makes sense in coordinate systems
+            ///and is not consistent
+            ///but because its the only exception which exposes the veneer of a much more
+            ///complex solution, I'm not going to fix the underlying concept
+            ///as its more complicated (transforming between actual coordinate origin systems)
+            ///whereas this generalisation sort of works
+            ///technicaly debt hooray!
+            to_mod.v[1-axis] = -to_mod.v[1-axis];
         }
 
         if(mapping_type == map_namespace::YES)
@@ -410,6 +421,7 @@ struct map_cube_info
 
     ///this should return a normalised vector
     ///stretched vector, ie 1 is normal normal, > 1 means to stretch by length of returned vector
+    ///NOTHING WORTH EASY IS DOING
     vec3f get_smooth_up_vector(int face, vec2f offset, int dim)
     {
         ///experimental
@@ -570,6 +582,8 @@ struct map_cube_info
         return qi;
     }
 
+    ///-> top connection is broken, camera gets flipped 180 inappropriately
+    ///nope, its a position error when going from left/right -> top
     std::tuple<quat, float> get_ip_camera(vec2f offset, int dim)
     {
         int rplane = get_new_face(pos_within_plane + offset, dim);
