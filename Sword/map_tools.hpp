@@ -243,26 +243,6 @@ struct map_cube_info
         return dir;
     }
 
-    ///do the above function but do it for the wasd controls instead
-    ///:[
-
-    /*float get_transition_angle(map_namespace::axis_are_flipped mapping_type)
-    {
-        using namespace map_namespace;
-
-        if(mapping_type == NEG)
-            return M_PI;
-
-        ///90 to the right
-        if(mapping_type == YES)
-            return -M_PI/2;
-
-        if(mapping_type == YES_NEG)
-            return M_PI/2;
-
-        return 0;
-    }*/
-
     vec2f get_new_coordinates(vec2f absolute_relative_pos, int dim)
     {
         int connection = get_connection_num(absolute_relative_pos, dim);
@@ -294,28 +274,17 @@ struct map_cube_info
 
         vec2f next_pos = get_new_coordinates(loc + pos_within_plane, dim);
 
-        //vec3f rel_pos = (vec3f){0, -len, 0}.rot({0,0,0}, map_namespace::map_cube_rotations[next_plane]) + (vec3f){0, len, 0};
-
         ///relative to center of cube
         vec3f relative_to_plane = {next_pos.v[0] - dim/2., -len, next_pos.v[1] - dim/2};
-
-        //printf("rel %f %f %f\n", relative_to_plane.v[0], relative_, relative_to_plane.v[2]);
-
-        //lg::log("rel ", relative_to_plane.v[0], " ", relative_to_plane.v[2]);
-
-        //lg::log("NP ", next_plane);
 
         ///this is possibly not correct, I've been awake for a while
         vec3f global_pos = relative_to_plane.rot({0,0,0}, map_namespace::map_cube_rotations[next_plane]) + (vec3f){0, len, 0};
 
         global_pos.v[1] += FLOOR_CONST;
 
-
         vec3f smooth_up = get_smooth_up_vector(face, {smooth_offset, smooth_offset}, dim);
 
         global_pos = global_pos + smooth_up;
-
-        //lg::log("gpos ", global_pos.v[0], " ", global_pos.v[1], " ", global_pos.v[2]);
 
         return global_pos;// + smooth_up;
     }
@@ -332,8 +301,6 @@ struct map_cube_info
         auto connection = get_connection_num(pos_within_plane, dim);
 
         auto mapping_type = map_namespace::axis_map[face][connection];
-
-        //float mapping_angle = get_transition_angle(mapping_type);
 
         vec2f new_dir = get_transition_vec(current_forward, mapping_type, axis);
 
@@ -506,7 +473,7 @@ struct map_cube_info
         ip_y = ip_y.norm() * vector_length;
 
 
-
+        ///to circle
         float adjacent = offset.largest_elem() - fabs(FLOOR_CONST);
 
         float hypot = adjacent / cangle;
@@ -596,6 +563,8 @@ struct map_cube_info
         ///if plane < rplane
         ///0 -> 0.5
         ///else 1 -> 0.5
+        ///equivalent to the flip of coordinates from the other perspective
+        ///so its fine for both to go 0 -> 0.5
 
         float axis_frac = get_axis_frac(offset, dim);
         float laxis_frac = get_axis_frac(-offset, dim);
