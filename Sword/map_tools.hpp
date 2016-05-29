@@ -214,10 +214,11 @@ struct map_cube_info
         if(mapping_type == map_namespace::NEG)
         {
             dir.v[axis] = -dir.v[axis];
+            dir.v[1-axis] = -dir.v[1-axis];
 
             if(dir.v[axis] == 0)
             {
-                dir.v[2] = -dir.v[2];
+                //dir.v[2] = -dir.v[2];
             }
         }
 
