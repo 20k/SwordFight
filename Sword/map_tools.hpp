@@ -77,7 +77,10 @@ struct gameplay_state
 ///which should not be impossible to get
 struct map_cube_info
 {
-    float angle_offset = 0;
+    ///used for controls, this must be updated and kept in sync with the regular camera
+    ///its easier to use a syncd accumulator than calculate it from the actual camera
+    float accumulated_forward_angle = 0;
+
     vec2f current_forward = {1,1};
     vec2f pos_within_plane = {0,0};
     map_namespace::map_cube_t face = map_namespace::BOTTOM;
@@ -88,6 +91,16 @@ struct map_cube_info
     static constexpr float smooth_offset = 400;
 
     vec3f get_current_rotation_unsmoothed(){return map_namespace::map_cube_rotations[face];};
+
+    void accumulate_y_rotation(float r)
+    {
+        accumulated_forward_angle += r;
+    }
+
+    float get_y_rot()
+    {
+        return accumulated_forward_angle;
+    }
 
     int which_axis(vec2f absolute_relative_pos, int dim)
     {
@@ -618,7 +631,28 @@ struct map_cube_info
 
         daccum = daccum + rdir;
 
+        accumulate_y_rotation(rdir.v[1]);
+
         mat3f test_camera = get_rotation_of(accumulated_camera, face, daccum);
+
+        //vec2f forward_xy = {0, 1};
+
+        //forward_xy = forward_xy.rot(get_y_rot());
+
+        //vec3f test_forward = {0, 0, 1};
+
+        //vec3f test_forward = {forward_xy.v[0], 0, forward_xy.v[1]};
+
+        ///ok, this works
+        ///so we could convert test_forward into a direction representing our forward
+        ///and that might work?????
+        ///so, this is in global coordinates right?
+        ///but we want in local coordinates
+
+        ///hmm. Maybe we take this angle from current forward and use that?
+        //test_forward = accumulated_camera.transp() * test_forward;
+
+        //printf("%f %f %f tc\n", EXPAND_3(test_forward));
 
         quat qbase;
         qbase.load_from_matrix(test_camera);

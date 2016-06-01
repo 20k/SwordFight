@@ -963,9 +963,17 @@ int main(int argc, char *argv[])
 
             vec2f rvec = conv<int, float>(debug_map_cube.current_forward_with_flip.xy());
 
-            float rangle = rvec.angle();
+            rvec = rvec.rot(debug_map_cube.get_y_rot());
 
-            rangle = rangle - M_PI/2;
+            ///CANT DO .get_y_rot BECAUSE EVERYTHING'S IN A DIFFERENT GOD DAMNED REFERENCE PLANE
+            //float rangle = rvec.angle();
+
+            //rangle += debug_map_cube.get_y_rot();
+
+
+            //rvec = rvec.rot(rangle - M_PI/2);
+
+            //rangle = rangle - M_PI/2;
 
             ///so uuh. The axis axis is flipped, and im not 100% on why
             vec2f ymove = rvec;
