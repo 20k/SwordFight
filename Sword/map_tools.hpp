@@ -92,14 +92,14 @@ struct map_cube_info
 
     vec3f get_current_rotation_unsmoothed(){return map_namespace::map_cube_rotations[face];};
 
-    void accumulate_y_rotation(float r)
+    /*void accumulate_y_rotation(float r)
     {
         accumulated_forward_angle += r;
-    }
+    }*/
 
     float get_y_rot()
     {
-        return accumulated_forward_angle;
+        return daccum.v[1];
     }
 
     int which_axis(vec2f absolute_relative_pos, int dim)
@@ -233,11 +233,6 @@ struct map_cube_info
         {
             dir.v[axis] = -dir.v[axis];
             dir.v[1-axis] = -dir.v[1-axis];
-
-            if(dir.v[axis] == 0)
-            {
-                //dir.v[2] = -dir.v[2];
-            }
         }
 
         if(mapping_type == map_namespace::YES)
@@ -254,8 +249,6 @@ struct map_cube_info
 
             dir.v[axis] = dir.v[1-axis];
             dir.v[1-axis] = -intermediate;
-
-            //dir.v[2] = -dir.v[2];
         }
 
         return dir;
@@ -606,11 +599,42 @@ struct map_cube_info
         return std::tie(nquat, axis_frac);
     }
 
+    ///basically euler is now daccum
+    ///front y rotation is now euler.v...[1]?
+    vec3f get_smoothed_camera_with_euler_offset(vec3f euler, int dim)
+    {
+        daccum = euler;
+
+        mat3f test_camera = get_rotation_of(accumulated_camera, face, daccum);
+
+        quat qbase;
+        qbase.load_from_matrix(test_camera);
+
+        quat rquat, lquat;
+        float raxis_frac, laxis_frac;
+
+        std::tie(rquat, raxis_frac) = get_ip_camera({smooth_offset, 0}, dim);
+        std::tie(lquat, laxis_frac) = get_ip_camera({0, smooth_offset}, dim);
+
+        quat qi;
+
+        qi = quat::slerp(qbase, rquat, raxis_frac);
+
+        qi = quat::slerp(qi, lquat, laxis_frac);
+
+        mat3f ipmatrix = qi.get_rotation_matrix();
+
+        vec3f camera = ipmatrix.get_rotation();
+
+        return camera;
+    }
+
+    ///mat -> euler has a nan in the obvious place
     ///frametimes etc
     ///when we transition between planes
     ///uuh
     ///uiuuuhh.. store transition matrix and apply to camera?
-    vec3f do_keyboard_input(int dim)
+    /*vec3f do_keyboard_input(int dim)
     {
         using namespace map_namespace;
 
@@ -631,28 +655,9 @@ struct map_cube_info
 
         daccum = daccum + rdir;
 
-        accumulate_y_rotation(rdir.v[1]);
+        //accumulate_y_rotation(rdir.v[1]);
 
         mat3f test_camera = get_rotation_of(accumulated_camera, face, daccum);
-
-        //vec2f forward_xy = {0, 1};
-
-        //forward_xy = forward_xy.rot(get_y_rot());
-
-        //vec3f test_forward = {0, 0, 1};
-
-        //vec3f test_forward = {forward_xy.v[0], 0, forward_xy.v[1]};
-
-        ///ok, this works
-        ///so we could convert test_forward into a direction representing our forward
-        ///and that might work?????
-        ///so, this is in global coordinates right?
-        ///but we want in local coordinates
-
-        ///hmm. Maybe we take this angle from current forward and use that?
-        //test_forward = accumulated_camera.transp() * test_forward;
-
-        //printf("%f %f %f tc\n", EXPAND_3(test_forward));
 
         quat qbase;
         qbase.load_from_matrix(test_camera);
@@ -669,23 +674,12 @@ struct map_cube_info
 
         qi = quat::slerp(qi, lquat, laxis_frac);
 
-        ///need to fix the corner case, but this fundamentally works
-        ///doesn't work all the time due to axis flipping n stuff
-        ///means its totally broken
-        ///and we might want to ignore everything else and do this manually with distances to edge
-        ///not the axis stuff with offsets
-        ///ie the offsets are wrong because they're relative to the plane, and some planes are dumb
-        //quat qi = get_interpolate(qbase, {400, 0}, dim);
-        //qi = get_interpolate(qi, {0, 400}, dim);
-
         mat3f ipmatrix = qi.get_rotation_matrix();
 
         vec3f camera = ipmatrix.get_rotation();
 
-        //vec3f camera = test_camera.get_rotation();
-
         return camera;
-    }
+    }*/
 };
 
 ///what we really want is a map class

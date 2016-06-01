@@ -208,15 +208,11 @@ void fps_controls(fighter* my_fight, engine& window)
     if(once<sf::Keyboard::Space>())
         my_fight->try_jump();
 
-    window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
+    //window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
 
+    ///this will probably break
     my_fight->set_look({-window.c_rot.s[0], window.get_mouse_sens_adjusted_x() / 1.f, 0});
 
-    //part* head = &my_fight->parts[bodypart::HEAD];
-
-    //vec3f pos = head->pos + my_fight->pos;
-
-    //window.set_camera_pos({pos.v[0], pos.v[1], pos.v[2]});
 
     vec2f m;
     m.v[0] = window.get_mouse_sens_adjusted_x();
@@ -234,26 +230,7 @@ void fps_controls(fighter* my_fight, engine& window)
 
 input_delta fps_camera_controls(float frametime, const input_delta& input, engine& window, const fighter* my_fight)
 {
-    //const part* head = &my_fight->parts[bodypart::HEAD];
-
-    //float def_head_height = bodypart::default_position[bodypart::HEAD].v[1];// - bodypart::default_position[bodypart::BODY].v[1];
-
-    //vec3f pos = (vec3f){0.f, def_head_height, 0.f} + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult - (vec3f){0.f, bodypart::scale * my_fight->crouch_frac, 0.f};
-
-    //vec3f pos = my_fight->parts[bodypart::HEAD].global_pos;
-
-    /*pos.v[0] = my_fight->pos.v[0];
-    pos.v[1] = def_head_height;
-    pos.v[2] = my_fight->pos.v[2];*/
-
     vec3f pos = (vec3f){0, my_fight->smoothed_crouch_offset, 0} + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult;
-
-
-    //vec3f analytical = (vec3f){0.f, def_head_height, 0.f} + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult - (vec3f){0.f, bodypart::scale * my_fight->crouch_frac, 0.f};
-
-    //pos = (analytical * 2 + pos) / 3.f;
-
-    //window.set_camera_pos({pos.v[0], pos.v[1], pos.v[2]});
 
     cl_float4 c_pos = {pos.v[0], pos.v[1], pos.v[2]};
 
@@ -261,7 +238,8 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
     m.v[0] = window.get_mouse_sens_adjusted_x();
     m.v[1] = window.get_mouse_sens_adjusted_y();
 
-    vec3f o_rot = xyz_to_vec(input.c_rot);
+    ///sigh. Do matrices
+    vec3f o_rot = xyz_to_vec(input.c_rot_keyboard_only);
 
     o_rot.v[1] = my_fight->rot.v[1];
     o_rot.v[0] += m.v[1] / 150.f;
@@ -270,7 +248,9 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 
     cl_float4 c_rot = {o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]};
 
-    return {sub(c_pos, input.c_pos), sub(c_rot, input.c_rot)};
+    ///using c_rot_backup breaks everything, but its fine beacuse we're not needing to use this immutably
+    return {sub(c_pos, input.c_pos), sub(c_rot, input.c_rot_keyboard_only), 0.f};
+    //return {sub(c_pos, input.c_pos), sub(c_rot, input.c_rot)};
 }
 
 #include <stdio.h>
@@ -788,232 +768,6 @@ int main(int argc, char *argv[])
             transparency_context.flip();
         }
 
-        ///lets do the debug stuff here
-
-        {
-
-            {
-                /*vec3f backup_camera = xyz_to_vec(window.c_rot_backup);
-
-                vec3f camera_vector = (vec3f){0, 0, 1}.rot({0,0,0}, backup_camera);
-
-                vec3f up_vector = {0, 1, 0};
-
-                float up_angle = dot(up_vector, {0,1,0});
-
-                float yangle = atan2(camera_vector.v[0], camera_vector.v[2]);
-                float xangle = atan2(camera_vector.v[1], camera_vector.v[2]);
-
-                mat3f xmat, ymat;
-
-                ymat = ymat.YRot(yangle);
-                xmat = xmat.XRot(xangle);
-
-                mat3f combine = xmat * ymat;
-
-                vec3f eangle = combine.get_rotation();
-
-                //vec3f eangle = {xangle, yangle, 0};
-
-                window.set_camera_rot(conv_implicit<cl_float4>(eangle));*/
-
-                //mat3f cdir = map_unit_a_to_b(camera_vector, {0, 0, 1});
-
-                /*float angle_between = acos(dot(camera_vector, (vec3f){0, 0, 1}));
-
-                vec3f axis = cross(camera_vector, (vec3f){0,0,1});
-
-                mat3f AA = axis_angle_to_mat(axis, angle_between);
-
-                vec3f euler = AA.get_rotation();*/
-
-                //vec3f euler = cdir.get_rotation();
-
-                ///none of the above have any workable theory behind them.
-                ///we need two vectors
-
-                //window.set_camera_rot(conv_implicit<cl_float4>(euler));
-
-                //vec3f mapped = cdir * camera_vector;
-
-                /*vec3f backup_camera = xyz_to_vec(window.c_rot_backup);
-
-                window.c_rot = window.c_rot_backup;
-
-                mat3f cdir;
-
-                cdir.load_rotation_matrix(backup_camera);
-
-                vec3f camera = cdir.get_rotation();
-
-                window.set_camera_rot(conv_implicit<cl_float4>(camera));*/
-
-                ///test
-
-                ///CANNOT REUSE VECTOR AFTER GET_ROTATION
-                ///I could allow a vec to be passed in and get the one closest to that
-                /*vec3f camera_vector = (vec3f){0, 0, 1}.back_rot({0,0,0}, xyz_to_vec(window.c_rot));
-
-                //vec3f crot = camera_vector.rot({0,0,0}, xyz_to_vec(window.c_rot));
-
-                mat3f cdir = map_unit_a_to_b(camera_vector, {0,0,1});
-
-                vec3f mapped = cdir * camera_vector;
-
-                //vec3f crot = cdir.get_rotation();
-
-                //vec3f crot = mapped;
-
-                vec3f crot = cdir.get_rotation();*/
-
-                /*static vec3f test_rot = {0,0,M_PI/2};
-
-                if(key.isKeyPressed(sf::Keyboard::Left))
-                    test_rot.v[1] -= 0.01f;
-
-                if(key.isKeyPressed(sf::Keyboard::Right))
-                    test_rot.v[1] += 0.01f;
-
-                if(key.isKeyPressed(sf::Keyboard::Up))
-                    test_rot.v[0] -= 0.01f;
-
-                if(key.isKeyPressed(sf::Keyboard::Down))
-                    test_rot.v[0] += 0.01f;*/
-
-                //mat3f camera_mat;
-
-                //vec3f cam = xyz_to_vec(window.c_rot);
-
-                //vec3f cam = test_rot;
-
-                //cam.v[2] = -M_PI/2;
-
-                //cam = fmod(cam, M_PI);
-
-                /*for(int i=0; i<3; i++)
-                {
-                    while(cam.v[i] < -M_PI)
-                        cam.v[i] += M_PI*2;
-                    while(cam.v[i] > M_PI)
-                        cam.v[i] -= M_PI*2;
-                }*/
-
-                //camera_mat.load_rotation_matrix(cam);
-
-                ///get rotation has some pole issues, lets fix this
-                //vec3f crot = camera_mat.get_rotation();
-
-                //window.set_camera_rot(conv_implicit<cl_float4>(crot));
-
-                /*vec3f camera_vector = (vec3f){0,0,1}.rot({0,0,0}, xyz_to_vec(window.c_rot));
-
-                ///I don't think we can separate these rotations :[
-                float xangle = atan2(camera_vector.v[0], camera_vector.v[2]);
-                float yangle = atan2(camera_vector.v[1], camera_vector.v[2]);
-
-                mat3f xr = axis_angle_to_mat({0, 1, 0}, xangle);
-                mat3f yr = axis_angle_to_mat({1, 0, 0}, -yangle);
-
-                mat3f comb = xr * yr;
-
-                vec3f crot = comb.get_rotation();
-
-                window.set_camera_rot(conv_implicit<cl_float4>(crot));*/
-            }
-
-
-            vec3f ncamera_rot = debug_map_cube.do_keyboard_input(24 * game_map::scale);
-
-            //vec3f ncamera_rot = debug_map_cube.transition_camera(xyz_to_vec(window.c_rot), 24 * game_map::scale);
-
-            debug_map_cube.transition_camera(24 * game_map::scale);
-
-            window.set_camera_rot(conv_implicit<cl_float4>(ncamera_rot));
-            ///ok, so its the roll component of the camera we need to fiddle with
-
-            vec3f apos = debug_map_cube.get_absolute_3d_coords((vec2f){-0, -0}, 24 * game_map::scale);
-
-            debug_map_cube.transition_if_appropriate(24 * game_map::scale);
-
-            vec2f mov_dir = {0,0};
-
-            mov_dir.v[0] += key.isKeyPressed(sf::Keyboard::D);
-            mov_dir.v[0] -= key.isKeyPressed(sf::Keyboard::A);
-
-            mov_dir.v[1] += key.isKeyPressed(sf::Keyboard::W);
-            mov_dir.v[1] -= key.isKeyPressed(sf::Keyboard::S);
-
-            ///turns out im dumb. Keep current_forward as a 1, 1 vector and use signs
-            float cur_angle = debug_map_cube.current_forward.angle();
-
-
-            //float cur_angle = debug_map_cube.angle_offset;
-
-            //lg::log("forward angle ", cur_angle);
-
-            ///because we define relative to {0, 1} y axis, whereas .angle is relative to {1, 0}
-            ///for some reason, this does nothing
-            ///dunnae work, review
-            //mov_dir = mov_dir.rot(cur_angle - M_PI/2.);
-
-
-            ///can't do it like this (because sometimes we swap x and y, and this becomes impossible)
-            ///we need to use a 2x2 matrix
-            //mov_dir = mov_dir * debug_map_cube.current_forward;
-
-            vec2f rvec = conv<int, float>(debug_map_cube.current_forward_with_flip.xy());
-
-            rvec = rvec.rot(debug_map_cube.get_y_rot());
-
-            ///CANT DO .get_y_rot BECAUSE EVERYTHING'S IN A DIFFERENT GOD DAMNED REFERENCE PLANE
-            //float rangle = rvec.angle();
-
-            //rangle += debug_map_cube.get_y_rot();
-
-
-            //rvec = rvec.rot(rangle - M_PI/2);
-
-            //rangle = rangle - M_PI/2;
-
-            ///so uuh. The axis axis is flipped, and im not 100% on why
-            vec2f ymove = rvec;
-            vec2f xmove = -perpendicular(rvec);
-
-            ///still wrong logic
-            ///need to flip sideways axis to fowards (?)
-            if(debug_map_cube.current_forward_with_flip.v[2] < 0)
-            {
-                //rangle = -rangle;
-
-                xmove = -xmove;
-            }
-
-            //mov_dir = mov_dir.rot(rangle);
-
-            //mov_dir = xmove;
-
-            vec2f nmov = {0,0};
-
-            nmov = xmove * mov_dir.v[0];
-            nmov = nmov + ymove * mov_dir.v[1];
-
-            //printf("cdir %f %f %f\n", EXPAND_2(rvec), (float)debug_map_cube.current_forward_with_flip.v[2]);
-
-            //mov_dir.rot(debug_map_cube.angle_offset);
-
-            debug_map_cube.pos_within_plane = debug_map_cube.pos_within_plane + nmov * window.get_frametime() / 1000.f;
-
-            ///works, we need to correct for the floor though
-            debug_cube->set_pos({apos.v[0], apos.v[1], apos.v[2]});
-
-            window.set_camera_pos(debug_cube->pos);
-
-            ///we now also need to transition the camera angle properly... each plane change is just a 90 swap
-            ///can we rotate an angle..?
-            ///Fucking euler piece of shit again I bet
-            //window.set_camera_rot(conv_implicit<cl_float4>(map_namespace::map_cube_rotations[debug_map_cube.face]));
-        }
-
         //static float debug_look = 0;
         //my_fight->set_look({sin(debug_look), 0, 0});
         //debug_look += 0.1f;
@@ -1176,6 +930,7 @@ int main(int argc, char *argv[])
         context.flush_locations();
         transparency_context.flush_locations();
 
+        #define REAL_INPUT
         #ifdef REAL_INPUT
         if(!in_menu)
             window.process_input();
@@ -1184,6 +939,53 @@ int main(int argc, char *argv[])
         #ifdef CLAMP_VIEW
         window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
         #endif
+
+        ///lets do the debug stuff here
+        {
+            vec3f ncamera_rot = debug_map_cube.get_smoothed_camera_with_euler_offset(-xyz_to_vec(window.c_rot_keyboard_only), 24 * game_map::scale);
+
+            debug_map_cube.transition_camera(24 * game_map::scale);
+
+            window.set_camera_rot(conv_implicit<cl_float4>(ncamera_rot));
+            ///ok, so its the roll component of the camera we need to fiddle with
+
+            vec3f apos = debug_map_cube.get_absolute_3d_coords((vec2f){-0, -0}, 24 * game_map::scale);
+
+            debug_map_cube.transition_if_appropriate(24 * game_map::scale);
+
+            vec2f mov_dir = {0,0};
+
+            mov_dir.v[0] += key.isKeyPressed(sf::Keyboard::D);
+            mov_dir.v[0] -= key.isKeyPressed(sf::Keyboard::A);
+
+            mov_dir.v[1] += key.isKeyPressed(sf::Keyboard::W);
+            mov_dir.v[1] -= key.isKeyPressed(sf::Keyboard::S);
+
+            vec2f rvec = conv<int, float>(debug_map_cube.current_forward_with_flip.xy());
+
+            rvec = rvec.rot(debug_map_cube.get_y_rot());
+
+            ///so uuh. The axis axis is flipped, and im not 100% on why
+            vec2f ymove = rvec;
+            vec2f xmove = -perpendicular(rvec);
+
+            vec2f nmov = {0,0};
+
+            nmov = xmove * mov_dir.v[0];
+            nmov = nmov + ymove * mov_dir.v[1];
+
+            const float test_speed = 2.f;
+
+            debug_map_cube.pos_within_plane = debug_map_cube.pos_within_plane + nmov * window.get_frametime() * test_speed / 1000.f;
+
+            ///ok, so we now need to sync fighter keyboarsd controls with this class
+            ///works, we need to correct for the floor though
+            debug_cube->set_pos({apos.v[0], apos.v[1], apos.v[2]});
+
+            window.set_camera_pos(debug_cube->pos);
+        }
+
+
 
         #ifdef SPACE
 
