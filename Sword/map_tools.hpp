@@ -383,6 +383,8 @@ struct map_cube_info
     void transition_camera(int dim)
     {
         accumulated_camera = get_transition_camera(accumulated_camera, dim);
+
+        transition_if_appropriate(dim);
     }
 
     vec3f get_up_vector(int face)
@@ -645,6 +647,11 @@ struct map_cube_info
         nmov = nmov + ymove * mov_dir.v[1];
 
         return nmov;
+    }
+
+    vec2f translate_internal_pos(vec2f diff)
+    {
+        pos_within_plane = pos_within_plane + diff;
     }
 
     ///mat -> euler has a nan in the obvious place

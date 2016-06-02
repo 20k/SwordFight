@@ -953,8 +953,6 @@ int main(int argc, char *argv[])
 
             vec3f apos = debug_map_cube.get_absolute_3d_coords((vec2f){-0, -0}, 24 * game_map::scale);
 
-            debug_map_cube.transition_if_appropriate(24 * game_map::scale);
-
             vec2f mov_dir = {0,0};
 
             mov_dir.v[0] += key.isKeyPressed(sf::Keyboard::D);
@@ -970,7 +968,7 @@ int main(int argc, char *argv[])
 
             const float test_speed = 2.f;
 
-            debug_map_cube.pos_within_plane = debug_map_cube.pos_within_plane + nmov * window.get_frametime() * test_speed / 1000.f;
+            debug_map_cube.translate_internal_pos(nmov * window.get_frametime() * test_speed / 1000.f);
 
             ///ok, so we now need to sync fighter keyboarsd controls with this class
             ///works, we need to correct for the floor though
