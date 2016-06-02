@@ -941,6 +941,8 @@ int main(int argc, char *argv[])
         #endif
 
         ///lets do the debug stuff here
+        ///ok, we're going to have to pass this in to the keyboard controls
+        ///and then adjust movement based on these parameters?
         {
             vec3f ncamera_rot = debug_map_cube.get_smoothed_camera_with_euler_offset(-xyz_to_vec(window.c_rot_keyboard_only), 24 * game_map::scale);
 
@@ -961,18 +963,10 @@ int main(int argc, char *argv[])
             mov_dir.v[1] += key.isKeyPressed(sf::Keyboard::W);
             mov_dir.v[1] -= key.isKeyPressed(sf::Keyboard::S);
 
-            vec2f rvec = conv<int, float>(debug_map_cube.current_forward_with_flip.xy());
+            vec2f nmov = debug_map_cube.transform_move_dir(mov_dir);
 
-            rvec = rvec.rot(debug_map_cube.get_y_rot());
-
-            ///so uuh. The axis axis is flipped, and im not 100% on why
-            vec2f ymove = rvec;
-            vec2f xmove = -perpendicular(rvec);
-
-            vec2f nmov = {0,0};
-
-            nmov = xmove * mov_dir.v[0];
-            nmov = nmov + ymove * mov_dir.v[1];
+            ///here we now want to fighter->walk_dir
+            ///we need to condense all the above shit
 
             const float test_speed = 2.f;
 
@@ -984,8 +978,6 @@ int main(int argc, char *argv[])
 
             window.set_camera_pos(debug_cube->pos);
         }
-
-
 
         #ifdef SPACE
 

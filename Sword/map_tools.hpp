@@ -297,7 +297,7 @@ struct map_cube_info
 
         global_pos = global_pos + smooth_up;
 
-        return global_pos;// + smooth_up;
+        return global_pos;
     }
 
     ///transition forward direction too
@@ -627,6 +627,24 @@ struct map_cube_info
         vec3f camera = ipmatrix.get_rotation();
 
         return camera;
+    }
+
+    vec2f transform_move_dir(vec2f mov_dir)
+    {
+        vec2f rvec = conv<int, float>(current_forward_with_flip.xy());
+
+        rvec = rvec.rot(get_y_rot());
+
+        ///so uuh. The axis axis is flipped, and im not 100% on why
+        vec2f ymove = rvec;
+        vec2f xmove = -perpendicular(rvec);
+
+        vec2f nmov = {0,0};
+
+        nmov = xmove * mov_dir.v[0];
+        nmov = nmov + ymove * mov_dir.v[1];
+
+        return nmov;
     }
 
     ///mat -> euler has a nan in the obvious place
