@@ -566,6 +566,9 @@ struct sword
 
     void scale();
 
+    objects_container* obj();
+    void update_model();
+
 private:
     object_context* cpu_context = nullptr;
 };
@@ -796,6 +799,7 @@ struct fighter
     void network_update_render_positions(); /// only if im a network fighter
     void respawn_if_appropriate(); ///network
     void update_lights();
+    void recalculate_link_positions_from_parts();
     void overwrite_parts_from_model();
     void update_texture_by_part_hp();
     void update_last_hit_id();

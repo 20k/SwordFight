@@ -218,6 +218,11 @@ void fps_controls(fighter* my_fight, engine& window)
     m.v[0] = window.get_mouse_sens_adjusted_x();
     m.v[1] = window.get_mouse_sens_adjusted_y();
 
+    ///ok, so this is essentially c_rot_keyboard_only
+    ///ie local
+    ///ie we give no fucks anymore because the mouse look scheme is fully consistent from local -> global
+    ///ie we can ignore this, just apply the overall matrix rotation and offset to te position
+    ///and etc
     my_fight->set_rot_diff({0, -m.v[0] / 100.f, 0.f});
 
     //vec3f o_rot = xyz_to_vec(window.c_rot);
@@ -927,9 +932,6 @@ int main(int argc, char *argv[])
         ///I think this is now quite redundant
         window.set_object_data(*cdat);
 
-        context.flush_locations();
-        transparency_context.flush_locations();
-
         #define REAL_INPUT
         #ifdef REAL_INPUT
         if(!in_menu)
@@ -943,6 +945,11 @@ int main(int argc, char *argv[])
         ///lets do the debug stuff here
         ///ok, we're going to have to pass this in to the keyboard controls
         ///and then adjust movement based on these parameters?
+        ///split up into tick, and then external control function
+        ///use control function in fps and debug control functions
+        ///walk_dir walks relative to current angle
+        ///we need to do walk dir as normal (we're in local coordinates remember), then transform after with global rotation
+        ///and position offset (and local direction moving) which is INDEPENDENT to walk_dir
         {
             vec3f ncamera_rot = debug_map_cube.get_smoothed_camera_with_euler_offset(-xyz_to_vec(window.c_rot_keyboard_only), 24 * game_map::scale);
 
@@ -975,7 +982,77 @@ int main(int argc, char *argv[])
             debug_cube->set_pos({apos.v[0], apos.v[1], apos.v[2]});
 
             window.set_camera_pos(debug_cube->pos);
+
+            ///ok, flush locations being called just before here, so the position is being overwritten
+            //my_fight->set_pos(apos);
+
+
+            mat3f acc_rot = debug_map_cube.accumulated_camera;
+
+            ///ok, we need to rotate relative to centre of fighter, which is... head pos?
+
+            vec3f rotation_centre = my_fight->parts[bodypart::HEAD].global_pos;
+
+            for(part& p : my_fight->parts)
+            {
+                vec3f prot = xyz_to_vec(p.obj()->rot);
+
+                mat3f pmat;
+
+                pmat.load_rotation_matrix(prot);
+
+                mat3f acc = acc_rot.transp() * pmat;
+
+                vec3f erot = acc.get_rotation();
+
+                p.global_rot = erot;
+                p.obj()->set_rot({erot.v[0], erot.v[1], erot.v[2]});
+
+
+                vec3f cpos = p.global_pos;
+
+                vec3f relative = cpos - rotation_centre;
+
+                vec3f new_pos = relative.rot({0,0,0}, acc_rot.transp().get_rotation());
+
+                p.global_pos = new_pos + rotation_centre;
+                p.update_model();
+            }
+
+            {
+                sword& p = my_fight->weapon;
+
+                vec3f prot = xyz_to_vec(p.obj()->rot);
+
+                mat3f pmat;
+
+                pmat.load_rotation_matrix(prot);
+
+                mat3f acc = acc_rot.transp() * pmat;
+
+                vec3f erot = acc.get_rotation();
+
+                //p.rot = erot;
+                p.obj()->set_rot({erot.v[0], erot.v[1], erot.v[2]});
+
+                ///recalculated, so we dont accumulate
+                vec3f cpos = xyz_to_vec(p.obj()->pos);
+
+                vec3f relative = cpos - rotation_centre;
+
+                vec3f new_pos = relative.rot({0,0,0}, acc_rot.transp().get_rotation());
+
+                //p.pos = new_pos + rotation_centre;
+                //p.update_model();
+
+                p.obj()->set_pos(conv_implicit<cl_float4>(new_pos + rotation_centre));
+            }
+
+            my_fight->recalculate_link_positions_from_parts();
         }
+
+        context.flush_locations();
+        transparency_context.flush_locations();
 
         #ifdef SPACE
 

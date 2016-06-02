@@ -36,6 +36,8 @@ struct world_map
     void init(const std::vector<int>& _map, int w, int h);
     void init(int map_id);
 
+    int get_real_dim();
+
     std::function<void(objects_container*)> get_load_func();
 };
 
@@ -654,6 +656,29 @@ struct map_cube_info
     {
         pos_within_plane = pos_within_plane + diff;
     }
+
+    /*struct cube_output
+    {
+        vec3f pos;
+        vec3f camera_rot;
+    };
+
+    cube_output tick_3d_cube(vec3f euler_offset_in, vec2f local_mov_dir, float move_speed, int dim)
+    {
+        cube_output ret;
+
+        vec3f ncamera_rot = get_smoothed_camera_with_euler_offset(-euler_offset_in, dim);
+
+        transition_camera(dim);
+
+        vec3f global_pos = debug_map_cube.get_absolute_3d_coords((vec2f){-0, -0}, 24 * game_map::scale);
+
+        vec2f nmov = transform_move_dir(local_mov_dir);
+
+        translate_internal_pos(nmov * move_speed);
+
+        return {global_pos, ncamera_rot};
+    }*/
 
     ///mat -> euler has a nan in the obvious place
     ///frametimes etc

@@ -25,6 +25,13 @@ std::function<void(objects_container*)> world_map::get_load_func()
     return std::bind(load_map, std::placeholders::_1, map_def, width, height);
 }
 
+int world_map::get_real_dim()
+{
+    int largest = std::max(width, height);
+
+    return largest * game_map::scale;
+}
+
 void gameplay_state::set_map(world_map& _map)
 {
     current_map = _map;

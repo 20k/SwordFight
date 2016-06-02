@@ -643,6 +643,23 @@ void sword::scale()
     length = sword_height;
 }
 
+objects_container* sword::obj()
+{
+    return model;
+}
+
+void sword::update_model()
+{
+    model->set_pos({pos.v[0], pos.v[1], pos.v[2]});
+    model->set_rot({rot.v[0], rot.v[1], rot.v[2]});
+
+    ///in preparation for 0 cost killing
+    /*if(!is_active)
+    {
+        model->hide();
+    }*/
+}
+
 void sword::set_pos(vec3f _pos)
 {
     pos = _pos;
@@ -2762,55 +2779,7 @@ void fighter::update_render_positions()
 
     ///calculate distance between links, dynamically adjust positioning
     ///so there's equal slack on both sides
-    for(auto& i : joint_links)
-    {
-        //bool active = i.p1->is_active && i.p2->is_active;
-
-        objects_container* obj = i.obj;
-
-        vec3f start = i.p1->global_pos;
-        vec3f fin = i.p2->global_pos;
-
-        float desired_len = (fin - start).length();
-        float real_len = i.length;
-
-        float diff = 0.f;
-
-        if(desired_len > real_len)
-            diff = desired_len - real_len;
-
-        /*vec3f back_start = start.back_rot(pos, rot);
-        vec3f back_fin = fin.back_rot(pos, rot);
-
-        vec3f between = mat_from_dir({0, 1, 0}, back_fin - back_start);
-
-        mat3f langle;
-        langle.load_rotation_matrix(between);
-
-        mat3f global_rot;
-        global_rot.load_rotation_matrix(rot);
-
-        langle = global_rot * langle;*/
-
-        start = start + i.offset;
-        fin = fin + i.offset;
-
-        vec3f rot = (fin - start).get_euler();
-
-        //vec3f rot = mat_from_dir((vec3f){0, 1, 0}, fin - start);
-
-        //vec3f rot = langle.get_rotation();
-
-        //printf("%f %f %f\n", rot.v[0], rot.v[1], rot.v[2]]);
-
-        vec3f dir = (fin - start);
-
-        //start = start + dir * i.squish_frac;
-        start = start + dir.norm() * diff/2.f;
-
-        obj->set_pos({start.v[0], start.v[1], start.v[2]});
-        obj->set_rot({rot.v[0], rot.v[1], rot.v[2]});
-    }
+    recalculate_link_positions_from_parts();
 
     ///sent rhand to point towards the weapon centre from its centre
 
@@ -2832,6 +2801,37 @@ void fighter::update_render_positions()
     }
 
     smoothed_crouch_offset_old = smoothed_crouch_offset;
+}
+
+void fighter::recalculate_link_positions_from_parts()
+{
+    for(auto& i : joint_links)
+    {
+        objects_container* obj = i.obj;
+
+        vec3f start = i.p1->global_pos;
+        vec3f fin = i.p2->global_pos;
+
+        float desired_len = (fin - start).length();
+        float real_len = i.length;
+
+        float diff = 0.f;
+
+        if(desired_len > real_len)
+            diff = desired_len - real_len;
+
+        start = start + i.offset;
+        fin = fin + i.offset;
+
+        vec3f rot = (fin - start).get_euler();
+
+        vec3f dir = (fin - start);
+
+        start = start + dir.norm() * diff/2.f;
+
+        obj->set_pos({start.v[0], start.v[1], start.v[2]});
+        obj->set_rot({rot.v[0], rot.v[1], rot.v[2]});
+    }
 }
 
 void fighter::update_headbob_if_sprinting(bool sprinting)
