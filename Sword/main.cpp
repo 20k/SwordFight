@@ -217,7 +217,7 @@ void fps_controls(fighter* my_fight, engine& window)
     //window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
 
     ///this will probably break
-    my_fight->set_look({-window.c_rot.s[0], window.get_mouse_sens_adjusted_x() / 1.f, 0});
+    my_fight->set_look({-window.c_rot_keyboard_only.s[0], window.get_mouse_sens_adjusted_x() / 1.f, 0});
 
 
     vec2f m;
