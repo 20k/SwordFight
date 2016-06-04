@@ -948,6 +948,8 @@ int main(int argc, char *argv[])
         ///walk_dir walks relative to current angle
         ///we need to do walk dir as normal (we're in local coordinates remember), then transform after with global rotation
         ///and position offset (and local direction moving) which is INDEPENDENT to walk_dir
+
+        ///add a smoothed up vector with a length of pos.v[1]
         {
             vec3f ncamera_rot = debug_map_cube.get_smoothed_camera_with_euler_offset(-xyz_to_vec(window.c_rot_keyboard_only), 24 * game_map::scale);
 
