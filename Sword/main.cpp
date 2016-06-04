@@ -146,6 +146,9 @@ void debug_controls(fighter* my_fight, engine& window)
     if(crouching)
         sprint = false;
 
+    if(my_fight->cube_info)
+        walk_dir = my_fight->cube_info->transform_move_dir_no_rot(walk_dir);
+
     my_fight->walk_dir(walk_dir, sprint);
 }
 
@@ -178,6 +181,9 @@ void fps_controls(fighter* my_fight, engine& window)
 
     if(crouching)
         sprint = false;
+
+    if(my_fight->cube_info)
+        walk_dir = my_fight->cube_info->transform_move_dir_no_rot(walk_dir);
 
     my_fight->walk_dir(walk_dir, sprint);
 
@@ -309,9 +315,12 @@ int main(int argc, char *argv[])
 
     object_context transparency_context;
 
+    map_cube_info debug_map_cube;
+
     world_map default_map;
     //default_map.init(map_namespace::map_one, 11, 12);
     default_map.init(0);
+    default_map.cube_info = &debug_map_cube;
 
     gameplay_state current_state;
     current_state.set_map(default_map);
@@ -520,7 +529,6 @@ int main(int argc, char *argv[])
 
     lg::log("post transparency forced build");
 
-    map_cube_info debug_map_cube;
 
     ///fix depth ordering  with transparency
     while(window.window.isOpen())
@@ -682,6 +690,8 @@ int main(int argc, char *argv[])
             }
         }
 
+        my_fight->cube_info = &debug_map_cube;
+
         if(controls_state == 0 && window.focus && !in_menu)
             window.update_mouse();
         if(controls_state == 1 && window.focus && !in_menu)
@@ -840,25 +850,13 @@ int main(int argc, char *argv[])
 
         my_fight->tick_cape();
 
-        my_fight->update_render_positions();
-
         my_fight->update_texture_by_part_hp();
 
         my_fight->check_and_play_sounds(true);
 
-        my_fight->position_cosmetics();
-
-
         ///we can use the foot rest position to play a sound when the
         ///current foot position is near that
         ///remember, only the y component!
-
-        if(!my_fight->dead())
-        {
-            my_fight->update_name_info();
-
-            my_fight->update_lights();
-        }
 
         particle_effect::tick();
 
@@ -975,7 +973,32 @@ int main(int argc, char *argv[])
 
             const float test_speed = 2.f;
 
-            debug_map_cube.translate_internal_pos(nmov * window.get_frametime() * test_speed / 1000.f);
+            //debug_map_cube.translate_internal_pos(nmov * window.get_frametime() * test_speed / 1000.f);
+
+            //debug_map_cube.translate_internal_pos(my_fight->last_walk_dir_diff);
+
+            ///so either my_fight->pos can be global position
+            ///or it can be strictly local
+            ///the below assumes its strictly local
+            ///i guess this is a whole local -> global transition
+            ///so we want to define a translation between the base face position (my_fight->pos) to the global position
+            debug_map_cube.pos_within_plane = {my_fight->pos.v[0], my_fight->pos.v[2]};
+
+            debug_map_cube.pos_within_plane = debug_map_cube.pos_within_plane + (vec2f){24 * game_map::scale, 24 * game_map::scale}/2.f;
+
+            debug_map_cube.transition_camera(24 * game_map::scale);
+
+            //vec3f nglobal = debug_map_cube.get_absolute_3d_coords({0,0}, 24 * game_map::scale);
+
+            //my_fight->set_pos(nglobal);
+
+            //printf("%f %f\n", EXPAND_2(my_fight->last_walk_dir_diff));
+
+            ///need to fix walk_dir directions to be nmov
+
+            ///so this fundamentally works, but we need to change fighter to have both global and local pos
+            vec2f transitioned_pos = debug_map_cube.get_new_coordinates(debug_map_cube.pos_within_plane, 24 * game_map::scale) - (24*game_map::scale/2.f);
+            my_fight->set_pos({transitioned_pos.v[0], 0, transitioned_pos.v[1]});
 
             ///ok, so we now need to sync fighter keyboarsd controls with this class
             ///works, we need to correct for the floor though
@@ -984,14 +1007,33 @@ int main(int argc, char *argv[])
             window.set_camera_pos(debug_cube->pos);
 
             ///ok, flush locations being called just before here, so the position is being overwritten
-            //my_fight->set_pos(apos);
+            {
+                ///ok, we need to walk dir some arse now
+                ///we update fighter pos in walk_dir
+                ///which means we need to.... have a local pos and a global pos?
+                ///;_;
+                //my_fight->set_pos(apos);
 
+                my_fight->update_render_positions();
 
+                my_fight->position_cosmetics();
+
+                if(!my_fight->dead())
+                {
+                    my_fight->update_name_info();
+
+                    my_fight->update_lights();
+                }
+            }
+
+            ///need to update lights too
             mat3f acc_rot = debug_map_cube.accumulated_camera;
 
             ///ok, we need to rotate relative to centre of fighter, which is... head pos?
 
             vec3f rotation_centre = my_fight->parts[bodypart::HEAD].global_pos;
+
+            vec3f overall_offset = apos;
 
             for(part& p : my_fight->parts)
             {
@@ -1015,7 +1057,7 @@ int main(int argc, char *argv[])
 
                 vec3f new_pos = relative.rot({0,0,0}, acc_rot.transp().get_rotation());
 
-                p.global_pos = new_pos + rotation_centre;
+                p.global_pos = new_pos + overall_offset;
                 p.update_model();
             }
 
@@ -1032,7 +1074,6 @@ int main(int argc, char *argv[])
 
                 vec3f erot = acc.get_rotation();
 
-                //p.rot = erot;
                 p.obj()->set_rot({erot.v[0], erot.v[1], erot.v[2]});
 
                 ///recalculated, so we dont accumulate
@@ -1042,13 +1083,13 @@ int main(int argc, char *argv[])
 
                 vec3f new_pos = relative.rot({0,0,0}, acc_rot.transp().get_rotation());
 
-                //p.pos = new_pos + rotation_centre;
-                //p.update_model();
-
-                p.obj()->set_pos(conv_implicit<cl_float4>(new_pos + rotation_centre));
+                p.obj()->set_pos(conv_implicit<cl_float4>(new_pos + overall_offset));
             }
 
             my_fight->recalculate_link_positions_from_parts();
+
+            if(!my_fight->dead())
+                my_fight->update_lights();
         }
 
         context.flush_locations();

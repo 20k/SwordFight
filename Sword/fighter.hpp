@@ -681,9 +681,13 @@ struct clientside_parry_info
 struct light;
 struct gameplay_state;
 
+struct map_cube_info;
+
 ///what a clusterfuck
 struct fighter
 {
+    map_cube_info* cube_info = nullptr;
+
     std::vector<clientside_parry_info> clientside_parry_inf;
 
     int32_t last_part_id = -1;
@@ -749,6 +753,7 @@ struct fighter
     vec3f rot;
     vec3f rot_diff;
     vec2f momentum; ///global or local?
+    vec2f last_walk_dir_diff;
 
     physics* phys;
 

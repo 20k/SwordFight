@@ -3,16 +3,16 @@
 #include "map_tools.hpp"
 #include "../openclrenderer/vec.hpp"
 
-void world_map::init(const std::vector<int>& _map, int w, int h)
+/*void world_map::init(const std::vector<int>& _map, int w, int h)
 {
     map_def = _map;
     width = w;
     height = h;
-}
+}*/
 
 void world_map::init(int map_id)
 {
-    map_def = game_map::map_list[map_id];
+    map_def = game_map::cube_map_list[map_id];
     width = game_map::map_dims[map_id].v[0];
     height = game_map::map_dims[map_id].v[1];
 }
@@ -22,7 +22,7 @@ std::function<void(objects_container*)> world_map::get_load_func()
     if(width == 0 || height == 0)
         throw std::runtime_error("wildly invalid map, what do");
 
-    return std::bind(load_map, std::placeholders::_1, map_def, width, height);
+    return std::bind(load_map_cube, std::placeholders::_1, map_def, width, height);
 }
 
 int world_map::get_real_dim()
@@ -169,12 +169,13 @@ bool is_wall(vec2f world_pos, const std::vector<int>& map_def, int width, int he
     //printf("Map: %i %i\n", imap.v[0], imap.v[1]);
 
     if(imap.v[0] < 0 || imap.v[0] >= width || imap.v[1] < 0 || imap.v[1] >= height)
-        return true;
+        return false;
 
     ///if we're bigger than 0, we're a wall. Otherwise, not
     return map_def[imap.v[1]*width + imap.v[0]] > 0;
 }
 
+///so, it looks like we basically just need to replace this function, and the one above, to fix 3d collision detection
 bool rectangle_in_wall(vec2f centre, vec2f dim, const std::vector<int>& map_def, int width, int height)
 {
     vec2f hd = dim/2.f;
@@ -200,5 +201,7 @@ bool rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st)
     if(st == nullptr)
         return false;
 
-    return rectangle_in_wall(centre, dim, st->current_map.map_def, st->current_map.width, st->current_map.height);
+    int face = st->current_map.cube_info->face;
+
+    return rectangle_in_wall(centre, dim, st->current_map.map_def[face], st->current_map.width, st->current_map.height);
 }

@@ -27,13 +27,15 @@ map_test =
     1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };*/
 
+struct map_cube_info;
 
 struct world_map
 {
+    map_cube_info* cube_info = nullptr;
     int width = 0, height = 0;
-    std::vector<int> map_def;
+    std::vector<std::vector<int>> map_def;
 
-    void init(const std::vector<int>& _map, int w, int h);
+    //void init(const std::vector<int>& _map, int w, int h);
     void init(int map_id);
 
     int get_real_dim();
@@ -54,6 +56,7 @@ namespace menu_state
 }
 
 typedef menu_state::menu_state menu_t;
+
 
 ///make gamemode implementation a polymorphic struct
 struct gameplay_state
@@ -651,6 +654,21 @@ struct map_cube_info
         return nmov;
     }
 
+    vec2f transform_move_dir_no_rot(vec2f mov_dir)
+    {
+        vec2f rvec = conv<int, float>(current_forward_with_flip.xy());
+
+        vec2f ymove = rvec;
+        vec2f xmove = -perpendicular(rvec);
+
+        vec2f nmov = {0,0};
+
+        nmov = xmove * mov_dir.v[0];
+        nmov = nmov + ymove * mov_dir.v[1];
+
+        return nmov;
+    }
+
     ///internal local pos
     vec2f translate_internal_pos(vec2f diff)
     {
@@ -743,6 +761,7 @@ void load_map_cube(objects_container* obj, const std::vector<std::vector<int>>& 
 
 ///xz, where z is y in 2d space
 bool is_wall(vec2f world_pos, const std::vector<int>& map_def, int width, int height);
+///ok, update me to work with new cubemap system
 bool rectangle_in_wall(vec2f centre, vec2f dim, const std::vector<int>& map_def, int width, int height);
 bool rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st);
 

@@ -87,7 +87,7 @@ vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fi
     offset.v[0] = dir.v[0];
     offset.v[2] = dir.v[1];
 
-    ///this because im an idiot in walk_dir
+    ///this because im an idiot in walk dir
     ///and movement speed is dt/2
     vec3f dt_struct = {dt/2.f, 0, dt/2.f};
 
@@ -745,6 +745,8 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
 void fighter::load()
 {
+    last_walk_dir_diff = {0,0};
+
     camera_bob_mult = 0;
 
     camera_bob = {0,0,0};
@@ -2119,7 +2121,10 @@ void fighter::walk_dir(vec2f dir, bool sprint)
             ///really_moved_distance / wanting_to_move_distances
             jump_info.last_speed *= anim_frac;
 
+            ///ok, so we update fighter pos here
             pos = pos + (vec3f){dir_move.v[0], 0.f, dir_move.v[1]};
+
+            last_walk_dir_diff = dir_move;
         }
     }
 
@@ -2288,7 +2293,7 @@ void fighter::crouch_tick(bool do_crouch)
 void fighter::do_foot_sounds(bool is_player)
 {
     if(dead())
-    return;
+        return;
 
     const int asphalt_start = 2;
     const int foot_nums = 8;
@@ -2303,17 +2308,18 @@ void fighter::do_foot_sounds(bool is_player)
     part& lfoot = parts[LFOOT];
     part& rfoot = parts[RFOOT];
 
-    float ldiff = fabs(lfoot.global_pos.v[1] - rest_positions[LFOOT].v[1]);
-    float rdiff = fabs(rfoot.global_pos.v[1] - rest_positions[RFOOT].v[1]);
+    float ldiff = fabs(lfoot.pos.v[1] - rest_positions[LFOOT].v[1]);
+    float rdiff = fabs(rfoot.pos.v[1] - rest_positions[RFOOT].v[1]);
 
     ///so, because the sound isn't tracking
     ///after its played, itll then be exposed to the 3d audio system
-    vec3f centre = (lfoot.global_pos + rfoot.global_pos) / 2.f;
+    vec3f centre = (lfoot.pos + rfoot.pos) / 2.f;
 
     centre = parts[BODY].global_pos;
 
     float cutoff = 1.f;
 
+    ///need to exclude jumping in some other way
     if(ldiff < cutoff)
     {
         if(!left_foot_sound)
@@ -2917,6 +2923,7 @@ void fighter::network_update_render_positions()
     }
 }
 
+///need to fixme
 void fighter::update_lights()
 {
     vec3f lpos = (parts[bodypart::LFOOT].global_pos + parts[bodypart::RFOOT].global_pos) / 2.f;
@@ -2961,7 +2968,7 @@ void fighter::update_lights()
         ///dirty hack of course
         ///ideally we'd use the alive status for this
         ///but that'd break the death effects
-        if(pos.length() > 10000.f)
+        if(pos.length() > 100000.f)
         {
             i->set_active(false);
         }
