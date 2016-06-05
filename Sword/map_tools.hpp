@@ -535,6 +535,19 @@ struct map_cube_info
         return rtest_camera;
     }
 
+    mat3f get_accum_with_offset(vec2f offset, int dim)
+    {
+        auto plane = get_new_face(pos_within_plane + offset, dim);
+
+        mat3f faccumulated_camera = get_transition_camera(accumulated_camera, dim, offset);
+
+        return faccumulated_camera;
+
+        //mat3f rtest_camera = get_rotation_of(faccumulated_camera, plane, daccum);
+
+        //return rtest_camera;
+    }
+
     ///inf why
     vec2f get_rfrac(vec2f offset, int dim)
     {
@@ -606,9 +619,45 @@ struct map_cube_info
         return std::tie(nquat, axis_frac);
     }
 
+    std::tuple<quat, float> get_ip_accumulate(vec2f offset, int dim)
+    {
+        int rplane = get_new_face(pos_within_plane + offset, dim);
+        int lrplane = get_new_face(pos_within_plane - offset, dim);
+
+        mat3f rtest_camera = get_accum_with_offset(offset, dim);
+        mat3f lrtest_camera = get_accum_with_offset(-offset, dim);
+
+        ///if plane < rplane
+        ///0 -> 0.5
+        ///else 1 -> 0.5
+        ///equivalent to the flip of coordinates from the other perspective
+        ///so its fine for both to go 0 -> 0.5
+
+        float axis_frac = get_axis_frac(offset, dim);
+        float laxis_frac = get_axis_frac(-offset, dim);
+
+        axis_frac = fabs(axis_frac);
+
+        if(axis_frac <= 0.001f)
+        {
+            axis_frac = laxis_frac;
+            rtest_camera = lrtest_camera;
+            rplane = lrplane;
+        }
+
+        axis_frac = fabs(axis_frac);
+
+        axis_frac /= 2.f;
+
+        quat nquat;
+        nquat.load_from_matrix(rtest_camera);
+
+        return std::tie(nquat, axis_frac);
+    }
+
     ///basically euler is now daccum
     ///front y rotation is now euler.v...[1]?
-    vec3f get_smoothed_camera_with_euler_offset(vec3f euler, int dim)
+    vec3f get_update_smoothed_camera_with_euler_offset(vec3f euler, int dim)
     {
         daccum = euler;
 
@@ -634,6 +683,33 @@ struct map_cube_info
         vec3f camera = ipmatrix.get_rotation();
 
         return camera;
+    }
+
+    ///get_ip_camera not absolute, still getting actual camera
+    ///not absolute
+    ///ie using daccum :[
+    mat3f get_smoothed_camera(int dim)
+    {
+        mat3f test_camera = accumulated_camera;
+
+        quat qbase;
+        qbase.load_from_matrix(test_camera);
+
+        quat rquat, lquat;
+        float raxis_frac, laxis_frac;
+
+        std::tie(rquat, raxis_frac) = get_ip_accumulate({smooth_offset, 0}, dim);
+        std::tie(lquat, laxis_frac) = get_ip_accumulate({0, smooth_offset}, dim);
+
+        quat qi;
+
+        qi = quat::slerp(qbase, rquat, raxis_frac);
+
+        qi = quat::slerp(qi, lquat, laxis_frac);
+
+        mat3f ipmatrix = qi.get_rotation_matrix();
+
+        return ipmatrix;
     }
 
     vec2f transform_move_dir(vec2f mov_dir)

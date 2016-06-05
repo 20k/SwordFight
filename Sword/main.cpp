@@ -951,7 +951,7 @@ int main(int argc, char *argv[])
 
         ///add a smoothed up vector with a length of pos.v[1]
         {
-            vec3f ncamera_rot = debug_map_cube.get_smoothed_camera_with_euler_offset(-xyz_to_vec(window.c_rot_keyboard_only), 24 * game_map::scale);
+            vec3f ncamera_rot = debug_map_cube.get_update_smoothed_camera_with_euler_offset(-xyz_to_vec(window.c_rot_keyboard_only), 24 * game_map::scale);
 
             debug_map_cube.transition_camera(24 * game_map::scale);
 
@@ -1029,7 +1029,8 @@ int main(int argc, char *argv[])
             }
 
             ///need to update lights too
-            mat3f acc_rot = debug_map_cube.accumulated_camera;
+            mat3f acc_rot = debug_map_cube.get_smoothed_camera(24 * game_map::scale);
+            //mat3f acc_rot = debug_map_cube.accumulated_camera;
 
             ///ok, we need to rotate relative to centre of fighter, which is... head pos?
 
