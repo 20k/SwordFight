@@ -688,7 +688,7 @@ struct map_cube_info
     ///get_ip_camera not absolute, still getting actual camera
     ///not absolute
     ///ie using daccum :[
-    mat3f get_smoothed_camera(int dim)
+    mat3f get_smoothed_accumulate(int dim)
     {
         mat3f test_camera = accumulated_camera;
 

@@ -3579,7 +3579,7 @@ void fighter::update_name_info(bool networked_fighter)
     if(!name_tex_gpu)
         return;
 
-    if(name_reset_timer.getElapsedTime().asMilliseconds() > 5000.f)
+    if(name_reset_timer.getElapsedTime().asMilliseconds() > 5000.f || !name_info_initialised)
     {
         ///we've got the correct local name, but it wont blit for some reason
         if(!networked_fighter)
@@ -3606,6 +3606,8 @@ void fighter::update_name_info(bool networked_fighter)
         }
 
         name_reset_timer.restart();
+
+        name_info_initialised = true;
     }
 }
 

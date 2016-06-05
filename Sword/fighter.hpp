@@ -688,6 +688,8 @@ struct map_cube_info;
 ///what a clusterfuck
 struct fighter
 {
+    bool name_info_initialised = false;
+
     map_cube_info* cube_info = nullptr;
 
     std::vector<clientside_parry_info> clientside_parry_inf;

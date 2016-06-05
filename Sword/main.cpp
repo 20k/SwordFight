@@ -1010,12 +1010,6 @@ int main(int argc, char *argv[])
 
             ///ok, flush locations being called just before here, so the position is being overwritten
             {
-                ///ok, we need to walk dir some arse now
-                ///we update fighter pos in walk_dir
-                ///which means we need to.... have a local pos and a global pos?
-                ///;_;
-                //my_fight->set_pos(apos);
-
                 my_fight->update_render_positions();
 
                 my_fight->position_cosmetics();
@@ -1029,8 +1023,7 @@ int main(int argc, char *argv[])
             }
 
             ///need to update lights too
-            mat3f acc_rot = debug_map_cube.get_smoothed_camera(24 * game_map::scale);
-            //mat3f acc_rot = debug_map_cube.accumulated_camera;
+            mat3f acc_rot = debug_map_cube.get_smoothed_accumulate(24 * game_map::scale);
 
             ///ok, we need to rotate relative to centre of fighter, which is... head pos?
 
