@@ -2654,8 +2654,6 @@ void fighter::update_render_positions()
 
         smooth(s1, smoothed_crouch_offset_old, frametime);
 
-
-
         smooth(smoothed_crouch_offset, s1, frametime);
     }
 

@@ -960,6 +960,14 @@ int main(int argc, char *argv[])
 
             vec3f apos = debug_map_cube.get_absolute_3d_coords((vec2f){-0, -0}, 24 * game_map::scale);
 
+            float height_off_ground = my_fight->pos.v[1];
+
+            vec3f up_vector = debug_map_cube.get_smooth_up_vector(debug_map_cube.face, map_cube_info::smooth_offset, 24 * game_map::scale, FLOOR_CONST);
+
+            up_vector = up_vector.norm() * height_off_ground;
+
+            apos = apos + up_vector;
+
             vec2f mov_dir = {0,0};
 
             mov_dir.v[0] += key.isKeyPressed(sf::Keyboard::D);
@@ -975,10 +983,6 @@ int main(int argc, char *argv[])
 
             const float test_speed = 2.f;
 
-            //debug_map_cube.translate_internal_pos(nmov * window.get_frametime() * test_speed / 1000.f);
-
-            //debug_map_cube.translate_internal_pos(my_fight->last_walk_dir_diff);
-
             ///so either my_fight->pos can be global position
             ///or it can be strictly local
             ///the below assumes its strictly local
@@ -990,17 +994,11 @@ int main(int argc, char *argv[])
 
             debug_map_cube.transition_camera(24 * game_map::scale);
 
-            //vec3f nglobal = debug_map_cube.get_absolute_3d_coords({0,0}, 24 * game_map::scale);
-
-            //my_fight->set_pos(nglobal);
-
-            //printf("%f %f\n", EXPAND_2(my_fight->last_walk_dir_diff));
-
             ///need to fix walk_dir directions to be nmov
 
             ///so this fundamentally works, but we need to change fighter to have both global and local pos
             vec2f transitioned_pos = debug_map_cube.get_new_coordinates(debug_map_cube.pos_within_plane, 24 * game_map::scale) - (24*game_map::scale/2.f);
-            my_fight->set_pos({transitioned_pos.v[0], 0, transitioned_pos.v[1]});
+            my_fight->set_pos({transitioned_pos.v[0], my_fight->pos.v[1], transitioned_pos.v[1]});
 
             ///ok, so we now need to sync fighter keyboarsd controls with this class
             ///works, we need to correct for the floor though
