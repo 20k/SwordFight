@@ -2930,6 +2930,8 @@ void fighter::update_lights()
 
     my_lights[0]->set_pos({lpos.v[0], lpos.v[1] + 40.f, lpos.v[2]});
 
+    ///global_rot and a global pos here?
+    ///maybe we should transform externally as well
     vec3f bpos = (vec3f){0, parts[bodypart::BODY].global_pos.v[1] + 50.f, -150.f}.rot({0,0,0}, rot) + (vec3f){pos.v[0], 0.f, pos.v[2]};
 
     my_lights[1]->set_pos({bpos.v[0], bpos.v[1], bpos.v[2]});
