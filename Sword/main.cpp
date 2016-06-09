@@ -39,6 +39,8 @@
 
 #include <fstream>
 
+#include <my_myo/my_myo.hpp>
+
 ///none of these affect the camera, so engine does not care about them
 ///assume main is blocking
 void debug_controls(fighter* my_fight, engine& window)
@@ -529,6 +531,10 @@ int main(int argc, char *argv[])
 
     lg::log("post transparency forced build");
 
+    //#define MYO_ARMBAND
+    #ifdef MYO_ARMBAND
+    myo_data myo_dat;
+    #endif
 
     ///fix depth ordering  with transparency
     while(window.window.isOpen())
@@ -853,6 +859,27 @@ int main(int argc, char *argv[])
         my_fight->update_texture_by_part_hp();
 
         my_fight->check_and_play_sounds(true);
+
+        #ifdef MYO_ARMBAND
+        myo_dat.tick();
+
+        quat quat = myo_dat.dat.qrot;
+
+        quat.q = quat.q.norm();
+
+        mat3f mat_rot = myo_dat.dat.qrot.get_rotation_matrix();
+
+        vec3f irot = mat_rot.get_rotation();
+
+        irot.v[0] += M_PI;
+        irot.v[1] += M_PI/2;
+        irot.v[2] += M_PI;
+
+
+        vec3f euler_rot = irot;
+
+        my_fight->weapon.rot = euler_rot;
+        #endif // MYO_ARMBAND
 
         ///we can use the foot rest position to play a sound when the
         ///current foot position is near that

@@ -86,6 +86,7 @@
 			<Add option="-lflac" />
 			<Add option="-lopenal32" />
 			<Add option="-logg" />
+			<Add option="-lmyo64" />
 		</Linker>
 		<Unit filename="../openclrenderer/Game/Galaxy/galaxy.cpp" />
 		<Unit filename="../openclrenderer/Game/Galaxy/galaxy.hpp" />
@@ -115,7 +116,6 @@
 		<Unit filename="../openclrenderer/obj_info_struct.hpp" />
 		<Unit filename="../openclrenderer/obj_load.cpp" />
 		<Unit filename="../openclrenderer/obj_load.hpp" />
-		<Unit filename="../openclrenderer/obj_mem_manager.hpp" />
 		<Unit filename="../openclrenderer/object.cpp" />
 		<Unit filename="../openclrenderer/object.hpp" />
 		<Unit filename="../openclrenderer/object_context.cpp" />
@@ -127,7 +127,6 @@
 		<Unit filename="../openclrenderer/point_cloud.hpp" />
 		<Unit filename="../openclrenderer/proj.hpp" />
 		<Unit filename="../openclrenderer/projectile_buffer_gen.cpp" />
-		<Unit filename="../openclrenderer/projectile_buffer_gen.hpp" />
 		<Unit filename="../openclrenderer/settings_loader.cpp" />
 		<Unit filename="../openclrenderer/settings_loader.hpp" />
 		<Unit filename="../openclrenderer/text_handler.cpp" />
@@ -136,7 +135,6 @@
 		<Unit filename="../openclrenderer/texture.hpp" />
 		<Unit filename="../openclrenderer/texture_context.cpp" />
 		<Unit filename="../openclrenderer/texture_context.hpp" />
-		<Unit filename="../openclrenderer/texture_manager.hpp" />
 		<Unit filename="../openclrenderer/triangle.cpp" />
 		<Unit filename="../openclrenderer/triangle.hpp" />
 		<Unit filename="../openclrenderer/ui_manager.cpp" />
