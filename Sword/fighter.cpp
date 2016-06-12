@@ -2926,26 +2926,23 @@ void fighter::update_lights()
 {
     vec3f lpos = (parts[bodypart::LFOOT].global_pos + parts[bodypart::RFOOT].global_pos) / 2.f;
 
+    ///+40 is wrong but... eh
     my_lights[0]->set_pos({lpos.v[0], lpos.v[1] + 40.f, lpos.v[2]});
 
     ///global_rot and a global pos here?
     ///maybe we should transform externally as well
     ///this one incorrect for on walls due to pos
     ///take head->body vector and use that
-    //vec3f bpos = (vec3f){0, parts[bodypart::BODY].global_pos.v[1] + 50.f, -150.f}.rot({0,0,0}, rot) + (vec3f){pos.v[0], 0.f, pos.v[2]};
-
     vec3f body = parts[bodypart::BODY].global_pos;
-
     vec3f head = parts[bodypart::HEAD].global_pos;
+    vec3f rarm = parts[bodypart::RUPPERARM].global_pos;
 
     vec3f body_to_head = head - body;
-
-    vec3f body_to_right = parts[bodypart::RUPPERARM].global_pos - body;
+    vec3f body_to_right = rarm - body;
 
     vec3f in_front = cross(body_to_head.norm(), body_to_right.norm());
 
     vec3f bpos = in_front.norm() * 150.f + body;
-
 
     my_lights[1]->set_pos({bpos.v[0], bpos.v[1], bpos.v[2]});
 
