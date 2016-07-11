@@ -272,6 +272,7 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 ///need to make sound not play multiple times
 ///build then flip is invalid
 ///on self damage, simply queue a move for x ms to do nothing
+///try falling sand, do gravity physics on cubes then atomic, then diffuse, could be interesting
 int main(int argc, char *argv[])
 {
     lg::set_logfile("./logging.txt");
@@ -865,15 +866,15 @@ int main(int argc, char *argv[])
 
         quat quat = myo_dat.dat.qrot;
 
-        quat.q = quat.q.norm();
+        quat = quat.norm();
 
         mat3f mat_rot = myo_dat.dat.qrot.get_rotation_matrix();
 
         vec3f irot = mat_rot.get_rotation();
 
-        irot.v[0] += M_PI;
-        irot.v[1] += M_PI/2;
-        irot.v[2] += M_PI;
+        //irot.v[0] += M_PI;
+        //irot.v[1] += M_PI/2;
+        //irot.v[2] += M_PI;
 
 
         vec3f euler_rot = irot;

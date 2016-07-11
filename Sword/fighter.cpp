@@ -1126,12 +1126,6 @@ float get_joint_angle_foot(vec3f end_pos, vec3f start_pos, float s2, float s3)
 
     float angle = acos ( ic );
 
-    //printf("%f\n", angle);
-
-    //if(angle >= M_PI/2.f)
-    //    angle = M_PI/2.f - angle;
-
-
     return angle;
 }
 
