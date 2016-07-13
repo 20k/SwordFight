@@ -955,6 +955,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
         //i.second.fight->my_cape.tick(i.second.fight);
 
+        i.second.fight->shared_tick();
+
         i.second.fight->tick_cape();
 
         i.second.fight->do_foot_sounds();

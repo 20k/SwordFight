@@ -1850,6 +1850,16 @@ void fighter::tick(bool is_player)
         printf("%s %i\n", bodypart::names[collide_id % bodypart::COUNT].c_str(), collide_id);*/
 }
 
+void fighter::shared_tick()
+{
+    if(parts[bodypart::RHAND].obj()->isactive)
+    {
+        parts[bodypart::RHAND].obj()->set_active(false);
+
+        cpu_context->build_request();
+    }
+}
+
 void fighter::manual_check_part_death()
 {
     ///num needed to die = 3

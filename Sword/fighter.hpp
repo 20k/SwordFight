@@ -790,6 +790,8 @@ struct fighter
     void update_sword_rot();
 
     void tick(bool is_player = false);
+    void shared_tick();
+
     void manual_check_part_death(); ///interate over parts, if < 0 and active then die
     void manual_check_part_alive(); ///interate over parts, if > 0 and inactive then activate
 

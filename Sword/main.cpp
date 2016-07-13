@@ -344,7 +344,7 @@ int main(int argc, char *argv[])
 
     debug_cube->set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0,0,0}, (vec3f){10,10,10}, 100, "res/blue.png"));
     debug_cube->cache = false;
-    debug_cube->set_active(true);
+    debug_cube->set_active(false);
 
     /*objects_container* rect = context.make_new();
 
@@ -677,6 +677,8 @@ int main(int argc, char *argv[])
 
                 //net_test->my_cape.tick(net_test);
 
+                net_test->shared_tick();
+
                 net_test->tick_cape();
 
                 net_test->do_foot_sounds();
@@ -816,6 +818,7 @@ int main(int argc, char *argv[])
             //fight2.queue_attack(attacks::BLOCK);
 
             fight2.tick();
+            fight2.shared_tick();
             fight2.tick_cape();
 
             fight2.update_render_positions();
@@ -854,6 +857,8 @@ int main(int argc, char *argv[])
             printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
 
         my_fight->tick(true);
+
+        my_fight->shared_tick();
 
         my_fight->tick_cape();
 
@@ -1141,6 +1146,7 @@ int main(int argc, char *argv[])
             //    space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
 
             window.draw_bulk_objs_n(*cdat);
+            window.do_pseudo_aa();
 
             //window.draw_godrays(*cdat);
         }
