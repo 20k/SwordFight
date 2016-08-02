@@ -122,6 +122,7 @@
 		<Unit filename="../openclrenderer/object_context.hpp" />
 		<Unit filename="../openclrenderer/objects_container.cpp" />
 		<Unit filename="../openclrenderer/objects_container.hpp" />
+		<Unit filename="../openclrenderer/ocl.cpp" />
 		<Unit filename="../openclrenderer/ocl.h" />
 		<Unit filename="../openclrenderer/point_cloud.cpp" />
 		<Unit filename="../openclrenderer/point_cloud.hpp" />
