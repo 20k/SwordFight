@@ -356,6 +356,7 @@ int main(int argc, char *argv[])
 
 
     engine window;
+    window.append_opencl_extra_command_line("-D SHADOWBIAS=150");
     window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true);
     window.manual_input = true;
 
@@ -435,11 +436,11 @@ int main(int argc, char *argv[])
     light l;
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
-    l.set_shadow_casting(0);
+    l.set_shadow_casting(1);
     l.set_brightness(0.515f);
     //l.set_brightness(0.415f);
     l.set_diffuse(1.f);
-    l.set_pos({0, 10000, -300, 0});
+    l.set_pos({0, 5000, -000, 0});
     //l.set_godray_intensity(0.5f);
 
     light::add_light(&l);
@@ -596,6 +597,7 @@ int main(int argc, char *argv[])
 
         if(do_resize)
         {
+            glFinish();
             window.render_block();
 
             cl::cqueue.finish();
@@ -608,7 +610,9 @@ int main(int argc, char *argv[])
                 window.window.setPosition({0,0});
             }
 
-            light_data = light::build();
+            light::invalidate_buffers();
+
+            light_data = light::build(&light_data);
 
             window.set_light_data(light_data);
 
@@ -894,7 +898,7 @@ int main(int argc, char *argv[])
         particle_effect::tick();
 
         ///about 0.2ms slower than not doing this
-        light_data = light::build();
+        light_data = light::build(&light_data);
         window.set_light_data(light_data);
 
         ///ergh
@@ -1062,6 +1066,7 @@ int main(int argc, char *argv[])
 
             vec3f overall_offset = apos;
 
+            ///ok, so we can make this super easy by just giving them a parent, and rotating it
             for(part& p : my_fight->parts)
             {
                 vec3f prot = xyz_to_vec(p.obj()->rot);
@@ -1145,6 +1150,7 @@ int main(int argc, char *argv[])
             //if(s.quality != 0)
             //    space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
 
+            window.generate_realtime_shadowing(*cdat);
             window.draw_bulk_objs_n(*cdat);
             window.do_pseudo_aa();
 
@@ -1169,6 +1175,8 @@ int main(int argc, char *argv[])
             tctx->swap_depth_buffers();
 
             window.increase_render_events();
+
+            window.set_render_event(event);
         }
 
         context.build_tick();
@@ -1182,7 +1190,6 @@ int main(int argc, char *argv[])
         ///for some reason, a delay here prevents space from being blitted
 
         ///so, we need to fix this double sync
-        window.set_render_event(event);
 
         if(key.isKeyPressed(sf::Keyboard::M))
             std::cout << c.getElapsedTime().asMicroseconds() << std::endl;

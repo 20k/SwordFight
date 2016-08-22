@@ -3,6 +3,7 @@
 #include "object_cube.hpp"
 #include "../openclrenderer/light.hpp"
 #include "../sword_server/teaminfo_shared.hpp"
+#include "../openclrenderer/obj_load.hpp"
 
 std::vector<effect*> particle_effect::effects;
 

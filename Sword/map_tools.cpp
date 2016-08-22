@@ -2,6 +2,7 @@
 #include "object_cube.hpp"
 #include "map_tools.hpp"
 #include "../openclrenderer/vec.hpp"
+#include "../openclrenderer/obj_load.hpp"
 
 /*void world_map::init(const std::vector<int>& _map, int w, int h)
 {
