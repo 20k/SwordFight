@@ -2946,7 +2946,8 @@ void fighter::update_lights()
 
     vec3f in_front = cross(body_to_head.norm(), body_to_right.norm());
 
-    vec3f bpos = in_front.norm() * 150.f + body;
+    //vec3f bpos = in_front.norm() * 150.f + body;
+    vec3f bpos = body_to_head.norm() * 50.f + body + in_front.norm() * 300;
 
     my_lights[1]->set_pos({bpos.v[0], bpos.v[1], bpos.v[2]});
 
@@ -2962,7 +2963,7 @@ void fighter::update_lights()
         i->set_diffuse(1.0f);
     }
 
-    my_lights[1]->set_radius(700.f);
+    my_lights[1]->set_radius(2000.f);
     my_lights[2]->set_radius(400.f);
 
     for(auto& i : my_lights)

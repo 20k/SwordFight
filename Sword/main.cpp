@@ -437,7 +437,7 @@ int main(int argc, char *argv[])
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(1);
-    l.set_brightness(0.515f);
+    l.set_brightness(0.615f);
     //l.set_brightness(0.415f);
     l.set_diffuse(1.f);
     l.set_pos({0, 5000, -000, 0});
