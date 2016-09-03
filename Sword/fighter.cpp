@@ -731,6 +731,8 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
     light l1;
 
+    //l1.set_shadow_casting(1;
+
     my_lights.push_back(light::add_light(&l1));
     my_lights.push_back(light::add_light(&l1));
     my_lights.push_back(light::add_light(&l1));

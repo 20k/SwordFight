@@ -233,10 +233,10 @@ void fps_controls(fighter* my_fight, engine& window)
     ///and etc
     my_fight->set_rot_diff({0, -m.v[0] / 100.f, 0.f});
 
-    //vec3f o_rot = xyz_to_vec(window.c_rot);
+    vec3f o_rot = xyz_to_vec(window.c_rot);
 
-    //o_rot.v[1] = my_fight->rot.v[1];
-    //o_rot.v[0] += m.v[1] / 200.f;
+    o_rot.v[1] = my_fight->rot.v[1];
+    o_rot.v[0] += m.v[1] / 200.f;
 
     //window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
 }
@@ -437,7 +437,7 @@ int main(int argc, char *argv[])
     //l.set_col({1.0, 1.0, 1.0, 0});
     l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(1);
-    l.set_brightness(0.615f);
+    l.set_brightness(0.515f);
     //l.set_brightness(0.415f);
     l.set_diffuse(1.f);
     l.set_pos({0, 5000, -000, 0});
@@ -718,6 +718,9 @@ int main(int argc, char *argv[])
             window.update_mouse(window.width/2, window.height/2, true, true);
             ///call again to reset mouse dx and dy to 0
             window.update_mouse(window.width/2, window.height/2, true, true);
+
+            window.c_rot = {0,0,0};
+            window.c_rot_keyboard_only = {0,0,0};
         }
 
         if(controls_state == 0 && window.focus && !in_menu)
@@ -987,6 +990,7 @@ int main(int argc, char *argv[])
         ///and position offset (and local direction moving) which is INDEPENDENT to walk_dir
 
         ///add a smoothed up vector with a length of pos.v[1]
+        #if 0
         {
             vec3f ncamera_rot = debug_map_cube.get_update_smoothed_camera_with_euler_offset(-xyz_to_vec(window.c_rot_keyboard_only), 24 * game_map::scale);
 
@@ -1122,6 +1126,18 @@ int main(int argc, char *argv[])
 
             if(!my_fight->dead())
                 my_fight->update_lights();
+        }
+        #endif
+
+        my_fight->update_render_positions();
+
+        my_fight->position_cosmetics();
+
+        if(!my_fight->dead())
+        {
+            my_fight->update_name_info();
+
+            my_fight->update_lights();
         }
 
         context.flush_locations();

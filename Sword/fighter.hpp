@@ -213,7 +213,7 @@ typedef bodypart::bodypart bodypart_t;
 
 namespace fighter_stats
 {
-    const static float speed = 1.3f;
+    const static float speed = 1.4f;
     const static float sprint_speed = 1.3f;
     const static float bubble_modifier_relative_to_approx_dim = 1.f;
     const static float flinch_time_ms = 400.f;
