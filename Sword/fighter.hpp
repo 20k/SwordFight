@@ -159,6 +159,26 @@ namespace bodypart
         0.f
     };
 
+    ///fix the god damn reversal
+    static std::vector<std::string> short_names =
+    {
+        "Head",
+        "RShldr",
+        "RElbw",
+        "LShldr",
+        "LElbw",
+        "RHand",
+        "LHand",
+        "Body",
+        "RHip",
+        "RKnee",
+        "LHip",
+        "LKnee",
+        "RFoot",
+        "LFoot",
+        "Error"
+    };
+
     static std::vector<std::string> names =
     {
         "HEAD",

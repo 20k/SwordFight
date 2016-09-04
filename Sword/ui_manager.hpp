@@ -198,8 +198,12 @@ struct configuration_values
     std::string player_name;
 };
 
+struct fighter;
+
 struct ui_manager
 {
+    ImGuiStyle style;
+
     configuration_values vals;
 
     window_slider_getter<float> mouse_sensitivity;
@@ -224,6 +228,8 @@ struct ui_manager
     void tick_settings(float ftime_ms);
 
     void tick_frametime_graph(float ftime_ms);
+
+    void tick_health_display(fighter* my_fight);
 
     void tick_render();
 

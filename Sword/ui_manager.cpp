@@ -9,6 +9,8 @@ ui_manager::ui_manager()
 {
     ImGuiIO io = ImGui::GetIO();
     io.MouseDrawCursor = false;
+
+    style = ImGui::GetStyle();
 }
 
 void ui_manager::init(settings& s)
@@ -169,6 +171,7 @@ void ui_manager::tick_frametime_graph(float ftime)
 
     ImGui::Text(mid.c_str());
 
+    ///ok, i admit. I have no idea if this is really correct
     float so_far = height/2 + text_height*4;
 
     float left = height - so_far;
@@ -188,6 +191,79 @@ void ui_manager::tick_frametime_graph(float ftime)
 
     if(ftime_history.size() > 400)
         ftime_history.erase(ftime_history.begin());
+
+    any_render = true;
+}
+
+void ui_manager::tick_health_display(fighter* my_fight)
+{
+    /*PlotHistogram(const char* label, const float* values, int values_count,
+                  int values_offset = 0, const char* overlay_text = NULL,
+                  float scale_min = FLT_MAX, float scale_max = FLT_MAX,
+                  ImVec2 graph_size = ImVec2(0,0), int stride = sizeof(float));*/
+
+    using namespace bodypart;
+
+    std::vector<float> vals;
+    std::vector<std::string> labels;
+    std::string rtext;
+
+    for(int i=HEAD; i <= RFOOT; i++)
+    {
+        if(i == LHAND || i == RHAND)
+            continue;
+
+        vals.push_back(my_fight->parts[i].hp);
+        labels.push_back(short_names[i]);
+
+        rtext = rtext + short_names[i];
+    }
+
+    ImGui::Begin("Health Display");
+
+    float width = 600.f;
+    float elem_width = width / vals.size();
+
+    ImGui::PlotHistogram("", &vals[0], vals.size(), 0, nullptr, 0, 1, ImVec2(width, 50));
+
+    ///SIGH
+    /*for(int i=0; i<ImGui::GetColumnsCount(); i++)
+    {
+        printf("hello dear\n");
+
+        ImGui::NextColumn();
+    }*/
+
+    //ImGui::Text(rtext.c_str());
+
+    ImGui::BeginGroup();
+
+    float accum_start = 0.f;
+    float x_space = style.ItemInnerSpacing.x;
+    float x_offset = elem_width/20.f;
+
+    for(int i=0; i<labels.size(); i++)
+    {
+        ImVec2 my_size = ImGui::CalcTextSize(labels[i].c_str());
+
+        float boundary = elem_width/2 - my_size.x/2;
+
+        ImGui::Dummy(ImVec2(boundary, 0));
+
+        ImGui::SameLine(0, 0);
+
+        ImGui::Text(labels[i].c_str());
+
+        ImGui::SameLine(0, 0);
+
+        ImGui::Dummy(ImVec2(boundary, 0));
+
+        ImGui::SameLine(0, 0);
+    }
+
+    ImGui::EndGroup();
+
+    ImGui::End();
 
     any_render = true;
 }

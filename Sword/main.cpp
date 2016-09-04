@@ -1013,6 +1013,8 @@ int main(int argc, char *argv[])
             ui_manage.tick_frametime_graph(window.get_frametime_ms());
         }
 
+        ui_manage.tick_health_display(my_fight);
+
         ui_manage.tick_render();
 
         window.window.resetGLStates();
