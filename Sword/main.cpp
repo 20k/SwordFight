@@ -964,9 +964,6 @@ int main(int argc, char *argv[])
         ///so this + render_event is basically causing two stalls
         window.render_block(); ///so changing render block above blit_to_screen also fixes
 
-
-        context.flip();
-        transparency_context.flip();
         object_context_data* cdat = context.fetch();
 
         ///I think this is now quite redundant
@@ -1199,6 +1196,10 @@ int main(int argc, char *argv[])
 
         context.build_tick();
         transparency_context.build_tick();
+
+        context.flip();
+        transparency_context.flip();
+
 
         ///it might be this event which is causing a hang
         ///YUP
