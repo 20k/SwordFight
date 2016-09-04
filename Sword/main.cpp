@@ -1005,10 +1005,15 @@ int main(int argc, char *argv[])
         ///otherwise in async we'll waste huge performance
         ///in synchronous that's not a problem
 
+        ui_manage.tick(window.get_frametime_ms());
+
         if(controls_state == 0)
         {
-            ui_manage.tick(window.get_frametime_ms());
+            ui_manage.tick_settings(window.get_frametime_ms());
+            ui_manage.tick_frametime_graph(window.get_frametime_ms());
         }
+
+        ui_manage.tick_render();
 
         window.window.resetGLStates();
 

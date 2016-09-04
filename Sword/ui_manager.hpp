@@ -218,7 +218,20 @@ struct ui_manager
 
     void init(settings& s);
 
-    void tick(float ftime_ms);
+
+    void tick(float ftime);
+
+    void tick_settings(float ftime_ms);
+
+    void tick_frametime_graph(float ftime_ms);
+
+    void tick_render();
+
+    std::vector<float> ftime_history;
+
+    bool any_render = false;
+
+    bool ftime_paused = false;
 };
 
 #endif // UI_MANAGER_HPP_INCLUDED
