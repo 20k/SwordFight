@@ -82,8 +82,6 @@ void ui_manager::tick_settings(float ftime_ms)
 
     ImGui::End(); // end window
 
-    //ImGui::Render();
-
     if(sett->mouse_sens != vals.mouse_sens)
     {
         sett->mouse_sens = vals.mouse_sens;
@@ -167,8 +165,6 @@ void ui_manager::tick_frametime_graph(float ftime)
 
     ImGui::Text(top.c_str());
 
-    //ImGui::SameLine();
-
     ImGui::Dummy(ImVec2(1, height/2 - text_height*2));
 
     ImGui::Text(mid.c_str());
@@ -189,8 +185,6 @@ void ui_manager::tick_frametime_graph(float ftime)
     }
 
     ImGui::End(); // end window
-
-    //ImGui::Render();
 
     if(ftime_history.size() > 400)
         ftime_history.erase(ftime_history.begin());
