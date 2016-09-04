@@ -445,6 +445,7 @@ void part::perform_death(bool do_effect)
     }
 
     set_active(false);
+    obj()->hide();
 
     cpu_context->load_active();
     cpu_context->build_request();

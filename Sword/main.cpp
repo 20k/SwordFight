@@ -603,6 +603,7 @@ int main(int argc, char *argv[])
 
             cl::cqueue.finish();
             cl::cqueue2.finish();
+            cl::cqueue_ooo.finish();
 
             window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
 
@@ -651,6 +652,7 @@ int main(int argc, char *argv[])
 
             cl::cqueue.finish();
             cl::cqueue2.finish();
+            cl::cqueue_ooo.finish();
         }
 
         if(s.enable_debugging)
@@ -1194,8 +1196,8 @@ int main(int argc, char *argv[])
             window.set_render_event(event);
         }
 
-        context.build_tick();
-        transparency_context.build_tick();
+        context.build_tick(true);
+        transparency_context.build_tick(true);
 
         context.flip();
         transparency_context.flip();
@@ -1218,6 +1220,9 @@ int main(int argc, char *argv[])
         return 0;*/
     }
 
+    glFinish();
     cl::cqueue.finish();
     cl::cqueue2.finish();
+    cl::cqueue_ooo.finish();
+    glFinish();
 }
