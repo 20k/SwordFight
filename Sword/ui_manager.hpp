@@ -227,7 +227,7 @@ struct ui_manager
 
     void tick_settings(float ftime_ms);
 
-    void tick_frametime_graph(float ftime_ms);
+    void tick_frametime_graph(float ftime_ms, bool display);
 
     void tick_health_display(fighter* my_fight);
 
@@ -238,6 +238,8 @@ struct ui_manager
     bool any_render = false;
 
     bool ftime_paused = false;
+
+    bool internal_ftime_show_toggle = false;
 };
 
 #endif // UI_MANAGER_HPP_INCLUDED

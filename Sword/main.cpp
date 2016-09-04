@@ -549,6 +549,8 @@ int main(int argc, char *argv[])
     ui_manager ui_manage;
     ui_manage.init(s);
 
+    bool show_ftime = false;
+
     bool going = true;
 
     ///fix depth ordering  with transparency
@@ -1005,13 +1007,19 @@ int main(int argc, char *argv[])
         ///otherwise in async we'll waste huge performance
         ///in synchronous that's not a problem
 
+        if(once<sf::Keyboard::F1>())
+        {
+            show_ftime = !show_ftime;
+        }
+
         ui_manage.tick(window.get_frametime_ms());
 
         if(controls_state == 0)
         {
             ui_manage.tick_settings(window.get_frametime_ms());
-            ui_manage.tick_frametime_graph(window.get_frametime_ms());
         }
+
+        ui_manage.tick_frametime_graph(window.get_frametime_ms(), show_ftime);
 
         ui_manage.tick_health_display(my_fight);
 
