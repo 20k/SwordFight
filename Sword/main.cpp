@@ -376,6 +376,7 @@ int main(int argc, char *argv[])
 
     window.set_camera_pos({-1009.17, -94.6033, -317.804});
     window.set_camera_rot({0, 1.6817, 0});
+    window.c_rot_keyboard_only = window.c_rot;
 
     fighter fight(context, *gpu_context);
     fight.set_team(0);
@@ -719,8 +720,9 @@ int main(int argc, char *argv[])
             ///call again to reset mouse dx and dy to 0
             window.update_mouse(window.width/2, window.height/2, true, true);
 
-            window.c_rot = {0,0,0};
-            window.c_rot_keyboard_only = {0,0,0};
+            window.c_rot_keyboard_only = window.c_rot;
+            //window.c_rot = {0,0,0};
+            //window.c_rot_keyboard_only = {0,0,0};
         }
 
         if(controls_state == 0 && window.focus && !in_menu)
