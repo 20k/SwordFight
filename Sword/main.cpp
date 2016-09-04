@@ -165,7 +165,7 @@ void fps_controls(fighter* my_fight, engine& window)
     sf::Keyboard key;
 
     if(key.isKeyPressed(sf::Keyboard::Escape))
-        exit(0);
+        window.request_close();
 
     vec2f walk_dir = {0,0};
 
@@ -549,8 +549,10 @@ int main(int argc, char *argv[])
     ui_manager ui_manage;
     ui_manage.init(s);
 
+    bool going = true;
+
     ///fix depth ordering  with transparency
-    while(window.window.isOpen())
+    while(going)
     {
         sf::Clock c;
 
@@ -571,7 +573,9 @@ int main(int argc, char *argv[])
             ImGui::SFML::ProcessEvent(Event);
 
             if(Event.type == sf::Event::Closed)
-                window.window.close();
+            {
+                going = false;
+            }
 
             if(Event.type == sf::Event::Resized)
             {
@@ -600,6 +604,12 @@ int main(int argc, char *argv[])
             {
                 window.set_focus(false);
             }
+        }
+
+        if(window.is_requested_close())
+        {
+            going = false;
+            break;
         }
 
         if(window.check_alt_enter() && window.focus)
@@ -1273,10 +1283,14 @@ int main(int argc, char *argv[])
         return 0;*/
     }
 
+
     glFinish();
     cl::cqueue.finish();
     cl::cqueue2.finish();
     cl::cqueue_ooo.finish();
     glFinish();
+
+    window.window.close();
+
     ImGui::SFML::Shutdown();
 }
