@@ -981,7 +981,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         ///death is dynamically calculated from part health
         if(!i.second.fight->dead())
         {
-            i.second.fight->update_name_info(true);
+            //i.second.fight->update_name_info(true);
 
             i.second.fight->update_lights();
         }
@@ -997,6 +997,24 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
     game_info.tick();
     reliable_manager.tick(to_game);
+}
+
+void server_networking::update_fighter_name_infos()
+{
+    for(auto& i : discovered_fighters)
+    {
+        if(i.first == my_id)
+            continue;
+
+        if(i.second.id < 0)
+        {
+            lg::log("super bad error, invalid fighter 2");
+            continue;
+        }
+
+        if(!i.second.fight->dead())
+            i.second.fight->update_name_info(true);
+    }
 }
 
 int32_t server_networking::get_id_from_fighter(fighter* f)

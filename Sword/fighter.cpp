@@ -3514,21 +3514,22 @@ void fighter::set_name(std::string name)
 
     name_tex.setActive(true);
 
-    name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false);
-    name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx);
+    //name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false, cl::cqueue2);
+    //name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx, cl::cqueue2);
 
-    name_tex.setActive(false);
-
+    //name_tex.setActive(false);
 
     text::immediate(&name_tex, local_name + ping_info, fname/2.f, 16, true);
+
     name_tex.display();
 
     //tex->update_gpu_texture_col({0.f, 255.f, 0.f, 255.f}, transparency_context->fetch()->tex_gpu);
 
-    name_tex.setActive(true);
+    //name_tex.setActive(true);
 
-    name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false);
-    name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx);
+
+    name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false, cl::cqueue);
+    name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx, cl::cqueue);
 
     name_tex.setActive(false);
 }
@@ -3599,7 +3600,7 @@ void fighter::update_name_info(bool networked_fighter)
     if(!name_tex_gpu)
         return;
 
-    if(name_reset_timer.getElapsedTime().asMilliseconds() > 5000.f || !name_info_initialised)
+    if(name_reset_timer.getElapsedTime().asMilliseconds() > 1000.f || !name_info_initialised)
     {
         ///we've got the correct local name, but it wont blit for some reason
         if(!networked_fighter)

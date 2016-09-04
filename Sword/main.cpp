@@ -886,7 +886,7 @@ int main(int argc, char *argv[])
 
             if(!fight2.dead())
             {
-                fight2.update_name_info();
+                //fight2.update_name_info();
 
                 fight2.update_lights();
             }
@@ -914,6 +914,21 @@ int main(int argc, char *argv[])
         my_fight->update_texture_by_part_hp();
 
         my_fight->check_and_play_sounds(true);
+
+        my_fight->local_name = s.name;
+
+
+        my_fight->update_render_positions();
+
+        my_fight->position_cosmetics();
+
+        if(!my_fight->dead())
+        {
+            //my_fight->update_name_info();
+
+            my_fight->update_lights();
+        }
+
 
         #ifdef MYO_ARMBAND
         myo_dat.tick();
@@ -958,6 +973,18 @@ int main(int argc, char *argv[])
         ///the async event for the draw_bulk_objs_n event has finished
         ///and this can fire
         window.blit_to_screen(*context.fetch());
+
+        if(!my_fight->dead())
+        {
+            my_fight->update_name_info();
+        }
+
+        if(!fight2.dead())
+        {
+            fight2.update_name_info();
+        }
+
+        server.update_fighter_name_infos();
 
         ///I need to reenable text drawing
         ///possibly split up window.display into display and flip
@@ -1008,6 +1035,7 @@ int main(int argc, char *argv[])
 
         ///so this + render_event is basically causing two stalls
         window.render_block(); ///so changing render block above blit_to_screen also fixes
+
 
         object_context_data* cdat = context.fetch();
 
@@ -1172,17 +1200,6 @@ int main(int argc, char *argv[])
                 my_fight->update_lights();
         }
         #endif
-
-        my_fight->update_render_positions();
-
-        my_fight->position_cosmetics();
-
-        if(!my_fight->dead())
-        {
-            my_fight->update_name_info();
-
-            my_fight->update_lights();
-        }
 
         context.flush_locations();
         transparency_context.flush_locations();

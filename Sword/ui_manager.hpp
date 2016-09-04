@@ -35,6 +35,7 @@ template<>
 struct window_element_getter<std::string> : window_element_getter_base<std::string>
 {
     char val[255] = {0};
+    bool has_default = false;
 
     rval instantiate_and_get()
     {
@@ -48,14 +49,32 @@ struct window_element_getter<std::string> : window_element_getter_base<std::stri
         return {std::string(val), ret};
     }
 
-    void set_default(const std::string& def)
+    void clear()
     {
         memset(val, 0, 255);
+    }
+
+    void assign(const std::string& str)
+    {
+        for(int i=0; i<254 && i < str.size(); i++)
+        {
+            val[i] = str[i];
+        }
+    }
+
+    void set_default(const std::string& def)
+    {
+        if(has_default)
+            return;
+
+        clear();
 
         for(int i=0; i<def.size() && i < 254; i++)
         {
             val[i] = def[i];
         }
+
+        has_default = true;
     }
 };
 
@@ -176,6 +195,7 @@ struct configuration_values
 {
     float mouse_sens = 1.f;
     int width = 1, height = 1;
+    std::string player_name;
 };
 
 struct ui_manager
@@ -186,6 +206,8 @@ struct ui_manager
 
     window_slider_getter<int> res_x;
     window_slider_getter<int> res_y;
+
+    window_element_getter<std::string> player_name;
 
     int saved_settings_w = 0;
     int saved_settings_h = 0;

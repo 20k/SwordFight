@@ -128,6 +128,8 @@ struct server_networking
     void tick(object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys);
     void ping_master();
 
+    void update_fighter_name_infos();
+
     void set_my_fighter(fighter* fight);
 
     std::vector<fighter*> get_fighters();

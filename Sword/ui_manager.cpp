@@ -1,6 +1,7 @@
 #include "ui_manager.hpp"
 #include "../imgui/imgui-SFML.h"
 #include "../openclrenderer/settings_loader.hpp"
+#include "fighter.hpp"
 
 int window_element_ids::label_gid;
 
@@ -34,6 +35,8 @@ void ui_manager::tick(float ftime_ms)
     res_x.set_default(sett->width);
     res_y.set_default(sett->height);
 
+    player_name.set_default(sett->name);
+
     if(saved_settings_w != sett->width || saved_settings_h != sett->height)
     {
         saved_settings_w = sett->width;
@@ -47,6 +50,24 @@ void ui_manager::tick(float ftime_ms)
 
     vals.width = res_x.instantiate_and_get("Res x").ret;
     vals.height = res_y.instantiate_and_get("Res y").ret;
+
+    std::string new_name = player_name.instantiate_and_get("Player Name").ret;
+
+    while(new_name.size() >= MAX_NAME_LENGTH - 1)
+    {
+        new_name.pop_back();
+    }
+
+    player_name.assign(new_name);
+
+    if(sett->name != new_name)
+    {
+        vals.player_name = new_name;
+
+        sett->name = new_name;
+
+        config_dirty = true;
+    }
 
     if(ImGui::Button("Update Resolution"))
     {
