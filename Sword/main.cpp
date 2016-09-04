@@ -44,6 +44,8 @@
 #include "../imgui/imgui.h"
 #include "../imgui/imgui-SFML.h"
 
+#include "ui_manager.hpp"
+
 
 ///none of these affect the camera, so engine does not care about them
 ///assume main is blocking
@@ -544,6 +546,9 @@ int main(int argc, char *argv[])
     myo_data myo_dat;
     #endif
 
+    ui_manager ui_manage;
+    ui_manage.init(s);
+
     ///fix depth ordering  with transparency
     while(window.window.isOpen())
     {
@@ -718,9 +723,13 @@ int main(int argc, char *argv[])
         my_fight->cube_info = &debug_map_cube;
 
         if(controls_state == 0 && window.focus && !in_menu)
+        {
             window.update_mouse();
+        }
         if(controls_state == 1 && window.focus && !in_menu)
+        {
             window.update_mouse(window.width/2, window.height/2, true, true);
+        }
 
         if(once<sf::Keyboard::X>() && window.focus && !in_menu)
         {
@@ -938,6 +947,11 @@ int main(int argc, char *argv[])
         ///we'll need to allow window querying to say should we draw
         ///otherwise in async we'll waste huge performance
         ///in synchronous that's not a problem
+
+        if(controls_state == 0)
+        {
+            ui_manage.tick(window.get_frametime_ms());
+        }
 
         window.window.resetGLStates();
 
@@ -1210,6 +1224,9 @@ int main(int argc, char *argv[])
 
         context.flip();
         transparency_context.flip();
+
+        ///can get changed by ui
+        window.set_mouse_sens(s.mouse_sens);
 
         if(key.isKeyPressed(sf::Keyboard::M))
             std::cout << c.getElapsedTime().asMicroseconds() << std::endl;

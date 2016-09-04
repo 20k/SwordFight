@@ -4,4 +4,4 @@
 1 #quality. 0 for low, 1 for high
 20k - dev #name
 DEBUG
-1.f #mouse sensitivity. Valid formats are x.yf, where x and y are numbers that you pick
+0.5f #mouse sensitivity. Valid formats are x.yf, where x and y are numbers that you pick

@@ -746,7 +746,7 @@ struct map_cube_info
     }
 
     ///internal local pos
-    vec2f translate_internal_pos(vec2f diff)
+    void translate_internal_pos(vec2f diff)
     {
         pos_within_plane = pos_within_plane + diff;
     }
