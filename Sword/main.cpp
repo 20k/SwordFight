@@ -41,6 +41,10 @@
 
 #include <my_myo/my_myo.hpp>
 
+#include "../imgui/imgui.h"
+#include "../imgui/imgui-SFML.h"
+
+
 ///none of these affect the camera, so engine does not care about them
 ///assume main is blocking
 void debug_controls(fighter* my_fight, engine& window)
@@ -358,6 +362,7 @@ int main(int argc, char *argv[])
     engine window;
     window.append_opencl_extra_command_line("-D SHADOWBIAS=150");
     window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true);
+    ImGui::SFML::Init(window.window);
     window.manual_input = true;
 
 
@@ -558,6 +563,8 @@ int main(int argc, char *argv[])
 
         while(window.window.pollEvent(Event))
         {
+            ImGui::SFML::ProcessEvent(Event);
+
             if(Event.type == sf::Event::Closed)
                 window.window.close();
 
@@ -606,6 +613,8 @@ int main(int argc, char *argv[])
             cl::cqueue_ooo.finish();
 
             window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
+
+            ImGui::SFML::Init(window.window);
 
             if(fullscreen)
             {
@@ -1202,16 +1211,6 @@ int main(int argc, char *argv[])
         context.flip();
         transparency_context.flip();
 
-
-        ///it might be this event which is causing a hang
-        ///YUP
-
-        ///so adding a finish here fixes stuff
-
-        ///for some reason, a delay here prevents space from being blitted
-
-        ///so, we need to fix this double sync
-
         if(key.isKeyPressed(sf::Keyboard::M))
             std::cout << c.getElapsedTime().asMicroseconds() << std::endl;
 
@@ -1225,4 +1224,5 @@ int main(int argc, char *argv[])
     cl::cqueue2.finish();
     cl::cqueue_ooo.finish();
     glFinish();
+    ImGui::SFML::Shutdown();
 }
