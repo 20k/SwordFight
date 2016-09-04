@@ -579,6 +579,11 @@ int main(int argc, char *argv[])
 
                 r_x = Event.size.width;
                 r_y = Event.size.height;
+
+                s.width = r_x;
+                s.height = r_y;
+
+                s.save("./res/settings.txt");
             }
 
             if(Event.type == sf::Event::MouseWheelScrolled)
@@ -606,6 +611,21 @@ int main(int argc, char *argv[])
 
             r_x = desktop.width;
             r_y = desktop.height;
+
+            s.width = r_x;
+            s.height = r_y;
+
+            s.save("./res/settings.txt");
+        }
+
+        if(s.width != window.get_width() || s.height != window.get_height())
+        {
+            do_resize = true;
+
+            r_x = s.width;
+            r_y = s.height;
+
+            s.save("./res/settings.txt");
         }
 
         if(do_resize)
@@ -669,7 +689,7 @@ int main(int argc, char *argv[])
             cl::cqueue_ooo.finish();
         }
 
-        if(s.enable_debugging)
+        /*if(s.enable_debugging)
         {
             if(once<sf::Keyboard::Tab>() && window.focus)
             {
@@ -718,7 +738,7 @@ int main(int argc, char *argv[])
                     net_test->update_lights();
                 }
             }
-        }
+        }*/
 
         my_fight->cube_info = &debug_map_cube;
 
