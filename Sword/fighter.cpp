@@ -20,53 +20,6 @@
 
 #include "map_tools.hpp"
 
-/*vec3f jump_descriptor::get_absolute_jump_displacement_tick(float dt, fighter* fight)
-{
-    if(current_time > time_ms)
-    {
-        current_time = 0;
-        is_jumping = false;
-
-        return {0,0,0};
-    }
-
-    if(!is_jumping)
-    {
-        return {0,0,0};
-    }
-
-    vec3f offset = {0, max_height, 0};
-
-    offset.v[0] = time_ms * dir.v[0];
-    offset.v[2] = time_ms * dir.v[1];
-
-    float frac = current_time / time_ms;
-
-    offset.v[0] = offset.v[0] * frac;
-    offset.v[2] = offset.v[2] * frac;
-
-    offset.v[1] = offset.v[1] * sin(frac * M_PI);
-
-    current_time += dt;
-
-    vec3f final_pos = pre_jump_pos + offset;
-
-    ///hmm
-    //vec2f offset_2d = fight->get_wall_corrected_move({pre_jump_pos.v[0], pre_jump_pos.v[2]}, {offset.v[0], offset.v[2]});
-
-    //vec3f final_pos = pre_jump_pos + (vec3f){offset_2d.v[0], offset.v[1], offset_2d.v[2]};
-
-    vec3f diff = final_pos - fight->pos;
-
-    //return (vec3f){offset_2d.v[0], offset.v[1], offset_2d.v[2]};
-
-    vec2f offset_2d = fight->get_wall_corrected_move({fight->pos.v[0], fight->pos.v[2]}, {diff.v[0], diff.v[2]});
-
-    ///need to include the rest of the offset too.. uuh...
-    ///hmm. maybe we should have made this iterative instead ;_;
-    return {offset_2d.v[0], offset.v[1], offset_2d.v[2]};
-}*/
-
 vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fight)
 {
     if(current_time > time_ms)
@@ -106,8 +59,6 @@ vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fi
 
     offset.v[0] = clamped.v[0];
     offset.v[2] = clamped.v[1];
-
-    //printf("dh %f\n", dh);
 
     current_time += dt;
 
@@ -169,11 +120,8 @@ void part::set_type(bodypart_t t)
 ///need to make textures unique optionally
 part::part(object_context& context)
 {
-    //performed_death = false;
-
     cpu_context = &context;
     model = context.make_new();
-    //hp_display = context.make_new();
 
     is_active = false;
 
@@ -189,14 +137,9 @@ part::part(object_context& context)
 
     model->set_unique_textures(true);
 
-    //model->cache = false;
-
     team = -1;
 
     quality = 0;
-
-    ///128x128
-    //tex.create(128, 128);
 }
 
 part::part(bodypart_t t, object_context& context) : part(context)
@@ -211,10 +154,7 @@ part::~part()
 
 void part::set_active(bool active)
 {
-    //if(active)
     model->set_active(active);
-
-    //hp_display->set_active(active);
 
     is_active = active;
 }
@@ -267,13 +207,6 @@ void part::update_model()
     {
         model->hide();
     }
-
-    /*vec3f vec = {0, 20, 0};
-
-    vec3f rvec = vec.rot(0.f, global_rot) + global_pos;
-
-    hp_display->set_pos({rvec.v[0], rvec.v[1], rvec.v[2]});
-    hp_display->set_rot(model->rot);*/
 }
 
 void part::set_team(int _team)
@@ -297,15 +230,7 @@ void part::load_team_model()
     if(quality == 1)
         to_load = high;
 
-    /*display_tex.type = 0;
-    display_tex.set_unique();
-    display_tex.set_load_func(std::bind(texture_make_blank, std::placeholders::_1, 256, 256, sf::Color(255, 255, 255)));
-
-    hp_display->set_load_func(std::bind(obj_rect, std::placeholders::_1, display_tex, (cl_float2){100, 100}));*/
-
     model->set_file(to_load);
-
-    //model->set_normal("res/norm_body.png");
 
     model->unload();
 
@@ -352,13 +277,9 @@ void part::set_quality(int _quality)
 ///temp error as this class needs gpu access
 void part::damage(float dam, bool do_effect, int32_t network_id_hit_by)
 {
-    //hp -= dam;
-
     set_hp(hp - dam);
 
     net.damage_info.id_hit_by = network_id_hit_by;
-
-    //printf("%f\n", hp);
 
     if(is_active && hp < 0.0001f)
     {
@@ -407,11 +328,6 @@ void part::update_texture_by_hp()
                 vec2f rpos = randf<2, float>(width * 0.2f, width * 0.8f) * (vec2f){tex->c_image.getSize().x, tex->c_image.getSize().y};
 
                 rpos = rpos / width;
-
-                //tex->update_gpu_texture_col(pcol, cpu_context->fetch()->tex_gpu);
-                /*tex->update_random_lines(5, {rpos.v[0], rpos.v[1]}, {1, 0}, cpu_context->fetch()->tex_gpu);
-                tex->update_random_lines(5, {rpos.v[0], rpos.v[1]}, {-1, 1}, cpu_context->fetch()->tex_gpu);
-                tex->update_random_lines(5, {rpos.v[0], rpos.v[1]}, {1, 1}, cpu_context->fetch()->tex_gpu);*/
 
                 float angle = randf_s() * 2 * M_PI;
 
@@ -463,7 +379,6 @@ void part::set_hp(float h)
 void part::network_hp(float delta)
 {
     net.hp_dirty = true;
-    //network::host_update(&hp);
     net.damage_info.hp_delta += delta;
 }
 
@@ -526,11 +441,6 @@ movement::movement()
     hand = 0;
     going = false;
 
-    /*does_damage = true;
-    does_block = false;
-
-    moves_character = false;*/
-
     move_type = mov::DAMAGING;
 
     id = gid++;
@@ -563,8 +473,6 @@ void sword::set_team(int _team)
 
 void sword::load_team_model()
 {
-    //model->set_file("./Res/sword_red.obj");
-
     model->unload();
 
     model->set_active(true);
@@ -573,14 +481,6 @@ void sword::load_team_model()
 
 
     texture_context* tex_ctx = &cpu_context->tex_ctx;
-
-    //texture* tex = tex_ctx->id_to_tex(model->objs[0].tid);
-
-    ///need to reference count textures
-    ///for the moment we can just leak some extremely inconsequential amount of memory
-    ///(the texture will never be loaded)
-    //tex_ctx->destroy(tex);
-
 
     texture* ntex = tex_ctx->make_new_cached(team_info::get_texture_cache_name(team));
 
@@ -595,9 +495,6 @@ void sword::load_team_model()
         i.tid = ntex->id;
 
     ///make this a default action
-
-    //model->translate_centre({0, -0.06f, 0});
-
     scale();
 
     model->set_specular(bodypart::specular);
@@ -611,8 +508,6 @@ sword::sword(object_context& cpu)
 
     model->set_pos({0, 0, -100});
     dir = {0,0,0};
-    //model->set_file("./Res/sword_upgr.obj");
-    //model->set_normal("./Res/Sword_LP_normal.png");
     model->set_file("./Res/sword_red.obj");
     team = -1;
 }
@@ -653,12 +548,6 @@ void sword::update_model()
 {
     model->set_pos({pos.v[0], pos.v[1], pos.v[2]});
     model->set_rot({rot.v[0], rot.v[1], rot.v[2]});
-
-    ///in preparation for 0 cost killing
-    /*if(!is_active)
-    {
-        model->hide();
-    }*/
 }
 
 void sword::set_pos(vec3f _pos)
@@ -675,13 +564,6 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
 {
     vec3f dir = (p2->pos - p1->pos);
 
-    /*std::string tex = "./res/red.png";
-
-    ///should really define this in a header somewhere, rather than here in shit code
-    if(team == 1)
-        tex = "./res/blue.png";*/
-
-
     texture_context* tex_ctx = &p1->cpu_context->tex_ctx;
 
     texture* ntex = tex_ctx->make_new_cached(team_info::get_texture_cache_name(team));
@@ -690,14 +572,12 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
 
     ntex->set_create_colour({col.v[0], col.v[1], col.v[2]}, 128, 128);
 
-
     vec3f start = p1->pos + dir * squish;
     vec3f finish = p2->pos - dir * squish;
 
     objects_container* o = p1->cpu_context->make_new();
     o->set_load_func(std::bind(load_object_cube_tex, std::placeholders::_1, start, finish, thickness, *ntex));
     o->cache = false;
-    //o.set_normal("res/norm_body.png");
 
     link l;
 
@@ -731,8 +611,6 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
     quality = 0;
 
     light l1;
-
-    //l1.set_shadow_casting(1;
 
     my_lights.push_back(light::add_light(&l1));
     my_lights.push_back(light::add_light(&l1));
@@ -871,15 +749,6 @@ void fighter::respawn(vec2f _pos)
     cpu_context->load_active();
 
     cpu_context->build_request();
-    //cpu_context->flip();
-    //gpu_context = cpu_context->fetch();
-
-    //update_render_positions();
-
-    //obj_mem_manager::g_arrange_mem();
-    //obj_mem_manager::g_changeover();
-
-    //my_cape.make_stable(this);
 
     //network::host_update(&net.dead);
 }
@@ -906,22 +775,6 @@ void fighter::die()
     }
 
     cosmetic.set_active(false);
-
-    ///spawn in some kind of swanky effect here
-
-    /*particle_effect e;
-    e.make(1300, parts[bodypart::BODY].global_pos, 250.f);
-    e.push();
-    e.make(1300, parts[bodypart::BODY].global_pos, 150.f);
-    e.push();
-    e.make(1300, parts[bodypart::BODY].global_pos, 100.f);
-    e.push();
-    e.make(1300, parts[bodypart::BODY].global_pos, 50.f);
-    e.push();*/
-
-    /*particle_effect e;
-    e.make(1300, parts[bodypart::BODY].global_pos, 50.f);
-    e.push();*/
 
     const float death_time = 2000;
 
@@ -965,10 +818,6 @@ void fighter::die()
 
     cpu_context->load_active();
 
-    //cpu_context->build(true);
-    //cpu_context->flip();
-    //gpu_context = cpu_context->fetch();
-
     cpu_context->build_request();
 
     ///pipe out hp here, just to check
@@ -985,8 +834,6 @@ int fighter::num_dead()
         ///by mistake
         if(p.hp <= 0)
         {
-            //printf("%s\n", names[p.type].c_str());
-
             num_destroyed++;
         }
     }
@@ -1024,10 +871,6 @@ bool fighter::dead()
 
 void fighter::tick_cape()
 {
-    ///hmm. If cape.inert? Have cape sort its own death once parent is signalled?
-    //if(dead())
-    //    return;
-
     return;
 
     if(quality == 0)
@@ -1106,14 +949,6 @@ float get_joint_angle(vec3f end_pos, vec3f start_pos, float s2, float s3)
 
     float angle = acos ( ic );
 
-    //printf("%f\n", angle);
-
-    //if(angle >= M_PI/2.f)
-    //    angle = M_PI/2.f - angle;
-
-    //printf("%f\n", angle);
-
-
     return angle;
 }
 
@@ -1140,8 +975,6 @@ void inverse_kinematic(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec
     float s3 = (p3 - p2).length();
 
     float joint_angle = get_joint_angle(pos, p1, s2, s3);
-
-    //o_p1 = p1;
 
     float max_len = (p3 - p1).length();
 
@@ -1218,8 +1051,6 @@ void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation, bool arms
     auto lower = which_hand ? RLOWERARM : LLOWERARM;
     auto hand = which_hand ? RHAND : LHAND;
 
-    //printf("%f\n", pos.v[0]);
-
     vec3f i1, i2, i3;
 
     i1 = rest_positions[upper];
@@ -1234,14 +1065,6 @@ void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation, bool arms
 
     inverse_kinematic(pos, i1, i2, i3, o1, o2, o3);
 
-    //o1 = o1 + look_displacement;
-    //o2 = o2 + look_displacement;
-    //o3 = o3 + look_displacement;
-
-    //printf("%f\n", o2.v[2]);
-
-    //printf("%f\n", look_displacement.v[0]);
-
     if(arms_are_locked)
     {
         o2 = (o1 + o3) / 2.f;
@@ -1252,27 +1075,10 @@ void fighter::IK_hand(int which_hand, vec3f pos, float upper_rotation, bool arms
         o3 = pos;
 
         o2 = (o1 + o3) / 2.f;
-
-        ///wait. Can't I just adjust the shoulder instead, here?
-
-        /*o3 = pos;
-
-        float arm_len = (i3 - i2).length();
-
-        vec3f to_elbow = (o2 - pos).norm();
-
-        vec3f new_elbow = to_elbow * arm_len + pos;
-
-        vec3f new_shoulder = (o1 - o3).norm() * arm_len * 2 + pos;
-
-        o2 = new_elbow;
-
-        o1 = new_shoulder;*/
     }
 
     parts[upper].set_pos(o1);
     parts[lower].set_pos(o2);
-    //parts[lower].set_pos((o2 + old_pos[lower]*1)/2.f);
     parts[hand].set_pos(o3);
 }
 
@@ -1286,14 +1092,10 @@ void fighter::IK_foot(int which_foot, vec3f pos, vec3f off1, vec3f off2, vec3f o
     auto lower = which_foot ? RLOWERLEG : LLOWERLEG;
     auto hand = which_foot ? RFOOT : LFOOT;
 
-    //printf("%f\n", pos.v[0]);
-
     vec3f o1, o2, o3;
 
     ///put offsets into this function
     inverse_kinematic_foot(pos, rest_positions[upper], rest_positions[lower], rest_positions[hand], off1, off2, off3, o1, o2, o3);
-
-    //printf("%f\n", o2.v[2]);
 
     parts[upper].set_pos(o1);
     parts[lower].set_pos((o2 + old_pos[lower]*5.f)/6.f);
@@ -1448,7 +1250,6 @@ void fighter::tick(bool is_player)
         vec3f half_hand_vec = ((vec3f){desired_hand_x, desired_hand_height, i.fin.v[2]} + i.start)/2.f;
 
 
-
         busy_list.push_back(i.limb);
 
         float frac = i.get_frac();
@@ -1478,23 +1279,10 @@ void fighter::tick(bool is_player)
             actual_avg = head_vec;
 
             actual_avg.v[1] = desired_hand_height;
-
-            //actual_avg = half_hand_vec;
-
-            //actual_avg.v[1] = desired_hand_height;
-
-            ///so it looks less unnatural
-            //actual_finish.v[1] = desired_hand_height;
         }
 
         if(i.does(mov::FINISH_AT_SCREEN_CENTRE))
         {
-            //actual_finish = desired_hand_relative_sword;
-
-            //actual_finish.v[2] = -actual_finish.v[2];
-
-            //actual_finish = head_vec;
-
             actual_avg = half_hand_vec;
 
             actual_finish.v[1] = desired_hand_height;
@@ -1515,7 +1303,6 @@ void fighter::tick(bool is_player)
             {
                 sword_rotation_offset.v[1] = M_PI/2.f * pow((1.f - ffrac), 1.7f);
             }
-            //sword_rotation_offset = sword_rotation_offset * sqrtf(1.f - frac);
         }
 
         ///scrap mix3 and slerp3 stuff, need to interpolate properly
@@ -1532,22 +1319,11 @@ void fighter::tick(bool is_player)
             frac = frac_smooth(frac);
             current_pos = slerp(actual_start, actual_finish, frac);
 
-            //float fsin = frac * M_PI;
-
-            //float sval = sin(fsin);
-
-            //current_pos.v[1] = current_pos.v[1] * (1.f - sval) + actual_avg.v[1] * sval;
-
             ///so the reason this flatttens it out anyway
             ///is because we're swappign from slerping to cosinterpolation
             if(i.does(mov::PASS_THROUGH_SCREEN_CENTRE))
-            //    current_pos.v[1] = cosif3(actual_start.v[1], actual_avg.v[1], actual_finish.v[1], frac);
                 current_pos.v[1] = mix3(actual_start, actual_avg, actual_finish, frac).v[1];
 
-            if(i.does(mov::FINISH_AT_SCREEN_CENTRE))
-            {
-                //current_pos.v[0] = cosint3(actual_start, actual_avg, actual_finish, frac).v[0];
-            }
         }
         else if(i.type == 2)
         {
@@ -1595,8 +1371,6 @@ void fighter::tick(bool is_player)
                 ///if hit, need to signal the other fighter that its been hit with its hit id, relative to part num
                 if(i.hit_id >= 0)
                 {
-                    //float damage_amount = attacks::damage_amounts[]
-
                     fighter* their_parent = phys->bodies[i.hit_id].parent;
 
                     ///this is the only time damage is applied to anything, ever
@@ -1643,19 +1417,6 @@ void fighter::tick(bool is_player)
         pos.v[1] = 0;
     }
 
-
-    /*for(auto& i : parts)
-    {
-        if(i.hp != 1.f)
-            printf("hp %f\n", i.hp);
-    }
-
-    printf("\n");*/
-
-    //static float rot = 0.f;
-
-    //rot += 0.01f;
-
     ///again needs to be made frametime independent
     const float displacement = (rest_positions[bodypart::LHAND] - rest_positions[bodypart::LUPPERARM]).length();
     float focus_rotation = 0.f;
@@ -1664,28 +1425,7 @@ void fighter::tick(bool is_player)
 
     vec3f rot_focus = (focus_pos + look_displacement).rot((vec3f){0,0,0}, (vec3f){0, focus_rotation, 0});
 
-    /*vec2f weapon_pos = (vec2f){weapon.pos.v[0], weapon.pos.v[2]}.rot(rot.v[1]);
-
-
-    ///absolute angle
-    float weapon_angle = weapon_pos.angle();
-    float look_angle = shoulder_rotation + rot.v[1];//(vec2f){rot_focus.v[0], rot_focus.v[2]}.angle();
-
-    float body_diff = weapon_angle - look_angle;
-
-    //rot_focus = rot_focus.rot({0,0,0}, {0, body_diff, 0.f});
-
-    shoulder_rotation += body_diff/10.f;
-
-    printf("%f sh\n", weapon_angle);*/
-
     vec2f weapon_pos = {weapon.pos.v[0], weapon.pos.v[2]};
-
-
-    //float approx_cylinder_half_size = bodypart::scale / 4.f;
-
-
-    //printf("%f %f\n", EXPAND_2(weapon_pos));
 
     float wangle = weapon_pos.angle() + M_PI/2.f;
 
@@ -1705,57 +1445,13 @@ void fighter::tick(bool is_player)
     if(slave_to_master.length() > 1.f)
     {
         parts[RHAND].pos = parts[LHAND].pos;
-
-        //float arm_len = (rest_positions[LHAND] - rest_positions[LLOWERARM]).length();
-
-        //vec3f original_shoulder = parts[RUPPERARM].pos;
-
-        /*vec3f slave_to_shoulder = original_shoulder - parts[RHAND].pos;
-
-        vec3f elbow_pos = slave_to_shoulder.norm() * arm_len + parts[RHAND].pos;
-        vec3f new_shoulder_pos = slave_to_shoulder.norm() * arm_len * 2 + parts[RHAND].pos;*/
-
-        //vec3f elbow_pos = (parts[RHAND].pos + parts[RUPPERARM].pos)/2.f;
-
-        //float dt_tsmooth = frametime * 0.1f;
-
-        //parts[RLOWERARM].pos = elbow_pos;
-        //parts[RUPPERARM].pos = (new_shoulder_pos * dt_tsmooth + parts[RUPPERARM].pos) / (dt_tsmooth + 1);
     }
-
-    ///this feels wrong
-    //#define TPOSE
-    #ifdef TPOSE
-
-    shoulder_rotation = 0.f;
-
-    vec3f default_lhand_pos = default_position[bodypart::LHAND];
-    vec3f default_rhand_pos = default_position[bodypart::RHAND];
-
-    IK_hand(0, default_lhand_pos + (vec3f){-100.f, -5, 0}, 0.f, arms_are_locked);
-    IK_hand(1, default_rhand_pos + (vec3f){100.f, -5, 0}, 0.f, arms_are_locked);
-
-    //parts[bodypart::RHAND].rot = (parts[bodypart::RHAND].pos - parts[bodypart::RLOWERARM].pos).get_euler();
-    //parts[bodypart::LHAND].rot = (parts[bodypart::LHAND].pos - parts[bodypart::LLOWERARM].pos).get_euler();
-
-    #endif // TPOSE
-
-
-    //IK_hand(1, rot_focus, shoulder_rotation, arms_are_locked);
 
 
     ///sword render stuff updated here
     update_sword_rot();
 
-    //parts[BODY].set_pos(rest_positions[BODY]);
-
     parts[BODY].set_pos((parts[LUPPERARM].pos + parts[RUPPERARM].pos + rest_positions[BODY]*5.f)/7.f);
-
-    //parts[BODY].set_pos((parts[BODY].pos * 20 + parts[RUPPERLEG].pos + parts[LUPPERLEG].pos)/(20 + 2));
-
-    //parts[HEAD].set_pos((parts[BODY].pos*2.f + rest_positions[HEAD] * 32.f) / (32 + 2));
-
-    //parts[HEAD].set_pos(rest_positions[HEAD] - )
 
     vec3f head_rest = rest_positions[HEAD];
     vec3f body_rest = rest_positions[BODY];
@@ -1763,11 +1459,7 @@ void fighter::tick(bool is_player)
     parts[HEAD].set_pos((head_rest - body_rest) + parts[BODY].pos);
 
 
-
     float cdist = 2 * bodypart::scale / 2.f;
-    //float cdist = 3 * bodypart::scale / 2.f;
-
-    //float tdiff = fdiff / time_to_crouch_s;
 
     for(auto& i : {HEAD, BODY, LUPPERARM, RUPPERARM, LLOWERARM, RLOWERARM, LHAND, RHAND})
     {
@@ -1783,74 +1475,18 @@ void fighter::tick(bool is_player)
         parts[type].set_pos(pos);
     }
 
-    /*IK_hand(0, parts[LHAND].pos, shoulder_rotation, arms_are_locked);
-    IK_hand(1, parts[LHAND].pos, shoulder_rotation, arms_are_locked, true);
-
-    slave_to_master = parts[LHAND].pos - parts[RHAND].pos;
-
-    ///dt smoothing doesn't work because the shoulder position is calculated
-    ///dynamically from the focus position
-    ///this means it probably wants to be part of our IK step?
-    ///hands disconnected
-    if(slave_to_master.length() > 1.f)
-    {
-        parts[RHAND].pos = parts[LHAND].pos;
-    }*/
-
     smoothed_crouch_offset = - cdist * crouch_frac;
-
-    /*for(auto& type : {LUPPERLEG, RUPPERLEG})
-    {
-        vec3f pos = parts[type].pos;
-
-        pos.v[1] -= cdist * crouch_frac / 2.f;
-
-        parts[type].set_pos(pos);
-    }*/
 
     IK_foot(0, parts[LFOOT].pos, {0, -cdist * crouch_frac, 0}, {0, -cdist * crouch_frac, 0}, {0,0,0});
     IK_foot(1, parts[RFOOT].pos, {0, -cdist * crouch_frac, 0}, {0, -cdist * crouch_frac, 0}, {0,0,0});
 
     weapon.set_pos(parts[bodypart::LHAND].pos);
 
-    /*float sword_len = weapon.length;
-
-    vec3f sword_dir =  (vec3f){0, 1, 0}.rot({0,0,0}, weapon.rot);
-    vec3f sword_pos = weapon.pos;
-
-    float approx_cylinder_half_size = bodypart::scale / 4.f;
-
-    vec3f to_sword = sword_pos - parts[RHAND].pos;
-
-    vec3f to_sword_along = to_sword + sword_dir * approx_cylinder_half_size;
-
-    float len = to_sword_along.length();
-
-    if(len > 1)
-    {
-        IK_hand(1, to_sword_along + parts[RHAND].pos, shoulder_rotation, arms_are_locked);
-
-        //vec3f test_euler = to_sword_along.get_euler();
-
-        vec3f new_to_sword = sword_pos - parts[RHAND].pos;
-        vec3f new_to_sword_along = new_to_sword + sword_dir * approx_cylinder_half_size;
-
-        vec3f test_euler = new_to_sword_along.get_euler();
-
-        if(new_to_sword_along.length() > 2 && new_to_sword.length() > 2)
-            parts[RHAND].set_rot(test_euler);
-    }*/
-
     ///process death
 
     ///rip
     checked_death();
     manual_check_part_death();
-
-    /*int collide_id = phys->sword_collides(weapon);
-
-    if(collide_id != -1)
-        printf("%s %i\n", bodypart::names[collide_id % bodypart::COUNT].c_str(), collide_id);*/
 }
 
 void fighter::shared_tick()
@@ -1910,25 +1546,6 @@ void fighter::manual_check_part_alive()
         cpu_context->load_active();
         cpu_context->build_request();
     }
-}
-
-int modulo_distance(int a, int b, int m)
-{
-    return std::min(abs(b - a), abs(m - b + a));
-}
-
-vec3f seek(vec3f cur, vec3f dest, float dist, float seek_time, float elapsed_time)
-{
-    float speed = elapsed_time * dist / seek_time;
-
-    vec3f dir = (dest - cur).norm();
-
-    float remaining = (cur - dest).length();
-
-    if(remaining < speed)
-        return dest;
-
-    return cur + speed * dir;
 }
 
 vec2f fighter::get_wall_corrected_move(vec2f pos, vec2f move_dir)
@@ -2271,21 +1888,6 @@ void fighter::crouch_tick(bool do_crouch)
     float fdiff = frametime / 1000.f;
 
     const float time_to_crouch_s = 0.1f;
-
-    /*float cdist = bodypart::scale / 2.f;
-
-    float tdiff = fdiff / time_to_crouch_s;
-
-    for(auto& i : {HEAD, BODY, LUPPERARM, RUPPERARM, LLOWERARM, RLOWERARM, LUPPERLEG, RUPPERLEG})
-    {
-        auto type = i;
-
-        vec3f pos = parts[type].pos;
-
-        //pos.v[1] += cdist * (fdiff / time_to_crouch_s);
-
-        parts[type].set_pos(pos);
-    }*/
 
     if(do_crouch)
         crouch_frac += fdiff / time_to_crouch_s;

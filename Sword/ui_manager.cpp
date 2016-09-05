@@ -87,6 +87,11 @@ void ui_manager::tick_settings(float ftime_ms)
         internal_ftime_show_toggle = !internal_ftime_show_toggle;
     }
 
+    if(ImGui::IsItemHovered())
+    {
+        ImGui::SetTooltip("Or press F1!");
+    }
+
     ImGui::End(); // end window
 
     if(sett->mouse_sens != vals.mouse_sens)
@@ -95,7 +100,6 @@ void ui_manager::tick_settings(float ftime_ms)
 
         config_dirty = true;
     }
-
 
     if(config_dirty)
     {
