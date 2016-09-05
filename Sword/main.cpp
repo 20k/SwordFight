@@ -1273,8 +1273,8 @@ int main(int argc, char *argv[])
             window.set_render_event(event);
         }
 
-        context.build_tick(true);
-        transparency_context.build_tick(true);
+        context.build_tick();
+        transparency_context.build_tick();
 
         context.flip();
         transparency_context.flip();

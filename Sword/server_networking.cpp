@@ -825,6 +825,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             ///update my network name and pipe to other clients
             if(my_fighter->name_resend_timer.getElapsedTime().asMilliseconds() > my_fighter->name_resend_time)
             {
+                memset(&my_fighter->net.net_name.v[0], 0, MAX_NAME_LENGTH);
+
                 for(int i=0; i<MAX_NAME_LENGTH && i < my_fighter->local_name.size(); i++)
                 {
                     const char c = my_fighter->local_name[i];
