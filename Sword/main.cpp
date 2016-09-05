@@ -419,20 +419,12 @@ int main(int argc, char *argv[])
     floor->set_specular(0.01f);
     floor->set_diffuse(4.f);
 
-    //auto tex_gpu = texture_manager::build_descriptors();
-
-    //window.set_tex_data(tex_gpu);
-
     lg::log("prebuild");
 
     context.build(true);
 
     lg::log("postbuild");
 
-    //context.fetch()->tex_gpu = tex_gpu;
-
-    ///should be a constant ptr
-    //window.set_tex_data(context.fetch()->tex_gpu);
 
     auto ctx = context.fetch();
     window.set_object_data(*ctx);
@@ -553,7 +545,7 @@ int main(int argc, char *argv[])
 
     bool going = true;
 
-    ///fix depth ordering  with transparency
+    ///fix depth ordering with transparency
     while(going)
     {
         sf::Clock c;
