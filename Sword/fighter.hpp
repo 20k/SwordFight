@@ -906,10 +906,10 @@ struct fighter
 
 
 private:
-    vec2f move_dir;
-
     sf::Clock walk_clock;
     //std::map<bodypart_t, vec3f> up_pos;
+
+    vec2f last_walk_dir;
 
     object_context* cpu_context = nullptr;
     object_context_data* gpu_context = nullptr;

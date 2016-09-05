@@ -622,6 +622,8 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
 
 void fighter::load()
 {
+    last_walk_dir = {0,0};
+
     last_walk_dir_diff = {0,0};
 
     camera_bob_mult = 0;
@@ -1604,6 +1606,8 @@ vec2f fighter::get_external_fighter_corrected_move(vec2f pos, vec2f move_dir, co
 ///do I want to do a proper dynamic timing synchronisation thing?
 void fighter::walk_dir(vec2f dir, bool sprint)
 {
+    last_walk_dir = dir;
+
     if(game_state == nullptr)
     {
         lg::log("Warning: No gameplay state for fighter");
@@ -2329,6 +2333,9 @@ void fighter::recalculate_link_positions_from_parts()
 void fighter::update_headbob_if_sprinting(bool sprinting)
 {
     float dir = sprinting ? 1 : -1;
+
+    if(last_walk_dir.v[1] >= 0)
+        dir = -1;
 
     float modif = 100.f;
     float max_camera = 1.5f;
