@@ -653,26 +653,9 @@ void fighter::load()
 
     look = {0,0,0};
 
-    left_frac = 0.f;
-    right_frac = 0.f;
-
-    idle_fired_first = -1;
-
     idling = false;
 
     team = -1;
-
-    left_full = false;
-
-    left_id = -1;
-    right_id = -1;
-
-    left_stage = 0;
-    right_stage = 1;
-
-
-    left_fired = false;
-    right_fired = false;
 
     stance = 0;
 

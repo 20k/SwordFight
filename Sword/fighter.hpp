@@ -706,6 +706,8 @@ struct gameplay_state;
 struct map_cube_info;
 
 ///what a clusterfuck
+///OK, its not the skeleton thats an issue, that's actually seemingly necessarily quite heavily integrated
+///its the networking model, and directly networking components thats extremely problematic
 struct fighter
 {
     bool name_info_initialised = false;
@@ -904,22 +906,6 @@ struct fighter
 
 
 private:
-    size_t left_id;
-    size_t right_id;
-
-    int left_stage;
-    int right_stage;
-
-    bool left_full;
-
-    bool left_fired;
-    bool right_fired;
-
-    float left_frac;
-    float right_frac;
-
-    int idle_fired_first;
-
     vec2f move_dir;
 
     sf::Clock walk_clock;
