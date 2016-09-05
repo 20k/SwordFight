@@ -999,7 +999,7 @@ int main(int argc, char *argv[])
         ///otherwise in async we'll waste huge performance
         ///in synchronous that's not a problem
 
-        if(once<sf::Keyboard::F1>())
+        if(once<sf::Keyboard::F1>() && window.focus)
         {
             show_ftime = !show_ftime;
         }

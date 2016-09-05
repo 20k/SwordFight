@@ -1,5 +1,5 @@
-848 #width
-665 #height
+1437 #width
+803 #height
 192.168.1.55 #unused
 1 #quality. 0 for low, 1 for high
 20k - dev #name
