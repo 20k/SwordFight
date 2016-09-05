@@ -708,8 +708,6 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 fighter* fight = net_fighter.second.fight;
                 int fight_id = net_fighter.first;
 
-                fight->construct_from_network_fighter(*net_fighter.second.net_fighter);
-
                 ///? should be impossibru
                 if(!fight)
                 {
@@ -942,6 +940,9 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             lg::log("super bad error, invalid fighter");
             continue;
         }
+
+
+        i.second.fight->construct_from_network_fighter(*i.second.net_fighter);
 
         ///for some reason, its respawning the other player a 2/3 parts dead
         ///then 3/3 parts die, and then goes to 0/3 parts
