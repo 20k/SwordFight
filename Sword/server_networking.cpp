@@ -182,6 +182,7 @@ ptr_info get_inf(void* ptr)
 std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
 {
     fighter* fight = net_fight->fight;
+    network_fighter* net = net_fight->net_fighter;
 
     std::map<int, ptr_info> fighter_stack;
 
@@ -191,8 +192,8 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
 
     for(int i=0; i<fight->parts.size(); i++)
     {
-        fighter_stack[c++] = get_inf<s_f3>(&fight->parts[i].obj()->pos);
-        fighter_stack[c++] = get_inf<s_f3>(&fight->parts[i].obj()->rot);
+        fighter_stack[c++] = get_inf<s_f3>(&net->network_parts[i].global_pos);
+        fighter_stack[c++] = get_inf<s_f3>(&net->network_parts[i].global_rot);
         fighter_stack[c++] = get_inf(&fight->parts[i].hp);
         fighter_stack[c++] = get_inf(&fight->parts[i].net.damage_info);
         fighter_stack[c++] = get_inf(&fight->parts[i].net.play_hit_audio);
@@ -249,6 +250,7 @@ bool is_damage_info(fighter* fight, void* ptr)
 std::map<int, ptr_info> build_host_network_stack(network_player* net_fight)
 {
     fighter* fight = net_fight->fight;
+    network_fighter* net = net_fight->net_fighter;
 
     constexpr int s_f3 = sizeof(cl_float) * 3;
 
@@ -258,8 +260,11 @@ std::map<int, ptr_info> build_host_network_stack(network_player* net_fight)
 
     for(int i=0; i<fight->parts.size(); i++)
     {
-        set_map_element<s_f3>(to_send, total_stack, &fight->parts[i].obj()->pos);
-        set_map_element<s_f3>(to_send, total_stack, &fight->parts[i].obj()->rot);
+        /*set_map_element<s_f3>(to_send, total_stack, &fight->parts[i].obj()->pos);
+        set_map_element<s_f3>(to_send, total_stack, &fight->parts[i].obj()->rot);*/
+
+        set_map_element<s_f3>(to_send, total_stack, &net->network_parts[i].global_pos);
+        set_map_element<s_f3>(to_send, total_stack, &net->network_parts[i].global_rot);
         set_map_element(to_send, total_stack, &fight->parts[i].hp);
     }
 

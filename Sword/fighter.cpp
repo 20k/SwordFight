@@ -2751,6 +2751,15 @@ void fighter::construct_from_network_fighter(network_fighter& net_fight)
 {
     ///we'll need to construct quite a few of these into net. for the time being, including name
 
+    for(int i=0; i<bodypart::COUNT; i++)
+    {
+        network_part_info& current = net_fight.network_parts[i];
+
+        parts[i].set_global_pos(current.global_pos);
+        parts[i].set_global_rot(current.global_rot);
+
+        parts[i].update_model();
+    }
 }
 
 void fighter::set_team(int _team)
