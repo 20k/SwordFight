@@ -1,8 +1,6 @@
 #include "fighter.hpp"
 #include "physics.hpp"
-//#include "../openclrenderer/obj_mem_manager.hpp"
 #include <unordered_map>
-//#include "../openclrenderer/network.hpp"
 
 #include "object_cube.hpp"
 
@@ -1522,7 +1520,6 @@ void fighter::manual_check_part_death()
 void fighter::manual_check_part_alive()
 {
     ///do not respawn parts if the fighter is dead!
-    //if(num_dead() >= num_needed_to_die())
     if(dead())
         return;
 
@@ -1540,9 +1537,6 @@ void fighter::manual_check_part_alive()
 
     if(any)
     {
-        //cpu_context->load_active();
-        //cpu_context->build();
-        //gpu_context = cpu_context->fetch(); ///I'm not sure this is necessary as gpu_context is a ptr
         cpu_context->load_active();
         cpu_context->build_request();
     }
@@ -1691,9 +1685,6 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         ///as well as ensuring the leg animations don't do anything silly
         ///this code contains a lot of redundant variables
         ///particularly annoying due to a lack of swizzling
-        //vec3f predicted = pos + global_dir;
-
-        //vec2f lpredict = {predicted.v[0], predicted.v[2]};
 
         vec2f dir_move = {global_dir.v[0], global_dir.v[2]};
 
@@ -1786,9 +1777,6 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     lfrac = clamp(lfrac, 0.f, 1.f);
     rfrac = clamp(rfrac, 0.f, 1.f);
 
-    //printf("%f %f\n", lfrac, rfrac);
-    //printf("%f %f %f\n", fin.v[0], fin.v[1], fin.v[2]);
-
     if(lmod < 0 && !idle)
     {
         float xv = -lfrac * (lfrac - 1);
@@ -1803,9 +1791,6 @@ void fighter::walk_dir(vec2f dir, bool sprint)
     }
 
     current_dir = current_dir.norm();
-
-    //printf("%f %f %f\n", current_dir.v[0], current_dir.v[1], current_dir.v[2]);
-    //printf("%f %f %f\n", parts[foot].pos.v[0], parts[foot].pos.v[1], parts[foot].pos.v[2]);
 
     float real_weight = 5.f;
 
@@ -1972,36 +1957,6 @@ bool fighter::can_attack(bodypart_t type)
 {
     ///find the last attack of the current type
     ///if its going, and within x ms of finishing, then fine
-
-    /*int last_pos = -1;
-
-    float currently_elapsed = 0;
-
-    for(int i=0; i<moves.size(); i++)
-    {
-        if(moves[i].limb == type)
-            last_pos = i;
-    }
-
-    if(last_pos == -1)
-        return true;
-
-    ///final move of this type not executed, probably cant attack
-    ///in the future we need to sum all the times, etc. Ie do it properly
-    if(!moves[last_pos].going)
-        return false;
-
-    float time_left = moves[last_pos].time_remaining();
-
-
-    const float threshold = 500;
-
-    if(time_left < threshold)
-    {
-        return true;
-    }
-
-    return false;*/
 
     int going_pos = -1;
     int any_queued = -1;
@@ -2187,15 +2142,8 @@ pos_rot to_world_space(vec3f world_pos, vec3f world_rot, vec3f local_pos, vec3f 
 
     vec3f n_pos = relative_pos + world_pos;
 
-    /*vec3f relative_pos = local_pos.back_rot({0,0,0}, local_rot);
-
-    vec3f n_pos = relative_pos.back_rot(world_pos, world_rot);
-
-    vec3f total_rot = world_rot + local_rot;*/
-
     return {n_pos, total_rot};
 }
-
 
 void smooth(vec3f& in, vec3f old, float dt)
 {
@@ -2212,8 +2160,6 @@ void smooth(vec3f& in, vec3f old, float dt)
 
     diff_indep = (diff_indep / vec_frac) * dt;
 
-    //in = (in + old) / 2.f;
-
     in = old + diff_indep;
 }
 
@@ -2226,15 +2172,11 @@ void smooth(float& in, float old, float dt)
         return;
     }
 
-    //vec3f vec_frac = {40.f, 35.f, 40.f};
-
     float frac = 35;
 
     float diff_indep = (in - old);
 
     diff_indep = (diff_indep / frac) * dt;
-
-    //in = (in + old) / 2.f;
 
     in = old + diff_indep;
 }
@@ -2244,10 +2186,6 @@ void smooth(float& in, float old, float dt)
 void fighter::update_render_positions()
 {
     using namespace bodypart;
-
-    /*float dt_smooth = 0.1f * frametime;// *frametime* 0.1f;
-
-    float dt_shoulder =  0.05f * frametime;// *frametime* 0.05f;*/
 
     if(!just_spawned)
     {
@@ -2301,34 +2239,6 @@ void fighter::update_render_positions()
         i.update_model();
     }
 
-    /*///do head look
-    {
-        part& p = parts[HEAD];
-
-        ///extrinsic xyz
-        vec3f rotation = p.global_rot;
-
-        vec3f rvec = p.global_pos - parts[BODY].global_pos;
-
-        ///want to rotate about x
-        float look_angle = look.v[0];
-
-        vec3f rotated_vec = rvec.rot({0,0,0}, {-look_angle/2.f, 0, 0});
-
-        ///i think the - is  because of the character's retarded
-        ///z reflection
-        rotation.v[0] = -look_angle;
-
-        vec3f new_pos = p.global_pos;
-
-        new_pos = new_pos + rotated_vec - rvec;
-
-        p.set_global_pos(new_pos);
-        p.set_global_rot(rotation);
-
-        p.update_model();
-    }*/
-
     ///the above headlook never worked
 
     {
@@ -2345,8 +2255,6 @@ void fighter::update_render_positions()
         vec3f extra_bob = {0, -extra, 0};
         camera_bob = extra_bob;
 
-        //rvec = wvec * 0.1f + rvec * 0.9f;
-
         rvec = wvec;
 
         vec3f base = parts[BODY].global_pos;
@@ -2362,8 +2270,6 @@ void fighter::update_render_positions()
 
         vec3f rotated_vec = r1.rot({0,0,0}, total_rot);
 
-        //vec3f angles = rotated_vec.get_euler();
-
         mat3f a1;
         a1.load_rotation_matrix((vec3f){-look_angle/2.f, 0, 0});
 
@@ -2375,15 +2281,10 @@ void fighter::update_render_positions()
         vec3f angles = a3.get_rotation();
 
         p.set_global_pos(rotated_vec + base + extra_bob);
-        //p.set_global_pos(rotated_vec + pos - rvec + p.pos + extra_bob);
         p.set_global_rot(angles);
 
         p.update_model();
     }
-
-    //parts[RHAND].set_global_pos(parts[LHAND].global_pos);
-    //parts[RHAND].update_model();
-
 
     auto r = to_world_space(pos, rot, weapon.pos, weapon.rot);
 
@@ -2395,18 +2296,6 @@ void fighter::update_render_positions()
     recalculate_link_positions_from_parts();
 
     ///sent rhand to point towards the weapon centre from its centre
-
-    /*vec3f to_centre = xyz_to_vec(weapon.model->pos) - parts[RHAND].global_pos;
-
-    vec3f sword_vec = weapon.pos
-
-    float len = to_centre.length();
-
-    if(len > 1.f)
-    {
-        parts[RHAND].set_global_rot(to_centre.get_euler());
-        parts[RHAND].update_model();
-    }*/
 
     for(int i=0; i<bodypart::COUNT; i++)
     {
@@ -2472,31 +2361,6 @@ void fighter::position_cosmetics()
 void fighter::network_update_render_positions()
 {
     using namespace bodypart;
-
-    /*for(auto& i : joint_links)
-    {
-        bool active = i.p1->is_active && i.p2->is_active;
-
-        objects_container* obj = i.obj;
-
-        cl_float4 op1 = i.p1->obj()->pos;
-        cl_float4 op2 = i.p2->obj()->pos;
-
-        vec3f start = xyz_to_vec(op1);
-        vec3f fin = xyz_to_vec(op2);
-
-        start = start + i.offset;
-        fin = fin + i.offset;
-
-        vec3f rot = (fin - start).get_euler();
-
-        vec3f dir = (fin - start);
-
-        start = start + dir * i.squish_frac;
-
-        obj->set_pos({start.v[0], start.v[1], start.v[2]});
-        obj->set_rot({rot.v[0], rot.v[1], rot.v[2]});
-    }*/
 
     for(auto& i : joint_links)
     {
@@ -2573,11 +2437,6 @@ void fighter::update_lights()
 
     for(auto& i : my_lights)
     {
-        /*if(team == 0)
-            i->set_col({1.f, 0.f, 0.f, 0.f});
-        else
-            i->set_col({0.f, 0.f, 1.f, 0.f});*/
-
         vec3f col = team_info::get_team_col(team) / 255.f;
 
         i->set_col({col.v[0], col.v[1], col.v[2]});
@@ -2635,8 +2494,6 @@ void fighter::respawn_if_appropriate()
             //printf("respawning other playern\n");
         }
     }
-
-    //printf("post_respawn\n");
 }
 
 ///net-fighters ONLY
@@ -2723,41 +2580,11 @@ void fighter::update_last_hit_id()
 ///
 void fighter::check_clientside_parry(fighter* non_networked_fighter)
 {
-    /*if(i.hit_id == -1 && i.does(mov::DAMAGING))
-    {
-        ///this is the GLOBAL move dir, current_pos could be all over the place due to interpolation, lag etc
-        vec3f move_dir = (focus_pos - old_pos).norm();
-
-        ///pass direction vector into here, then do the check
-        ///returns -1 on miss
-        i.hit_id = phys->sword_collides(weapon, this, move_dir, is_player);
-
-        ///if hit, need to signal the other fighter that its been hit with its hit id, relative to part num
-        if(i.hit_id != -1)
-        {
-            //float damage_amount = attacks::damage_amounts[]
-
-            fighter* their_parent = phys->bodies[i.hit_id].parent;
-
-            ///this is the only time damage is applied to anything, ever
-            their_parent->damage((bodypart_t)(i.hit_id % COUNT), i.damage, this->network_id);
-
-            ///this is where the networking fighters get killed
-            ///this is no longer true, may happen here or in server_networking
-            ///probably should remove this
-            their_parent->checked_death();
-
-            //printf("%s\n", names[i.hit_id % COUNT].c_str());
-        }
-    }*/
-
     if(net.is_damaging)
     {
         //printf("we're damaging network\n");
 
         vec3f move_dir = parts[bodypart::LHAND].global_pos - old_pos[bodypart::LHAND];
-
-        //std::cout << "ohand " << parts[bodypart::LHAND].global_pos << " " << old_pos[bodypart::LHAND] << std::endl;
 
         ///this is currently checking clientside parries against all players, whereas we only want to check
         ///this networked fighter against the local player
@@ -2869,8 +2696,6 @@ void fighter::eliminate_clientside_parry_invulnerability_damage()
             {
                 p.net.damage_info.hp_delta = 0.f;
 
-                //i.local.play_hit_audio = 0;
-
                 lg::log("eliminated hit damage due to clientside parry from playerid ", p.net.damage_info.id_hit_by);
             }
         }
@@ -2905,7 +2730,7 @@ void fighter::set_team(int _team)
 
     joint_links.clear();
 
-    float squish = 0.1f;//-0.2f;
+    float squish = 0.1f;
 
     ///now we know the team, we can add the joint parts
     using namespace bodypart;
@@ -2922,24 +2747,11 @@ void fighter::set_team(int _team)
     joint_links.push_back(make_link(&parts[LUPPERARM], &parts[BODY], team, squish));
     joint_links.push_back(make_link(&parts[RUPPERARM], &parts[BODY], team, squish));
 
-    /*joint_links.push_back(make_link(&parts[LUPPERARM], &parts[RUPPERARM], 0.1f, 25.f, {0, -bodypart::scale * 0.2, 0}));
-    joint_links.push_back(make_link(&parts[LUPPERARM], &parts[RUPPERARM], 0.1f, 23.f, {0, -bodypart::scale * 0.8, 0}));
-    joint_links.push_back(make_link(&parts[LUPPERLEG], &parts[RUPPERLEG], -0.2f, 21.f, {0, bodypart::scale * 0.2, 0}));*/
-
-    //joint_links.push_back(make_link(&parts[LUPPERARM], &parts[BODY], 0.2f, {0, -bodypart::scale * 0.75f, 0}));
-    //joint_links.push_back(make_link(&parts[RUPPERARM], &parts[BODY], 0.2f, {0, -bodypart::scale * 0.75f, 0}));
-
-    //joint_links.push_back(make_link(&parts[LUPPERARM], &parts[BODY], 0.2f, {0, -bodypart::scale * 1.5f, 0}));
-    //joint_links.push_back(make_link(&parts[RUPPERARM], &parts[BODY], 0.2f, {0, -bodypart::scale * 1.5f, 0}));
-
-    /*joint_links.push_back(make_link(&parts[LUPPERLEG], &parts[RUPPERLEG], 0.2f));*/
-
     joint_links.push_back(make_link(&parts[LUPPERLEG], &parts[LLOWERLEG], team, squish));
     joint_links.push_back(make_link(&parts[RUPPERLEG], &parts[RLOWERLEG], team, squish));
 
     joint_links.push_back(make_link(&parts[LLOWERLEG], &parts[LFOOT], team, squish));
     joint_links.push_back(make_link(&parts[RLOWERLEG], &parts[RFOOT], team, squish));
-
 
     for(auto& i : joint_links)
     {
@@ -2953,9 +2765,6 @@ void fighter::set_team(int _team)
         i.obj->set_specular(bodypart::specular);
     }
 
-    //cpu_context->build();
-    //cpu_context->flip();
-    //gpu_context = cpu_context->fetch();
     cpu_context->build_request();
 }
 
@@ -2990,18 +2799,6 @@ void fighter::cancel_hands()
     cancel(bodypart::RHAND);
 }
 
-///wont recoil more than once, because recoil is not a kind of windup
-/*void fighter::checked_recoil()
-{
-    movement lhand = action_map[bodypart::LHAND];
-    movement rhand = action_map[bodypart::RHAND];
-
-    if(lhand.does(mov::WINDUP) || rhand.does(mov::WINDUP))
-    {
-        recoil();
-    }
-}*/
-
 bool fighter::can_windup_recoil()
 {
     movement lhand = action_map[bodypart::LHAND];
@@ -3011,11 +2808,6 @@ bool fighter::can_windup_recoil()
     {
         return true;
     }
-
-    /*if(!lhand.does(mov::IS_RECOIL) && !rhand.does(mov::IS_RECOIL))
-    {
-        return true;
-    }*/
 
     return false;
 }
@@ -3075,7 +2867,6 @@ void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by)
 
     net.recoil = 1;
     net.recoil_dirty = true;
-    //network::host_update(&net.recoil);
 }
 
 void fighter::flinch(float time_ms)
@@ -3096,16 +2887,10 @@ void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)
 ///we need to update all fighters whenever there's an update, or a new fighter created
 void fighter::set_name(std::string name)
 {
-    //texture* tex = texture_manager::texture_by_id(name_tex_gpu.id);
-
     if(!name_tex_gpu)
         return;
 
     std::string ping_info = "\nPing: " + std::to_string((int)net.ping);
-
-    //lg::log("nping ", net.ping);
-
-    //lg::log("hithere", ping_info);
 
     local_name = name;
 
@@ -3116,19 +2901,9 @@ void fighter::set_name(std::string name)
 
     name_tex.setActive(true);
 
-    //name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false, cl::cqueue2);
-    //name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx, cl::cqueue2);
-
-    //name_tex.setActive(false);
-
     text::immediate(&name_tex, local_name + ping_info, fname/2.f, 16, true);
 
     name_tex.display();
-
-    //tex->update_gpu_texture_col({0.f, 255.f, 0.f, 255.f}, transparency_context->fetch()->tex_gpu);
-
-    //name_tex.setActive(true);
-
 
     name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false, cl::cqueue2);
     name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx, cl::cqueue2);
@@ -3156,15 +2931,10 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     name_tex.clear(sf::Color(0, 0, 0, 0));
     name_tex.display();
 
-    /*name_tex_gpu.set_texture_location("Res/128x128.png");
-    name_tex_gpu.set_unique();
-    name_tex_gpu.push();*/
-
     ///destroy name_tex_gpu
 
     name_tex_gpu = _transparency_context->tex_ctx.make_new();
     name_tex_gpu->set_location("Res/128x128.png");
-    //name_tex_gpu->set_unique();
 
     name_container = transparency_context->make_new();
     name_container->set_load_func(std::bind(obj_rect, std::placeholders::_1, *name_tex_gpu, name_obj_dim));
@@ -3179,12 +2949,6 @@ void fighter::set_secondary_context(object_context* _transparency_context)
     name_container->set_diffuse(10.f);
 
     transparency_context->build();
-
-    //transparency_context->build_request();
-    //transparency_context->flip();
-
-    //name_tex_gpu.update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu);
-    //name_tex_gpu.update_gpu_mipmaps(transparency_context->fetch()->tex_gpu);
 }
 
 void fighter::update_name_info(bool networked_fighter)
@@ -3216,9 +2980,6 @@ void fighter::update_name_info(bool networked_fighter)
                 str.push_back(net.net_name.v[i]);
             }
 
-            ///Don't think i need to null terminate this myself
-            //str.push_back(0);
-
             lg::log("fighter network name", str);
 
             if(str == "")
@@ -3246,9 +3007,6 @@ void fighter::check_and_play_sounds(bool player)
         if(i.local.play_hit_audio || i.net.play_hit_audio)
         {
             vec3f pos = i.global_pos;
-
-            //if(player)
-            //    pos = hpos;
 
             sound::add(0, pos);
 
