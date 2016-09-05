@@ -705,6 +705,8 @@ struct gameplay_state;
 
 struct map_cube_info;
 
+struct network_fighter;
+
 ///what a clusterfuck
 ///OK, its not the skeleton thats an issue, that's actually seemingly necessarily quite heavily integrated
 ///its the networking model, and directly networking components thats extremely problematic
@@ -841,6 +843,10 @@ struct fighter
     void process_delayed_deltas();
     void eliminate_clientside_parry_invulnerability_damage();
     void set_network_id(int32_t net_id);
+
+    ///per frame
+    network_fighter construct_network_fighter();
+    void construct_from_network_fighter(network_fighter& net_fight);
 
     void position_cosmetics();
 

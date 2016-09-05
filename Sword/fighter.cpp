@@ -17,6 +17,7 @@
 #include "../openclrenderer/logging.hpp"
 
 #include "map_tools.hpp"
+#include "network_fighter_model.hpp"
 
 vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fight)
 {
@@ -2702,6 +2703,18 @@ void fighter::eliminate_clientside_parry_invulnerability_damage()
 void fighter::set_network_id(int32_t net_id)
 {
     network_id = net_id;
+}
+
+///me to my network representation
+network_fighter fighter::construct_network_fighter()
+{
+
+}
+
+///network representation constructed to meet the requirements of a client actor
+void fighter::construct_from_network_fighter(network_fighter& net_fight)
+{
+
 }
 
 void fighter::set_team(int _team)

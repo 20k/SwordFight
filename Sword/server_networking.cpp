@@ -677,6 +677,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
     {
         if(have_id && discovered_fighters[my_id].fight != nullptr)
         {
+            *discovered_fighters[my_id].net_fighter = discovered_fighters[my_id].fight->construct_network_fighter();
+
             std::map<int, ptr_info> host_stack = build_host_network_stack(&discovered_fighters[my_id]);
 
             ///update remote fighters about me
@@ -705,6 +707,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             {
                 fighter* fight = net_fighter.second.fight;
                 int fight_id = net_fighter.first;
+
+                fight->construct_from_network_fighter(*net_fighter.second.net_fighter);
 
                 ///? should be impossibru
                 if(!fight)
