@@ -54,6 +54,9 @@ bbox get_bbox(objects_container* obj)
         }
     }
 
+    tl = tl * obj->dynamic_scale;
+    br = br * obj->dynamic_scale;
+
     return {tl, br};
 }
 

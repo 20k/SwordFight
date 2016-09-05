@@ -161,10 +161,7 @@ void part::scale()
 {
     float amount = bodypart::scale/3.f;
 
-    if(type != bodypart::HEAD)
-        model->scale(amount);
-    else
-        model->scale(amount);
+    model->set_dynamic_scale(amount);
 }
 
 objects_container* part::obj()
@@ -512,8 +509,7 @@ sword::sword(object_context& cpu)
 
 void sword::scale()
 {
-    model->scale(50.f);
-    //model->scale(250.f);
+    model->set_dynamic_scale(50.f);
     model->set_specular(0.4f);
 
     bound = get_bbox(model);
@@ -534,7 +530,7 @@ void sword::scale()
         }
     }
 
-    length = sword_height;
+    length = sword_height * model->dynamic_scale;
 }
 
 objects_container* sword::obj()
