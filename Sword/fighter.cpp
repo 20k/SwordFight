@@ -360,6 +360,8 @@ void part::perform_death(bool do_effect)
 
     cpu_context->load_active();
     cpu_context->build_request();
+
+    lg::log("Perform death");
 }
 
 void part::set_hp(float h)
@@ -727,6 +729,8 @@ void fighter::respawn(vec2f _pos)
 
     cpu_context->build_request();
 
+    lg::log("Respawn");
+
     //network::host_update(&net.dead);
 }
 
@@ -796,6 +800,8 @@ void fighter::die()
     cpu_context->load_active();
 
     cpu_context->build_request();
+
+    lg::log("Die");
 
     ///pipe out hp here, just to check
 }
@@ -1466,14 +1472,17 @@ void fighter::tick(bool is_player)
     manual_check_part_death();
 }
 
+///conflicts with manual check part alive
 void fighter::shared_tick()
 {
-    if(parts[bodypart::RHAND].obj()->isactive)
+    /*if(parts[bodypart::RHAND].obj()->isactive)
     {
         parts[bodypart::RHAND].obj()->set_active(false);
 
         cpu_context->build_request();
-    }
+
+        lg::log("Setactive shared");
+    }*/
 }
 
 void fighter::manual_check_part_death()
@@ -1518,6 +1527,8 @@ void fighter::manual_check_part_alive()
     {
         cpu_context->load_active();
         cpu_context->build_request();
+
+        lg::log("Check alive");
     }
 }
 
@@ -2745,6 +2756,8 @@ void fighter::set_team(int _team)
     }
 
     cpu_context->build_request();
+
+    lg::log("set_team");
 }
 
 void fighter::set_physics(physics* _phys)

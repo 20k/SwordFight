@@ -58,8 +58,6 @@ struct network_fighter
     network_part_info network_parts[bodypart::COUNT];
 
     network_fighter_info network_fighter_inf;
-
-
 };
 
 #endif // NETWORK_FIGHTER_MODEL_HPP_INCLUDED
