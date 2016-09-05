@@ -13,10 +13,12 @@ struct fighter;
 struct object_context;
 struct gameplay_state;
 struct physics;
+struct network_fighter; ///new fighter networking model
 
 ///should really register myself as network player
 struct network_player
 {
+    network_fighter* net_fighter = nullptr;
     fighter* fight = nullptr;
     int32_t id = -1;
     sf::Clock disconnect_timer;
@@ -150,7 +152,7 @@ struct ptr_info
     int size = 0;
 };
 
-std::map<int, ptr_info> build_fighter_network_stack(fighter* fight);
+std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight);
 
 template<typename T>
 inline
@@ -170,9 +172,11 @@ int get_position_of(std::map<int, ptr_info>& stk, T* elem)
 template<typename T>
 inline
 void
-network_update_element(server_networking* net, T* element, fighter* fight)
+network_update_element(server_networking* net, T* element, network_player* net_fight)
 {
-    auto memory_map = build_fighter_network_stack(fight);
+    fighter* fight = net_fight->fight;
+
+    auto memory_map = build_fighter_network_stack(net_fight);
 
     int32_t pos = get_position_of(memory_map, element);
 
@@ -214,9 +218,9 @@ network_update_element(server_networking* net, T* element, fighter* fight)
 template<typename T>
 inline
 void
-network_update_element_reliable(server_networking* net, T* element, fighter* fight)
+network_update_element_reliable(server_networking* net, T* element, network_player* net_fight)
 {
-    auto memory_map = build_fighter_network_stack(fight);
+    auto memory_map = build_fighter_network_stack(net_fight);
 
     int32_t pos = get_position_of(memory_map, element);
 
@@ -226,7 +230,7 @@ network_update_element_reliable(server_networking* net, T* element, fighter* fig
         return;
     }
 
-    int32_t network_id = net->get_id_from_fighter(fight);
+    int32_t network_id = net->get_id_from_fighter(net_fight->fight);
 
     if(network_id == -1)
     {

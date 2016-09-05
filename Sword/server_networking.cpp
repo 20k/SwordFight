@@ -1,6 +1,7 @@
 #include "server_networking.hpp"
 #include "fighter.hpp"
 #include "sound.hpp"
+#include "network_fighter_model.hpp"
 
 std::string respawn_info::get_display_string()
 {
@@ -178,8 +179,10 @@ ptr_info get_inf(void* ptr)
     return {ptr, N};
 }
 
-std::map<int, ptr_info> build_fighter_network_stack(fighter* fight)
+std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
 {
+    fighter* fight = net_fight->fight;
+
     std::map<int, ptr_info> fighter_stack;
 
     constexpr int s_f3 = sizeof(cl_float) * 3;
@@ -243,11 +246,13 @@ bool is_damage_info(fighter* fight, void* ptr)
     return false;
 }
 
-std::map<int, ptr_info> build_host_network_stack(fighter* fight)
+std::map<int, ptr_info> build_host_network_stack(network_player* net_fight)
 {
+    fighter* fight = net_fight->fight;
+
     constexpr int s_f3 = sizeof(cl_float) * 3;
 
-    std::map<int, ptr_info> total_stack = build_fighter_network_stack(fight);
+    std::map<int, ptr_info> total_stack = build_fighter_network_stack(net_fight);
 
     std::map<int, ptr_info> to_send;
 
@@ -498,7 +503,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 network_player& play = discovered_fighters[player_id];
 
-                std::map<int, ptr_info> arg_map = build_fighter_network_stack(play.fight);
+                std::map<int, ptr_info> arg_map = build_fighter_network_stack(&play);
 
                 if(component_id < 0 || component_id >= arg_map.size())
                 {
@@ -672,7 +677,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
     {
         if(have_id && discovered_fighters[my_id].fight != nullptr)
         {
-            std::map<int, ptr_info> host_stack = build_host_network_stack(discovered_fighters[my_id].fight);
+            std::map<int, ptr_info> host_stack = build_host_network_stack(&discovered_fighters[my_id]);
 
             ///update remote fighters about me
             for(auto& i : host_stack)
@@ -712,8 +717,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 {
                     ///make me reliable too! yay!
                     ///make reliable?
-                    network_update_element<int32_t>(this, &fight->net.recoil, fight);
-                    network_update_element<int32_t>(this, &fight->net.force_recoil, fight);
+                    network_update_element<int32_t>(this, &fight->net.recoil, &net_fighter.second);
+                    network_update_element<int32_t>(this, &fight->net.force_recoil, &net_fighter.second);
 
                     fight->net.recoil_dirty = false;
                 }
@@ -732,7 +737,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     {
                         fight->net.play_clang_audio = 1;
 
-                        network_update_element_reliable<int32_t>(this, &fight->net.play_clang_audio, fight);
+                        network_update_element_reliable<int32_t>(this, &fight->net.play_clang_audio, &net_fighter.second);
 
                         fight->net.play_clang_audio = 0;
                         fight->local.send_clang_audio = 0;
@@ -742,7 +747,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     {
                         if(i.net.hp_dirty)
                         {
-                            network_update_element_reliable<damage_information>(this, &i.net.damage_info, fight);
+                            network_update_element_reliable<damage_information>(this, &i.net.damage_info, &net_fighter.second);
 
                             i.net.damage_info.hp_delta = 0.f;
 
@@ -753,7 +758,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                         {
                             i.net.play_hit_audio = 1;
 
-                            network_update_element_reliable<int32_t>(this, &i.net.play_hit_audio, fight);
+                            network_update_element_reliable<int32_t>(this, &i.net.play_hit_audio, &net_fighter.second);
 
                             i.net.play_hit_audio = 0;
                             i.local.send_hit_audio = 0;
@@ -825,7 +830,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     my_fighter->net.net_name.v[i] = c;
                 }
 
-                network_update_element<vec<MAX_NAME_LENGTH + 1, char>>(this, &my_fighter->net.net_name, my_fighter);
+                network_update_element<vec<MAX_NAME_LENGTH + 1, char>>(this, &my_fighter->net.net_name, &discovered_fighters[my_id]);
 
                 //printf("updated network name\n");
 
@@ -1062,6 +1067,7 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
     network_player play;
     play.fight = net_fighter;
     play.id = id;
+    play.net_fighter = new network_fighter;
 
     //ctx->flip();
 
@@ -1077,7 +1083,7 @@ void server_networking::set_my_fighter(fighter* fight)
     if(!have_id)
         return;
 
-    discovered_fighters[my_id] = {fight, my_id};
+    discovered_fighters[my_id] = {new network_fighter, fight, my_id};
 
     fight->set_network_id(my_id);
 }
