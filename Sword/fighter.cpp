@@ -2708,12 +2708,48 @@ void fighter::set_network_id(int32_t net_id)
 ///me to my network representation
 network_fighter fighter::construct_network_fighter()
 {
+    network_fighter ret;
 
+    for(int i=0; i<bodypart::COUNT; i++)
+    {
+        network_part_info& current = ret.network_parts[i];
+
+        current.global_pos = parts[i].global_pos;
+        current.global_rot = parts[i].global_rot;
+
+        current.hp = parts[i].hp;
+    }
+
+    network_sword_info& sword_info = ret.network_sword;
+
+    sword_info.global_pos = xyz_to_vec(weapon.obj()->pos);
+    sword_info.global_rot = xyz_to_vec(weapon.obj()->rot);
+
+    sword_info.is_blocking = net.is_blocking;
+    sword_info.is_damaging = net.is_damaging;
+    sword_info.recoil_requested = net.recoil;
+    sword_info.recoil_forced = net.force_recoil;
+
+    network_fighter_info& fighter_info = ret.network_fighter_inf;
+
+    fighter_info.is_dead = dead();
+    fighter_info.pos = pos;
+    fighter_info.rot = rot;
+
+    int nlength = std::min((int)local_name.size(), MAX_NAME_LENGTH-1);
+
+    memset(fighter_info.name, 0, MAX_NAME_LENGTH);
+
+    if(local_name.size() > 0)
+        memcpy(fighter_info.name, &local_name[0], local_name.size());
+
+    return ret;
 }
 
 ///network representation constructed to meet the requirements of a client actor
 void fighter::construct_from_network_fighter(network_fighter& net_fight)
 {
+    ///we'll need to construct quite a few of these into net. for the time being, including name
 
 }
 

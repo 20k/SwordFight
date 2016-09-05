@@ -7,8 +7,8 @@
 
 struct network_part_info
 {
-    vec3f local_pos;
-    vec3f local_rot;
+    vec3f global_pos;
+    vec3f global_rot;
 
     float hp;
 };
@@ -19,8 +19,10 @@ struct network_sword_info
     vec3f global_rot;
 
     int32_t is_blocking = 0;
-    int32_t is_recoiling = 0;
+    //int32_t is_recoiling = 0;
     int32_t is_damaging = 0;
+    int32_t recoil_requested = 0;
+    int32_t recoil_forced = 0;
 };
 
 struct network_fighter_info
@@ -56,6 +58,8 @@ namespace network_message
 struct network_fighter
 {
     network_part_info network_parts[bodypart::COUNT];
+
+    network_sword_info network_sword;
 
     network_fighter_info network_fighter_inf;
 };
