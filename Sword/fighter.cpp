@@ -2769,6 +2769,11 @@ void fighter::construct_from_network_fighter(network_fighter& net_fight)
 
     net.is_blocking = sword_info.is_blocking;
     net.is_damaging = sword_info.is_damaging;
+
+    network_fighter_info& fighter_info = net_fight.network_fighter_inf;
+
+    pos = fighter_info.pos;
+    rot = fighter_info.rot;
 }
 
 void fighter::set_team(int _team)
