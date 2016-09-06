@@ -2768,6 +2768,7 @@ void fighter::construct_from_network_fighter(network_fighter& net_fight)
     weapon.update_model();
 
     net.is_blocking = sword_info.is_blocking;
+    net.is_damaging = sword_info.is_damaging;
 }
 
 void fighter::set_team(int _team)

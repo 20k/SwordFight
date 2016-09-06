@@ -209,7 +209,7 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
     fighter_stack[c++] = get_inf(&fight->net.reported_dead);
     fighter_stack[c++] = get_inf(&fight->net.play_clang_audio);
 
-    fighter_stack[c++] = get_inf(&fight->net.is_damaging);
+    fighter_stack[c++] = get_inf(&net->network_sword.is_damaging);
 
     fighter_stack[c++] = get_inf(&fight->net.net_name);
 
@@ -276,7 +276,7 @@ std::map<int, ptr_info> build_host_network_stack(network_player* net_fight)
 
     set_map_element(to_send, total_stack, &net->network_sword.is_blocking);
 
-    set_map_element(to_send, total_stack, &fight->net.is_damaging);
+    set_map_element(to_send, total_stack, &net->network_sword.is_damaging);
 
     set_map_element(to_send, total_stack, &fight->pos);
     set_map_element(to_send, total_stack, &fight->rot);
