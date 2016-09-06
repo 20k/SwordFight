@@ -4,6 +4,7 @@
 #include "../openclrenderer/light.hpp"
 #include "../sword_server/teaminfo_shared.hpp"
 #include "../openclrenderer/obj_load.hpp"
+#include "../openclrenderer/texture.hpp"
 
 std::vector<effect*> particle_effect::effects;
 
@@ -27,6 +28,8 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
 
     num = _num;
 
+    ///we need to update the cache to be able to deal with texture ids
+    ///have objects_container->cache_textures
     for(int i=0; i<num; i++)
     {
         vec3f p1 = {0,0,0};
@@ -54,7 +57,6 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
         objects.push_back(o);
     }
 
-    ///fix this to be cached
     /*for(int i=0; i<num; i++)
     {
         vec3f p1 = {0,0,0};

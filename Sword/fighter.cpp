@@ -19,6 +19,8 @@
 #include "map_tools.hpp"
 #include "network_fighter_model.hpp"
 
+#include "../openclrenderer/texture.hpp"
+
 vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fight)
 {
     if(current_time > time_ms)
