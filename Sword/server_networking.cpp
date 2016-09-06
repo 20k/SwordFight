@@ -195,6 +195,7 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
         fighter_stack[c++] = get_inf<s_f3>(&net->network_parts[i].global_pos);
         fighter_stack[c++] = get_inf<s_f3>(&net->network_parts[i].global_rot);
         fighter_stack[c++] = get_inf(&net->network_parts[i].hp);
+
         fighter_stack[c++] = get_inf(&fight->parts[i].net.damage_info);
         fighter_stack[c++] = get_inf(&fight->parts[i].net.play_hit_audio);
     }
@@ -203,6 +204,7 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
     fighter_stack[c++] = get_inf(&net->network_sword.global_rot);
 
     fighter_stack[c++] = get_inf(&net->network_sword.is_blocking);
+
     fighter_stack[c++] = get_inf(&fight->net.recoil);
     fighter_stack[c++] = get_inf(&fight->net.force_recoil);
 
@@ -211,7 +213,7 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
 
     fighter_stack[c++] = get_inf(&net->network_sword.is_damaging);
 
-    fighter_stack[c++] = get_inf(&fight->net.net_name);
+    fighter_stack[c++] = get_inf(&net->network_fighter_inf.name);
 
     fighter_stack[c++] = get_inf(&net->network_fighter_inf.pos);
     fighter_stack[c++] = get_inf(&net->network_fighter_inf.rot);
@@ -801,44 +803,16 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                     fight->net.reported_dead = 0;
                 }
-
-                //if(strcmp(fight->local_name.c_str(), &fight->net.net_name.v[0]) != 0 &&
-                //   fight_id != my_id)
-                /*if(fight_id != my_id && fight->name_reset_timer.getElapsedTime().asMilliseconds() > 5000.f)
-                {
-                    fight->local_name.clear();
-
-                    for(int i=0; i<MAX_NAME_LENGTH && fight->net.net_name.v[i] != 0; i++)
-                    {
-                        fight->local_name.push_back(fight->net.net_name.v[i]);
-                    }
-
-                    fight->set_name(fight->local_name);
-
-                    printf("received name %s\n", fight->local_name.c_str());
-
-                    fight->name_reset_timer.restart();
-                }*/
             }
 
             fighter* my_fighter = discovered_fighters[my_id].fight;
+            network_fighter* net_fighter = discovered_fighters[my_id].net_fighter;
 
             ///my name is not my network name
             ///update my network name and pipe to other clients
             if(my_fighter->name_resend_timer.getElapsedTime().asMilliseconds() > my_fighter->name_resend_time)
             {
-                memset(&my_fighter->net.net_name.v[0], 0, MAX_NAME_LENGTH);
-
-                for(int i=0; i<MAX_NAME_LENGTH && i < my_fighter->local_name.size(); i++)
-                {
-                    const char c = my_fighter->local_name[i];
-
-                    my_fighter->net.net_name.v[i] = c;
-                }
-
-                network_update_element<vec<MAX_NAME_LENGTH + 1, char>>(this, &my_fighter->net.net_name, &discovered_fighters[my_id]);
-
-                //printf("updated network name\n");
+                network_update_element<vec<MAX_NAME_LENGTH + 1, int8_t>>(this, &net_fighter->network_fighter_inf.name, &discovered_fighters[my_id]);
 
                 my_fighter->name_resend_timer.restart();
             }

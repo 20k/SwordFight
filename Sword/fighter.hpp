@@ -647,10 +647,6 @@ struct networked_components
 
     int32_t play_clang_audio = 0;
 
-    //char network_name[MAX_NAME_LENGTH + 1] = {0};
-    //name_struct net_name;
-    vec<MAX_NAME_LENGTH + 1, char> net_name = {0};
-
     float ping = 0;
 };
 

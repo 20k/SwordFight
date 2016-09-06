@@ -32,7 +32,7 @@ struct network_fighter_info
 
     int32_t is_dead = 0;
 
-    uint8_t name[MAX_NAME_LENGTH+1] = {0};
+    vec<MAX_NAME_LENGTH + 1, int8_t> name = {0};
 };
 
 namespace network_message

@@ -2740,10 +2740,10 @@ network_fighter fighter::construct_network_fighter()
 
     int nlength = std::min((int)local_name.size(), MAX_NAME_LENGTH-1);
 
-    memset(fighter_info.name, 0, MAX_NAME_LENGTH);
+    memset(&fighter_info.name.v[0], 0, MAX_NAME_LENGTH);
 
     if(local_name.size() > 0)
-        memcpy(fighter_info.name, &local_name[0], local_name.size());
+        memcpy(&fighter_info.name.v[0], &local_name[0], local_name.size());
 
     return ret;
 }
@@ -2777,6 +2777,23 @@ void fighter::construct_from_network_fighter(network_fighter& net_fight)
 
     pos = fighter_info.pos;
     rot = fighter_info.rot;
+
+    ///this is of length MAX_NAME_LENGTH + 1
+    fighter_info.name.v[MAX_NAME_LENGTH] = 0;
+
+    int str_length = strlen((const char*)&fighter_info.name.v[0]);
+
+    ///is this just paranoia?
+    str_length = std::min(str_length, MAX_NAME_LENGTH);
+
+    local_name.clear();
+    //memset(&net.net_name.v[0], 0, MAX_NAME_LENGTH); ///hopefully we can remove net_name entirely soon
+
+    for(int i=0; i<str_length; i++)
+    {
+        local_name.push_back(fighter_info.name.v[i]);
+        //net.net_name.v[i] = fighter_info.name.v[i];
+    }
 }
 
 void fighter::set_team(int _team)
@@ -3043,25 +3060,15 @@ void fighter::update_name_info(bool networked_fighter)
     if(name_reset_timer.getElapsedTime().asMilliseconds() > 1000.f || !name_info_initialised)
     {
         ///we've got the correct local name, but it wont blit for some reason
-        if(!networked_fighter)
-            set_name(local_name);
-        else
-        {
-            std::string str;
+        std::string str = local_name;
 
-            for(int i=0; i<MAX_NAME_LENGTH && net.net_name.v[i] != 0; i++)
-            {
-                str.push_back(net.net_name.v[i]);
-            }
+        if(str == "")
+            str = "Invalid Name";
 
-            lg::log("fighter network name", str);
+        set_name(str);
 
-            if(str == "")
-                str = "Invalid Name";
-
-            ///turns out the hack was just disguising the real problem (rendering an invalid string)
-            set_name(str);
-        }
+        if(networked_fighter)
+            lg::log("Fighter network name", str);
 
         name_reset_timer.restart();
 
