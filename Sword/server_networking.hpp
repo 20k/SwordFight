@@ -16,6 +16,10 @@ struct physics;
 struct network_fighter; ///new fighter networking model
 
 ///should really register myself as network player
+///ok, we're gunna have to have 3 representations
+///1 is raw, 1 is for the client to tinker with with no repercussions
+///1 is for the client to tinker with and authoritatively have the changes
+///networked
 struct network_player
 {
     network_fighter* net_fighter = nullptr;

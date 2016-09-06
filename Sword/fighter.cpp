@@ -2750,7 +2750,6 @@ network_fighter fighter::construct_network_fighter()
 void fighter::construct_from_network_fighter(network_fighter& net_fight)
 {
     ///we'll need to construct quite a few of these into net. for the time being, including name
-
     for(int i=0; i<bodypart::COUNT; i++)
     {
         network_part_info& current = net_fight.network_parts[i];
@@ -2760,6 +2759,15 @@ void fighter::construct_from_network_fighter(network_fighter& net_fight)
 
         parts[i].update_model();
     }
+
+    network_sword_info& sword_info = net_fight.network_sword;
+
+    weapon.set_pos(sword_info.global_pos);
+    weapon.set_rot(sword_info.global_rot);
+
+    weapon.update_model();
+
+    net.is_blocking = sword_info.is_blocking;
 }
 
 void fighter::set_team(int _team)
