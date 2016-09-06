@@ -194,7 +194,7 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
     {
         fighter_stack[c++] = get_inf<s_f3>(&net->network_parts[i].global_pos);
         fighter_stack[c++] = get_inf<s_f3>(&net->network_parts[i].global_rot);
-        fighter_stack[c++] = get_inf(&fight->parts[i].hp);
+        fighter_stack[c++] = get_inf(&net->network_parts[i].hp);
         fighter_stack[c++] = get_inf(&fight->parts[i].net.damage_info);
         fighter_stack[c++] = get_inf(&fight->parts[i].net.play_hit_audio);
     }
@@ -260,16 +260,10 @@ std::map<int, ptr_info> build_host_network_stack(network_player* net_fight)
 
     for(int i=0; i<fight->parts.size(); i++)
     {
-        /*set_map_element<s_f3>(to_send, total_stack, &fight->parts[i].obj()->pos);
-        set_map_element<s_f3>(to_send, total_stack, &fight->parts[i].obj()->rot);*/
-
         set_map_element<s_f3>(to_send, total_stack, &net->network_parts[i].global_pos);
         set_map_element<s_f3>(to_send, total_stack, &net->network_parts[i].global_rot);
-        set_map_element(to_send, total_stack, &fight->parts[i].hp);
+        set_map_element(to_send, total_stack, &net->network_parts[i].hp);
     }
-
-    //set_map_element(to_send, total_stack, &fight->weapon.model->pos);
-    //set_map_element(to_send, total_stack, &fight->weapon.model->rot);
 
     set_map_element(to_send, total_stack, &net->network_sword.global_pos);
     set_map_element(to_send, total_stack, &net->network_sword.global_rot);

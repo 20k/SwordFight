@@ -2758,6 +2758,7 @@ void fighter::construct_from_network_fighter(network_fighter& net_fight)
 
         parts[i].set_global_pos(current.global_pos);
         parts[i].set_global_rot(current.global_rot);
+        parts[i].hp = current.hp;
 
         parts[i].update_model();
     }
