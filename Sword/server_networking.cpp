@@ -326,7 +326,7 @@ void server_networking::handle_ping_data(byte_fetch& arg)
             continue;
         }
 
-        lg::log("Got ping ", player_ping, " for player ", player_id);
+        //lg::log("Got ping ", player_ping, " for player ", player_id);
 
         net_play.fight->net.ping = player_ping;
     }

@@ -3116,8 +3116,8 @@ void fighter::update_name_info(bool networked_fighter)
 
         set_name(str);
 
-        if(networked_fighter)
-            lg::log("Fighter network name", str);
+        //if(networked_fighter)
+        //    lg::log("Fighter network name", str);
 
         name_reset_timer.restart();
 
