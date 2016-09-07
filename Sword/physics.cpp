@@ -14,6 +14,7 @@
 #include "text.hpp"
 #include "sound.hpp"
 #include "../openclrenderer/network.hpp"
+#include "network_fighter_model.hpp"
 
 bool physobj::within(vec3f pos, vec3f fudge)
 {
@@ -106,7 +107,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
         return -1;
 
     ///we're recoiling, definitely can't hit anything
-    if(my_parent->net.recoil == 1)
+    //if(my_parent->net.recoil == 1)
+    if(my_parent->net_fighter_copy->network_fighter_inf.recoil_requested.get_local_val() == 1)
         return -1;
 
     //vec3f s_rot = w.rot;
@@ -259,7 +261,17 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                     ///If i'm the network client, this will do nothing for me
                     my_parent->recoil();
-                    my_parent->net.force_recoil = 1;
+                    //my_parent->net.force_recoil = 1;
+
+
+                    network_fighter& net_fighter = *my_parent->net_fighter_copy;
+
+                    net_fighter.network_fighter_inf.recoil_forced.set_local_val(1);
+                    net_fighter.network_fighter_inf.recoil_requested.set_local_val(1);
+
+                    net_fighter.network_fighter_inf.recoil_forced.network_local();
+                    net_fighter.network_fighter_inf.recoil_requested.network_local();
+
 
                     ///so, this will make me try and recoil in my local tick next tick
                     ///but obviously I'm already doing this, so it hardly matters
@@ -269,8 +281,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     ///and store the recoil on my client until their client clears it
                     ///and we receive it
                     ///that means on a clientside parry, we will not get damaged (as we've got a check for that)
-                    my_parent->net.recoil = 1;
-                    my_parent->net.recoil_dirty = true;
+                    //my_parent->net.recoil = 1;
+                    //my_parent->net.recoil_dirty = true;
 
                     ///only useful if we're the network client, to ensure that we don't damage
                     ///before the recoil takes place
@@ -307,8 +319,14 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
 
                     ///want to network them recoiling
                     ///their client will figure out whether or not it makes any sense
-                    them->net.recoil = 1;
-                    them->net.recoil_dirty = true;
+                    //them->net.recoil = 1;
+                    //them->net.recoil_dirty = true;
+
+                    network_fighter& their_net = *them->net_fighter_copy;
+
+                    their_net.network_fighter_inf.recoil_requested.set_local_val(1);
+                    their_net.network_fighter_inf.recoil_requested.network_local();
+
                     them->net.is_damaging = 0;
                     ///not host authoratitive, but will stop the clientside detection from crapping out
                     ///if we hit their hand the same tick - latency and misdetecting a hit

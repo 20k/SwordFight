@@ -183,6 +183,8 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
 {
     fighter* fight = net_fight->fight;
     network_fighter* net = net_fight->net_fighter;
+    network_fighter_info* fighter_info = &net->network_fighter_inf;
+
 
     std::map<int, ptr_info> fighter_stack;
 
@@ -205,8 +207,8 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
 
     fighter_stack[c++] = get_inf(&net->network_sword.is_blocking);
 
-    fighter_stack[c++] = get_inf(&fight->net.recoil);
-    fighter_stack[c++] = get_inf(&fight->net.force_recoil);
+    fighter_stack[c++] = get_inf(fighter_info->recoil_requested.get_networking_ptr());
+    fighter_stack[c++] = get_inf(fighter_info->recoil_forced.get_networking_ptr());
 
     fighter_stack[c++] = get_inf(&fight->net.reported_dead);
     fighter_stack[c++] = get_inf(&fight->net.play_clang_audio);
@@ -707,10 +709,13 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             }
 
             ///uuh. Looking increasingly like we should just include the home fighter in this one, eh?
+            ///all networking for foreign fighters and some of my own (its the same for both)
+            ///except home fighters network more things per-frame
             for(auto& net_fighter : discovered_fighters)
             {
                 fighter* fight = net_fighter.second.fight;
                 int fight_id = net_fighter.first;
+                network_fighter* net_fight = net_fighter.second.net_fighter;
 
                 ///? should be impossibru
                 if(!fight)
@@ -719,7 +724,21 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     continue;
                 }
 
-                if(fight->net.recoil_dirty)
+                network_fighter backup = *net_fight;
+
+                fight->modify_existing_network_fighter_with_local(*net_fight);
+
+                if(net_fight->network_fighter_inf.recoil_requested.should_send())
+                {
+                    network_update_element<int32_t>(this, net_fight->network_fighter_inf.recoil_requested.get_networking_ptr(), &net_fighter.second);
+                }
+
+                if(net_fight->network_fighter_inf.recoil_forced.should_send())
+                {
+                    network_update_element<int32_t>(this, net_fight->network_fighter_inf.recoil_forced.get_networking_ptr(), &net_fighter.second);
+                }
+
+                /*if(fight->net.recoil_dirty)
                 {
                     ///make me reliable too! yay!
                     ///make reliable?
@@ -727,7 +746,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     network_update_element<int32_t>(this, &fight->net.force_recoil, &net_fighter.second);
 
                     fight->net.recoil_dirty = false;
-                }
+                }*/
 
                 ///ok so this still doesnt work for quite a few reasons
                 ///mainly we send the delta and then 0 it, which makes parts respawn
@@ -803,6 +822,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                     fight->net.reported_dead = 0;
                 }
+
+                *net_fight = backup;
             }
 
             fighter* my_fighter = discovered_fighters[my_id].fight;
@@ -911,14 +932,18 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
     for(auto& i : discovered_fighters)
     {
         if(i.first == my_id)
+        {
+            if(i.second.id >= 0)
+                i.second.fight->save_network_representation(*i.second.net_fighter);
+
             continue;
+        }
 
         if(i.second.id < 0)
         {
             lg::log("super bad error, invalid fighter");
             continue;
         }
-
 
         i.second.fight->construct_from_network_fighter(*i.second.net_fighter);
 
@@ -1066,7 +1091,15 @@ void server_networking::set_my_fighter(fighter* fight)
     if(!have_id)
         return;
 
-    discovered_fighters[my_id] = {new network_fighter, fight, my_id};
+    network_player net_player;
+
+    net_player.net_fighter = new network_fighter;
+    net_player.fight = fight;
+    net_player.id = my_id;
+
+    //discovered_fighters[my_id] = {new network_fighter, fight, my_id};
+
+    discovered_fighters[my_id] = net_player;
 
     fight->set_network_id(my_id);
 }

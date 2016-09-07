@@ -638,10 +638,10 @@ struct networked_components
     int32_t is_damaging = 0; ///currently doing a damaging attack
     int32_t is_blocking = 0;
     //int dead = 0; ///networked status of killing, can be updated remotely
-    int32_t recoil = 0; ///this is a recoil request, not necessarily saying i AM(?)
-    int32_t force_recoil = 0;
+    //int32_t recoil = 0; ///this is a recoil request, not necessarily saying i AM(?)
+    //int32_t force_recoil = 0;
 
-    bool recoil_dirty = false;
+    //bool recoil_dirty = false;
 
     int32_t reported_dead = 0;
 
@@ -708,6 +708,10 @@ struct network_fighter;
 ///its the networking model, and directly networking components thats extremely problematic
 struct fighter
 {
+    ///this is the modifiable network representation of the network fighter
+    ///the player does not have a valid instance of this
+    network_fighter* net_fighter_copy;
+
     bool name_info_initialised = false;
 
     map_cube_info* cube_info = nullptr;
@@ -753,6 +757,7 @@ struct fighter
     vec3f old_pos[bodypart::COUNT];
 
     fighter(object_context& cpu_context, object_context_data& gpu_context);
+    ~fighter();
     void load();
 
     ///ideally we want movements to be ptrs, then delete them on removal
@@ -840,9 +845,13 @@ struct fighter
     void eliminate_clientside_parry_invulnerability_damage();
     void set_network_id(int32_t net_id);
 
+    ///player only
+    void save_network_representation(network_fighter& net_fight);
     ///per frame
     network_fighter construct_network_fighter();
     void construct_from_network_fighter(network_fighter& net_fight);
+    network_fighter get_modified_network_fighter();
+    void modify_existing_network_fighter_with_local(network_fighter& net_fight);
 
     void position_cosmetics();
 

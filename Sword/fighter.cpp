@@ -621,6 +621,13 @@ fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context
     rot = {0,0,0};
 
     game_state = nullptr;
+
+    net_fighter_copy = new network_fighter;
+}
+
+fighter::~fighter()
+{
+    delete net_fighter_copy;
 }
 
 void fighter::load()
@@ -646,9 +653,6 @@ void fighter::load()
     net.reported_dead = 0;
 
     performed_death = false;
-
-    net.recoil = false;
-    net.is_blocking = false;
 
     rot_diff = {0,0,0};
 
@@ -1154,14 +1158,29 @@ void fighter::tick(bool is_player)
     ///will be set to true if a move is currently doing a blocking action
     net.is_blocking = 0;
 
-    if(net.recoil)
+    network_fighter& my_network = *net_fighter_copy;
+
+    ///updated from networking, but we can modify it
+    ///Itll stay the same until it gets updated by the networking again
+    bool should_recoil = my_network.network_fighter_inf.recoil_requested.get_local_val();
+
+    if(should_recoil)
     {
-        if(can_windup_recoil() || net.force_recoil)
+        bool forced_recoil = my_network.network_fighter_inf.recoil_forced.get_local_val();
+
+        if(can_windup_recoil() || forced_recoil)
             recoil();
 
-        net.force_recoil = 0;
-        net.recoil = 0;
-        net.recoil_dirty = true;
+        my_network.network_fighter_inf.recoil_requested.set_local_val(0);
+        my_network.network_fighter_inf.recoil_forced.set_local_val(0);
+
+        my_network.network_fighter_inf.recoil_requested.network_local();
+        my_network.network_fighter_inf.recoil_forced.network_local();
+
+
+        //net.force_recoil = 0;
+        //net.recoil = 0;
+        //net.recoil_dirty = true;
     }
 
     ///use sword rotation offset to make sword 90 degrees at blocking
@@ -2707,6 +2726,18 @@ void fighter::set_network_id(int32_t net_id)
     network_id = net_id;
 }
 
+///only for the local player eh
+void fighter::save_network_representation(network_fighter& net_fight)
+{
+    *net_fighter_copy = net_fight;
+}
+
+///remember, we have to copy my values into the other struct before we can send them!
+network_fighter fighter::get_modified_network_fighter()
+{
+    return *net_fighter_copy;
+}
+
 ///me to my network representation
 network_fighter fighter::construct_network_fighter()
 {
@@ -2720,6 +2751,7 @@ network_fighter fighter::construct_network_fighter()
         current.global_rot = parts[i].global_rot;
 
         current.hp = parts[i].hp;
+        current.play_hit_audio = parts[i].net.play_hit_audio;
     }
 
     network_sword_info& sword_info = ret.network_sword;
@@ -2729,8 +2761,8 @@ network_fighter fighter::construct_network_fighter()
 
     sword_info.is_blocking = net.is_blocking;
     sword_info.is_damaging = net.is_damaging;
-    sword_info.recoil_requested = net.recoil;
-    sword_info.recoil_forced = net.force_recoil;
+    //sword_info.recoil_requested = net.recoil;
+    //sword_info.recoil_forced = net.force_recoil;
 
     network_fighter_info& fighter_info = ret.network_fighter_inf;
 
@@ -2749,6 +2781,11 @@ network_fighter fighter::construct_network_fighter()
 }
 
 ///network representation constructed to meet the requirements of a client actor
+///I think we should store the other network representations in the fighter itself
+///so that we can have one we can mod, one raw, and one authoritative
+///or store it in the network fighter and keep a ptr?
+///Or, keep it in a clunky struct and access through getters/setters to make it easier
+///to replace?
 void fighter::construct_from_network_fighter(network_fighter& net_fight)
 {
     ///we'll need to construct quite a few of these into net. for the time being, including name
@@ -2787,13 +2824,22 @@ void fighter::construct_from_network_fighter(network_fighter& net_fight)
     str_length = std::min(str_length, MAX_NAME_LENGTH);
 
     local_name.clear();
-    //memset(&net.net_name.v[0], 0, MAX_NAME_LENGTH); ///hopefully we can remove net_name entirely soon
 
     for(int i=0; i<str_length; i++)
     {
         local_name.push_back(fighter_info.name.v[i]);
-        //net.net_name.v[i] = fighter_info.name.v[i];
     }
+
+    *net_fighter_copy = net_fight;
+
+    net_fighter_copy->network_fighter_inf.recoil_forced.update_internal();
+    net_fighter_copy->network_fighter_inf.recoil_requested.update_internal();
+}
+
+void fighter::modify_existing_network_fighter_with_local(network_fighter& net_fight)
+{
+    net_fight.network_fighter_inf.recoil_forced = net_fighter_copy->network_fighter_inf.recoil_forced;
+    net_fight.network_fighter_inf.recoil_requested = net_fighter_copy->network_fighter_inf.recoil_requested;
 }
 
 void fighter::set_team(int _team)
@@ -2956,8 +3002,11 @@ void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by)
 
     player_id_i_was_last_hit_by = network_id_hit_by;
 
-    net.recoil = 1;
-    net.recoil_dirty = true;
+    net_fighter_copy->network_fighter_inf.recoil_requested.set_local_val(1);
+    net_fighter_copy->network_fighter_inf.recoil_requested.network_local();
+
+    //net.recoil = 1;
+    //net.recoil_dirty = true;
 }
 
 void fighter::flinch(float time_ms)
