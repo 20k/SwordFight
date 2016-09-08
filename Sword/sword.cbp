@@ -50,7 +50,6 @@
 				<Compiler>
 					<Add option="-pg" />
 					<Add option="-g" />
-					<Add option="-DPROFILING" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
@@ -64,12 +63,14 @@
 			<Add option="-Wno-unknown-pragmas" />
 			<Add option="-Wno-narrowing" />
 			<Add option="-Wno-sign-compare" />
+			<Add option="-Werror=return-type" />
 			<Add option="-DCL_USE_DEPRECATED_OPENCL_1_1_APIS" />
 			<Add option="-DNDEBUG" />
 			<Add option="-DGLEW_STATIC" />
 		</Compiler>
 		<Linker>
 			<Add option="-lmingw32" />
+			<Add option="-limgui" />
 			<Add option="-lsfml-graphics" />
 			<Add option="-lsfml-audio" />
 			<Add option="-lsfml-network" />
@@ -87,6 +88,7 @@
 			<Add option="-lopenal32" />
 			<Add option="-logg" />
 			<Add option="-lmyo64" />
+			<Add option="-limm32" />
 		</Linker>
 		<Unit filename="../openclrenderer/Game/Galaxy/galaxy.cpp" />
 		<Unit filename="../openclrenderer/Game/Galaxy/galaxy.hpp" />
@@ -163,6 +165,8 @@
 		<Unit filename="menu.hpp" />
 		<Unit filename="music.cpp" />
 		<Unit filename="music.hpp" />
+		<Unit filename="network_fighter_model.cpp" />
+		<Unit filename="network_fighter_model.hpp" />
 		<Unit filename="object_cube.cpp" />
 		<Unit filename="object_cube.hpp" />
 		<Unit filename="particle_effect.cpp" />
@@ -173,10 +177,14 @@
 			<Option weight="45" />
 		</Unit>
 		<Unit filename="server_networking.hpp" />
+		<Unit filename="skeletal_model.cpp" />
+		<Unit filename="skeletal_model.hpp" />
 		<Unit filename="sound.cpp" />
 		<Unit filename="sound.hpp" />
 		<Unit filename="text.cpp" />
 		<Unit filename="text.hpp" />
+		<Unit filename="ui_manager.cpp" />
+		<Unit filename="ui_manager.hpp" />
 		<Unit filename="util.hpp" />
 		<Unit filename="version.h" />
 		<Extensions>
@@ -185,7 +193,7 @@
 			<debugger />
 			<lib_finder disable_auto="1" />
 			<AutoVersioning>
-				<Scheme minor_max="100" build_max="0" rev_max="0" rev_rand_max="10" build_times_to_increment_minor="15" />
+				<Scheme minor_max="10" build_max="0" rev_max="0" rev_rand_max="100" build_times_to_increment_minor="1000" />
 				<Settings autoincrement="1" date_declarations="1" use_define="0" update_manifest="1" do_auto_increment="1" ask_to_increment="0" language="C++" svn="0" svn_directory="" header_path="version.h" />
 				<Changes_Log show_changes_editor="0" app_title="released version %M.%m.%b of %p" changeslog_path="ChangesLog.txt" />
 				<Code header_guard="VERSION_H" namespace="AutoVersion" prefix="" />
