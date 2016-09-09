@@ -1265,8 +1265,8 @@ int main(int argc, char *argv[])
 
             event = window.blend_with_depth(*tctx, *cdat);
 
-            cdat->swap_depth_buffers();
-            tctx->swap_depth_buffers();
+            cdat->swap_buffers();
+            tctx->swap_buffers();
 
             window.increase_render_events();
 
