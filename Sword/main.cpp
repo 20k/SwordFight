@@ -1278,7 +1278,9 @@ int main(int argc, char *argv[])
 
             window.increase_render_events();
 
+            #ifdef FASTER_BUT_LESS_CONSISTENT
             window.set_render_event(event);
+            #endif
         }
 
         context.build_tick();
