@@ -40,6 +40,9 @@ void ui_manager::tick_settings(float ftime_ms)
     res_x.set_default(sett->width);
     res_y.set_default(sett->height);
 
+    motion_blur_strength.set_default(sett->motion_blur_strength);
+    motion_blur_camera_contribution.set_default(sett->motion_blur_camera_contribution);
+
     player_name.set_default(sett->name);
 
     if(saved_settings_w != sett->width || saved_settings_h != sett->height)
@@ -70,6 +73,26 @@ void ui_manager::tick_settings(float ftime_ms)
         vals.player_name = new_name;
 
         sett->name = new_name;
+
+        config_dirty = true;
+    }
+
+    motion_blur_strength.set_bound(0.f, 2.f);
+    motion_blur_camera_contribution.set_bound(0.f, 1.f);
+
+    vals.motion_blur_strength = motion_blur_strength.instantiate_and_get("Motion blur strength").ret;
+    vals.motion_blur_camera_contribution = motion_blur_camera_contribution.instantiate_and_get("Motion blur camera contribution").ret;
+
+    if(sett->motion_blur_strength != vals.motion_blur_strength)
+    {
+        sett->motion_blur_strength = vals.motion_blur_strength;
+
+        config_dirty = true;
+    }
+
+    if(sett->motion_blur_camera_contribution != vals.motion_blur_camera_contribution)
+    {
+        sett->motion_blur_camera_contribution = vals.motion_blur_camera_contribution;
 
         config_dirty = true;
     }

@@ -196,6 +196,8 @@ struct configuration_values
     float mouse_sens = 1.f;
     int width = 1, height = 1;
     std::string player_name;
+    float motion_blur_strength;
+    float motion_blur_camera_contribution;
 };
 
 struct fighter;
@@ -210,6 +212,9 @@ struct ui_manager
 
     window_slider_getter<int> res_x;
     window_slider_getter<int> res_y;
+
+    window_slider_getter<float> motion_blur_strength;
+    window_slider_getter<float> motion_blur_camera_contribution;
 
     window_element_getter<std::string> player_name;
 
