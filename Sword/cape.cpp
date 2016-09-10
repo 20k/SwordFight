@@ -478,7 +478,7 @@ void cape::tick(fighter* parent)
     cloth_args.push_back(&b1);
     cloth_args.push_back(&b2);
     cloth_args.push_back(&fixed);
-    cloth_args.push_back(&gpu_context->gl_screen[gpu_context->nbuf].get());
+    cloth_args.push_back(&gpu_context->gl_screen[0].get());
     cloth_args.push_back(&buf);
     cloth_args.push_back(&num);
     cloth_args.push_back(&wind_dir);
