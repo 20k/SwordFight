@@ -3059,19 +3059,15 @@ void fighter::update_gpu_name()
     if(!name_tex_gpu)
         return;
 
-    if(gpu_name_dirty >= 3)
+    if(gpu_name_dirty >= 1)
         return;
 
     name_tex.setActive(true);
 
-    if(gpu_name_dirty == 0)
-        name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false, cl::cqueue2);
+    name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false, cl::cqueue2);
+    name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx, cl::cqueue2);
 
-    if(gpu_name_dirty == 1)
-        name_tex_gpu->update_gpu_mipmaps(transparency_context->fetch()->tex_gpu_ctx, cl::cqueue2);
-
-    if(gpu_name_dirty == 2)
-        cl::cqueue2.flush();
+    cl::cqueue2.flush();
 
     name_tex.setActive(false);
 
