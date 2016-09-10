@@ -1030,6 +1030,24 @@ void server_networking::update_fighter_name_infos()
     }
 }
 
+void server_networking::update_fighter_gpu_name()
+{
+    for(auto& i : discovered_fighters)
+    {
+        if(i.first == my_id)
+            continue;
+
+        if(i.second.id < 0)
+        {
+            lg::log("super bad error, invalid fighter 2");
+            continue;
+        }
+
+        if(!i.second.fight->dead())
+            i.second.fight->update_gpu_name();
+    }
+}
+
 int32_t server_networking::get_id_from_fighter(fighter* f)
 {
     for(auto& i : discovered_fighters)

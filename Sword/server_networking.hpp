@@ -135,6 +135,7 @@ struct server_networking
     void ping_master();
 
     void update_fighter_name_infos();
+    void update_fighter_gpu_name();
 
     void set_my_fighter(fighter* fight);
 

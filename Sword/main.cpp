@@ -1254,6 +1254,11 @@ int main(int argc, char *argv[])
             //window.draw_godrays(*cdat);
         }
 
+        fight.update_gpu_name();
+        fight2.update_gpu_name();
+        server.update_fighter_gpu_name();
+        window.window.resetGLStates();
+
         if(window.can_render())
         {
             //if(s.quality != 0)

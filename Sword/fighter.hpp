@@ -723,6 +723,9 @@ struct fighter
     int32_t player_id_i_was_last_hit_by = -1;
     int32_t network_id = -1;
 
+    int gpu_name_dirty;
+    float rand_offset_ms;
+
     cosmetics cosmetic;
 
     const float name_resend_time = 5000.f; ///ms
@@ -899,6 +902,7 @@ struct fighter
     void do_foot_sounds(bool is_player = false);
 
     void set_name(std::string _name);
+    void update_gpu_name();
     void set_secondary_context(object_context* _transparency_context);
     void update_name_info(bool networked_fighter = false);
 
