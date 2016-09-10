@@ -30,6 +30,7 @@ struct cube_effect : effect
     float scale;
 
     int num;
+    int team;
 
     std::vector<objects_container*> objects;
 

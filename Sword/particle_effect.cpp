@@ -27,6 +27,7 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
     elapsed_time.restart();
 
     num = _num;
+    team = _team;
 
     ///we need to update the cache to be able to deal with texture ids
     ///have objects_container->cache_textures
@@ -94,6 +95,11 @@ void cube_effect::activate()
         i->set_active(true);
 
         i->parent->load_active();
+
+        for(object& o : i->objs)
+        {
+            o.tid = i->parent->tex_ctx.make_new_cached(team_info::get_texture_cache_name(team))->id;
+        }
 
         float dyn_scale = randf<1, float>(2.f, 0.1f);
         i->set_dynamic_scale(dyn_scale);
