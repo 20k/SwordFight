@@ -39,6 +39,7 @@ namespace mov
         ALT_ATTACK = 1 << 17,
         CONTINUOUS_SPRINT = 1 << 18, ///terminates the moment we stop doing the attack
         NO_POST_QUEUE = 1 << 19, ///cannot be queued after
+        NO_CAMERA_LIMIT = 1 << 20,
     };
 }
 
@@ -544,7 +545,9 @@ static std::vector<movement> feint =
 ///this counts as a kind of windup so we can be staggered from it
 static std::vector<movement> sprint
 {
-    {0, {100, -200, -100}, 200, 0, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::CONTINUOUS_SPRINT | mov::NO_POST_QUEUE)}
+    ///for gameplay balance a camera limit is probably good
+    ///but to be honest its fairly horrible to play with, you should be able to freely sprint and look
+    {0, {100, -200, -100}, 200, 0, bodypart::LHAND, (movement_t)(mov::CONTINUOUS_SPRINT | mov::NO_POST_QUEUE | mov::NO_CAMERA_LIMIT)}
 };
 
 ///?

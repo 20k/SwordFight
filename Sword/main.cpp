@@ -220,7 +220,7 @@ void fps_controls(fighter* my_fight, engine& window)
     if(once<sf::Mouse::XButton2>())
         my_fight->queue_attack(attacks::OVERHEAD_ALT);
 
-    if(sprint)
+    if(sprint && walk_dir.v[0] < 0)
         my_fight->queue_attack(attacks::SPRINT);
 
     if(once<sf::Keyboard::Q>())
@@ -873,7 +873,7 @@ int main(int argc, char *argv[])
         my_fight->set_other_fighters(fighter_list);
 
         {
-            //fight2.queue_attack(attacks::OVERHEAD);
+            fight2.queue_attack(attacks::OVERHEAD);
             //fight2.queue_attack(attacks::SLASH);
             //fight2.queue_attack(attacks::BLOCK);
 
