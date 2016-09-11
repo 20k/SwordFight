@@ -36,7 +36,9 @@ namespace mov
         INVERSE_OVERHEAD_HACK = 1 << 14,
         IS_RECOIL = 1 << 15,
         NO_MOVEMENT = 1 << 16,
-        ALT_ATTACK = 1 << 17
+        ALT_ATTACK = 1 << 17,
+        CONTINUOUS_SPRINT = 1 << 18, ///terminates the moment we stop doing the attack
+        NO_POST_QUEUE = 1 << 19, ///cannot be queued after
     };
 }
 
@@ -385,6 +387,7 @@ struct movement
     ///even if !i.does(damaging), still might have a damage value
     ///if its part of an attack with some damage value to it
     float damage = 0.f;
+    int was_set_this_frame = 0;
 };
 
 namespace attacks
@@ -400,6 +403,7 @@ namespace attacks
         BLOCK,
         RECOIL,
         FEINT,
+        SPRINT,
         COUNT
     };
 
@@ -537,6 +541,12 @@ static std::vector<movement> feint =
     {0, {0, -150, -140}, 300, 3, bodypart::LHAND,  (movement_t)(mov::NONE)} ///attack
 };
 
+///this counts as a kind of windup so we can be staggered from it
+static std::vector<movement> sprint
+{
+    {0, {100, -200, -100}, 200, 0, bodypart::LHAND, (movement_t)(mov::WINDUP | mov::CONTINUOUS_SPRINT | mov::NO_POST_QUEUE)}
+};
+
 ///?
 //static std::vector<movement> jump;
 ///hmm. This is probably a bad plan
@@ -552,7 +562,8 @@ static std::map<attack_t, attack> attack_list =
     {attacks::REST, {rest}},
     {attacks::BLOCK, {block}},
     {attacks::RECOIL, {recoil}},
-    {attacks::FEINT, {feint}}
+    {attacks::FEINT, {feint}},
+    {attacks::SPRINT, {sprint}},
 };
 
 /*static std::map<attack_t, attack> attack_list2 =
@@ -865,6 +876,8 @@ struct fighter
     void cancel(bodypart_t type);
 
     bool can_attack(bodypart_t type);
+
+    movement* get_current_move(bodypart_t type);
 
     void cancel_hands();
     void recoil();

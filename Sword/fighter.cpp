@@ -1406,7 +1406,9 @@ void fighter::tick(bool is_player)
 
     for(auto it = moves.begin(); it != moves.end();)
     {
-        if(it->finished())
+        ///if we've finished and we're not a continuous action, erase
+        ///if we're a continuous action and we haven't been set this frame, terminate
+        if((it->finished() && !it->does(mov::CONTINUOUS_SPRINT)) || (it->does(mov::CONTINUOUS_SPRINT) && !it->was_set_this_frame))
         {
             action_map.erase(it->limb);
 
@@ -1414,6 +1416,14 @@ void fighter::tick(bool is_player)
         }
         else
             it++;
+    }
+
+    for(auto& i : moves)
+    {
+        if(i.does(mov::CONTINUOUS_SPRINT))
+        {
+            i.was_set_this_frame = 0;
+        }
     }
 
     vec3f jump_displacement = jump_info.get_relative_jump_displacement_tick(frametime, this);
@@ -1990,6 +2000,9 @@ bool fighter::can_attack(bodypart_t type)
 
         if(moves[i].limb == type)
             any_queued = i;
+
+        if(moves[i].limb && moves[i].does(mov::NO_POST_QUEUE))
+            return false;
     }
 
     ///nothing going, we can queue attack
@@ -2014,6 +2027,19 @@ bool fighter::can_attack(bodypart_t type)
     return false;
 }
 
+movement* fighter::get_current_move(bodypart_t type)
+{
+    for(int i=0; i < moves.size(); i++)
+    {
+        if(moves[i].limb == type && moves[i].going)
+        {
+            return &moves[i];
+        }
+    }
+
+    return nullptr;
+}
+
 ///this function assumes that an attack movelist keeps a consistent bodypart
 void fighter::queue_attack(attack_t type)
 {
@@ -2023,12 +2049,23 @@ void fighter::queue_attack(attack_t type)
     attack a = attack_list[type];
 
     if(a.moves.size() > 0 && !can_attack(a.moves.front().limb))
+    {
+        movement* cmove = get_current_move(a.moves.front().limb);
+
+        if(cmove && cmove->does(mov::CONTINUOUS_SPRINT))
+        {
+            cmove->was_set_this_frame = 1;
+        }
+
         return;
+    }
 
     for(auto i : a.moves)
     {
         ///this is probably a mistake to initialise this here
         i.damage = attacks::damage_amounts[type];
+
+        i.was_set_this_frame = 1;
 
         add_move(i);
     }

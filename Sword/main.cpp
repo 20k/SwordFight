@@ -154,6 +154,11 @@ void debug_controls(fighter* my_fight, engine& window)
     if(crouching)
         sprint = false;
 
+    if(sprint)
+    {
+        my_fight->queue_attack(attacks::SPRINT);
+    }
+
     if(my_fight->cube_info)
         walk_dir = my_fight->cube_info->transform_move_dir_no_rot(walk_dir);
 
@@ -215,6 +220,8 @@ void fps_controls(fighter* my_fight, engine& window)
     if(once<sf::Mouse::XButton2>())
         my_fight->queue_attack(attacks::OVERHEAD_ALT);
 
+    if(sprint)
+        my_fight->queue_attack(attacks::SPRINT);
 
     if(once<sf::Keyboard::Q>())
         my_fight->try_feint();
@@ -866,7 +873,7 @@ int main(int argc, char *argv[])
         my_fight->set_other_fighters(fighter_list);
 
         {
-            fight2.queue_attack(attacks::OVERHEAD);
+            //fight2.queue_attack(attacks::OVERHEAD);
             //fight2.queue_attack(attacks::SLASH);
             //fight2.queue_attack(attacks::BLOCK);
 
