@@ -65,12 +65,19 @@ struct network_wrap
     }*/
 };
 
+struct damage_info
+{
+    float hp_delta = 0;
+    int32_t id_hit_by = -1;
+};
+
 struct network_part_info
 {
     vec3f global_pos;
     vec3f global_rot;
 
     float hp = 0;
+    network_wrap<damage_info> requested_damage_info;
     int32_t play_hit_audio = 0;
 };
 

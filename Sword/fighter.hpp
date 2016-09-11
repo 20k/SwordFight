@@ -162,7 +162,31 @@ namespace bodypart
         0.f
     };
 
+    ///lets have a forward wiggle thats also based on the hip up/down
     ///fix the god damn reversal
+    constexpr static float forward_thrust_hip_relative[COUNT] =
+    {
+        0.f,
+        -1.f,
+        -0.5f,
+        -1.f,
+        -0.5f,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    };
+
+    constexpr float overall_forward_thrust_mod = 0.04f;
+    constexpr float overall_forward_thrust_mod_nonsprint = 0.02f;
+
+    constexpr float sprint_acceleration_time_ms = 250.f;
+
     static std::vector<std::string> short_names =
     {
         "Head",
@@ -542,7 +566,9 @@ static std::vector<movement> feint =
     {0, {0, -150, -140}, 300, 3, bodypart::LHAND,  (movement_t)(mov::NONE)} ///attack
 };
 
-///this counts as a kind of windup so we can be staggered from it
+///remember that this needs to be in 3 parts eventually
+///windup, continuous, winddown
+///with windup staggerable
 static std::vector<movement> sprint
 {
     ///for gameplay balance a camera limit is probably good
@@ -804,6 +830,9 @@ struct fighter
     physics* phys;
 
     vec3f look;
+
+    bool is_sprinting;
+    float sprint_frac;
 
     bool idling;
     bool performed_death; ///have i done my death stuff locally

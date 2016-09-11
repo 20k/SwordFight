@@ -157,6 +157,18 @@ void part::set_active(bool active)
 {
     model->set_active(active);
 
+    ///have to fix some of the network hodge-podgery first before this will work
+    ///as the active state of network fighters is overwritten by the model state
+    /*if(!model->isactive && active)
+    {
+        model->set_active(true);
+    }
+
+    if(model->isactive && !active)
+    {
+        model->hide();
+    }*/
+
     is_active = active;
 }
 
@@ -350,6 +362,8 @@ void part::update_texture_by_hp()
 
 void part::perform_death(bool do_effect)
 {
+    //printf("%f hp %i isactive\n", hp, is_active);
+
     if(do_effect)
     {
         cube_effect e;
@@ -632,6 +646,10 @@ fighter::~fighter()
 
 void fighter::load()
 {
+    sprint_frac = 0.f;
+
+    is_sprinting = false;
+
     rand_offset_ms = randf_s(0.f, 991.f);
 
     gpu_name_dirty = 0;
@@ -1682,13 +1700,27 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 
     float h = 120.f;
 
+    is_sprinting = false;
+
     if(dir.v[0] == -1 && sprint)
     {
-        time_elapsed *= fighter_stats::sprint_speed;
+        sprint_frac += time_elapsed / bodypart::sprint_acceleration_time_ms;
+
+        sprint_frac = clamp(sprint_frac, 0.f, 1.f);
+
+        time_elapsed = time_elapsed + time_elapsed * (fighter_stats::sprint_speed - 1) * sprint_frac;
         h *= 1.2f;
 
-        jump_info.last_speed *= fighter_stats::sprint_speed;
+        jump_info.last_speed = fighter_stats::speed + (fighter_stats::speed - 1.f) * fighter_stats::sprint_speed * sprint_frac;
+
+        is_sprinting = true;
     }
+    else
+    {
+        sprint_frac -= time_elapsed / bodypart::sprint_acceleration_time_ms;
+    }
+
+    sprint_frac = clamp(sprint_frac, 0.f, 1.f);
 
     float dist = 125.f;
 
@@ -2274,6 +2306,15 @@ void fighter::update_render_positions()
     foot_heights[1] = l_bob * 0.3 + r_bob * 0.7;
     foot_heights[2] = (foot_heights[0] + foot_heights[1]) / 2.f;
 
+    std::map<int, float> foot_displacements;
+
+    float l_f = parts[LFOOT].pos.v[2] - rest_positions[LFOOT].v[2];
+    float r_f = parts[RFOOT].pos.v[2] - rest_positions[RFOOT].v[2];
+
+    foot_displacements[0] = l_f;
+    foot_displacements[1] = r_f;
+    foot_displacements[2] = (l_f + r_f) / 2.f;
+
     for(part& i : parts)
     {
         vec3f t_pos = i.pos;
@@ -2287,6 +2328,14 @@ void fighter::update_render_positions()
         float twist_extra = shoulder_rotation * waggle_modifiers[i.type];
 
         t_pos = t_pos.rot({0,0,0}, {0, twist_extra, 0});
+
+        //if(is_sprinting)
+        float zsprint = foot_displacements[which_side[i.type]] * forward_thrust_hip_relative[i.type] * overall_forward_thrust_mod;
+        float znsprint = foot_displacements[which_side[i.type]] * forward_thrust_hip_relative[i.type] * overall_forward_thrust_mod_nonsprint;
+
+        float zextra = zsprint * sprint_frac + znsprint * (1.f - sprint_frac);
+
+        t_pos.v[2] += zextra;
 
         auto r = to_world_space(pos, rot, t_pos, i.rot);
 
@@ -2397,7 +2446,7 @@ void fighter::update_headbob_if_sprinting(bool sprinting)
 {
     float dir = sprinting ? 1 : -1;
 
-    if(last_walk_dir.v[1] >= 0)
+    if(last_walk_dir.v[0] >= 0)
         dir = -1;
 
     float modif = 100.f;
