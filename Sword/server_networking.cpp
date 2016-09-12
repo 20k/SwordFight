@@ -199,6 +199,7 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
         fighter_stack[c++] = get_inf(&net->network_parts[i].hp);
 
         fighter_stack[c++] = get_inf(&fight->parts[i].net.damage_info);
+        //fighter_stack[c++] = get_inf(&net->network_parts[i].requested_damage_info);
         fighter_stack[c++] = get_inf(&fight->parts[i].net.play_hit_audio);
     }
 
@@ -240,7 +241,7 @@ void set_map_element(std::map<int, ptr_info>& change, std::map<int, ptr_info>& s
     change[pos] = get_inf<N>(elem);
 }
 
-bool is_damage_info(fighter* fight, void* ptr)
+/*bool is_damage_info(fighter* fight, void* ptr)
 {
     for(auto& i : fight->parts)
     {
@@ -249,7 +250,7 @@ bool is_damage_info(fighter* fight, void* ptr)
     }
 
     return false;
-}
+}*/
 
 std::map<int, ptr_info> build_host_network_stack(network_player* net_fight)
 {
