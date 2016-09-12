@@ -54,6 +54,7 @@ void ui_manager::tick_settings(float ftime_ms)
         res_y.val = saved_settings_h;
     }
 
+    mouse_sensitivity.set_bound(0.001f, 100.f);
     vals.mouse_sens = mouse_sensitivity.instantiate_and_get("Mouse sens").ret;
 
     vals.width = res_x.instantiate_and_get("Res x").ret;

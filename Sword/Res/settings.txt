@@ -4,6 +4,6 @@
 1 #quality. 0 for low, 1 for high
 20k - dev #name
 DEBUG
-1.500000f #mouse sensitivity. Valid formats are x.yf, where x and y are numbers that you pick
+6.520000f #mouse sensitivity. Valid formats are x.yf, where x and y are numbers that you pick
 1.000000 #motion blur strength
 1.000000 #motion blur camera contribution, ie if this is low, we only get the motion blur due to objects moving
