@@ -46,6 +46,7 @@ namespace mov
         CONTINUOUS_SPRINT = 1 << 18, ///terminates the moment we stop doing the attack
         NO_POST_QUEUE = 1 << 19, ///cannot be queued after
         NO_CAMERA_LIMIT = 1 << 20,
+        ORIENT_TOWARDS_FACE = 1 << 21,
     };
 }
 
@@ -438,6 +439,7 @@ namespace attacks
         RECOIL,
         FEINT,
         SPRINT,
+        TROMBONE,
         COUNT
     };
 
@@ -585,6 +587,11 @@ static std::vector<movement> sprint
     {0, {100, -200, -100}, 200, 0, bodypart::LHAND, (movement_t)(mov::CONTINUOUS_SPRINT | mov::NO_POST_QUEUE | mov::NO_CAMERA_LIMIT)}
 };
 
+static std::vector<movement> trombone_hold
+{
+    {0, {-100, -100, -50}, 200, 0, bodypart::LHAND, mov::ORIENT_TOWARDS_FACE}
+};
+
 ///?
 //static std::vector<movement> jump;
 ///hmm. This is probably a bad plan
@@ -602,6 +609,7 @@ static std::map<attack_t, attack> attack_list =
     {attacks::RECOIL, {recoil}},
     {attacks::FEINT, {feint}},
     {attacks::SPRINT, {sprint}},
+    {attacks::TROMBONE, {trombone_hold}},
 };
 
 /*static std::map<attack_t, attack> attack_list2 =

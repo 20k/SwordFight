@@ -83,6 +83,11 @@ void debug_controls(fighter* my_fight, engine& window)
         my_fight->queue_attack(attacks::RECOIL);
     }
 
+    if(once<sf::Keyboard::Z>())
+    {
+        my_fight->queue_attack(attacks::TROMBONE);
+    }
+
     if(once<sf::Mouse::XButton1>())
         my_fight->queue_attack(attacks::SLASH_ALT);
 
@@ -219,6 +224,9 @@ void fps_controls(fighter* my_fight, engine& window)
 
     if(once<sf::Mouse::XButton2>())
         my_fight->queue_attack(attacks::OVERHEAD_ALT);
+
+    if(once<sf::Keyboard::Z>())
+        my_fight->queue_attack(attacks::TROMBONE);
 
     if(sprint && walk_dir.v[0] < 0)
         my_fight->queue_attack(attacks::SPRINT);

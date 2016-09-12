@@ -541,7 +541,8 @@ sword::sword(object_context& cpu)
 
     model->set_pos({0, 0, -100});
     dir = {0,0,0};
-    model->set_file("./Res/sword_red.obj");
+    //model->set_file("./Res/sword_red.obj");
+    model->set_file("./Res/trombone_cutdown_nomod.obj");
     team = -1;
 }
 
@@ -2413,8 +2414,18 @@ void fighter::update_render_positions()
 
     auto r = to_world_space(pos, rot, weapon.pos, weapon.rot);
 
+    vec3f up = {0, 1, 0};
+    vec3f forw = parts[LHAND].global_pos - parts[HEAD].global_pos;
+
+    quaternion nq = look_at_quat(forw, up);
+
     weapon.model->set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
     weapon.model->set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
+
+    quaternion izquat;
+    izquat.load_from_axis_angle({0, 1, 0, -rot.v[1]});
+
+    weapon.model->set_rot_quat(nq * izquat);
 
     ///calculate distance between links, dynamically adjust positioning
     ///so there's equal slack on both sides
