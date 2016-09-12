@@ -291,7 +291,7 @@ void part::damage(fighter* parent, float dam, bool do_effect, int32_t network_id
 
     //net.damage_info.id_hit_by = network_id_hit_by;
 
-    request_network_hp_delta(hp - dam, parent);
+    request_network_hp_delta(-dam, parent);
 
     damage_info current_info = parent->net_fighter_copy->network_parts[type].requested_damage_info.networked_val;
 
@@ -2756,11 +2756,15 @@ void fighter::check_clientside_parry(fighter* non_networked_fighter)
 
 void fighter::process_delayed_deltas()
 {
-    for(auto& i : parts)
+    //for(auto& i : parts)
+    for(int kk=0; kk<parts.size(); kk++)
     {
-        for(int j=0; j<i.net.delayed_delt.size(); j++)
+        part& local_part = parts[kk];
+        //network_part_info& net_part = net_fighter_copy->network_parts[kk];
+
+        for(int j=0; j<local_part.net.delayed_delt.size(); j++)
         {
-            delayed_delta& delt = i.net.delayed_delt[j];
+            delayed_delta& delt = local_part.net.delayed_delt[j];
 
             float RTT = delt.delay_time_ms;
 
@@ -2770,6 +2774,8 @@ void fighter::process_delayed_deltas()
             if(delt.clk.getElapsedTime().asMicroseconds() / 1000.f >= half_time)
             {
                 lg::log("Processing delayed hit with RTT/2 ", half_time, " and time clock ", delt.clk.getElapsedTime().asMicroseconds() / 1000.f);
+
+                lg::log("Damage ", delt.delayed_info.hp_delta);
 
                 bool apply_damage = true;
 
@@ -2787,7 +2793,8 @@ void fighter::process_delayed_deltas()
 
                 if(apply_damage)
                 {
-                    i.hp += delt.delayed_info.hp_delta;
+                    local_part.hp += delt.delayed_info.hp_delta;
+                    //net_part.hp += delt.delayed_info.hp_delta;
 
                     ///hmm, so this is delayed
                     ///so flinch will apply after the ping delay
@@ -2800,7 +2807,7 @@ void fighter::process_delayed_deltas()
                     lg::log("Did not apply delayed damage due to client parry");
                 }
 
-                i.net.delayed_delt.erase(i.net.delayed_delt.begin() + j);
+                local_part.net.delayed_delt.erase(local_part.net.delayed_delt.begin() + j);
                 j--;
             }
         }
