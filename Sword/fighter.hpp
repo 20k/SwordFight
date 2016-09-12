@@ -12,6 +12,12 @@
 #include "cape.hpp"
 //#include "map_tools.hpp"
 
+struct damage_info
+{
+    float hp_delta = 0;
+    int32_t id_hit_by = -1;
+};
+
 namespace mov
 {
     enum movement_type : unsigned int
@@ -274,7 +280,7 @@ struct damage_information
 
 struct delayed_delta
 {
-    damage_information delayed_info;
+    damage_info delayed_info;
     float delay_time_ms = 200.f;
     sf::Clock clk;
 };
@@ -282,10 +288,10 @@ struct delayed_delta
 ///this was a good idea
 struct network_part
 {
-    bool hp_dirty = false;
+    //bool hp_dirty = false;
     //float hp_delta = 0.f;
 
-    damage_information damage_info;
+    //damage_information damage_info;
 
     std::vector<delayed_delta> delayed_delt;
 
@@ -297,6 +303,8 @@ struct local_part
     int32_t play_hit_audio = 0;
     int32_t send_hit_audio = 0;
 };
+
+struct fighter;
 
 ///need to network part hp
 struct part
@@ -329,8 +337,9 @@ struct part
 
     void set_team(int _team);
     void load_team_model();
-    void damage(float dam, bool do_effect = true, int32_t network_id_hit_by = -1);
+    void damage(fighter* parent, float dam, bool do_effect = true, int32_t network_id_hit_by = -1);
     void set_hp(float h);
+    void request_network_hp_delta(float delta, fighter* parent);
     void perform_death(bool do_effect = true);
 
     void set_quality(int _quality);

@@ -239,19 +239,16 @@ void fps_controls(fighter* my_fight, engine& window)
     m.v[0] = window.get_mouse_sens_adjusted_x();
     m.v[1] = window.get_mouse_sens_adjusted_y();
 
+    float source_m_yaw = 0.0003839723;
+
+    float yout = m.v[0] * source_m_yaw;
+
     ///ok, so this is essentially c_rot_keyboard_only
     ///ie local
     ///ie we give no fucks anymore because the mouse look scheme is fully consistent from local -> global
     ///ie we can ignore this, just apply the overall matrix rotation and offset to te position
     ///and etc
-    my_fight->set_rot_diff({0, -m.v[0] / 100.f, 0.f});
-
-    vec3f o_rot = xyz_to_vec(window.c_rot);
-
-    o_rot.v[1] = my_fight->rot.v[1];
-    o_rot.v[0] += m.v[1] / 200.f;
-
-    //window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
+    my_fight->set_rot_diff({0, -yout, 0.f});
 }
 
 input_delta fps_camera_controls(float frametime, const input_delta& input, engine& window, const fighter* my_fight)
@@ -267,8 +264,13 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
     ///sigh. Do matrices
     vec3f o_rot = xyz_to_vec(input.c_rot_keyboard_only);
 
+    float source_m_yaw = 0.0003839723f;
+
+    float out = m.v[1] * source_m_yaw;
+
     o_rot.v[1] = my_fight->rot.v[1];
-    o_rot.v[0] += m.v[1] / 150.f;
+    //o_rot.v[0] += m.v[1] / 150.f;
+    o_rot.v[0] += out;
 
     //window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
 

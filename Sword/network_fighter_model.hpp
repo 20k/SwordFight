@@ -52,6 +52,8 @@ struct network_wrap
     {
         unmodified_val = networked_val;
         local_val = networked_val;
+
+        should_network = false;
     }
 
     void network_local()
@@ -63,12 +65,6 @@ struct network_wrap
     {
         networked_val = T();
     }*/
-};
-
-struct damage_info
-{
-    float hp_delta = 0;
-    int32_t id_hit_by = -1;
 };
 
 struct network_part_info

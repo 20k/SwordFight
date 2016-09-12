@@ -198,8 +198,9 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
         fighter_stack[c++] = get_inf<s_f3>(&net->network_parts[i].global_rot);
         fighter_stack[c++] = get_inf(&net->network_parts[i].hp);
 
-        fighter_stack[c++] = get_inf(&fight->parts[i].net.damage_info);
+        //fighter_stack[c++] = get_inf(&fight->parts[i].net.damage_info);
         //fighter_stack[c++] = get_inf(&net->network_parts[i].requested_damage_info);
+        fighter_stack[c++] = get_inf(net->network_parts[i].requested_damage_info.get_networking_ptr());
         fighter_stack[c++] = get_inf(&fight->parts[i].net.play_hit_audio);
     }
 
@@ -769,25 +770,36 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                         fight->local.send_clang_audio = 0;
                     }
 
-                    for(auto& i : fight->parts)
+                    //for(part& i : fight->parts)
+                    for(int kk=0; kk < fight->parts.size(); kk++)
                     {
-                        if(i.net.hp_dirty)
+                        part& local_part = fight->parts[kk];
+
+                        /*if(i.net.hp_dirty)
                         {
                             network_update_element_reliable<damage_information>(this, &i.net.damage_info, &net_fighter.second);
 
                             i.net.damage_info.hp_delta = 0.f;
 
                             i.net.hp_dirty = false;
+                        }*/
+
+                        network_part_info& net_part = net_fight->network_parts[kk];
+
+                        ///so the local hp delta should be reset in construct from network
+                        if(net_part.requested_damage_info.should_send())
+                        {
+                            network_update_element_reliable<damage_info>(this, net_part.requested_damage_info.get_networking_ptr(), &net_fighter.second);
                         }
 
-                        if(i.local.send_hit_audio)
+                        if(local_part.local.send_hit_audio)
                         {
-                            i.net.play_hit_audio = 1;
+                            local_part.net.play_hit_audio = 1;
 
-                            network_update_element_reliable<int32_t>(this, &i.net.play_hit_audio, &net_fighter.second);
+                            network_update_element_reliable<int32_t>(this, &local_part.net.play_hit_audio, &net_fighter.second);
 
-                            i.net.play_hit_audio = 0;
-                            i.local.send_hit_audio = 0;
+                            local_part.net.play_hit_audio = 0;
+                            local_part.local.send_hit_audio = 0;
                         }
                     }
                 }
@@ -859,22 +871,28 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             for(int i=0; i<my_fighter->parts.size(); i++)
             {
                 part& p = my_fighter->parts[i];
+                network_part_info& net_p = net_fighter->network_parts[i];
+
 
                 ///I set my own HP, don't update my hp with the delta
-                if(p.net.hp_dirty)
+                /*if(p.net.hp_dirty)
                 {
                     p.net.hp_dirty = false;
                     p.net.damage_info.hp_delta = 0.f;
-                }
+                }*/
 
-                if(p.net.damage_info.hp_delta != 0.f)
+                //if(p.net.damage_info.hp_delta != 0.f)
+                ///this structure is NOT polluted *EVER* with local client data
+                ///local client data is stored in a separate structure, and only used above
+                ///this copy is restored afterwards
+                if(net_p.requested_damage_info.networked_val.hp_delta != 0)
                 {
-                    //p.hp += p.net.damage_info.hp_delta;
-
                     delayed_delta delt;
-                    delt.delayed_info = p.net.damage_info;
+                    ///hmm. Update internal is never called on the networking model stuff
+                    delt.delayed_info = net_p.requested_damage_info.networked_val;
+                    //delt.delayed_info = p.net.damage_info;
 
-                    int32_t id_who_hit_me = p.net.damage_info.id_hit_by;
+                    int32_t id_who_hit_me = net_p.requested_damage_info.networked_val.id_hit_by;
 
                     if(id_who_hit_me >= 0)
                     {
@@ -897,20 +915,20 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                             discovered_fighters.erase(id_who_hit_me);
                         }
-
                     }
 
                     p.net.delayed_delt.push_back(delt);
 
-                    lg::log("Logging the start of a delayed delta from ", p.net.damage_info.id_hit_by);
+                    lg::log("Logging the start of a delayed delta from ", net_p.requested_damage_info.networked_val.id_hit_by);
 
                     ///if two packets arrive at once, this will not work correctly
-                    my_fighter->last_hp_delta = p.net.damage_info.hp_delta;
+                    my_fighter->last_hp_delta = net_p.requested_damage_info.networked_val.hp_delta;
                     my_fighter->last_part_id = i;
 
-                    p.net.damage_info.hp_delta = 0.f;
+                    ///???
+                    net_p.requested_damage_info.networked_val.hp_delta = 0.f;
 
-                    my_fighter->player_id_i_was_last_hit_by = p.net.damage_info.id_hit_by;
+                    my_fighter->player_id_i_was_last_hit_by = net_p.requested_damage_info.networked_val.id_hit_by;
 
                     //printf("You've been hit by, you've been struck by, player with id %i\n", my_fighter->player_id_i_was_last_hit_by);
                 }
@@ -946,6 +964,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             continue;
         }
 
+        ///
         i.second.fight->construct_from_network_fighter(*i.second.net_fighter);
 
         ///for some reason, its respawning the other player a 2/3 parts dead

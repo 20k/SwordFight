@@ -285,11 +285,19 @@ void part::set_quality(int _quality)
 ///the hp stat to the destination. This is probably acceptable
 
 ///temp error as this class needs gpu access
-void part::damage(float dam, bool do_effect, int32_t network_id_hit_by)
+void part::damage(fighter* parent, float dam, bool do_effect, int32_t network_id_hit_by)
 {
-    set_hp(hp - dam);
+    //set_hp(hp - dam);
 
-    net.damage_info.id_hit_by = network_id_hit_by;
+    //net.damage_info.id_hit_by = network_id_hit_by;
+
+    request_network_hp_delta(hp - dam, parent);
+
+    damage_info current_info = parent->net_fighter_copy->network_parts[type].requested_damage_info.networked_val;
+
+    current_info.id_hit_by = network_id_hit_by;
+
+    parent->net_fighter_copy->network_parts[type].requested_damage_info.set_transmit_val(current_info);
 
     if(is_active && hp < 0.0001f)
     {
@@ -299,7 +307,17 @@ void part::damage(float dam, bool do_effect, int32_t network_id_hit_by)
     ///so, lets do this elsewhere
 }
 
-#include <vec/vec.hpp>
+///so delta gets reset to 0 post networking, ie per frame
+void part::request_network_hp_delta(float delta, fighter* parent)
+{
+    network_part_info& net_p = parent->net_fighter_copy->network_parts[type];
+
+    damage_info current_info = parent->net_fighter_copy->network_parts[type].requested_damage_info.networked_val;
+
+    current_info.hp_delta = delta;
+
+    parent->net_fighter_copy->network_parts[type].requested_damage_info.set_transmit_val(current_info);
+}
 
 void part::update_texture_by_hp()
 {
@@ -387,14 +405,15 @@ void part::set_hp(float h)
 
     hp = h;
 
-    network_hp(delta);
+    //network_hp(delta);
 }
 
-void part::network_hp(float delta)
+
+/*void part::network_hp(float delta)
 {
     net.hp_dirty = true;
     net.damage_info.hp_delta += delta;
-}
+}*/
 
 bool part::alive()
 {
@@ -2594,11 +2613,16 @@ void fighter::respawn_if_appropriate()
 
             ///hack to stop it from networking the hp change
             ///from respawning the network fighter
-            for(auto& i : parts)
+            ///I think we no longer need to do this
+            ///we probably want to clear any delayed deltas etc
+            ///although the respawn time means its probably not applicable
+            /*for(auto& i : parts)
             {
                 i.net.damage_info.hp_delta = 0.f;
                 i.net.hp_dirty = false;
-            }
+            }*/
+
+
 
             //printf("respawning other playern\n");
         }
@@ -2656,16 +2680,23 @@ void fighter::update_last_hit_id()
 {
     int32_t last_id = -1;
 
-    for(auto& i : parts)
+    //for(auto& i : parts)
+    for(int ii=0; ii<parts.size(); ii++)
     {
-        if(i.net.damage_info.hp_delta != 0.f)
+        part& local_part = parts[ii];
+        network_part_info& net_part = net_fighter_copy->network_parts[ii];
+
+        damage_info& dinfo = net_part.requested_damage_info.networked_val;
+
+        //if(i.net.damage_info.hp_delta != 0.f)
+        if(dinfo.hp_delta != 0)
         {
             //i.net.damage_info.hp_delta = 0.f;
 
             if(last_id != -1)
                 lg::log("potential conflict in last id hit, update_last_hit_id()");
 
-            if(i.net.damage_info.id_hit_by == -1)
+            if(dinfo.id_hit_by == -1)
             {
                 ///continue
                 ///but this might be broken currently
@@ -2677,7 +2708,7 @@ void fighter::update_last_hit_id()
                 continue;
             }
 
-            last_id = i.net.damage_info.id_hit_by;
+            last_id = dinfo.id_hit_by;
 
             player_id_i_was_last_hit_by = last_id;
 
@@ -2686,7 +2717,7 @@ void fighter::update_last_hit_id()
     }
 }
 
-///
+///we need to check the case where i've definitely been stabbed on my game
 void fighter::check_clientside_parry(fighter* non_networked_fighter)
 {
     if(net.is_damaging)
@@ -2801,11 +2832,28 @@ void fighter::eliminate_clientside_parry_invulnerability_damage()
 
             ///set i.local.play_hit_audio to false
             ///but ignore that for the moment, useful for testing
-            if(inf.player_id_i_parried == p.net.damage_info.id_hit_by)
+            ///uuh. We really need to stash hp deltas into an array of damage_infos
+            ///and then check and apply them later
+            ///atm this might break any damage received in a parry window + RTT/2, which is unacceptable
+            /*if(inf.player_id_i_parried == p.net.damage_info.id_hit_by)
             {
                 p.net.damage_info.hp_delta = 0.f;
 
                 lg::log("eliminated hit damage due to clientside parry from playerid ", p.net.damage_info.id_hit_by);
+            }*/
+
+            ///current part is part[i]
+            for(int kk=0; kk<p.net.delayed_delt.size(); kk++)
+            {
+                if(p.net.delayed_delt[kk].delayed_info.id_hit_by == inf.player_id_i_parried)
+                {
+                    p.net.delayed_delt.erase(p.net.delayed_delt.begin() + kk);
+                    kk--;
+
+                    lg::log("eliminated hit damage due to clientside parry from playerid ", inf.player_id_i_parried);
+
+                    continue;
+                }
             }
         }
     }
@@ -2829,6 +2877,7 @@ network_fighter fighter::get_modified_network_fighter()
 }
 
 ///me to my network representation
+///this doesnt include hp deltas
 network_fighter fighter::construct_network_fighter()
 {
     network_fighter ret;
@@ -2888,6 +2937,9 @@ void fighter::construct_from_network_fighter(network_fighter& net_fight)
         parts[i].hp = current.hp;
 
         parts[i].update_model();
+
+        ///reset the to_send, reset internal values to either network, or 0
+        net_fight.network_parts[i].requested_damage_info.update_internal();
     }
 
     network_sword_info& sword_info = net_fight.network_sword;
@@ -2930,6 +2982,11 @@ void fighter::modify_existing_network_fighter_with_local(network_fighter& net_fi
 {
     net_fight.network_fighter_inf.recoil_forced = net_fighter_copy->network_fighter_inf.recoil_forced;
     net_fight.network_fighter_inf.recoil_requested = net_fighter_copy->network_fighter_inf.recoil_requested;
+
+    for(int i=0; i<parts.size(); i++)
+    {
+        net_fight.network_parts[i].requested_damage_info = net_fighter_copy->network_parts[i].requested_damage_info;
+    }
 }
 
 void fighter::set_team(int _team)
@@ -3086,7 +3143,7 @@ void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by)
 
     bool do_explode_effect = num_dead() < num_needed_to_die() - 1;
 
-    parts[type].damage(d, do_explode_effect, network_id_hit_by);
+    parts[type].damage(this, d, do_explode_effect, network_id_hit_by);
 
     lg::log("network hit id", network_id_hit_by);
 
