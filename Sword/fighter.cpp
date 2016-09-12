@@ -2754,6 +2754,8 @@ void fighter::check_clientside_parry(fighter* non_networked_fighter)
     }
 }
 
+///this is on my client
+///we need to recoil the hitter client
 void fighter::process_delayed_deltas()
 {
     //for(auto& i : parts)
