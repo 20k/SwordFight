@@ -66,12 +66,12 @@ void trombone_manager::tick(engine& window, fighter* my_fight)
 
     tone = clamp(tone, 0, 11);
 
-    sf::Keyboard key;
+    /*sf::Keyboard key;
 
     if(once<sf::Keyboard::Num1>())
     {
         sound::add(11 + tone, my_fight->parts[bodypart::BODY].global_pos, true, false);
-    }
+    }*/
 
     trombone->set_pos(conv_implicit<cl_float4>(my_fight->parts[bodypart::LHAND].global_pos));
 

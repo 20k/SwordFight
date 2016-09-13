@@ -847,9 +847,17 @@ int main(int argc, char *argv[])
             window.update_mouse(window.width/2, window.height/2, true, true);
         }
 
-        if(once<sf::Keyboard::X>() && window.focus && !in_menu)
+        bool should_transition = false;
+        bool trombone_transition = false;
+
+        should_transition = once<sf::Keyboard::X>();
+        trombone_transition = once<sf::Keyboard::Num1>();
+
+        should_transition |= trombone_transition;
+
+        if(should_transition && window.focus && !in_menu)
         {
-            controls_state = (controls_state + 1) % 3;
+            controls_state = (controls_state + 1) % 2;
 
             ///call once to reset mouse to centre
             window.update_mouse(window.width/2, window.height/2, true, true);
@@ -859,6 +867,14 @@ int main(int argc, char *argv[])
             window.c_rot_keyboard_only = window.c_rot;
             //window.c_rot = {0,0,0};
             //window.c_rot_keyboard_only = {0,0,0};
+        }
+
+        if(trombone_transition)
+        {
+            if(controls_state < 2)
+                controls_state = 2;
+            else
+                controls_state = 1;
         }
 
         if(controls_state == 0 && window.focus && !in_menu)
