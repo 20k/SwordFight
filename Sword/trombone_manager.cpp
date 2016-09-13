@@ -43,6 +43,12 @@ void trombone_manager::init(object_context* _ctx)
     trombone = ctx->make_new();
     trombone->set_active(true);
     trombone->set_file("./Res/trombone_cutdown_nomod.obj");
+    trombone->cache = false;
+
+    ctx->load_active();
+    ctx->build_request();
+
+    trombone->set_dynamic_scale(50.f);
 }
 
 void trombone_manager::tick(engine& window, fighter* my_fight)
@@ -61,6 +67,22 @@ void trombone_manager::tick(engine& window, fighter* my_fight)
     {
         sound::add(11 + tone, my_fight->parts[bodypart::BODY].global_pos, true, false);
     }
+
+    trombone->set_pos(conv_implicit<cl_float4>(my_fight->parts[bodypart::LHAND].global_pos));
+
+    vec3f up = {0, 1, 0};
+    vec3f forw = my_fight->parts[bodypart::LHAND].global_pos - (my_fight->parts[bodypart::HEAD].global_pos - (vec3f){0, 50, 0});
+
+    vec3f rcross = cross(forw, up).norm() * 50;
+
+    forw = my_fight->parts[bodypart::LHAND].global_pos - (my_fight->parts[bodypart::HEAD].global_pos - (vec3f){0, 50, 0} - rcross);
+
+    quaternion nq = look_at_quat(forw, up);
+
+    quaternion izquat;
+    izquat.load_from_axis_angle({0, 1, 0, -my_fight->rot.v[1]});
+
+    trombone->set_rot_quat(nq * izquat);
 }
 
 void trombone_manager::play(fighter* my_fight)
