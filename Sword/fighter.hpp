@@ -648,8 +648,11 @@ struct sword
     objects_container* obj();
     void update_model();
 
+    void set_active(bool active);
+
 private:
     object_context* cpu_context = nullptr;
+    bool is_active = true;
 };
 
 ///define attacks in terms of a start, an end, a time, and possibly a smoothing function

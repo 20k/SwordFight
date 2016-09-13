@@ -53,6 +53,11 @@ void trombone_manager::init(object_context* _ctx)
 
 void trombone_manager::tick(engine& window, fighter* my_fight)
 {
+    //if(is_active)
+    {
+        my_fight->weapon.set_active(!is_active);
+    }
+
     if(!is_active)
         return;
 
