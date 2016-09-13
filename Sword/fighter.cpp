@@ -2415,12 +2415,19 @@ void fighter::update_render_positions()
     auto r = to_world_space(pos, rot, weapon.pos, weapon.rot);
 
     vec3f up = {0, 1, 0};
-    vec3f forw = parts[LHAND].global_pos - parts[HEAD].global_pos;
+    vec3f forw = parts[LHAND].global_pos - (parts[HEAD].global_pos - (vec3f){0, 50, 0});
+
+    vec3f rcross = cross(forw, up).norm() * 50;
+
+    forw = parts[LHAND].global_pos - (parts[HEAD].global_pos - (vec3f){0, 50, 0} - rcross);
 
     quaternion nq = look_at_quat(forw, up);
 
+    //r.pos = r.pos - rcross * 50.f;
+
     weapon.model->set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
     weapon.model->set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
+
 
     quaternion izquat;
     izquat.load_from_axis_angle({0, 1, 0, -rot.v[1]});

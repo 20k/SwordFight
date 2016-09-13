@@ -159,7 +159,7 @@ void debug_controls(fighter* my_fight, engine& window)
     if(crouching)
         sprint = false;
 
-    if(sprint)
+    if(sprint && walk_dir.v[0] < 0)
     {
         my_fight->queue_attack(attacks::SPRINT);
     }

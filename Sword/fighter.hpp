@@ -589,7 +589,7 @@ static std::vector<movement> sprint
 
 static std::vector<movement> trombone_hold
 {
-    {0, {0, 0, -100}, 200, 0, bodypart::LHAND, mov::ORIENT_TOWARDS_FACE}
+    {0, {-50, -50, -100}, 200, 0, bodypart::LHAND, mov::ORIENT_TOWARDS_FACE}
 };
 
 ///?
