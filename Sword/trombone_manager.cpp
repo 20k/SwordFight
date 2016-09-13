@@ -88,6 +88,17 @@ void trombone_manager::tick(engine& window, fighter* my_fight)
     izquat.load_from_axis_angle({0, 1, 0, -my_fight->rot.v[1]});
 
     trombone->set_rot_quat(nq * izquat);
+
+    float tone_dist = 3.5f;
+
+    vec3f front_slider = my_fight->parts[bodypart::LHAND].global_pos;
+
+    mat3f r = trombone->rot_quat.get_rotation_matrix();
+
+    front_slider = front_slider + r * ((vec3f){0, 1, 0} * tone_dist * tone);
+
+    trombone->objs[9].set_pos(conv_implicit<cl_float4>(front_slider));
+    trombone->objs[2].set_pos(conv_implicit<cl_float4>(front_slider));
 }
 
 void trombone_manager::play(fighter* my_fight)
