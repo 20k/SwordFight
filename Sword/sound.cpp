@@ -12,22 +12,33 @@ void sound::set_listener(vec3f pos, vec3f rot)
     listener_rot = rot;
 }
 
-sf::SoundBuffer s[11];
+std::vector<sf::SoundBuffer> s;
 
 std::deque<sf::Sound*> sounds;
 std::deque<vec3f> positions;
 std::deque<bool> relative_positioning;
 
+std::vector<std::string> extra_sfiles;
+
+int sound::extra_start = 0;
+
+void sound::add_extra_soundfile(const std::string& file)
+{
+    extra_sfiles.push_back(file);
+}
+
 ///1 is clang, 0 is hrrk
 ///we need per-sound attenuation
 ///also, the distance needs to drop much more rapidly. This has likely just never been noticed
 ///because not playing with 4+ players
-void sound::add(int type, vec3f pos, bool relative)
+void sound::add(int type, vec3f pos, bool relative, bool random)
 {
     static int loaded = 0;
 
     if(!loaded)
     {
+        s.resize(11);
+
         s[0].loadFromFile("Res/hitm.wav");
         s[1].loadFromFile("Res/clangm.wav");
 
@@ -41,6 +52,15 @@ void sound::add(int type, vec3f pos, bool relative)
         s[9].loadFromFile("Res/footsteps/asphalt/8.wav");
 
         s[10].loadFromFile("Res/emphasis.wav");
+
+        extra_start = s.size();
+
+        for(auto& i : extra_sfiles)
+        {
+            s.push_back(sf::SoundBuffer());
+
+            s.back().loadFromFile(i);
+        }
 
         loaded = 1;
     }
@@ -64,7 +84,10 @@ void sound::add(int type, vec3f pos, bool relative)
     sf::Sound& sd = *sounds.back();
 
     sd.setBuffer(s[type]);
-    sd.setPitch(randf_s(0.8f, 1.20f));
+
+    if(random)
+        sd.setPitch(randf_s(0.8f, 1.20f));
+
     sd.setRelativeToListener(true);
     sd.setAttenuation(0.005f);
     sd.setVolume(randf_s(80, 100));

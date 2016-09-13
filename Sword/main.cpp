@@ -46,6 +46,8 @@
 
 #include "ui_manager.hpp"
 
+#include "trombone_manager.hpp"
+
 
 ///none of these affect the camera, so engine does not care about them
 ///assume main is blocking
@@ -257,6 +259,74 @@ void fps_controls(fighter* my_fight, engine& window)
     ///ie we can ignore this, just apply the overall matrix rotation and offset to te position
     ///and etc
     my_fight->set_rot_diff({0, -yout, 0.f});
+}
+
+void fps_trombone_controls(fighter* my_fight, engine& window, trombone_manager& trombone)
+{
+    sf::Keyboard key;
+
+    if(key.isKeyPressed(sf::Keyboard::Escape))
+        window.request_close();
+
+    vec2f walk_dir = {0,0};
+
+    if(key.isKeyPressed(sf::Keyboard::W))
+        walk_dir.v[0] = -1;
+
+    if(key.isKeyPressed(sf::Keyboard::S))
+        walk_dir.v[0] = 1;
+
+    if(key.isKeyPressed(sf::Keyboard::A))
+        walk_dir.v[1] = -1;
+
+    if(key.isKeyPressed(sf::Keyboard::D))
+        walk_dir.v[1] = 1;
+
+    bool crouching = key.isKeyPressed(sf::Keyboard::LControl);
+
+    my_fight->crouch_tick(crouching);
+
+    bool sprint = key.isKeyPressed(sf::Keyboard::LShift);
+
+    if(crouching)
+        sprint = false;
+
+    if(my_fight->cube_info)
+        walk_dir = my_fight->cube_info->transform_move_dir_no_rot(walk_dir);
+
+    my_fight->walk_dir(walk_dir, sprint);
+
+    my_fight->update_headbob_if_sprinting(sprint);
+
+    if(once<sf::Mouse::Left>())
+        trombone.play(my_fight);
+
+    //if(once<sf::Keyboard::Z>())
+    my_fight->queue_attack(attacks::TROMBONE);
+
+    if(once<sf::Keyboard::Space>())
+        my_fight->try_jump();
+
+    ///this will probably break
+    my_fight->set_look({-window.c_rot_keyboard_only.s[0], window.get_mouse_sens_adjusted_x() / 1.f, 0});
+
+
+    vec2f m;
+    m.v[0] = window.get_mouse_sens_adjusted_x();
+    m.v[1] = window.get_mouse_sens_adjusted_y();
+
+    float source_m_yaw = 0.0003839723;
+
+    float yout = m.v[0] * source_m_yaw;
+
+    ///ok, so this is essentially c_rot_keyboard_only
+    ///ie local
+    ///ie we give no fucks anymore because the mouse look scheme is fully consistent from local -> global
+    ///ie we can ignore this, just apply the overall matrix rotation and offset to te position
+    ///and etc
+    my_fight->set_rot_diff({0, -yout, 0.f});
+
+    trombone.set_active(true);
 }
 
 input_delta fps_camera_controls(float frametime, const input_delta& input, engine& window, const fighter* my_fight)
@@ -558,6 +628,9 @@ int main(int argc, char *argv[])
     ui_manager ui_manage;
     ui_manage.init(s);
 
+    trombone_manager trombone_manage;
+    trombone_manage.init(&context);
+
     bool show_ftime = false;
 
     bool going = true;
@@ -566,6 +639,8 @@ int main(int argc, char *argv[])
     while(going)
     {
         sf::Clock c;
+
+        trombone_manage.set_active(false);
 
         bool in_menu = menu_handler.should_do_menu();
 
@@ -767,14 +842,14 @@ int main(int argc, char *argv[])
         {
             window.update_mouse();
         }
-        if(controls_state == 1 && window.focus && !in_menu)
+        if((controls_state == 1 || controls_state == 2) && window.focus && !in_menu)
         {
             window.update_mouse(window.width/2, window.height/2, true, true);
         }
 
         if(once<sf::Keyboard::X>() && window.focus && !in_menu)
         {
-            controls_state = (controls_state + 1) % 2;
+            controls_state = (controls_state + 1) % 3;
 
             ///call once to reset mouse to centre
             window.update_mouse(window.width/2, window.height/2, true, true);
@@ -790,13 +865,15 @@ int main(int argc, char *argv[])
             debug_controls(my_fight, window);
         if(controls_state == 1 && window.focus && !in_menu)
             fps_controls(my_fight, window);
+        if(controls_state == 2 && window.focus && !in_menu)
+            fps_trombone_controls(my_fight, window, trombone_manage);
 
         control_input c_input;
 
         if(controls_state == 0)
             c_input = control_input();
 
-        if(controls_state == 1)
+        if(controls_state == 1 || controls_state == 2)
             c_input = control_input(std::bind(fps_camera_controls, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, my_fight),
                               process_controls_empty);
 
@@ -987,6 +1064,7 @@ int main(int argc, char *argv[])
 
         ///so that the listener position is exactly the body part
         my_fight->do_foot_sounds(true);
+        trombone_manage.tick(window, my_fight);
 
         sound::update_listeners();
 

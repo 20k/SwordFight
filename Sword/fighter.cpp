@@ -2423,8 +2423,6 @@ void fighter::update_render_positions()
 
     quaternion nq = look_at_quat(forw, up);
 
-    //r.pos = r.pos - rcross * 50.f;
-
     weapon.model->set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
     weapon.model->set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
 
