@@ -1503,7 +1503,16 @@ void fighter::tick(bool is_player)
 
 
     IK_hand(0, rot_focus, shoulder_rotation, arms_are_locked);
-    IK_hand(1, parts[LHAND].pos, shoulder_rotation, arms_are_locked, true);
+
+    if(!rhand_overridden)
+        IK_hand(1, parts[LHAND].pos, shoulder_rotation, arms_are_locked, true);
+    else
+    {
+        IK_hand(1, rhand_override_pos, shoulder_rotation, arms_are_locked, true);
+
+        parts[RHAND].set_global_pos(rhand_override_pos);
+        parts[RHAND].update_model();
+    }
 
     vec3f slave_to_master = parts[LHAND].pos - parts[RHAND].pos;
 
@@ -1511,11 +1520,10 @@ void fighter::tick(bool is_player)
     ///dynamically from the focus position
     ///this means it probably wants to be part of our IK step?
     ///hands disconnected
-    if(slave_to_master.length() > 1.f)
+    if(slave_to_master.length() > 1.f && !rhand_overridden)
     {
         parts[RHAND].pos = parts[LHAND].pos;
     }
-
 
     ///sword render stuff updated here
     update_sword_rot();
@@ -1556,6 +1564,8 @@ void fighter::tick(bool is_player)
     ///rip
     checked_death();
     manual_check_part_death();
+
+    rhand_overridden = false;
 }
 
 ///conflicts with manual check part alive
@@ -2345,8 +2355,17 @@ void fighter::update_render_positions()
     foot_displacements[1] = r_f;
     foot_displacements[2] = (l_f + r_f) / 2.f;
 
-    for(part& i : parts)
+    //for(part& i : parts)
+    for(int kk=0; kk<parts.size(); kk++)
     {
+        part& i = parts[kk];
+
+        /*if(kk == RHAND && rhand_overridden)
+        {
+            rhand_overridden = false;
+            continue;
+        }*/
+
         vec3f t_pos = i.pos;
 
         t_pos.v[1] += foot_heights[which_side[i.type]] * foot_modifiers[i.type] * overall_bob_modifier;
@@ -3156,6 +3175,11 @@ void fighter::try_feint()
     }
 }
 
+void fighter::override_rhand_pos(vec3f global_position)
+{
+    rhand_overridden = true;
+    rhand_override_pos = global_position;
+}
 
 ///i've taken damage. If im during the windup phase of an attack, recoil
 void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by)

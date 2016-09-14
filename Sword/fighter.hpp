@@ -938,6 +938,8 @@ struct fighter
     void checked_recoil(); ///if we're hit, do a recoil if we're in windup
     void try_feint();
 
+    void override_rhand_pos(vec3f global_position);
+
     void damage(bodypart_t type, float d, int32_t network_id_hit_by);
 
     void flinch(float time_ms);
@@ -1008,6 +1010,9 @@ private:
     bool right_foot_sound;
 
     bool just_spawned = true;
+
+    bool rhand_overridden = false;
+    vec3f rhand_override_pos;
 };
 
 

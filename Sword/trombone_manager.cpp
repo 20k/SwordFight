@@ -15,6 +15,7 @@ void trombone_manager::init(object_context* _ctx)
     std::string octave = "3";
     std::string dir = "./Res/trombone/";
 
+    ///define a max_tones, auto octave scale
     std::string tones[12] =
     {
         "C",
@@ -95,10 +96,12 @@ void trombone_manager::tick(engine& window, fighter* my_fight)
 
     mat3f r = trombone->rot_quat.get_rotation_matrix();
 
-    front_slider = front_slider + r * ((vec3f){0, 1, 0} * tone_dist * tone);
+    front_slider = front_slider + r * ((vec3f){0, 1, 0} * tone_dist * (12 - tone));
 
     trombone->objs[9].set_pos(conv_implicit<cl_float4>(front_slider));
     trombone->objs[2].set_pos(conv_implicit<cl_float4>(front_slider));
+
+    my_fight->override_rhand_pos((front_slider - my_fight->pos).back_rot(0, my_fight->rot));
 }
 
 void trombone_manager::play(fighter* my_fight)
