@@ -12,11 +12,12 @@ void trombone_manager::init(object_context* _ctx)
 
     std::string volume = "mezzo-forte";
     std::string duration = "05";
-    std::string octave = "3";
+    //std::string octave = "3";
+    int octave = 3;
     std::string dir = "./Res/trombone/";
 
     ///define a max_tones, auto octave scale
-    std::string tones[12] =
+    std::string tones[max_tones] =
     {
         "C",
         "Cs",
@@ -32,11 +33,15 @@ void trombone_manager::init(object_context* _ctx)
         "B",
     };
 
-    for(int i=0; i<12; i++)
+    for(int i=0; i<max_tones; i++)
     {
         std::string str;
 
-        str = dir + "trombone_" + tones[i] + octave + "_" + duration + "_" + volume + "_normal.ogg";
+        int coctave = i / 12;
+
+        std::string ostr = std::to_string(octave + coctave);
+
+        str = dir + "trombone_" + tones[i % 12] + ostr + "_" + duration + "_" + volume + "_normal.ogg";
 
         sound::add_extra_soundfile(str);
     }
@@ -54,10 +59,7 @@ void trombone_manager::init(object_context* _ctx)
 
 void trombone_manager::tick(engine& window, fighter* my_fight)
 {
-    //if(is_active)
-    {
-        my_fight->weapon.set_active(!is_active);
-    }
+    my_fight->weapon.set_active(!is_active);
 
     if(!is_active)
         return;
@@ -65,14 +67,7 @@ void trombone_manager::tick(engine& window, fighter* my_fight)
     tone += window.get_scrollwheel_delta() > 0.01 ? 1 : 0;
     tone += window.get_scrollwheel_delta() < -0.01 ? -1 : 0;
 
-    tone = clamp(tone, 0, 11);
-
-    /*sf::Keyboard key;
-
-    if(once<sf::Keyboard::Num1>())
-    {
-        sound::add(11 + tone, my_fight->parts[bodypart::BODY].global_pos, true, false);
-    }*/
+    tone = clamp(tone, 0, max_tones-1);
 
     trombone->set_pos(conv_implicit<cl_float4>(my_fight->parts[bodypart::LHAND].global_pos));
 
@@ -96,7 +91,7 @@ void trombone_manager::tick(engine& window, fighter* my_fight)
 
     mat3f r = trombone->rot_quat.get_rotation_matrix();
 
-    front_slider = front_slider + r * ((vec3f){0, 1, 0} * tone_dist * (12 - tone));
+    front_slider = front_slider + r * ((vec3f){0, 1, 0} * tone_dist * (max_tones - tone));
 
     trombone->objs[9].set_pos(conv_implicit<cl_float4>(front_slider));
     trombone->objs[2].set_pos(conv_implicit<cl_float4>(front_slider));

@@ -20,6 +20,8 @@ struct trombone_manager
     int tone = 0;
     object_context* ctx = nullptr;
     objects_container* trombone = nullptr;
+
+    static constexpr int max_tones = 13;
 };
 
 #endif // TROMBONE_MANAGER_HPP_INCLUDED
