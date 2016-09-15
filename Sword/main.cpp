@@ -176,7 +176,7 @@ void fps_controls(fighter* my_fight, engine& window)
 {
     sf::Keyboard key;
 
-    if(key.isKeyPressed(sf::Keyboard::Escape))
+    if(key.isKeyPressed(sf::Keyboard::F10))
         window.request_close();
 
     vec2f walk_dir = {0,0};
@@ -265,7 +265,7 @@ void fps_trombone_controls(fighter* my_fight, engine& window, trombone_manager& 
 {
     sf::Keyboard key;
 
-    if(key.isKeyPressed(sf::Keyboard::Escape))
+    if(key.isKeyPressed(sf::Keyboard::F10))
         window.request_close();
 
     vec2f walk_dir = {0,0};
