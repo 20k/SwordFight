@@ -258,7 +258,6 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                             text::add_random("Clang!", time);
                     }
 
-
                     ///If i'm the network client, this will do nothing for me
                     my_parent->recoil();
                     //my_parent->net.force_recoil = 1;

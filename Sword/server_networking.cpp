@@ -688,6 +688,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             fighter* nfight = discovered_fighters[my_id].fight;
             network_fighter* net_nfight = discovered_fighters[my_id].net_fighter;
 
+            network_fighter network_backup = *net_nfight;
+
             ///remove damage I've taken from player who i blocked in a clientside parry
             nfight->process_delayed_deltas();
             nfight->eliminate_clientside_parry_invulnerability_damage();
@@ -749,6 +751,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 }
             }
 
+            ///wtf? We're overwriting the whole networking model for this fighter!!
             *discovered_fighters[my_id].net_fighter = discovered_fighters[my_id].fight->construct_network_fighter();
 
             std::map<int, ptr_info> host_stack = build_host_network_stack(&discovered_fighters[my_id]);
@@ -929,6 +932,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             }
 
             time_since_last_send.restart();
+
+            *net_nfight = network_backup;
         }
     }
 
@@ -997,6 +1002,10 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
         i.second.fight->update_last_hit_id();
 
+        ///we're setting my fighters network recoil stuff, but it isnt being applied for some reason
+        ///probably due to the order of applying network models
+        ///so at this point, this fighter has had its net_fighter_copy thing updated with recoil request
+        ///if clientside parry
         i.second.fight->check_clientside_parry(discovered_fighters[my_id].fight);
 
         i.second.fight->network_update_render_positions();

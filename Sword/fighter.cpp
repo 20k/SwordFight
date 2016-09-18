@@ -2749,6 +2749,7 @@ void fighter::update_last_hit_id()
 }
 
 ///we need to check the case where i've definitely been stabbed on my game
+///check if this fighter has hit the non networked fighter
 void fighter::check_clientside_parry(fighter* non_networked_fighter)
 {
     if(net.is_damaging)
@@ -2908,6 +2909,14 @@ void fighter::set_network_id(int32_t net_id)
 void fighter::save_network_representation(network_fighter& net_fight)
 {
     *net_fighter_copy = net_fight;
+
+    for(int i=0; i<bodypart::COUNT; i++)
+    {
+        net_fighter_copy->network_parts[i].requested_damage_info.update_internal();
+    }
+
+    net_fighter_copy->network_fighter_inf.recoil_forced.update_internal();
+    net_fighter_copy->network_fighter_inf.recoil_requested.update_internal();
 }
 
 ///remember, we have to copy my values into the other struct before we can send them!
