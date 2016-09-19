@@ -2660,14 +2660,18 @@ void fighter::respawn_if_appropriate()
     }
 }
 
-///net-fighters ONLY
-void fighter::overwrite_parts_from_model()
+void fighter::save_old_pos()
 {
     for(int i=0; i<bodypart::COUNT; i++)
     {
-        old_pos[i] = parts[i].global_pos;
+        if(parts[i].global_pos != old_pos[i])
+            old_pos[i] = parts[i].global_pos;
     }
+}
 
+///net-fighters ONLY
+void fighter::overwrite_parts_from_model()
+{
     for(part& i : parts)
     {
         cl_float4 pos = i.obj()->pos;
@@ -2757,6 +2761,8 @@ void fighter::check_clientside_parry(fighter* non_networked_fighter)
         //printf("we're damaging network\n");
 
         vec3f move_dir = parts[bodypart::LHAND].global_pos - old_pos[bodypart::LHAND];
+
+        //printf("MD %f %f %f\n", EXPAND_3(move_dir));
 
         ///this is currently checking clientside parries against all players, whereas we only want to check
         ///this networked fighter against the local player
@@ -2976,6 +2982,8 @@ network_fighter fighter::construct_network_fighter()
 ///to replace?
 void fighter::construct_from_network_fighter(network_fighter& net_fight)
 {
+    save_old_pos();
+
     ///we'll need to construct quite a few of these into net. for the time being, including name
     for(int i=0; i<bodypart::COUNT; i++)
     {

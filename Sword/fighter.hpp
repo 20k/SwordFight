@@ -903,6 +903,7 @@ struct fighter
     void update_lights();
     void recalculate_link_positions_from_parts();
     void overwrite_parts_from_model();
+    void save_old_pos(); ///network only
     void update_texture_by_part_hp();
     void update_last_hit_id();
     void check_clientside_parry(fighter* non_networked_fighter);
