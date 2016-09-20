@@ -26,6 +26,10 @@ struct effect
 
 struct cube_effect : effect
 {
+    static std::vector<objects_container*> precached_objects;
+    static std::vector<int> in_use;
+    int reserve_size = 500.f;
+
     vec3f pos;
     float scale;
 
@@ -33,6 +37,7 @@ struct cube_effect : effect
     int team;
 
     std::vector<objects_container*> objects;
+    std::vector<int> currently_using;
 
     void tick();
     void make(float duration, vec3f _pos, float _scale, int _team, int _num, object_context& cpu);

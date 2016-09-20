@@ -57,35 +57,6 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
 
         objects.push_back(o);
     }
-
-    /*for(int i=0; i<num; i++)
-    {
-        vec3f p1 = {0,0,0};
-
-        float len = 10.f * randf<1, float>(2, 0.1);
-
-        vec3f p2 = p1 + (vec3f){0, 0, len};
-
-
-        texture_context* tex_ctx = &cpu_context->tex_ctx;
-        texture* ntex = tex_ctx->make_new_cached(team_info::get_texture_cache_name(_team));
-
-        vec3f col = team_info::get_team_col(_team);
-        ntex->set_create_colour({col.v[0], col.v[1], col.v[2]}, 128, 128);
-
-
-        objects_container* o = cpu_context->make_new();
-        o->set_load_func(std::bind(load_object_cube_tex, std::placeholders::_1, p1, p2, len/2, *ntex));
-        o->cache = false;
-
-        vec3f rpos = (randf<3, float>() - 0.5f) * scale;
-
-        vec3f lpos = pos + rpos;
-
-        o->set_pos({lpos.v[0], lpos.v[1], lpos.v[2]});
-
-        objects.push_back(o);
-    }*/
 }
 
 void cube_effect::activate()

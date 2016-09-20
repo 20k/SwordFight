@@ -426,7 +426,7 @@ void cape::tick(fighter* parent)
     ///its fine to do this
     ///as model gpu tri start/ends are only updated on a flip
     ///I'm not a retard! Hooray!
-    gpu_context = cpu_context->get_current_gpu();
+    gpu_context = cpu_context->fetch();
 
     arg_list cloth_args;
 
