@@ -90,6 +90,8 @@
 			<Add option="-lmyo64" />
 			<Add option="-limm32" />
 		</Linker>
+		<Unit filename="../OpenCLRenderer/camera_effects.cpp" />
+		<Unit filename="../OpenCLRenderer/camera_effects.hpp" />
 		<Unit filename="../OpenCLRenderer/cl_gl_interop_texture.cpp" />
 		<Unit filename="../OpenCLRenderer/cl_gl_interop_texture.hpp" />
 		<Unit filename="../openclrenderer/Game/Galaxy/galaxy.cpp" />
@@ -183,6 +185,8 @@
 		<Unit filename="sound.hpp" />
 		<Unit filename="text.cpp" />
 		<Unit filename="text.hpp" />
+		<Unit filename="trombone_manager.cpp" />
+		<Unit filename="trombone_manager.hpp" />
 		<Unit filename="ui_manager.cpp" />
 		<Unit filename="ui_manager.hpp" />
 		<Unit filename="util.hpp" />

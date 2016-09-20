@@ -1433,7 +1433,7 @@ void fighter::tick(bool is_player)
                     fighter* their_parent = phys->bodies[i.hit_id].parent;
 
                     ///this is the only time damage is applied to anything, ever
-                    their_parent->damage((bodypart_t)(i.hit_id % COUNT), i.damage, this->network_id);
+                    their_parent->damage((bodypart_t)(i.hit_id % COUNT), i.damage, this->network_id, this->is_offline_client && their_parent->is_offline_client);
 
                     ///this is where the networking fighters get killed
                     ///this is no longer true, may happen here or in server_networking
@@ -3199,13 +3199,18 @@ void fighter::override_rhand_pos(vec3f global_position)
 }
 
 ///i've taken damage. If im during the windup phase of an attack, recoil
-void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by)
+void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by, bool hit_by_offline_client)
 {
     using namespace bodypart;
 
     bool do_explode_effect = num_dead() < num_needed_to_die() - 1;
 
     parts[type].damage(this, d, do_explode_effect, network_id_hit_by);
+
+    if(hit_by_offline_client)
+    {
+        parts[type].set_hp(parts[type].hp - d);
+    }
 
     lg::log("network hit id", network_id_hit_by);
 
@@ -3218,6 +3223,7 @@ void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by)
     //net.recoil_dirty = true;
 }
 
+///implement camera shake effect here
 void fighter::flinch(float time_ms)
 {
 

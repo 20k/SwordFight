@@ -590,6 +590,9 @@ int main(int argc, char *argv[])
         lg::log(context.containers.size());
     }
 
+    fight.is_offline_client = true;
+    fight2.is_offline_client = true;
+
     fight.set_secondary_context(&transparency_context);
     fight2.set_secondary_context(&transparency_context);
 

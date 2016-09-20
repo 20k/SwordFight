@@ -856,6 +856,7 @@ struct fighter
 
     bool idling;
     bool performed_death; ///have i done my death stuff locally
+    bool is_offline_client = false; ///offline compatability for bots
 
     int quality; /// 0 = low, 1 = high
 
@@ -941,7 +942,7 @@ struct fighter
 
     void override_rhand_pos(vec3f global_position);
 
-    void damage(bodypart_t type, float d, int32_t network_id_hit_by);
+    void damage(bodypart_t type, float d, int32_t network_id_hit_by, bool hit_by_offline_client = false);
 
     void flinch(float time_ms);
 
