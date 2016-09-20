@@ -2835,6 +2835,10 @@ void fighter::process_delayed_deltas()
                     }
                 }
 
+                ///ok, so I'm pretty sure this only gets called once, on the hit client
+                ///so flinch should simply set the broadcast sound noise, not clientside parry!
+                ///play sounds here, as this is the ultimate arbiter of what happened?
+                ///except for an agreed block!
                 if(apply_damage)
                 {
                     local_part.hp += delt.delayed_info.hp_delta;

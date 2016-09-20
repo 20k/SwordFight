@@ -42,6 +42,8 @@ void cube_effect::precache(int reserve_size, object_context& _cpu_context)
 
         cpu_context->load_active();
         cpu_context->build_request();
+
+        o->hide();
     }
 }
 
