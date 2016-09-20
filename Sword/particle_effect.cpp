@@ -35,6 +35,7 @@ void cube_effect::precache(int reserve_size, object_context& _cpu_context)
 
         objects_container* o = cpu_context->make_new();
         o->set_load_func(std::bind(load_object_cube_tex, std::placeholders::_1, p1, p2, len/2, *ntex));
+        o->set_active(true);
 
         precached_objects.push_back(o);
         in_use.push_back(0);
