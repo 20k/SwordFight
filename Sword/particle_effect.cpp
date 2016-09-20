@@ -11,26 +11,9 @@ std::vector<effect*> particle_effect::effects;
 std::vector<objects_container*> cube_effect::precached_objects;
 std::vector<int> cube_effect::in_use;
 
-///this is probably a big reason for the slowdown on dying?
-void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int _num, object_context& _cpu_context)
+void cube_effect::precache(int reserve_size, object_context& _cpu_context)
 {
-    cpu_context = &_cpu_context;
-
-    /*for(auto& i : objects)
-    {
-        cpu_context->destroy(i);
-    }
-
-    objects.clear();*/
-
-    duration_ms = duration;
-    pos = _pos;
-    scale = _scale;
-
-    elapsed_time.restart();
-
-    num = _num;
-    team = _team;
+    object_context* cpu_context = &_cpu_context;
 
     ///we need to update the cache to be able to deal with texture ids
     ///have objects_container->cache_textures
@@ -38,10 +21,11 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
     {
         vec3f p1 = {0,0,0};
 
-        //float len = 10.f * randf<1, float>(2, 0.1);;
         float len = 10;
 
         vec3f p2 = p1 + (vec3f){0, 0, 10.f};
+
+        int _team = 0;
 
         texture_context* tex_ctx = &cpu_context->tex_ctx;
         texture* ntex = tex_ctx->make_new_cached(team_info::get_texture_cache_name(_team));
@@ -52,16 +36,27 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
         objects_container* o = cpu_context->make_new();
         o->set_load_func(std::bind(load_object_cube_tex, std::placeholders::_1, p1, p2, len/2, *ntex));
 
-        //vec3f rpos = (randf<3, float>() - 0.5f) * scale;
-
-        //vec3f lpos = pos + rpos;
-
-        //o->set_pos({lpos.v[0], lpos.v[1], lpos.v[2]});
-
-        //objects.push_back(o);
         precached_objects.push_back(o);
         in_use.push_back(0);
+
+        cpu_context->load_active();
+        cpu_context->build_request();
     }
+}
+
+///this is probably a big reason for the slowdown on dying?
+void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int _num, object_context& _cpu_context)
+{
+    cpu_context = &_cpu_context;
+
+    duration_ms = duration;
+    pos = _pos;
+    scale = _scale;
+
+    elapsed_time.restart();
+
+    num = _num;
+    team = _team;
 
     currently_using.clear();
     offset_pos.clear();

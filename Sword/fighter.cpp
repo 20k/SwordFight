@@ -156,6 +156,7 @@ part::~part()
 void part::set_active(bool active)
 {
     model->set_active(active);
+    model->hide();
 
     ///have to fix some of the network hodge-podgery first before this will work
     ///as the active state of network fighters is overwritten by the model state
@@ -393,8 +394,8 @@ void part::perform_death(bool do_effect)
     set_active(false);
     obj()->hide();
 
-    cpu_context->load_active();
-    cpu_context->build_request();
+    //cpu_context->load_active();
+    //cpu_context->build_request();
 
     lg::log("Perform death");
 }
@@ -810,13 +811,16 @@ void fighter::die()
     }
 
     weapon.model->set_active(false);
+    weapon.model->hide();
 
     for(auto& i : joint_links)
     {
         i.obj->set_active(false);
+        i.obj->hide();
     }
 
     cosmetic.set_active(false);
+    cosmetic.tophat->hide();
 
     const float death_time = 2000;
 

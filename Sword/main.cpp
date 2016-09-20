@@ -50,7 +50,6 @@
 
 #include "../openclrenderer/camera_effects.hpp"
 
-
 ///none of these affect the camera, so engine does not care about them
 ///assume main is blocking
 void debug_controls(fighter* my_fight, engine& window)
@@ -657,6 +656,8 @@ int main(int argc, char *argv[])
     #ifdef MYO_ARMBAND
     myo_data myo_dat;
     #endif
+
+    cube_effect::precache(500, context);
 
     ui_manager ui_manage;
     ui_manage.init(s);

@@ -28,7 +28,8 @@ struct cube_effect : effect
 {
     static std::vector<objects_container*> precached_objects;
     static std::vector<int> in_use;
-    int reserve_size = 500.f;
+
+    static void precache(int reserve_size, object_context& _cpu_context);
 
     vec3f pos;
     float scale;
@@ -36,7 +37,6 @@ struct cube_effect : effect
     int num;
     int team;
 
-    //std::vector<objects_container*> objects;
     std::vector<int> currently_using;
     std::vector<vec3f> offset_pos;
 
