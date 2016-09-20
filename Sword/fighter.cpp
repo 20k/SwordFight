@@ -3210,6 +3210,7 @@ void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by, bool h
     if(hit_by_offline_client)
     {
         parts[type].set_hp(parts[type].hp - d);
+        flinch(fighter_stats::flinch_time_ms);
     }
 
     lg::log("network hit id", network_id_hit_by);
@@ -3226,7 +3227,7 @@ void fighter::damage(bodypart_t type, float d, int32_t network_id_hit_by, bool h
 ///implement camera shake effect here
 void fighter::flinch(float time_ms)
 {
-
+    reset_screenshake_flinch = true;
 }
 
 void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)

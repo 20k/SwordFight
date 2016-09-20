@@ -772,6 +772,8 @@ struct fighter
     ///the player does not have a valid instance of this
     network_fighter* net_fighter_copy;
 
+    bool reset_screenshake_flinch = false;
+
     bool name_info_initialised = false;
 
     map_cube_info* cube_info = nullptr;

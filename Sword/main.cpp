@@ -48,6 +48,8 @@
 
 #include "trombone_manager.hpp"
 
+#include "../openclrenderer/camera_effects.hpp"
+
 
 ///none of these affect the camera, so engine does not care about them
 ///assume main is blocking
@@ -261,6 +263,30 @@ void fps_controls(fighter* my_fight, engine& window)
     my_fight->set_rot_diff({0, -yout, 0.f});
 }
 
+pos_rot update_screenshake_camera(fighter* my_fight, cl_float4 c_pos, cl_float4 c_rot, float time_ms)
+{
+    static screenshake_effect effect;
+
+    pos_rot offset;
+
+    offset.rot = {0,0,0};
+
+    if(my_fight->reset_screenshake_flinch)
+    {
+        effect.init(200.f, 5.f, 1.f);
+
+        my_fight->reset_screenshake_flinch = false;
+    }
+
+    effect.tick(time_ms, c_pos, c_rot);
+
+    vec3f noffset = effect.get_offset();
+
+    offset.pos = noffset;
+
+    return offset;
+}
+
 void fps_trombone_controls(fighter* my_fight, engine& window, trombone_manager& trombone)
 {
     sf::Keyboard key;
@@ -329,7 +355,7 @@ void fps_trombone_controls(fighter* my_fight, engine& window, trombone_manager& 
     trombone.set_active(true);
 }
 
-input_delta fps_camera_controls(float frametime, const input_delta& input, engine& window, const fighter* my_fight)
+input_delta fps_camera_controls(float frametime, const input_delta& input, engine& window, fighter* my_fight)
 {
     vec3f pos = (vec3f){0, my_fight->smoothed_crouch_offset, 0} + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult;
 
@@ -353,6 +379,10 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
     //window.set_camera_rot({o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]});
 
     cl_float4 c_rot = {o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]};
+
+    pos_rot coffset = update_screenshake_camera(my_fight, c_pos, c_rot, frametime / 1000.f);
+
+    c_pos = sub(c_pos, (cl_float4){coffset.pos.v[0], coffset.pos.v[1], coffset.pos.v[2]});
 
     ///using c_rot_backup breaks everything, but its fine beacuse we're not needing to use this immutably
     return {sub(c_pos, input.c_pos), sub(c_rot, input.c_rot_keyboard_only), 0.f};
@@ -1397,8 +1427,8 @@ int main(int argc, char *argv[])
             #endif
         }
 
-        context.build_tick();
-        transparency_context.build_tick();
+        context.build_tick(true);
+        transparency_context.build_tick(true);
 
         context.flip();
         transparency_context.flip();
