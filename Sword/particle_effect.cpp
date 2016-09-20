@@ -8,17 +8,20 @@
 
 std::vector<effect*> particle_effect::effects;
 
+std::vector<objects_container*> cube_effect::precached_objects;
+std::vector<int> cube_effect::in_use;
+
 ///this is probably a big reason for the slowdown on dying?
 void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int _num, object_context& _cpu_context)
 {
     cpu_context = &_cpu_context;
 
-    for(auto& i : objects)
+    /*for(auto& i : objects)
     {
         cpu_context->destroy(i);
     }
 
-    objects.clear();
+    objects.clear();*/
 
     duration_ms = duration;
     pos = _pos;
@@ -31,7 +34,7 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
 
     ///we need to update the cache to be able to deal with texture ids
     ///have objects_container->cache_textures
-    for(int i=0; i<num; i++)
+    for(int i=precached_objects.size(); i<reserve_size; i++)
     {
         vec3f p1 = {0,0,0};
 
@@ -49,20 +52,45 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
         objects_container* o = cpu_context->make_new();
         o->set_load_func(std::bind(load_object_cube_tex, std::placeholders::_1, p1, p2, len/2, *ntex));
 
-        vec3f rpos = (randf<3, float>() - 0.5f) * scale;
+        //vec3f rpos = (randf<3, float>() - 0.5f) * scale;
 
-        vec3f lpos = pos + rpos;
+        //vec3f lpos = pos + rpos;
 
-        o->set_pos({lpos.v[0], lpos.v[1], lpos.v[2]});
+        //o->set_pos({lpos.v[0], lpos.v[1], lpos.v[2]});
 
-        objects.push_back(o);
+        //objects.push_back(o);
+        precached_objects.push_back(o);
+        in_use.push_back(0);
+    }
+
+    currently_using.clear();
+    offset_pos.clear();
+
+    int c = 0;
+
+    for(int i=0; i<num && c < precached_objects.size(); c++)
+    {
+        if(in_use[c])
+            continue;
+
+        currently_using.push_back(c);
+
+        vec3f rd = (randf<3, float>() - 0.5f) * scale;
+
+        offset_pos.push_back(rd);
+
+        in_use[c] = 1;
+
+        i++;
     }
 }
 
 void cube_effect::activate()
 {
-    for(objects_container* i : objects)
+    for(auto& id : currently_using)
     {
+        objects_container* i = precached_objects[id];
+
         i->set_active(true);
 
         i->parent->load_active();
@@ -92,9 +120,13 @@ void cube_effect::tick()
 
         vec3f centre = e.pos;
 
-        for(auto& o : e.objects)
+        for(int i=0; i<e.currently_using.size(); i++)
         {
-            vec3f dir = xyz_to_vec(o->pos) - centre;
+            int id = e.currently_using[i];
+
+            objects_container* o = precached_objects[id];
+
+            vec3f dir = offset_pos[i];
 
             dir = dir.norm();
 
@@ -121,21 +153,30 @@ void cube_effect::tick()
 
             float to_remove = total_num - num_left;
 
-            for(int j=0; j<to_remove && j < e.objects.size(); j++)
+            //for(int j=0; j<to_remove && j < e.objects.size(); j++)
+            for(int j=0; j<to_remove && j < e.currently_using.size(); j++)
             {
-                objects_container* o = e.objects[j];
+                objects_container* o = precached_objects[currently_using[j]];
 
-                o->set_pos({0, 0, -3000000});
+                //o->set_pos({0, 0, -3000000});
+                o->hide();
             }
 
             if(remaining < 0)
             {
-                for(auto& o : e.objects)
+                //for(auto& o : e.objects)
+                for(auto& id : e.currently_using)
                 {
-                    o->set_pos({0, 0, -30000000});
-                    o->set_active(false);
+                    objects_container* o = precached_objects[id];
 
-                    cpu_context->destroy(o);
+                    //o->set_pos({0, 0, -30000000});
+                    //o->set_active(false);
+
+                    o->hide();
+
+                    in_use[id] = 0;
+
+                    //cpu_context->destroy(o);
 
                     finished = true;
                 }

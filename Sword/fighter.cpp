@@ -862,7 +862,7 @@ void fighter::die()
 
     cpu_context->build_request();
 
-    lg::log("Die");
+    //lg::log("Die");
 
     ///pipe out hp here, just to check
 }
