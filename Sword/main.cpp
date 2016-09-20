@@ -537,6 +537,8 @@ int main(int argc, char *argv[])
 
     lg::log("prebuild");
 
+    cube_effect::precache(500, context);
+
     context.build(true);
 
     lg::log("postbuild");
@@ -656,8 +658,6 @@ int main(int argc, char *argv[])
     #ifdef MYO_ARMBAND
     myo_data myo_dat;
     #endif
-
-    cube_effect::precache(500, context);
 
     ui_manager ui_manage;
     ui_manage.init(s);
