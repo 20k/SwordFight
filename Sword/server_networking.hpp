@@ -174,6 +174,34 @@ int get_position_of(std::map<int, ptr_info>& stk, T* elem)
 
 ///any network discovered fighter
 
+struct delay_information
+{
+    sf::Clock time;
+    byte_vector vec;
+    int which = 0; ///regular or reliable
+    server_networking* net = nullptr;
+};
+
+#define DELAY_SIMULATE
+
+extern std::vector<delay_information> delay_vectors;
+extern float delay_ms;
+
+inline
+void
+network_update_wrapper(server_networking* net, const byte_vector& vec)
+{
+    #ifndef DELAY_SIMULATE
+    udp_send_to(net->to_game, vec.ptr, (const sockaddr*)&net->to_game_store);
+    #else
+    delay_information info;
+    info.vec = vec;
+    info.net = net;
+
+    delay_vectors.push_back(info);
+    #endif
+}
+
 template<typename T>
 inline
 void
@@ -217,7 +245,7 @@ network_update_element(server_networking* net, T* element, network_player* net_f
     vec.push_back((uint8_t*)element, S);
     vec.push_back(canary_end);
 
-    udp_send_to(net->to_game, vec.ptr, (const sockaddr*)&net->to_game_store);
+    network_update_wrapper(net, vec);
 }
 
 template<typename T>
@@ -258,7 +286,38 @@ network_update_element_reliable(server_networking* net, T* element, network_play
     vec.push_back<int32_t>(S);
     vec.push_back((uint8_t*)element, S);
 
+    #ifndef DELAY_SIMULATE
     net->reliable_manager.add(vec);
+    #else
+    delay_information info;
+    info.vec = vec;
+    info.which = 1;
+    info.net = net;
+
+    delay_vectors.push_back(info);
+    #endif
+}
+
+inline
+void delay_tick()
+{
+    for(int i=0; i<delay_vectors.size(); i++)
+    {
+        delay_information& info = delay_vectors[i];
+
+        if(info.time.getElapsedTime().asMicroseconds() / 1000.f > delay_ms)
+        {
+            if(info.which == 0)
+                udp_send_to(info.net->to_game, info.vec.ptr, (const sockaddr*)&info.net->to_game_store);
+            else
+                info.net->reliable_manager.add(info.vec);
+
+            //printf("dinfo %f\n", info.time.getElapsedTime().asMicroseconds() / 1000.f);
+
+            delay_vectors.erase(delay_vectors.begin() + i);
+            i--;
+        }
+    }
 }
 
 #endif // SERVER_NETWORKING_HPP_INCLUDED

@@ -3,6 +3,9 @@
 #include "sound.hpp"
 #include "network_fighter_model.hpp"
 
+std::vector<delay_information> delay_vectors;
+float delay_ms = 200.f;
+
 std::string respawn_info::get_display_string()
 {
     float remaining = spawn_time - time_elapsed;
@@ -774,7 +777,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 vec.push_back(canary_end);
 
-                udp_send_to(to_game, vec.ptr, (const sockaddr*)&to_game_store);
+                //udp_send_to(to_game, vec.ptr, (const sockaddr*)&to_game_store);
+                network_update_wrapper(this, vec);
             }
 
             ///uuh. Looking increasingly like we should just include the home fighter in this one, eh?

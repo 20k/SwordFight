@@ -945,6 +945,10 @@ int main(int argc, char *argv[])
         if(!in_menu)
             server.tick(&context, &transparency_context, &current_state, &phys);
 
+        #ifdef DELAY_SIMULATE
+        delay_tick();
+        #endif // DELAY_SIMULATE
+
         ///debugging
         if(!server.joined_game && !in_menu)
             server.set_game_to_join(0);
