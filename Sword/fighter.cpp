@@ -2760,7 +2760,27 @@ void fighter::update_last_hit_id()
 ///check if this fighter has hit the non networked fighter
 void fighter::check_clientside_parry(fighter* non_networked_fighter)
 {
-    if(net.is_damaging)
+    ///this needs to be a more complex check if the non networked fighter has any pending hits from this client
+    ///but its still crap, we might miss a frame or two in the interim if some of the packets are jittered
+    //if(net.is_damaging)
+
+    bool any_pending_hits = net.is_damaging;
+
+    for(auto& p : non_networked_fighter->parts)
+    {
+        for(delayed_delta& d : p.net.delayed_delt)
+        {
+            if(d.delayed_info.id_hit_by == this->network_id)
+            {
+                any_pending_hits = true;
+
+                lg::log("Pending!");
+            }
+        }
+    }
+
+    ///ok, so if we've got a pending hit, we need to override the block config
+    if(any_pending_hits)
     {
         //printf("we're damaging network\n");
 

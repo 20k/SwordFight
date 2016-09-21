@@ -253,6 +253,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 ///recoil. Sword collides is only called for attacks that damage, so therefore this is fine
                 ///blocking recoil IS handled over the network currently
 
+                //can_block = true;
+
                 ///need to differentiate between forced recoil, and optional staggering recoil for windups
                 if((m1.does(mov::BLOCKING) || m2.does(mov::BLOCKING) || them->net.is_blocking) && can_block)
                 {
@@ -334,6 +336,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     their_net.network_fighter_inf.recoil_requested.set_local_val(1);
                     their_net.network_fighter_inf.recoil_requested.network_local();
 
+                    ///ok, if this arrives before the other client can block it on their client
+                    ///it will not work
                     them->net.is_damaging = 0;
                     ///not host authoratitive, but will stop the clientside detection from crapping out
                     ///if we hit their hand the same tick - latency and misdetecting a hit
