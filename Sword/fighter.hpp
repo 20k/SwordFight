@@ -284,6 +284,8 @@ struct delayed_delta
     damage_info delayed_info;
     float delay_time_ms = 200.f;
     sf::Clock clk;
+    bool part_hit_before_block = false;
+    bool part_blocked = false;
 };
 
 ///this was a good idea
