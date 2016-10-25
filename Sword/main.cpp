@@ -49,6 +49,7 @@
 #include "trombone_manager.hpp"
 
 #include "../openclrenderer/camera_effects.hpp"
+#include "../openclrenderer/texture.hpp"
 
 ///none of these affect the camera, so engine does not care about them
 ///assume main is blocking
@@ -450,6 +451,9 @@ int main(int argc, char *argv[])
     gameplay_state current_state;
     current_state.set_map(default_map);
 
+    texture* floor_reflection_tex = context.tex_ctx.make_new_cached("./Res/object_reflection_map.png");
+    floor_reflection_tex->set_location("./Res/object_reflection_map.png");
+
     objects_container* floor = context.make_new();
     //floor->set_load_func(default_map.get_load_func());
 
@@ -540,6 +544,9 @@ int main(int argc, char *argv[])
     cube_effect::precache(500, context);
 
     context.build(true);
+
+    floor->set_screenspace_map_id(floor_reflection_tex->id);
+    floor->set_ss_reflective(true);
 
     lg::log("postbuild");
 
@@ -1399,6 +1406,8 @@ int main(int argc, char *argv[])
 
             if(s.motion_blur_strength > 0.01f)
                 window.do_motion_blur(*cdat, s.motion_blur_strength, s.motion_blur_camera_contribution);
+
+            window.draw_screenspace_reflections(*cdat);
 
             //window.draw_godrays(*cdat);
         }
