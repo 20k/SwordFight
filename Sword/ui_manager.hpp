@@ -143,6 +143,45 @@ struct window_element_getter<float> : window_element_getter_base<float>
     }
 };
 
+
+template<typename T>
+struct window_element_checkbox : window_element_getter_base<T>
+{
+
+};
+
+template<>
+struct window_element_checkbox<int> : window_element_getter_base<int>
+{
+    bool val;
+    bool has_default = false;
+
+    rval instantiate_and_get()
+    {
+        return instantiate_and_get(internal_label);
+    }
+
+    rval instantiate_and_get(const std::string& label)
+    {
+        bool ret = ImGui::Checkbox(label.c_str(), &val);
+
+        rval rv;
+        rv.ret = (val);
+        rv.clicked = ret;
+
+        return rv;
+    }
+
+    void set_default(float _val)
+    {
+        if(has_default)
+            return;
+
+        val = _val;
+        has_default = true;
+    }
+};
+
 template<typename T>
 struct window_slider_getter_base
 {
@@ -198,6 +237,7 @@ struct configuration_values
     std::string player_name;
     float motion_blur_strength;
     float motion_blur_camera_contribution;
+    int use_post_aa = 1;
 };
 
 struct fighter;
@@ -217,6 +257,8 @@ struct ui_manager
     window_slider_getter<float> motion_blur_camera_contribution;
 
     window_element_getter<std::string> player_name;
+
+    window_element_checkbox<int> use_post_aa;
 
     int saved_settings_w = 0;
     int saved_settings_h = 0;

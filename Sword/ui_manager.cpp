@@ -45,6 +45,8 @@ void ui_manager::tick_settings(float ftime_ms)
 
     player_name.set_default(sett->name);
 
+    use_post_aa.set_default(sett->use_post_aa);
+
     if(saved_settings_w != sett->width || saved_settings_h != sett->height)
     {
         saved_settings_w = sett->width;
@@ -98,6 +100,8 @@ void ui_manager::tick_settings(float ftime_ms)
         config_dirty = true;
     }
 
+    vals.use_post_aa = use_post_aa.instantiate_and_get("Use post AA").ret;
+
     if(ImGui::Button("Update Resolution"))
     {
         sett->width = vals.width;
@@ -121,6 +125,13 @@ void ui_manager::tick_settings(float ftime_ms)
     if(sett->mouse_sens != vals.mouse_sens)
     {
         sett->mouse_sens = vals.mouse_sens;
+
+        config_dirty = true;
+    }
+
+    if(sett->use_post_aa != vals.use_post_aa)
+    {
+        sett->use_post_aa = vals.use_post_aa;
 
         config_dirty = true;
     }
