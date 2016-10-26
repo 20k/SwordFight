@@ -1407,7 +1407,7 @@ int main(int argc, char *argv[])
             if(s.motion_blur_strength > 0.01f)
                 window.do_motion_blur(*cdat, s.motion_blur_strength, s.motion_blur_camera_contribution);
 
-            window.draw_screenspace_reflections(*cdat, context, nullptr);
+            //window.draw_screenspace_reflections(*cdat, context, nullptr);
 
             //window.draw_godrays(*cdat);
         }
