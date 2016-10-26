@@ -1014,8 +1014,11 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         ///probably due to the order of applying network models
         ///so at this point, this fighter has had its net_fighter_copy thing updated with recoil request
         ///if clientside parry
+        #endif ENABLE_CLIENTSIDE_PARRY
+        #ifdef ENABLE_CLIENTSIDE_PARRY
         if(have_id && discovered_fighters[my_id].fight)
             i.second.fight->check_clientside_parry(discovered_fighters[my_id].fight);
+        #endif
 
         i.second.fight->network_update_render_positions();
 
