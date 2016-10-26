@@ -211,6 +211,9 @@ void fps_controls(fighter* my_fight, engine& window)
 
     my_fight->update_headbob_if_sprinting(sprint);
 
+    if(sprint && walk_dir.v[0] < 0)
+        my_fight->queue_attack(attacks::SPRINT);
+
     if(once<sf::Mouse::Left>())
         my_fight->queue_attack(attacks::SLASH);
 
@@ -231,9 +234,6 @@ void fps_controls(fighter* my_fight, engine& window)
 
     if(once<sf::Keyboard::Z>())
         my_fight->queue_attack(attacks::TROMBONE);
-
-    if(sprint && walk_dir.v[0] < 0)
-        my_fight->queue_attack(attacks::SPRINT);
 
     if(once<sf::Keyboard::Q>())
         my_fight->try_feint();
