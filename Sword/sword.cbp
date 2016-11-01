@@ -89,6 +89,7 @@
 			<Add option="-logg" />
 			<Add option="-lmyo64" />
 			<Add option="-limm32" />
+			<Add option="-lSDL2" />
 		</Linker>
 		<Unit filename="../OpenCLRenderer/camera_effects.cpp" />
 		<Unit filename="../OpenCLRenderer/camera_effects.hpp" />
