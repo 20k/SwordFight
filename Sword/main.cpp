@@ -906,8 +906,6 @@ int main(int argc, char *argv[])
             window.update_mouse(window.width/2, window.height/2, true, true);
 
             window.c_rot_keyboard_only = window.c_rot;
-            //window.c_rot = {0,0,0};
-            //window.c_rot_keyboard_only = {0,0,0};
         }
 
         if(trombone_transition)
