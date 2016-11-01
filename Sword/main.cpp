@@ -487,6 +487,8 @@ int main(int argc, char *argv[])
     ImGui::SFML::Init(window.window);
     window.manual_input = true;
 
+    window.raw_input_set_active(true);
+    window.raw_input_init();
 
     window.set_mouse_sens(s.mouse_sens);
 
@@ -695,6 +697,8 @@ int main(int argc, char *argv[])
         int r_x = window.get_width();
         int r_y = window.get_height();
 
+        window.raw_input_process_events();
+
         while(window.window.pollEvent(Event))
         {
             ImGui::SFML::ProcessEvent(Event);
@@ -782,6 +786,8 @@ int main(int argc, char *argv[])
             {
                 window.window.setPosition({0,0});
             }
+
+            window.raw_input_init();
 
             light::invalidate_buffers();
 
@@ -881,11 +887,13 @@ int main(int argc, char *argv[])
 
         if(controls_state == 0 && window.focus && !in_menu)
         {
-            window.update_mouse();
+            window.set_relative_mouse_mode(false);
+            window.tick_mouse();
         }
         if((controls_state == 1 || controls_state == 2) && window.focus && !in_menu)
         {
-            window.update_mouse(window.width/2, window.height/2, true, true);
+            window.set_relative_mouse_mode(true);
+            window.tick_mouse();
         }
 
         bool should_transition = false;
@@ -899,11 +907,6 @@ int main(int argc, char *argv[])
         if(should_transition && window.focus && !in_menu)
         {
             controls_state = (controls_state + 1) % 2;
-
-            ///call once to reset mouse to centre
-            window.update_mouse(window.width/2, window.height/2, true, true);
-            ///call again to reset mouse dx and dy to 0
-            window.update_mouse(window.width/2, window.height/2, true, true);
 
             window.c_rot_keyboard_only = window.c_rot;
         }
