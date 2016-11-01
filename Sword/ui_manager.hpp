@@ -238,6 +238,7 @@ struct configuration_values
     float motion_blur_strength;
     float motion_blur_camera_contribution;
     int use_post_aa = 1;
+    int use_raw_input = 1;
 };
 
 struct fighter;
@@ -259,6 +260,7 @@ struct ui_manager
     window_element_getter<std::string> player_name;
 
     window_element_checkbox<int> use_post_aa;
+    window_element_checkbox<int> use_raw_input;
 
     int saved_settings_w = 0;
     int saved_settings_h = 0;

@@ -46,6 +46,7 @@ void ui_manager::tick_settings(float ftime_ms)
     player_name.set_default(sett->name);
 
     use_post_aa.set_default(sett->use_post_aa);
+    use_raw_input.set_default(sett->use_raw_input);
 
     if(saved_settings_w != sett->width || saved_settings_h != sett->height)
     {
@@ -101,6 +102,7 @@ void ui_manager::tick_settings(float ftime_ms)
     }
 
     vals.use_post_aa = use_post_aa.instantiate_and_get("Use post AA").ret;
+    vals.use_raw_input = use_raw_input.instantiate_and_get("Use raw input").ret;
 
     if(ImGui::Button("Update Resolution"))
     {
@@ -132,6 +134,13 @@ void ui_manager::tick_settings(float ftime_ms)
     if(sett->use_post_aa != vals.use_post_aa)
     {
         sett->use_post_aa = vals.use_post_aa;
+
+        config_dirty = true;
+    }
+
+    if(sett->use_raw_input != vals.use_raw_input)
+    {
+        sett->use_raw_input = vals.use_raw_input;
 
         config_dirty = true;
     }

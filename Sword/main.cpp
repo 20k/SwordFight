@@ -487,8 +487,7 @@ int main(int argc, char *argv[])
     ImGui::SFML::Init(window.window);
     window.manual_input = true;
 
-    window.raw_input_set_active(true);
-    window.raw_input_init();
+    window.raw_input_set_active(s.use_raw_input);
 
     window.set_mouse_sens(s.mouse_sens);
 
@@ -884,6 +883,8 @@ int main(int argc, char *argv[])
         }*/
 
         my_fight->cube_info = &debug_map_cube;
+
+        window.raw_input_set_active(s.use_raw_input);
 
         if(controls_state == 0 && window.focus && !in_menu)
         {
