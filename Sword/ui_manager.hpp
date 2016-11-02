@@ -243,6 +243,7 @@ struct configuration_values
 
 struct fighter;
 
+///we need a network statistics graph so we can more easily, and objectively look at network traffic
 struct ui_manager
 {
     ImGuiStyle style;

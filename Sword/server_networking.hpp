@@ -70,6 +70,13 @@ struct respawn_info
     std::string get_display_string();
 };
 
+///currently excluding reliability manager
+struct network_statistics
+{
+    int bytes_out = 0;
+    int bytes_in = 0;
+};
+
 ///parts pos/rot/hp
 ///weapon.model/pos/rot
 ///net.is_blocking
@@ -149,6 +156,12 @@ struct server_networking
     void handle_ping(byte_fetch& fetch);
     void handle_ping_data(byte_fetch& fetch);
     void ping();
+
+    network_statistics get_frame_stats();
+
+    ///if called after tick we get this frames stats, otherwise itll be last frames stats
+    ///really this should be tied to game logic, not rendering ;_;
+    network_statistics this_frame_stats;
 };
 
 struct ptr_info
@@ -200,6 +213,8 @@ network_update_wrapper(server_networking* net, const byte_vector& vec)
 
     delay_vectors.push_back(info);
     #endif
+
+    net->this_frame_stats.bytes_out += vec.ptr.size();
 }
 
 template<typename T>

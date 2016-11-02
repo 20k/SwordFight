@@ -386,6 +386,8 @@ void server_networking::ping()
 
 void server_networking::tick(object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys)
 {
+    this_frame_stats = network_statistics();
+
     ///tries to join
     join_master();
 
@@ -456,6 +458,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
         byte_fetch fetch;
         fetch.ptr.swap(data);
+
+        this_frame_stats.bytes_in += data.size();
 
         while(!fetch.finished() && any_recv)
         {
@@ -1224,4 +1228,9 @@ std::vector<fighter*> server_networking::get_fighters()
 void server_networking::set_graphics(int graphics)
 {
     graphics_settings = graphics;
+}
+
+network_statistics server_networking::get_frame_stats()
+{
+    return this_frame_stats;
 }
