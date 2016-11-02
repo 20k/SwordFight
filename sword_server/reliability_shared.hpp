@@ -27,7 +27,7 @@ struct reliability_manager
     void add(const byte_vector& vec);
     void add(const byte_vector& vec, uint32_t reliable_id);
 
-    byte_vector strip_forwarding(const byte_vector& vec);
+    //byte_vector strip_forwarding(const byte_vector& vec);
 
     void tick(udp_sock& sock);
     void tick(udp_sock& sock, sockaddr_storage& store);

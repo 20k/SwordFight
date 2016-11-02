@@ -56,7 +56,7 @@ void reliability_manager::add(const byte_vector& vec, uint32_t reliable_id)
 }
 
 ///stripper with class
-byte_vector reliability_manager::strip_forwarding(const byte_vector& vec)
+/*byte_vector reliability_manager::strip_forwarding(const byte_vector& vec)
 {
     std::vector<char> data = vec.ptr;
 
@@ -77,7 +77,7 @@ byte_vector reliability_manager::strip_forwarding(const byte_vector& vec)
     ret.push_string(data, data.size());
 
     return ret;
-}
+}*/
 
 void reliability_manager::tick(udp_sock& sock)
 {
@@ -164,7 +164,7 @@ byte_vector reliability_manager::strip_data_from_forwarding_reliable(byte_fetch&
     byte_fetch fetch = arg;
 
     uint32_t reliable_id = fetch.get<uint32_t>();
-    int32_t player_id = fetch.get<int32_t>();
+    int32_t player_id = fetch.get<int32_t>(); ///this is per the forwarding_reliable spec, not the forwarding spec
     int32_t component_id = fetch.get<int32_t>();
 
     int32_t len = fetch.get<int32_t>();
@@ -186,9 +186,9 @@ byte_vector reliability_manager::strip_data_from_forwarding_reliable(byte_fetch&
     byte_vector vec;
     //vec.push_back(canary_start);
     //vec.push_back(message::FORWARDING);
-    vec.push_back(player_id);
-    vec.push_back(component_id);
-    vec.push_back(len);
+    vec.push_back<int32_t>(player_id);
+    vec.push_back<int32_t>(component_id);
+    vec.push_back<int32_t>(len);
     vec.push_string(dat, dat.size());
     //vec.push_back(canary_end);
 
@@ -259,10 +259,10 @@ void reliability_manager::insert_forwarding_from_forwarding_reliable_into_stream
     byte_vector vec;
     vec.push_back(canary_start);
     vec.push_back(message::FORWARDING);
-    vec.push_back(player_id);
-    vec.push_back(component_id);
-    vec.push_back(len);
-    vec.push_string(dat, dat.size());
+    vec.push_back<net_type::player_t>(player_id);
+    vec.push_back<net_type::component_t>(component_id);
+    vec.push_back<net_type::len_t>(len);
+    vec.push_string(dat, dat.size()); ///fixme
     vec.push_back(canary_end);
 
     fetch.push_back(vec.ptr);
