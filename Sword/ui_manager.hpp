@@ -242,6 +242,7 @@ struct configuration_values
 };
 
 struct fighter;
+struct network_statistics;
 
 ///we need a network statistics graph so we can more easily, and objectively look at network traffic
 struct ui_manager
@@ -278,18 +279,21 @@ struct ui_manager
     void tick_settings(float ftime_ms);
 
     void tick_frametime_graph(float ftime_ms, bool display);
+    void tick_networking_graph(const network_statistics& net_stats);
 
     void tick_health_display(fighter* my_fight);
 
     void tick_render();
 
     std::vector<float> ftime_history;
+    std::vector<network_statistics> net_stats_history;
 
     bool any_render = false;
 
     bool ftime_paused = false;
 
     bool internal_ftime_show_toggle = false;
+    bool internal_net_stats_show_toggle = false;
 };
 
 #endif // UI_MANAGER_HPP_INCLUDED

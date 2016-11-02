@@ -1090,7 +1090,7 @@ int main(int argc, char *argv[])
             my_fight->update_lights();
         }
 
-
+        ///note to self, we can actually support this now
         #ifdef MYO_ARMBAND
         myo_dat.tick();
 
@@ -1162,6 +1162,11 @@ int main(int argc, char *argv[])
             show_ftime = !show_ftime;
         }
 
+        if(once<sf::Keyboard::F2>() && window.focus)
+        {
+            ui_manage.internal_net_stats_show_toggle = !ui_manage.internal_net_stats_show_toggle;
+        }
+
         ui_manage.tick(window.get_frametime_ms());
 
         if(controls_state == 0)
@@ -1170,6 +1175,7 @@ int main(int argc, char *argv[])
         }
 
         ui_manage.tick_frametime_graph(window.get_frametime_ms(), show_ftime);
+        ui_manage.tick_networking_graph(server.get_frame_stats());
 
         ui_manage.tick_health_display(my_fight);
 

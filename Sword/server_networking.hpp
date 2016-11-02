@@ -195,7 +195,7 @@ struct delay_information
     server_networking* net = nullptr;
 };
 
-#define DELAY_SIMULATE
+//#define DELAY_SIMULATE
 
 extern std::vector<delay_information> delay_vectors;
 extern float delay_ms;
@@ -251,12 +251,12 @@ network_update_element(server_networking* net, T* element, network_player* net_f
     byte_vector vec;
     vec.push_back(canary_start);
     vec.push_back(message::FORWARDING);
-    vec.push_back<int32_t>(network_id);
-    vec.push_back<int32_t>(pos);
+    vec.push_back<net_type::player_t>(network_id);
+    vec.push_back<net_type::component_t>(pos);
 
     int32_t S = sizeof(T);
 
-    vec.push_back<int32_t>(S);
+    vec.push_back<net_type::len_t>(S);
     vec.push_back((uint8_t*)element, S);
     vec.push_back(canary_end);
 

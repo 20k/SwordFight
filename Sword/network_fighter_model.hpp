@@ -82,9 +82,9 @@ struct network_sword_info
     vec3f global_pos;
     vec3f global_rot;
 
-    int32_t is_blocking = 0;
+    uint8_t is_blocking = 0;
     //int32_t is_recoiling = 0;
-    int32_t is_damaging = 0;
+    uint8_t is_damaging = 0;
 };
 
 struct network_fighter_info

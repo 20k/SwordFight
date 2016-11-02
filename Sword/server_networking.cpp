@@ -474,11 +474,11 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
             if(type == message::FORWARDING)
             {
-                int32_t player_id = fetch.get<int32_t>();
+                int32_t player_id = fetch.get<net_type::player_t>();
 
-                int32_t component_id = fetch.get<int32_t>();
+                int32_t component_id = fetch.get<net_type::component_t>();
 
-                int32_t len = fetch.get<int32_t>();
+                int32_t len = fetch.get<net_type::len_t>();
 
                 void* payload = fetch.get(len);
 
@@ -777,10 +777,10 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 byte_vector vec;
                 vec.push_back(canary_start);
                 vec.push_back(message::FORWARDING);
-                vec.push_back<int32_t>(my_id);
-                vec.push_back<int32_t>(id);
+                vec.push_back<net_type::player_t>(my_id);
+                vec.push_back<net_type::component_t>(id);
 
-                vec.push_back<int32_t>(inf.size);
+                vec.push_back<net_type::len_t>(inf.size);
                 vec.push_back((uint8_t*)inf.ptr, inf.size);
 
                 vec.push_back(canary_end);

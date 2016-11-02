@@ -2,6 +2,8 @@
 #include "../imgui/imgui-SFML.h"
 #include "../openclrenderer/settings_loader.hpp"
 #include "fighter.hpp"
+#include "server_networking.hpp"
+#include "imgui_extension.hpp"
 
 int window_element_ids::label_gid;
 
@@ -122,6 +124,16 @@ void ui_manager::tick_settings(float ftime_ms)
         ImGui::SetTooltip("Or press F1!");
     }
 
+    if(ImGui::Button("Toggle Net Stats Window"))
+    {
+        internal_net_stats_show_toggle = !internal_net_stats_show_toggle;
+    }
+
+    if(ImGui::IsItemHovered())
+    {
+        ImGui::SetTooltip("Or press F2!");
+    }
+
     ImGui::End(); // end window
 
     if(sett->mouse_sens != vals.mouse_sens)
@@ -192,6 +204,9 @@ void ui_manager::tick_frametime_graph(float ftime, bool display)
     if(!ftime_paused)
         ftime_history.push_back(ftime);
 
+    if(ftime_history.size() == 0)
+        return;
+
     if(display ^ internal_ftime_show_toggle)
     {
         ImGui::Begin("Frametime"); // begin window
@@ -249,7 +264,36 @@ void ui_manager::tick_frametime_graph(float ftime, bool display)
 
     if(ftime_history.size() > 400)
         ftime_history.erase(ftime_history.begin());
+}
 
+float getter_func(void* data, int idx)
+{
+    network_statistics* dat = (network_statistics*)data;
+
+    const float v = (dat + idx)->bytes_out;
+
+    return v;
+}
+
+void ui_manager::tick_networking_graph(const network_statistics& net_stats)
+{
+    net_stats_history.push_back(net_stats);
+
+    if(net_stats_history.size() > 400)
+        net_stats_history.erase(net_stats_history.begin());
+
+    //plotgetter data(&net_stats_history[0], sizeof(int) * 2);
+
+    //ImGuiPlotArrayGetterData data(values, stride);
+    //PlotEx(ImGuiPlotType_Lines, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size);
+
+    ImGui::Begin("Net graph");
+
+    ImGui::PlotEx_mult(ImGuiPlotType_Lines, "Graph line", &getter_func, (void*)&net_stats_history[0], net_stats_history.size(), 0, "", FLT_MAX, FLT_MAX, ImVec2(400, 50));
+
+    ImGui::End();
+
+    //ImGui::PlotLines("", &ftime_history[0], ftime_history.size(), 0, nullptr, minf, maxf, ImVec2(400, height));
 }
 
 void ui_manager::tick_health_display(fighter* my_fight)
