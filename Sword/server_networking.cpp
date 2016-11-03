@@ -1042,8 +1042,17 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
            && !i.second.fight->dead())
         {
             i.second.fight->die();
+            i.second.cleanup = true;
 
             lg::log("Disconnected player ", i.second.fight->network_id);
+        }
+    }
+
+    for(auto it = discovered_fighters.begin(); it != discovered_fighters.end(); it++)
+    {
+        if(it->second.cleanup)
+        {
+            it = discovered_fighters.erase(it);
         }
     }
 

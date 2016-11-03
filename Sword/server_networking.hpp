@@ -27,6 +27,7 @@ struct network_player
     int32_t id = -1;
     sf::Clock disconnect_timer;
     float disconnect_time_ms = 10000;
+    bool cleanup = false;
 };
 
 ///merge into the map_tool definition???

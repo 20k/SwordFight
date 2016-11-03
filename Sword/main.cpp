@@ -1451,8 +1451,9 @@ int main(int argc, char *argv[])
             #endif
         }
 
-        context.build_tick(true);
-        transparency_context.build_tick(true);
+        ///async inadequate, causing bugs i believe
+        context.build_tick(false);
+        transparency_context.build_tick(false);
 
         context.flip();
         transparency_context.flip();
