@@ -287,6 +287,9 @@ void ui_manager::tick_networking_graph(const network_statistics& net_stats)
     //ImGuiPlotArrayGetterData data(values, stride);
     //PlotEx(ImGuiPlotType_Lines, label, &Plot_ArrayGetter, (void*)&data, values_count, values_offset, overlay_text, scale_min, scale_max, graph_size);
 
+    if(!internal_net_stats_show_toggle)
+        return;
+
     ImGui::Begin("Net graph");
 
     ImGui::PlotEx_mult(ImGuiPlotType_Lines, "Graph line", &getter_func, (void*)&net_stats_history[0], net_stats_history.size(), 0, "", FLT_MAX, FLT_MAX, ImVec2(400, 50));
