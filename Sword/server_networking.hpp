@@ -5,6 +5,7 @@
 #include "../sword_server/master_server/server.hpp"
 #include "../sword_server/game_server/game_modes.hpp"
 #include "../sword_server/reliability_shared.hpp"
+#include "../sword_server/packet_clumping_shared.hpp"
 #include <net/shared.hpp>
 #include <map>
 #include "../openclrenderer/logging.hpp"
@@ -85,6 +86,8 @@ struct network_statistics
 
 struct server_networking
 {
+    packet_clumper packet_clump;
+
     reliability_manager reliable_manager;
 
     respawn_info respawn_inf;
@@ -207,6 +210,25 @@ network_update_wrapper(server_networking* net, const byte_vector& vec)
 {
     #ifndef DELAY_SIMULATE
     udp_send_to(net->to_game, vec.ptr, (const sockaddr*)&net->to_game_store);
+    #else
+    delay_information info;
+    info.vec = vec;
+    info.net = net;
+
+    delay_vectors.push_back(info);
+    #endif
+
+    net->this_frame_stats.bytes_out += vec.ptr.size();
+}
+
+inline
+void
+network_update_wrapper_clump(server_networking* net, const byte_vector& vec)
+{
+    ///if we simulate delays, we won't clump. But this isn't the end of the world
+    #ifndef DELAY_SIMULATE
+    //udp_send_to(net->to_game, vec.ptr, (const sockaddr*)&net->to_game_store);
+    net->packet_clump.add_send_data(net->to_game, net->to_game_store, vec.ptr);
     #else
     delay_information info;
     info.vec = vec;

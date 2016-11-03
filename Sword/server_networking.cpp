@@ -786,7 +786,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 vec.push_back(canary_end);
 
                 //udp_send_to(to_game, vec.ptr, (const sockaddr*)&to_game_store);
-                network_update_wrapper(this, vec);
+                network_update_wrapper_clump(this, vec);
             }
 
             ///uuh. Looking increasingly like we should just include the home fighter in this one, eh?
@@ -1058,6 +1058,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
     game_info.tick();
     reliable_manager.tick(to_game);
+    packet_clump.tick();
 }
 
 void server_networking::update_fighter_name_infos()
