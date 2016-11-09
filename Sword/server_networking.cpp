@@ -182,7 +182,7 @@ ptr_info get_inf(void* ptr)
     return {ptr, N};
 }
 
-std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight)
+std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight, server_networking* networking)
 {
     fighter* fight = net_fight->fight;
     network_fighter* net = net_fight->net_fighter;
@@ -256,14 +256,14 @@ void set_map_element(std::map<int, ptr_info>& change, std::map<int, ptr_info>& s
     return false;
 }*/
 
-std::map<int, ptr_info> build_host_network_stack(network_player* net_fight)
+std::map<int, ptr_info> build_host_network_stack(network_player* net_fight, server_networking* networking)
 {
     fighter* fight = net_fight->fight;
     network_fighter* net = net_fight->net_fighter;
 
     constexpr int s_f3 = sizeof(cl_float) * 3;
 
-    std::map<int, ptr_info> total_stack = build_fighter_network_stack(net_fight);
+    std::map<int, ptr_info> total_stack = build_fighter_network_stack(net_fight, networking);
 
     std::map<int, ptr_info> to_send;
 
@@ -518,7 +518,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 network_player& play = discovered_fighters[player_id];
 
-                std::map<int, ptr_info> arg_map = build_fighter_network_stack(&play);
+                std::map<int, ptr_info> arg_map = build_fighter_network_stack(&play, this);
 
                 if(component_id < 0 || component_id >= arg_map.size())
                 {
@@ -765,7 +765,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             ///wtf? We're overwriting the whole networking model for this fighter!!
             *discovered_fighters[my_id].net_fighter = discovered_fighters[my_id].fight->construct_network_fighter();
 
-            std::map<int, ptr_info> host_stack = build_host_network_stack(&discovered_fighters[my_id]);
+            std::map<int, ptr_info> host_stack = build_host_network_stack(&discovered_fighters[my_id], this);
 
             ///update remote fighters about me
             for(auto& i : host_stack)

@@ -174,7 +174,7 @@ struct ptr_info
     int size = 0;
 };
 
-std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight);
+std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight, server_networking* networking);
 
 template<typename T>
 inline
@@ -247,7 +247,7 @@ network_update_element(server_networking* net, T* element, network_player* net_f
 {
     fighter* fight = net_fight->fight;
 
-    auto memory_map = build_fighter_network_stack(net_fight);
+    auto memory_map = build_fighter_network_stack(net_fight, net);
 
     int32_t pos = get_position_of(memory_map, element);
 
@@ -291,7 +291,7 @@ inline
 void
 network_update_element_reliable(server_networking* net, T* element, network_player* net_fight)
 {
-    auto memory_map = build_fighter_network_stack(net_fight);
+    auto memory_map = build_fighter_network_stack(net_fight, net);
 
     int32_t pos = get_position_of(memory_map, element);
 

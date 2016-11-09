@@ -102,6 +102,9 @@ void trombone_manager::tick(engine& window, fighter* my_fight)
 void trombone_manager::play(fighter* my_fight)
 {
     sound::add(11 + tone, my_fight->parts[bodypart::BODY].global_pos, true, false);
+
+    //net_trombone.send = true;
+    //net_trombone.tone = tone;
 }
 
 void trombone_manager::set_active(bool active)
