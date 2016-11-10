@@ -170,18 +170,6 @@ void server_networking::ping_master()
     tcp_send(to_master, vec.ptr);
 }
 
-template<typename T>
-ptr_info get_inf(T* ptr)
-{
-    return {(void*)ptr, sizeof(T)};
-}
-
-template<int N>
-ptr_info get_inf(void* ptr)
-{
-    return {ptr, N};
-}
-
 std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight, server_networking* networking)
 {
     fighter* fight = net_fight->fight;
@@ -225,6 +213,10 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight, s
     fighter_stack[c++] = get_inf(&net->network_fighter_inf.pos);
     fighter_stack[c++] = get_inf(&net->network_fighter_inf.rot);
 
+    for(auto& i : networking->registered_network_variables)
+    {
+        fighter_stack[c++] = i;
+    }
 
     return fighter_stack;
 }
@@ -1169,6 +1161,25 @@ void server_networking::set_my_fighter(fighter* fight)
     discovered_fighters[my_id] = net_player;
 
     fight->set_network_id(my_id);
+}
+
+void server_networking::update_network_variable(int num)
+{
+    if(!have_id || discovered_fighters[my_id].fight == nullptr)
+    {
+        lg::log("Warning, no fighter id or null fighter set in update_network_variable");
+        return;
+    }
+
+    auto net_map = build_fighter_network_stack(&discovered_fighters[my_id], this);
+
+    if(net_map.find(num) == net_map.end())
+    {
+        lg::log("No element with offset num ", num, " found");
+        return;
+    }
+
+    network_update_element(this, net_map[num].ptr, &discovered_fighters[my_id]);
 }
 
 void gamemode_info::process_gamemode_update(byte_fetch& arg)

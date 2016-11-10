@@ -84,6 +84,28 @@ struct network_statistics
 ///net.is_blocking
 ///net.recoil
 
+struct ptr_info
+{
+    void* ptr = nullptr;
+    int size = 0;
+};
+
+template<typename T>
+ptr_info get_inf(T* ptr)
+{
+    return {(void*)ptr, sizeof(T)};
+}
+
+template<int N>
+ptr_info get_inf(void* ptr)
+{
+    return {ptr, N};
+}
+
+struct server_networking;
+
+std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight, server_networking* networking);
+
 struct server_networking
 {
     packet_clumper packet_clump;
@@ -166,15 +188,32 @@ struct server_networking
     ///if called after tick we get this frames stats, otherwise itll be last frames stats
     ///really this should be tied to game logic, not rendering ;_;
     network_statistics this_frame_stats;
-};
 
-struct ptr_info
-{
-    void* ptr = nullptr;
-    int size = 0;
-};
+    ///ptr_info is just a descriptor of ptr data size and a pointer
+    std::vector<ptr_info> registered_network_variables;
 
-std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight, server_networking* networking);
+    template<typename T>
+    int register_network_variable(T* ptr)
+    {
+        if(!have_id || discovered_fighters[my_id].fight == nullptr)
+        {
+            lg::log("Warning, no fighter id or null fighter set in register_network_variable");
+            return -1;
+        }
+
+        std::map<int, ptr_info> net_map = build_fighter_network_stack(&discovered_fighters[my_id], this);
+
+        int num = net_map.size();
+
+        ptr_info inf = get_inf(ptr);
+
+        registered_network_variables.push_back(inf);
+
+        return num;
+    }
+
+    void update_network_variable(int num);
+};
 
 template<typename T>
 inline
@@ -240,6 +279,7 @@ network_update_wrapper_clump(server_networking* net, const byte_vector& vec)
     net->this_frame_stats.bytes_out += vec.ptr.size();
 }
 
+///why don't we clump this..?
 template<typename T>
 inline
 void
