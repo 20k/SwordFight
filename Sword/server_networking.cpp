@@ -534,6 +534,9 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 play.disconnect_timer.restart();
 
+                if(packet_callback.find(component_id) != packet_callback.end())
+                    packet_callback[component_id](comp.ptr, comp.size);
+
                 ///done for me now
                 if(player_id == my_id)
                     continue;
@@ -1179,7 +1182,7 @@ void server_networking::update_network_variable(int num)
         return;
     }
 
-    network_update_element(this, net_map[num].ptr, &discovered_fighters[my_id]);
+    network_update_element(this, net_map[num].ptr, &discovered_fighters[my_id], net_map[num].size);
 }
 
 void gamemode_info::process_gamemode_update(byte_fetch& arg)

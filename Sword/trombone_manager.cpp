@@ -5,6 +5,7 @@
 #include <vec/vec.hpp>
 #include "sound.hpp"
 #include "fighter.hpp"
+#include "server_networking.hpp"
 
 void trombone_manager::init(object_context* _ctx)
 {
@@ -57,9 +58,39 @@ void trombone_manager::init(object_context* _ctx)
     trombone->set_dynamic_scale(50.f);
 }
 
+void trombone_packet_callback(void* ptr, int N, trombone_manager& manage)
+{
+    assert(N == sizeof(net_trombone));
+    assert(ptr != nullptr);
+
+    net_trombone* ntr = (net_trombone*)ptr;
+
+    int ntone = ntr->tone;
+
+    if(ntone >= 0 && ntone < manage.max_tones)
+    {
+        sound::add(11 + ntone, ntr->pos, true, false);
+    }
+}
+
+void trombone_manager::network_tick()
+{
+    if(local_representation.dirty)
+    {
+        network_representation = local_representation;
+
+        if(network_offset >= 0)
+            network->update_network_variable(network_offset);
+    }
+
+    local_representation.dirty = 0;
+}
+
 void trombone_manager::tick(engine& window, fighter* my_fight)
 {
     my_fight->weapon.set_active(!is_active);
+
+    network_tick();
 
     if(!is_active)
         return;
@@ -105,6 +136,10 @@ void trombone_manager::play(fighter* my_fight)
 
     //net_trombone.send = true;
     //net_trombone.tone = tone;
+
+    local_representation.tone = tone;
+    local_representation.dirty = 1;
+    local_representation.pos = my_fight->parts[bodypart::BODY].global_pos;
 }
 
 void trombone_manager::set_active(bool active)
@@ -115,4 +150,19 @@ void trombone_manager::set_active(bool active)
     {
         trombone->hide();
     }
+}
+
+void trombone_manager::register_server_networking(server_networking* networking)
+{
+    network = networking;
+
+    if(network_offset != -1)
+        return;
+
+    network_offset = network->register_network_variable(&network_representation);
+
+    if(network_offset == -1)
+        return;
+
+    networking->register_packet_callback(network_offset, std::bind(trombone_packet_callback, std::placeholders::_1, std::placeholders::_2, *this));
 }

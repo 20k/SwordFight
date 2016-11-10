@@ -672,6 +672,7 @@ int main(int argc, char *argv[])
 
     trombone_manager trombone_manage;
     trombone_manage.init(&context);
+    trombone_manage.register_server_networking(&server);
 
     bool show_ftime = false;
 
@@ -912,7 +913,7 @@ int main(int argc, char *argv[])
             window.c_rot_keyboard_only = window.c_rot;
         }
 
-        if(trombone_transition)
+        if(trombone_transition && window.focus)
         {
             if(controls_state < 2)
                 controls_state = 2;
@@ -1128,6 +1129,7 @@ int main(int argc, char *argv[])
         ///so that the listener position is exactly the body part
         my_fight->do_foot_sounds(true);
         trombone_manage.tick(window, my_fight);
+        trombone_manage.register_server_networking(&server);
 
         sound::update_listeners();
 

@@ -192,12 +192,14 @@ struct server_networking
     ///ptr_info is just a descriptor of ptr data size and a pointer
     std::vector<ptr_info> registered_network_variables;
 
+    std::map<int, std::function<void(void*, int)>> packet_callback;
+
     template<typename T>
     int register_network_variable(T* ptr)
     {
         if(!have_id || discovered_fighters[my_id].fight == nullptr)
         {
-            lg::log("Warning, no fighter id or null fighter set in register_network_variable");
+            //lg::log("Warning, no fighter id or null fighter set in register_network_variable");
             return -1;
         }
 
@@ -213,6 +215,11 @@ struct server_networking
     }
 
     void update_network_variable(int num);
+
+    void register_packet_callback(int component_id, std::function<void(void*, int)> func)
+    {
+        packet_callback[component_id] = func;
+    }
 };
 
 template<typename T>
@@ -283,7 +290,7 @@ network_update_wrapper_clump(server_networking* net, const byte_vector& vec)
 template<typename T>
 inline
 void
-network_update_element(server_networking* net, T* element, network_player* net_fight)
+network_update_element(server_networking* net, T* element, network_player* net_fight, int S = sizeof(T))
 {
     fighter* fight = net_fight->fight;
 
@@ -317,7 +324,7 @@ network_update_element(server_networking* net, T* element, network_player* net_f
     vec.push_back<net_type::player_t>(network_id);
     vec.push_back<net_type::component_t>(pos);
 
-    int32_t S = sizeof(T);
+    //int32_t S = sizeof(T);
 
     vec.push_back<net_type::len_t>(S);
     vec.push_back((uint8_t*)element, S);
