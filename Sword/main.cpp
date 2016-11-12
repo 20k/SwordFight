@@ -287,8 +287,10 @@ pos_rot update_screenshake_camera(fighter* my_fight, cl_float4 c_pos, cl_float4 
     return offset;
 }
 
-void fps_trombone_controls(fighter* my_fight, engine& window, trombone_manager& trombone)
+void fps_trombone_controls(fighter* my_fight, engine& window)
 {
+    trombone_manager& trombone = my_fight->trombone_manage;
+
     sf::Keyboard key;
 
     if(key.isKeyPressed(sf::Keyboard::F10))
@@ -670,9 +672,9 @@ int main(int argc, char *argv[])
     ui_manager ui_manage;
     ui_manage.init(s);
 
-    trombone_manager trombone_manage;
-    trombone_manage.init(&context);
-    trombone_manage.register_server_networking(&server);
+    //trombone_manager trombone_manage;
+    //trombone_manage.init(&context);
+    //trombone_manage.register_server_networking(&server);
 
     bool show_ftime = false;
 
@@ -683,7 +685,7 @@ int main(int argc, char *argv[])
     {
         sf::Clock c;
 
-        trombone_manage.set_active(false);
+        //trombone_manage.set_active(false);
 
         bool in_menu = menu_handler.should_do_menu();
 
@@ -926,7 +928,7 @@ int main(int argc, char *argv[])
         if(controls_state == 1 && window.focus && !in_menu)
             fps_controls(my_fight, window);
         if(controls_state == 2 && window.focus && !in_menu)
-            fps_trombone_controls(my_fight, window, trombone_manage);
+            fps_trombone_controls(my_fight, window);
 
         control_input c_input;
 
@@ -1029,7 +1031,7 @@ int main(int argc, char *argv[])
             //fight2.queue_attack(attacks::BLOCK);
 
             fight2.tick();
-            fight2.shared_tick();
+            fight2.shared_tick(&server);
             fight2.tick_cape();
 
             fight2.update_render_positions();
@@ -1069,7 +1071,7 @@ int main(int argc, char *argv[])
 
         my_fight->tick(true);
 
-        my_fight->shared_tick();
+        my_fight->shared_tick(&server);
 
         my_fight->tick_cape();
 
@@ -1128,8 +1130,9 @@ int main(int argc, char *argv[])
 
         ///so that the listener position is exactly the body part
         my_fight->do_foot_sounds(true);
-        trombone_manage.tick(window, my_fight);
-        trombone_manage.register_server_networking(&server);
+        my_fight->trombone_manage.tick(window, my_fight);
+        //trombone_manage.tick(window, my_fight);
+        //trombone_manage.register_server_networking(&server);
 
         sound::update_listeners();
 

@@ -56,6 +56,8 @@ void trombone_manager::init(object_context* _ctx)
     ctx->build_request();
 
     trombone->set_dynamic_scale(50.f);
+
+    set_active(false);
 }
 
 void trombone_packet_callback(void* ptr, int N, trombone_manager& manage)
@@ -73,14 +75,14 @@ void trombone_packet_callback(void* ptr, int N, trombone_manager& manage)
     }
 }
 
-void trombone_manager::network_tick()
+void trombone_manager::network_tick(int player_id)
 {
     if(local_representation.dirty)
     {
         network_representation = local_representation;
 
         if(network_offset >= 0)
-            network->update_network_variable(network_offset);
+            network->update_network_variable(player_id, network_offset);
     }
 
     local_representation.dirty = 0;
@@ -90,10 +92,16 @@ void trombone_manager::tick(engine& window, fighter* my_fight)
 {
     my_fight->weapon.set_active(!is_active);
 
-    network_tick();
+    if(my_fight->network_id != -1)
+        network_tick(my_fight->network_id);
 
     if(!is_active)
+    {
+        trombone->hide();
         return;
+    }
+
+    set_active(false);
 
     tone += window.get_scrollwheel_delta() > 0.01 ? 1 : 0;
     tone += window.get_scrollwheel_delta() < -0.01 ? -1 : 0;
@@ -134,9 +142,6 @@ void trombone_manager::play(fighter* my_fight)
 {
     sound::add(11 + tone, my_fight->parts[bodypart::BODY].global_pos, true, false);
 
-    //net_trombone.send = true;
-    //net_trombone.tone = tone;
-
     local_representation.tone = tone;
     local_representation.dirty = 1;
     local_representation.pos = my_fight->parts[bodypart::BODY].global_pos;
@@ -152,17 +157,22 @@ void trombone_manager::set_active(bool active)
     }
 }
 
-void trombone_manager::register_server_networking(server_networking* networking)
+void trombone_manager::register_server_networking(fighter* my_fight, server_networking* networking)
 {
     network = networking;
 
+    ///only register if we're invalid
     if(network_offset != -1)
         return;
 
-    network_offset = network->register_network_variable(&network_representation);
+    if(my_fight->network_id == -1)
+        return;
 
+    network_offset = network->register_network_variable(my_fight->network_id, &network_representation);
+
+    ///only register callback if we're now valid
     if(network_offset == -1)
         return;
 
-    networking->register_packet_callback(network_offset, std::bind(trombone_packet_callback, std::placeholders::_1, std::placeholders::_2, *this));
+    network->register_packet_callback(my_fight->network_id, network_offset, std::bind(trombone_packet_callback, std::placeholders::_1, std::placeholders::_2, *this));
 }

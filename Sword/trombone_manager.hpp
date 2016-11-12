@@ -24,12 +24,16 @@ struct trombone_manager;
 void trombone_packet_callback(void* ptr, int N, trombone_manager& manage);
 
 ///need to network trombone position
+///ok, this has to be moved into fighter
+///every fighter must have a trombone
+///its no longer sensible to pretend
+///fighter in this context can be a network fighter, tick is called in shared_tick
 struct trombone_manager
 {
     void init(object_context* _ctx);
 
     ///called in tick
-    void network_tick();
+    void network_tick(int player_id);
     void tick(engine& window, fighter* my_fight);
     void play(fighter* my_fight);
 
@@ -43,10 +47,7 @@ struct trombone_manager
 
     static constexpr int max_tones = 13;
 
-    //net_trombone construct_net_trombone();
-    //void load_from_net_trombone(const net_trombone& net);
-
-    void register_server_networking(server_networking* networking);
+    void register_server_networking(fighter* my_fight, server_networking* networking);
 
     int network_offset = -1;
     net_trombone network_representation;

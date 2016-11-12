@@ -190,35 +190,38 @@ struct server_networking
     network_statistics this_frame_stats;
 
     ///ptr_info is just a descriptor of ptr data size and a pointer
-    std::vector<ptr_info> registered_network_variables;
+    //std::vector<ptr_info> registered_network_variables;
+    std::map<int, std::vector<ptr_info>> registered_network_variable_perplayer;
 
-    std::map<int, std::function<void(void*, int)>> packet_callback;
+    ///player id -> map[component_id -> packet callback]
+    ///ie for every player id, we can define a callback per-component
+    std::map<int, std::map<int, std::function<void(void*, int)>>> packet_callback_perplayer;
 
     template<typename T>
-    int register_network_variable(T* ptr)
+    int register_network_variable(int player_id, T* ptr)
     {
-        if(!have_id || discovered_fighters[my_id].fight == nullptr)
+        if(!have_id || discovered_fighters[player_id].fight == nullptr)// || discovered_fighters[player_id].fight->network_id != player_id)
         {
             //lg::log("Warning, no fighter id or null fighter set in register_network_variable");
             return -1;
         }
 
-        std::map<int, ptr_info> net_map = build_fighter_network_stack(&discovered_fighters[my_id], this);
+        std::map<int, ptr_info> net_map = build_fighter_network_stack(&discovered_fighters[player_id], this);
 
         int num = net_map.size();
 
         ptr_info inf = get_inf(ptr);
 
-        registered_network_variables.push_back(inf);
+        registered_network_variable_perplayer[player_id].push_back(inf);
 
         return num;
     }
 
-    void update_network_variable(int num);
+    void update_network_variable(int player_id, int num);
 
-    void register_packet_callback(int component_id, std::function<void(void*, int)> func)
+    void register_packet_callback(int player_id, int component_id, std::function<void(void*, int)> func)
     {
-        packet_callback[component_id] = func;
+        packet_callback_perplayer[player_id][component_id] = func;
     }
 };
 

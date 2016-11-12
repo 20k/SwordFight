@@ -170,6 +170,8 @@ void server_networking::ping_master()
     tcp_send(to_master, vec.ptr);
 }
 
+///ok so this is all wrong ;_; revert commits
+///trombone needs to be part of fighter
 std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight, server_networking* networking)
 {
     fighter* fight = net_fight->fight;
@@ -213,7 +215,7 @@ std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight, s
     fighter_stack[c++] = get_inf(&net->network_fighter_inf.pos);
     fighter_stack[c++] = get_inf(&net->network_fighter_inf.rot);
 
-    for(auto& i : networking->registered_network_variables)
+    for(auto& i : networking->registered_network_variable_perplayer[fight->network_id])
     {
         fighter_stack[c++] = i;
     }
@@ -534,8 +536,13 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 play.disconnect_timer.restart();
 
-                if(packet_callback.find(component_id) != packet_callback.end())
-                    packet_callback[component_id](comp.ptr, comp.size);
+                if(packet_callback_perplayer.find(player_id) != packet_callback_perplayer.end())
+                {
+                    if(packet_callback_perplayer[player_id].find(component_id) != packet_callback_perplayer[player_id].end())
+                    {
+                        packet_callback_perplayer[player_id][component_id](comp.ptr, comp.size);
+                    }
+                }
 
                 ///done for me now
                 if(player_id == my_id)
@@ -994,7 +1001,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
         //i.second.fight->my_cape.tick(i.second.fight);
 
-        i.second.fight->shared_tick();
+        i.second.fight->shared_tick(this);
 
         i.second.fight->tick_cape();
 
@@ -1166,15 +1173,15 @@ void server_networking::set_my_fighter(fighter* fight)
     fight->set_network_id(my_id);
 }
 
-void server_networking::update_network_variable(int num)
+void server_networking::update_network_variable(int player_id, int num)
 {
-    if(!have_id || discovered_fighters[my_id].fight == nullptr)
+    if(!have_id || discovered_fighters[player_id].fight == nullptr || player_id == -1)
     {
         lg::log("Warning, no fighter id or null fighter set in update_network_variable");
         return;
     }
 
-    auto net_map = build_fighter_network_stack(&discovered_fighters[my_id], this);
+    auto net_map = build_fighter_network_stack(&discovered_fighters[player_id], this);
 
     if(net_map.find(num) == net_map.end())
     {
@@ -1182,7 +1189,7 @@ void server_networking::update_network_variable(int num)
         return;
     }
 
-    network_update_element(this, net_map[num].ptr, &discovered_fighters[my_id], net_map[num].size);
+    network_update_element(this, net_map[num].ptr, &discovered_fighters[player_id], net_map[num].size);
 }
 
 void gamemode_info::process_gamemode_update(byte_fetch& arg)

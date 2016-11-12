@@ -2,6 +2,7 @@
 #define FIGHTER_HPP_INCLUDED
 
 #include "../openclrenderer/objects_container.hpp"
+#include "trombone_manager.hpp"
 
 #include <vec/vec.hpp>
 
@@ -764,12 +765,15 @@ struct gameplay_state;
 struct map_cube_info;
 
 struct network_fighter;
+struct server_networking;
 
 ///what a clusterfuck
 ///OK, its not the skeleton thats an issue, that's actually seemingly necessarily quite heavily integrated
 ///its the networking model, and directly networking components thats extremely problematic
 struct fighter
 {
+    trombone_manager trombone_manage;
+
     ///this is the modifiable network representation of the network fighter
     ///the player does not have a valid instance of this
     network_fighter* net_fighter_copy;
@@ -886,7 +890,7 @@ struct fighter
     void update_sword_rot();
 
     void tick(bool is_player = false);
-    void shared_tick();
+    void shared_tick(server_networking* networking);
 
     void manual_check_part_death(); ///interate over parts, if < 0 and active then die
     void manual_check_part_alive(); ///interate over parts, if > 0 and inactive then activate
@@ -991,7 +995,6 @@ struct fighter
 
     ///so, i guess this is including me
     std::vector<fighter*> fighter_list;
-
 
 private:
     sf::Clock walk_clock;

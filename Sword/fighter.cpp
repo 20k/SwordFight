@@ -677,6 +677,8 @@ fighter::~fighter()
 
 void fighter::load()
 {
+    trombone_manage.init(cpu_context);
+
     sprint_frac = 0.f;
 
     is_sprinting = false;
@@ -1573,7 +1575,7 @@ void fighter::tick(bool is_player)
 }
 
 ///conflicts with manual check part alive
-void fighter::shared_tick()
+void fighter::shared_tick(server_networking* networking)
 {
     /*if(parts[bodypart::RHAND].obj()->isactive)
     {
@@ -1583,6 +1585,8 @@ void fighter::shared_tick()
 
         lg::log("Setactive shared");
     }*/
+
+    trombone_manage.register_server_networking(this, networking);
 }
 
 void fighter::manual_check_part_death()
