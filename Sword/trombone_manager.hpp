@@ -12,6 +12,7 @@ struct server_networking;
 
 ///we need a dirty thing to tell if we've received a network packet
 ///Uhh. Structure packing here and networking this is going to be an issue
+///TONE. THis is a tone
 struct net_trombone
 {
     uint8_t tone = 0;
@@ -19,9 +20,15 @@ struct net_trombone
     vec3f pos = {0,0,0};
 };
 
+struct net_trombone_descriptor
+{
+    uint8_t is_active = 0;
+};
+
 struct trombone_manager;
 
 void trombone_packet_callback(void* ptr, int N, trombone_manager& manage);
+void trombone_debug(void* ptr, int N);
 
 ///need to network trombone position
 ///ok, this has to be moved into fighter
@@ -35,6 +42,7 @@ struct trombone_manager
     ///called in tick
     void network_tick(int player_id);
     void tick(engine& window, fighter* my_fight);
+    void position_model(fighter* my_fight);
     void play(fighter* my_fight);
 
     void set_active(bool active);
@@ -50,8 +58,11 @@ struct trombone_manager
     void register_server_networking(fighter* my_fight, server_networking* networking);
 
     int network_offset = -1;
+    int network_active_offset = -1;
     net_trombone network_representation;
     net_trombone local_representation;
+
+    net_trombone_descriptor network_trombone_descriptor;
 
     server_networking* network = nullptr;
 };

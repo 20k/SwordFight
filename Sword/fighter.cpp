@@ -1586,6 +1586,7 @@ void fighter::shared_tick(server_networking* networking)
         lg::log("Setactive shared");
     }*/
 
+    trombone_manage.position_model(this);
     trombone_manage.register_server_networking(this, networking);
 }
 

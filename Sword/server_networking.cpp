@@ -482,7 +482,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 {
                     lg::log("bad forward canary");
 
-                    return;
+                    continue;
                 }
 
                 if(discovered_fighters[player_id].id == -1 && have_id)
@@ -517,7 +517,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 if(component_id < 0 || component_id >= arg_map.size())
                 {
                     lg::log("err in forwarding");
-                    return; ///?
+                    continue; ///?
                 }
 
                 ptr_info comp = arg_map[component_id];
@@ -525,7 +525,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 if(len != comp.size || comp.size == 0 || comp.ptr == nullptr)
                 {
                     lg::log("err in argument");
-                    return;
+                    continue;
                 }
 
                 memmove(comp.ptr, payload, comp.size);

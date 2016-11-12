@@ -685,7 +685,7 @@ int main(int argc, char *argv[])
     {
         sf::Clock c;
 
-        //trombone_manage.set_active(false);
+        my_fight->trombone_manage.set_active(false);
 
         bool in_menu = menu_handler.should_do_menu();
 
@@ -1131,6 +1131,7 @@ int main(int argc, char *argv[])
         ///so that the listener position is exactly the body part
         my_fight->do_foot_sounds(true);
         my_fight->trombone_manage.tick(window, my_fight);
+        //my_fight->trombone_manage.set_active(false);
         //trombone_manage.tick(window, my_fight);
         //trombone_manage.register_server_networking(&server);
 
