@@ -135,6 +135,7 @@ void trombone_manager::position_model(fighter* my_fight)
     vec3f up = {0, 1, 0};
     vec3f forw = my_fight->parts[bodypart::LHAND].global_pos - (my_fight->parts[bodypart::HEAD].global_pos - (vec3f){0, 50, 0});
 
+    ///horizontal shift term
     vec3f rcross = cross(forw, up).norm() * 50;
 
     forw = my_fight->parts[bodypart::LHAND].global_pos - (my_fight->parts[bodypart::HEAD].global_pos - (vec3f){0, 50, 0} - rcross);

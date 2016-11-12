@@ -2476,6 +2476,18 @@ void fighter::recalculate_link_positions_from_parts()
     {
         objects_container* obj = i.obj;
 
+        /*vec3f forw = (vec3f){0, 0, -1}.rot(0.f, rot);
+        vec3f perp = forw.rot(0.f, {0, M_PI/2, 0});
+
+        vec4f axis_angle = (vec4f){perp.x(), perp.y(), perp.z(), M_PI/2.f};
+
+        quaternion q;
+        q.load_from_axis_angle(axis_angle);
+
+        mat3f m = q.get_rotation_matrix();
+
+        vec3f up = m * forw;*/
+
         vec3f start = i.p1->global_pos;
         vec3f fin = i.p2->global_pos;
 
@@ -2498,6 +2510,44 @@ void fighter::recalculate_link_positions_from_parts()
 
         obj->set_pos({start.v[0], start.v[1], start.v[2]});
         obj->set_rot({rot.v[0], rot.v[1], rot.v[2]});
+
+        //obj->set_rot_quat(look_at_quat(dir, up));
+
+        ///-rot here wrong because we redefined!
+        //quaternion izquat;
+        //izquat.load_from_axis_angle({0, 1, 0, -rot.v[1]});
+
+        /*vec4f rev = {dir.v[0], dir.v[1], dir.v[2], -rot.v[1]};
+
+        quaternion izquat;
+        izquat.load_from_axis_angle(rev);
+
+        quaternion nq = look_at_quat(dir, up);
+
+        obj->set_rot_quat(izquat * nq);*/
+
+        /*vec3f up = {0, 1, 0};
+
+        float angle = acos(dot(dir.norm(), up));
+
+        float yangle = atan2(dir.v[2], dir.v[0]);
+
+        mat3f yrot = mat3f().YRot(yangle);
+        //mat3f yrot = mat3f().identity();
+
+        vec3f axis = cross(dir.norm(), {0, 1, 0}).norm();
+
+        vec4f aa = {axis.x(), axis.y(), axis.z(), -angle};
+
+        quaternion ib;
+
+        if(axis.length() > 0.001f);
+            ib.load_from_axis_angle(aa);
+
+        quaternion nq;
+        nq.load_from_matrix(yrot);*/
+
+        //obj->set_rot_quat(ib * nq);
     }
 }
 

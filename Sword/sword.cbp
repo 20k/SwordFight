@@ -64,6 +64,7 @@
 			<Add option="-Wno-narrowing" />
 			<Add option="-Wno-sign-compare" />
 			<Add option="-Werror=return-type" />
+			<Add option="-Wno-unused-variable" />
 			<Add option="-DCL_USE_DEPRECATED_OPENCL_1_1_APIS" />
 			<Add option="-DNDEBUG" />
 			<Add option="-DGLEW_STATIC" />
