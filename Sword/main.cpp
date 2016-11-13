@@ -468,6 +468,8 @@ int main(int argc, char *argv[])
     //floor->set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
     floor->offset_pos({0, FLOOR_CONST, 0});
 
+    //floor->set_active(false);
+
     objects_container* debug_cube = context.make_new();
 
     debug_cube->set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0,0,0}, (vec3f){10,10,10}, 100, "res/blue.png"));
@@ -548,8 +550,8 @@ int main(int argc, char *argv[])
 
     context.build(true);
 
-    floor->set_screenspace_map_id(floor_reflection_tex->id);
-    floor->set_ss_reflective(true);
+    //floor->set_screenspace_map_id(floor_reflection_tex->id);
+    //floor->set_ss_reflective(true);
 
     lg::log("postbuild");
 
@@ -773,12 +775,16 @@ int main(int argc, char *argv[])
 
         if(do_resize)
         {
+            context.destroy_context_unrenewables();
+            transparency_context.destroy_context_unrenewables();
+
             glFinish();
             window.render_block();
 
             cl::cqueue.finish();
             cl::cqueue2.finish();
             cl::cqueue_ooo.finish();
+            glFinish();
 
             window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
 

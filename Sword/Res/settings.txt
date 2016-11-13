@@ -1,5 +1,5 @@
-1422 #width
-916 #height
+1667 #width
+1031 #height
 192.168.1.55 #unused
 1 #quality. 0 for low, 1 for high
 20k - dev #name
@@ -7,3 +7,5 @@ DEBUG
 6.270000f #mouse sensitivity. Valid formats are x.yf, where x and y are numbers that you pick
 0.000000 #motion blur strength
 1.000000 #motion blur camera contribution, ie if this is low, we only get the motion blur due to objects moving
+0
+0
