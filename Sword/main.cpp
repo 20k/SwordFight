@@ -487,6 +487,7 @@ int main(int argc, char *argv[])
 
     engine window;
     window.append_opencl_extra_command_line("-D SHADOWBIAS=150");
+    window.append_opencl_extra_command_line("-D MIP_BIAS=2.f");
     window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true);
     ImGui::SFML::Init(window.window);
     window.manual_input = true;
