@@ -620,7 +620,7 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
     vec3f finish = p2->pos - dir * squish;
 
     objects_container* o = p1->cpu_context->make_new();
-    o->set_load_func(std::bind(load_object_cube_tex, std::placeholders::_1, start, finish, thickness, *ntex));
+    o->set_load_func(std::bind(load_object_cube_tex, std::placeholders::_1, start, finish, thickness, *ntex, false));
     o->cache = false;
 
     link l;

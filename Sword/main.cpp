@@ -472,7 +472,7 @@ int main(int argc, char *argv[])
 
     objects_container* debug_cube = context.make_new();
 
-    debug_cube->set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0,0,0}, (vec3f){10,10,10}, 100, "res/blue.png"));
+    debug_cube->set_load_func(std::bind(load_object_cube, std::placeholders::_1, (vec3f){0,0,0}, (vec3f){10,10,10}, 100, "res/blue.png", false));
     debug_cube->cache = false;
     debug_cube->set_active(false);
 
