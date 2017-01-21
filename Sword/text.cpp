@@ -77,7 +77,7 @@ void text::draw(sf::RenderTarget* draw_to)
 
         sf::Text to_draw(cur, font, 12);
 
-        to_draw.setPosition(loc.v[0], height - loc.v[1]);
+        to_draw.setPosition((int)loc.v[0], ceil(height - loc.v[1]));
         to_draw.setColor(sf::Color(255, 255, 255, 255));
 
         draw_to->draw(to_draw);

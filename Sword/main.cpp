@@ -1213,7 +1213,7 @@ int main(int argc, char *argv[])
 
             circle.setPointCount(100);
 
-            circle.setPosition({window.width/2.f - (rad + 0.5f), window.height/2.f - (rad + 0.5f)});
+            circle.setPosition({(int)(window.width/2.f - (rad + 0.5f)), (int)(window.height/2.f - (rad + 0.5f))});
 
             window.window.draw(circle);
         }

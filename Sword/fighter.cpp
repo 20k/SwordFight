@@ -262,7 +262,7 @@ void part::load_team_model()
         if(quality == 1)
             res = 1024;
 
-        tex->set_create_colour({col.v[0], col.v[1], col.v[2]}, res, res);
+        tex->set_create_colour(sf::Color(col.x(), col.y(), col.z(), 255), res, res);
     }
 
     model->set_specular(bodypart::specular);
@@ -330,7 +330,7 @@ void part::update_texture_by_hp()
 
         vec3f col = team_info::get_team_col(team);
 
-        cl_float4 pcol = {col.v[0], col.v[1], col.v[2]};
+        cl_float4 pcol = {col.v[0], col.v[1], col.v[2], 255.f};
 
         if(!model->isactive || !model->isloaded)
             return;
@@ -343,6 +343,8 @@ void part::update_texture_by_hp()
             dcol.x /= 255.f;
             dcol.y /= 255.f;
             dcol.z /= 255.f;
+
+            dcol.w = 1;
 
             cl_uint tid = model->objs[0].tid;
 
