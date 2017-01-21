@@ -544,6 +544,7 @@ int main(int argc, char *argv[])
     ///specular component
     floor->set_specular(0.01f);
     floor->set_diffuse(4.f);
+    floor->set_is_static(true);
 
     lg::log("prebuild");
 
@@ -572,6 +573,7 @@ int main(int argc, char *argv[])
     //l.set_brightness(0.415f);
     l.set_diffuse(1.f);
     l.set_pos({0, 5000, -000, 0});
+    l.set_is_static(1);
     //l.set_godray_intensity(0.5f);
 
     light::add_light(&l);
