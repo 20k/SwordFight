@@ -199,6 +199,31 @@ float get_smoothed(const std::vector<float>& vals, int n)
     return accum;
 }
 
+float get_stddev(const std::vector<float>& vals, int n)
+{
+    if(vals.size() == 0)
+        return 0.f;
+
+    float mean = get_smoothed(vals, n);
+
+    float acc = 0;
+
+    for(auto& i : vals)
+    {
+        float dev = (i - mean);
+
+        dev *= dev;
+
+        acc += dev;
+    }
+
+    acc /= vals.size();
+
+    float stddev = sqrt(acc);
+
+    return stddev;
+}
+
 void ui_manager::tick_frametime_graph(float ftime, bool display)
 {
     if(!ftime_paused)
@@ -228,9 +253,10 @@ void ui_manager::tick_frametime_graph(float ftime, bool display)
         ImGui::SameLine();
 
         float smooth_ftime = get_smoothed(ftime_history, 50);
+        float stddev = get_stddev(ftime_history, 50);
 
         std::string top = to_string_with_precision(maxf, 2) + " max";
-        std::string mid = to_string_with_precision(smooth_ftime, 2) + " current";
+        std::string mid = to_string_with_precision(smooth_ftime, 2) + "ms " + to_string_with_precision(stddev, 2) + "stddev";
         std::string bot = to_string_with_precision(minf, 2) + " min";
 
         ImGui::BeginGroup();
