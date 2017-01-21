@@ -146,8 +146,6 @@
 		<Unit filename="../openclrenderer/texture_context.hpp" />
 		<Unit filename="../openclrenderer/triangle.cpp" />
 		<Unit filename="../openclrenderer/triangle.hpp" />
-		<Unit filename="../openclrenderer/ui_manager.cpp" />
-		<Unit filename="../openclrenderer/ui_manager.hpp" />
 		<Unit filename="../openclrenderer/vec.hpp" />
 		<Unit filename="../openclrenderer/vertex.cpp" />
 		<Unit filename="../openclrenderer/vertex.hpp" />
