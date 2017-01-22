@@ -59,6 +59,8 @@ void ui_manager::tick_settings(float ftime_ms)
         res_y.val = saved_settings_h;
     }
 
+    //printf("RES X Y %i %i\n", res_x.val, res_y.val);
+
     mouse_sensitivity.set_bound(0.001f, 100.f);
     vals.mouse_sens = mouse_sensitivity.instantiate_and_get("Mouse sens").ret;
 

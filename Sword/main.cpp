@@ -715,7 +715,7 @@ int main(int argc, char *argv[])
                 going = false;
             }
 
-            if(Event.type == sf::Event::Resized)
+            if(Event.type == sf::Event::Resized && !window.suppress_resizing())
             {
                 do_resize = true;
 
@@ -724,6 +724,8 @@ int main(int argc, char *argv[])
 
                 s.width = r_x;
                 s.height = r_y;
+
+                lg::log("Proper resize");
 
                 s.save("./res/settings.txt");
             }
@@ -744,6 +746,8 @@ int main(int argc, char *argv[])
             }
         }
 
+        window.suppress_resize = false;
+
         if(window.is_requested_close())
         {
             going = false;
@@ -760,6 +764,8 @@ int main(int argc, char *argv[])
             r_x = desktop.width;
             r_y = desktop.height;
 
+            lg::log("alt enter ", r_x, " ", r_y);
+
             s.width = r_x;
             s.height = r_y;
 
@@ -772,6 +778,8 @@ int main(int argc, char *argv[])
 
             r_x = s.width;
             r_y = s.height;
+
+            lg::log("dynamic resize");
 
             s.save("./res/settings.txt");
         }
@@ -789,14 +797,13 @@ int main(int argc, char *argv[])
             cl::cqueue_ooo.finish();
             glFinish();
 
+            lg::log("resize ", r_x, " ", r_y, " ", s.width, " ", s.height, " ", ui_manage.saved_settings_w, " ", ui_manage.saved_settings_h);
+
+            //exit(1);
+
             window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
 
             ImGui::SFML::Init(window.window);
-
-            if(fullscreen)
-            {
-                window.window.setPosition({0,0});
-            }
 
             window.raw_input_init();
 
