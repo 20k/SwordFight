@@ -799,8 +799,6 @@ int main(int argc, char *argv[])
 
             lg::log("resize ", r_x, " ", r_y, " ", s.width, " ", s.height, " ", ui_manage.saved_settings_w, " ", ui_manage.saved_settings_h);
 
-            //exit(1);
-
             window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
 
             ImGui::SFML::Init(window.window);
