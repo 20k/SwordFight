@@ -88,7 +88,22 @@ void load_map(objects_container* obj, const std::vector<int>& map_def, int width
             objects_container temp_obj;
             temp_obj.parent = obj->parent;
 
+            ///so the first 6 are always the lower section of the cube away from end, and the last 6 are towards the end
             load_object_cube(&temp_obj, world_pos_start, world_pos_end, game_map::scale/2, "./Res/gray.png");
+
+            ///Ok. So the first two triangles are the base of the cube. We never need this ever
+            temp_obj.objs[0].tri_list.erase(temp_obj.objs[0].tri_list.begin() + 0);
+            temp_obj.objs[0].tri_list.erase(temp_obj.objs[0].tri_list.begin() + 0);
+
+            if(get_map_loc(map_def, {x, y}, {width, height}) == 0)
+            {
+                for(int i=0; i<8; i++)
+                {
+                    temp_obj.objs[0].tri_list.pop_back();
+                }
+            }
+
+            temp_obj.objs[0].tri_num = temp_obj.objs[0].tri_list.size();
 
             ///subobject position set by obj->set_pos in load_object_cube
             obj->objs.push_back(temp_obj.objs[0]);
