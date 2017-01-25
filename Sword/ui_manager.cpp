@@ -50,6 +50,9 @@ void ui_manager::tick_settings(float ftime_ms)
     use_post_aa.set_default(sett->use_post_aa);
     use_raw_input.set_default(sett->use_raw_input);
 
+    frames_of_input_lag.set_default(sett->frames_of_input_lag);
+    frames_of_input_lag.set_getter_integral_bound(0, 5);
+
     if(saved_settings_w != sett->width || saved_settings_h != sett->height)
     {
         saved_settings_w = sett->width;
@@ -108,6 +111,8 @@ void ui_manager::tick_settings(float ftime_ms)
     vals.use_post_aa = use_post_aa.instantiate_and_get("Use post AA").ret;
     vals.use_raw_input = use_raw_input.instantiate_and_get("Use raw input").ret;
 
+    vals.frames_of_input_lag = frames_of_input_lag.instantiate_and_get("Frames of input lag").ret;
+
     if(ImGui::Button("Update Resolution"))
     {
         sett->width = vals.width;
@@ -155,6 +160,13 @@ void ui_manager::tick_settings(float ftime_ms)
     if(sett->use_raw_input != vals.use_raw_input)
     {
         sett->use_raw_input = vals.use_raw_input;
+
+        config_dirty = true;
+    }
+
+    if(sett->frames_of_input_lag != vals.frames_of_input_lag)
+    {
+        sett->frames_of_input_lag = vals.frames_of_input_lag;
 
         config_dirty = true;
     }

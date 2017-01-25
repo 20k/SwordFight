@@ -689,12 +689,15 @@ int main(int argc, char *argv[])
 
     bool show_ftime = false;
 
+
     bool going = true;
 
     ///fix depth ordering with transparency
     while(going)
     {
         sf::Clock c;
+
+        window.set_max_input_lag_frames(s.frames_of_input_lag);
 
         my_fight->trombone_manage.set_active(false);
 
@@ -1160,7 +1163,10 @@ int main(int argc, char *argv[])
         ///so, we blit space to screen, but that might not have finished before
         ///the async event for the draw_bulk_objs_n event has finished
         ///and this can fire
+
+        window.render_block();
         window.blit_to_screen(*context.fetch());
+
 
         if(!my_fight->dead())
         {
@@ -1241,7 +1247,7 @@ int main(int argc, char *argv[])
         window.flip();
 
         ///so this + render_event is basically causing two stalls
-        window.render_block(); ///so changing render block above blit_to_screen also fixes
+        //window.render_block(); ///so changing render block above blit_to_screen also fixes
 
 
         object_context_data* cdat = context.fetch();
@@ -1427,7 +1433,7 @@ int main(int argc, char *argv[])
 
         object_context_data* tctx = transparency_context.fetch();
 
-        if(window.can_render())
+        //if(window.can_render())
         {
             ///if we make this after and put the clear in here, we can then do blit_space every time
             ///with no flickering, fewer atomics, and better performance
@@ -1439,13 +1445,13 @@ int main(int argc, char *argv[])
             window.draw_bulk_objs_n(*tctx);
 
             window.generate_realtime_shadowing(*cdat);
-            window.draw_bulk_objs_n(*cdat);
+            event = window.draw_bulk_objs_n(*cdat);
 
             if(s.use_post_aa)
-                window.do_pseudo_aa();
+                event = window.do_pseudo_aa();
 
             if(s.motion_blur_strength > 0.01f)
-                window.do_motion_blur(*cdat, s.motion_blur_strength, s.motion_blur_camera_contribution);
+                event = window.do_motion_blur(*cdat, s.motion_blur_strength, s.motion_blur_camera_contribution);
 
             //window.draw_screenspace_reflections(*cdat, context, nullptr);
 
@@ -1457,13 +1463,13 @@ int main(int argc, char *argv[])
         server.update_fighter_gpu_name();
         window.window.resetGLStates();
 
-        if(window.can_render())
+        //if(window.can_render())
         {
             //if(s.quality != 0)
             //    event = space_res.blit_space_to_screen(*cdat);
         }
 
-        if(window.can_render())
+        //if(window.can_render())
         {
             #ifndef COMBO_BLEND
             event = window.blend_with_depth(*tctx, *cdat);
@@ -1474,8 +1480,9 @@ int main(int argc, char *argv[])
 
             window.increase_render_events();
 
+            #define FASTER_BUT_LESS_CONSISTENT
             #ifdef FASTER_BUT_LESS_CONSISTENT
-            //window.set_render_event(event);
+            window.set_render_event(event);
             #endif
         }
 

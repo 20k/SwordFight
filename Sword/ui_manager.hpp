@@ -18,6 +18,19 @@ struct window_element_getter_base
     static int label_gid;
     std::string internal_label = "Default " + std::to_string(window_element_ids::label_gid++);
 
+
+    vec<2, T> bound;
+    bool has_bound = false;
+
+    ///ok i fucked up, we should enforce this for everything but i'm tired
+    void set_getter_integral_bound(T lbound, T ubound)
+    {
+        bound.x() = lbound;
+        bound.y() = ubound;
+
+        has_bound = true;
+    }
+
     struct rval
     {
         T ret;
@@ -93,6 +106,9 @@ struct window_element_getter<int> : window_element_getter_base<int>
     {
         bool ret = ImGui::InputInt(label.c_str(), &val);
 
+        if(has_bound)
+            val = clamp(val, bound.x(), bound.y());
+
         rval rv;
         rv.ret = (val);
         rv.clicked = ret;
@@ -125,6 +141,9 @@ struct window_element_getter<float> : window_element_getter_base<float>
     rval instantiate_and_get(const std::string& label)
     {
         bool ret = ImGui::InputFloat(label.c_str(), &val);
+
+        if(has_bound)
+            val = clamp(val, bound.x(), bound.y());
 
         rval rv;
         rv.ret = (val);
@@ -239,6 +258,7 @@ struct configuration_values
     float motion_blur_camera_contribution;
     int use_post_aa = 1;
     int use_raw_input = 1;
+    int frames_of_input_lag = 1;
 };
 
 struct fighter;
@@ -263,6 +283,8 @@ struct ui_manager
 
     window_element_checkbox<int> use_post_aa;
     window_element_checkbox<int> use_raw_input;
+
+    window_element_getter<int> frames_of_input_lag;
 
     int saved_settings_w = 0;
     int saved_settings_h = 0;
