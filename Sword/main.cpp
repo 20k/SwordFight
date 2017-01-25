@@ -1165,6 +1165,20 @@ int main(int argc, char *argv[])
         ///and this can fire
 
         window.render_block();
+
+        if(window.max_input_lag_frames == 0)
+        {
+            ///get freshest input
+            if(!in_menu)
+                window.process_input();
+
+            context.flush_locations();
+            transparency_context.flush_locations();
+
+            window.draw_bulk_objs_n(*transparency_context.fetch());
+            window.generate_realtime_shadowing(*context.fetch());
+        }
+
         window.blit_to_screen(*context.fetch());
 
 
@@ -1255,11 +1269,11 @@ int main(int argc, char *argv[])
         ///I think this is now quite redundant
         window.set_object_data(*cdat);
 
-        #define REAL_INPUT
+        /*#define REAL_INPUT
         #ifdef REAL_INPUT
         if(!in_menu)
             window.process_input();
-        #endif
+        #endif*/
 
         #ifdef CLAMP_VIEW
         window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
@@ -1414,9 +1428,6 @@ int main(int argc, char *argv[])
         }
         #endif
 
-        context.flush_locations();
-        transparency_context.flush_locations();
-
         #ifdef SPACE
 
         if(s.quality != 0)
@@ -1435,6 +1446,20 @@ int main(int argc, char *argv[])
 
         //if(window.can_render())
         {
+            ///one frame ahead seems to be slightly more consistent if done post opengl
+            if(window.max_input_lag_frames > 0)
+            {
+                ///get freshest input
+                if(!in_menu)
+                    window.process_input();
+
+                context.flush_locations();
+                transparency_context.flush_locations();
+
+                window.draw_bulk_objs_n(*transparency_context.fetch());
+                window.generate_realtime_shadowing(*context.fetch());
+            }
+
             ///if we make this after and put the clear in here, we can then do blit_space every time
             ///with no flickering, fewer atomics, and better performance
             ///marginally though
@@ -1442,9 +1467,9 @@ int main(int argc, char *argv[])
             //if(s.quality != 0)
             //    space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
 
-            window.draw_bulk_objs_n(*tctx);
+            //window.draw_bulk_objs_n(*tctx);
 
-            window.generate_realtime_shadowing(*cdat);
+
             event = window.draw_bulk_objs_n(*cdat);
 
             if(s.use_post_aa)
