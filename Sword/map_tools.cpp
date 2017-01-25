@@ -132,7 +132,6 @@ void load_map_cube(objects_container* obj, const std::vector<std::vector<int>>& 
     {
         objects_container temp_obj;
         temp_obj.parent = obj->parent;
-
         load_map(&temp_obj, map_def[i], width, height);
 
         float len = get_cube_half_length(width) * game_map::scale;

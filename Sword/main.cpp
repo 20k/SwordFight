@@ -443,6 +443,11 @@ int main(int argc, char *argv[])
 
     object_context transparency_context;
 
+    #define COMBO_BLEND
+    #ifdef COMBO_BLEND
+    context.set_blend_render_context(transparency_context);
+    #endif
+
     map_cube_info debug_map_cube;
 
     world_map default_map;
@@ -488,6 +493,7 @@ int main(int argc, char *argv[])
     engine window;
     window.append_opencl_extra_command_line("-D SHADOWBIAS=150");
     window.append_opencl_extra_command_line("-D MIP_BIAS=2.f");
+    window.append_opencl_extra_command_line("-D CAN_INTEGRATED_BLEND");
     window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true);
     ImGui::SFML::Init(window.window);
     window.manual_input = true;
@@ -1419,6 +1425,8 @@ int main(int argc, char *argv[])
 
         compute::event event;
 
+        object_context_data* tctx = transparency_context.fetch();
+
         if(window.can_render())
         {
             ///if we make this after and put the clear in here, we can then do blit_space every time
@@ -1427,6 +1435,8 @@ int main(int argc, char *argv[])
 
             //if(s.quality != 0)
             //    space_res.draw_galaxy_cloud_modern(g_star_cloud, (cl_float4){-5000,-8500,0});
+
+            window.draw_bulk_objs_n(*tctx);
 
             window.generate_realtime_shadowing(*cdat);
             window.draw_bulk_objs_n(*cdat);
@@ -1455,11 +1465,9 @@ int main(int argc, char *argv[])
 
         if(window.can_render())
         {
-            object_context_data* tctx = transparency_context.fetch();
-
-            window.draw_bulk_objs_n(*tctx);
-
+            #ifndef COMBO_BLEND
             event = window.blend_with_depth(*tctx, *cdat);
+            #endif
 
             cdat->swap_buffers();
             tctx->swap_buffers();
@@ -1467,7 +1475,7 @@ int main(int argc, char *argv[])
             window.increase_render_events();
 
             #ifdef FASTER_BUT_LESS_CONSISTENT
-            window.set_render_event(event);
+            //window.set_render_event(event);
             #endif
         }
 
