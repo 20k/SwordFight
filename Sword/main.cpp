@@ -398,6 +398,7 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 ///build then flip is invalid
 ///on self damage, simply queue a move for x ms to do nothing
 ///try falling sand, do gravity physics on cubes then atomic, then diffuse, could be interesting
+///remember to do fullscreen saving as well
 int main(int argc, char *argv[])
 {
     lg::set_logfile("./logging.txt");
@@ -489,8 +490,8 @@ int main(int argc, char *argv[])
 
     const std::string title = std::string("Midguard V") + std::to_string(AutoVersion::MAJOR) + "." + std::to_string(AutoVersion::MINOR);
 
-
     engine window;
+    window.set_fov(s.horizontal_fov_degrees);
     window.append_opencl_extra_command_line("-D SHADOWBIAS=150");
     window.append_opencl_extra_command_line("-D MIP_BIAS=2.f");
     window.append_opencl_extra_command_line("-D CAN_INTEGRATED_BLEND");
@@ -789,6 +790,17 @@ int main(int argc, char *argv[])
             r_y = s.height;
 
             lg::log("dynamic resize");
+
+            s.save("./res/settings.txt");
+        }
+
+        if(s.horizontal_fov_degrees != window.horizontal_fov_degrees)
+        {
+            do_resize = true;
+
+            window.set_fov(s.horizontal_fov_degrees);
+
+            lg::log("FoV changed to ", s.horizontal_fov_degrees);
 
             s.save("./res/settings.txt");
         }

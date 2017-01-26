@@ -35,7 +35,15 @@ void ui_manager::tick_settings(float ftime_ms)
 
     ImGui::Begin("Config (Autosaves). Click and drag, or double click"); // begin window
 
+    mouse_sensitivity.set_slide_speed(0.01f);
+    motion_blur_strength.set_slide_speed(0.01f);
+    motion_blur_camera_contribution.set_slide_speed(0.01f);
+
+    horizontal_fov_degrees.set_slide_speed(0.1f);
+
+
     mouse_sensitivity.set_default(sett->mouse_sens);
+
     res_x.set_bound(0, 4096);
     res_y.set_bound(0, 4096);
 
@@ -52,6 +60,9 @@ void ui_manager::tick_settings(float ftime_ms)
 
     frames_of_input_lag.set_default(sett->frames_of_input_lag);
     frames_of_input_lag.set_getter_integral_bound(0, 5);
+
+    horizontal_fov_degrees.set_default(sett->horizontal_fov_degrees);
+    horizontal_fov_degrees.set_bound(1, 170);
 
     if(saved_settings_w != sett->width || saved_settings_h != sett->height)
     {
@@ -113,10 +124,13 @@ void ui_manager::tick_settings(float ftime_ms)
 
     vals.frames_of_input_lag = frames_of_input_lag.instantiate_and_get("Frames of input lag").ret;
 
-    if(ImGui::Button("Update Resolution"))
+    vals.horizontal_fov_degrees = horizontal_fov_degrees.instantiate_and_get("FoV angle (horizontal)").ret;
+
+    if(ImGui::Button("Update Resolution and/or FoV"))
     {
         sett->width = vals.width;
         sett->height = vals.height;
+        sett->horizontal_fov_degrees = vals.horizontal_fov_degrees;
 
         config_dirty = true;
     }

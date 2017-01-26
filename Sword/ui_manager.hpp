@@ -204,6 +204,13 @@ struct window_element_checkbox<int> : window_element_getter_base<int>
 template<typename T>
 struct window_slider_getter_base
 {
+    float slide_speed = 1.f;
+
+    void set_slide_speed(float speed)
+    {
+        slide_speed = speed;
+    }
+
     vec<2, T> vbound;
 
     void set_bound(T _min, T _max)
@@ -223,7 +230,7 @@ struct window_slider_getter<float> : window_element_getter<float>, window_slider
 {
     rval instantiate_and_get(const std::string& label)
     {
-        bool ret = ImGui::DragFloat(label.c_str(), &val, 0.01f, vbound.v[0], vbound.v[1]);
+        bool ret = ImGui::DragFloat(label.c_str(), &val, slide_speed, vbound.v[0], vbound.v[1]);
 
         rval rv;
         rv.ret = (val);
@@ -238,7 +245,7 @@ struct window_slider_getter<int> : window_element_getter<int>, window_slider_get
 {
     rval instantiate_and_get(const std::string& label)
     {
-        bool ret = ImGui::DragInt(label.c_str(), &val, 1, vbound.v[0], vbound.v[1]);
+        bool ret = ImGui::DragInt(label.c_str(), &val, slide_speed, vbound.v[0], vbound.v[1]);
 
         rval rv;
         rv.ret = (val);
@@ -259,6 +266,7 @@ struct configuration_values
     int use_post_aa = 1;
     int use_raw_input = 1;
     int frames_of_input_lag = 1;
+    float horizontal_fov_degrees = 120;
 };
 
 struct fighter;
@@ -285,6 +293,7 @@ struct ui_manager
     window_element_checkbox<int> use_raw_input;
 
     window_element_getter<int> frames_of_input_lag;
+    window_slider_getter<float> horizontal_fov_degrees;
 
     int saved_settings_w = 0;
     int saved_settings_h = 0;
