@@ -1465,8 +1465,8 @@ int main(int argc, char *argv[])
                 if(!in_menu)
                     window.process_input();
 
-                context.flush_locations();
-                transparency_context.flush_locations();
+                //context.flush_locations();
+                //transparency_context.flush_locations();
 
                 window.draw_bulk_objs_n(*transparency_context.fetch());
                 window.generate_realtime_shadowing(*context.fetch());
@@ -1521,6 +1521,12 @@ int main(int argc, char *argv[])
             #ifdef FASTER_BUT_LESS_CONSISTENT
             window.set_render_event(event);
             #endif
+        }
+
+        if(window.max_input_lag_frames > 0)
+        {
+            context.flush_locations(false, &event);
+            transparency_context.flush_locations(false, &event);
         }
 
         ///async inadequate, causing bugs i believe
