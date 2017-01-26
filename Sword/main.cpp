@@ -1465,8 +1465,14 @@ int main(int argc, char *argv[])
                 if(!in_menu)
                     window.process_input();
 
-                //context.flush_locations();
-                //transparency_context.flush_locations();
+                if(window.event_queue.size() > 0)
+                {
+                    compute::event last_event = window.event_queue.front();
+
+                    context.flush_locations(false, &last_event);
+                    transparency_context.flush_locations(false, &last_event);
+                }
+
 
                 window.draw_bulk_objs_n(*transparency_context.fetch());
                 window.generate_realtime_shadowing(*context.fetch());
@@ -1523,11 +1529,12 @@ int main(int argc, char *argv[])
             #endif
         }
 
-        if(window.max_input_lag_frames > 0)
+        ///should probably put this before rendering and block on the previous render event
+        /*if(window.max_input_lag_frames > 0)
         {
             context.flush_locations(false, &event);
             transparency_context.flush_locations(false, &event);
-        }
+        }*/
 
         ///async inadequate, causing bugs i believe
         context.build_tick(false);
