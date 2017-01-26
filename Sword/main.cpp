@@ -1473,7 +1473,6 @@ int main(int argc, char *argv[])
                     transparency_context.flush_locations(false, nullptr);
                 }
 
-
                 window.draw_bulk_objs_n(*transparency_context.fetch());
                 window.generate_realtime_shadowing(*context.fetch());
             }

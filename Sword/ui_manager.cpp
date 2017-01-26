@@ -252,6 +252,28 @@ float get_stddev(const std::vector<float>& vals, int n)
     return stddev;
 }
 
+float get_average_frametime_variation(const std::vector<float>& vals)
+{
+    if(vals.size() < 2)
+        return 0.f;
+
+    float acc = 0;
+
+    for(int i=1; i<vals.size(); i++)
+    {
+        float cur = vals[i];
+        float last = vals[i-1];
+
+        float diff = fabs(cur - last);
+
+        acc += diff;
+    }
+
+    acc /= vals.size() - 1;
+
+    return acc;
+}
+
 void ui_manager::tick_frametime_graph(float ftime, bool display)
 {
     if(!ftime_paused)
@@ -282,9 +304,10 @@ void ui_manager::tick_frametime_graph(float ftime, bool display)
 
         float smooth_ftime = get_smoothed(ftime_history, 50);
         float stddev = get_stddev(ftime_history, 50);
+        float average_frametime_variation = get_average_frametime_variation(ftime_history);
 
         std::string top = to_string_with_precision(maxf, 2) + " max";
-        std::string mid = to_string_with_precision(smooth_ftime, 2) + "ms " + to_string_with_precision(stddev, 2) + "stddev";
+        std::string mid = to_string_with_precision(smooth_ftime, 2) + "ms " + to_string_with_precision(stddev, 2) + "stddev " + to_string_with_precision(average_frametime_variation, 2) + " inter-frame variance";
         std::string bot = to_string_with_precision(minf, 2) + " min";
 
         ImGui::BeginGroup();
