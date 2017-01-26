@@ -1470,7 +1470,7 @@ int main(int argc, char *argv[])
                     compute::event last_event = window.event_queue.front();
 
                     context.flush_locations(false, &last_event);
-                    transparency_context.flush_locations(false, &last_event);
+                    transparency_context.flush_locations(false, nullptr);
                 }
 
 
