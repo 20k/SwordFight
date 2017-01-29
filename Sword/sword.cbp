@@ -92,18 +92,18 @@
 			<Add option="-limm32" />
 			<Add option="-lSDL2" />
 		</Linker>
-		<Unit filename="../OpenCLRenderer/camera_effects.hpp" />
-		<Unit filename="../OpenCLRenderer/cl_gl_interop_texture.hpp" />
 		<Unit filename="../openclrenderer/Game/Galaxy/galaxy.cpp" />
 		<Unit filename="../openclrenderer/Game/Galaxy/galaxy.hpp" />
 		<Unit filename="../openclrenderer/Game/space_manager.cpp" />
 		<Unit filename="../openclrenderer/Game/space_manager.hpp" />
 		<Unit filename="../openclrenderer/camera_effects.cpp" />
+		<Unit filename="../openclrenderer/camera_effects.hpp" />
 		<Unit filename="../openclrenderer/cl2.cl">
 			<Option weight="45" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../openclrenderer/cl_gl_interop_texture.cpp" />
+		<Unit filename="../openclrenderer/cl_gl_interop_texture.hpp" />
 		<Unit filename="../openclrenderer/clstate.cpp" />
 		<Unit filename="../openclrenderer/clstate.h" />
 		<Unit filename="../openclrenderer/controls.cpp" />
