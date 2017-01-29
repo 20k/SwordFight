@@ -101,6 +101,7 @@
 		<Unit filename="../openclrenderer/camera_effects.cpp" />
 		<Unit filename="../openclrenderer/cl2.cl">
 			<Option weight="45" />
+			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../openclrenderer/cl_gl_interop_texture.cpp" />
 		<Unit filename="../openclrenderer/clstate.cpp" />
