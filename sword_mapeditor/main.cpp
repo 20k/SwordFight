@@ -88,11 +88,30 @@ void load_floor(objects_container* obj)
     obj->isloaded = true;
 }
 
+void obj_load_blank_tex(objects_container* obj)
+{
+    obj_load(obj);
+
+    object_context& ctx = *obj->parent;
+
+    for(object& o : obj->objs)
+    {
+        int tid = o.tid;
+
+        texture* tex = ctx.tex_ctx.id_to_tex(tid);
+
+        if(tex != nullptr)
+        {
+            tex->set_create_colour(sf::Color(200, 200, 200), 128, 128);
+        }
+    }
+}
+
 struct asset
 {
     std::string asset_name;
     std::string asset_toplevel_directory; ///used for categorisation
-    std::string asset_path;
+    std::string asset_path; ///including name
     objects_container* loaded_asset = nullptr;
 
     void set_asset(const std::string& path, const std::string& name)
@@ -105,7 +124,18 @@ struct asset
 
         asset_toplevel_directory = path.substr(first_split + 1, second_split - first_split - 1);
 
-        std::cout << asset_toplevel_directory << std::endl;
+        //std::cout << asset_toplevel_directory << std::endl;
+    }
+
+    void load_object(object_context& ctx)
+    {
+        loaded_asset = ctx.make_new();
+
+        loaded_asset->set_file(asset_path);
+        loaded_asset->set_active(true);
+
+
+        //loaded_asset->set_load_func(obj_load_blank_tex);
     }
 };
 
@@ -135,7 +165,7 @@ struct asset_manager
             {
                 size_t loc = fname.find(".obj");
 
-                if(loc == std::string::npos)
+                if(loc == std::string::npos || loc != fname.size() - strlen(".obj"))
                 {
                     continue;
                 }
@@ -148,6 +178,39 @@ struct asset_manager
         }
 
         tinydir_close(&dir);
+    }
+
+    void load_object_all(object_context& ctx)
+    {
+        for(auto& i : assets)
+        {
+            i.load_object(ctx);
+        }
+    }
+
+    void position()
+    {
+        int id = 0;
+
+        for(asset& a : assets)
+        {
+            int x = id % 30;
+            int y = id / 30;
+
+            cl_float4 pos = {x * 500, 100, y * 500};
+
+            a.loaded_asset->set_pos(pos);
+
+            id++;
+        }
+    }
+
+    void scale()
+    {
+        for(asset& a : assets)
+        {
+            a.loaded_asset->set_dynamic_scale(100.f);
+        }
     }
 };
 
@@ -184,9 +247,13 @@ int main(int argc, char *argv[])
 
     asset_manager asset_manage;
     asset_manage.populate("Assets");
+    asset_manage.load_object_all(context);
+    asset_manage.position();
 
     ///we need a context.unload_inactive
     context.load_active();
+
+    asset_manage.scale();
 
     sponza->scale(100.f);
 
@@ -201,10 +268,11 @@ int main(int argc, char *argv[])
 
     light l;
     l.set_col({1.0f, 1.0f, 1.0f, 0.0f});
-    l.set_shadow_casting(0);
-    l.set_brightness(4);
+    l.set_shadow_casting(1);
+    l.set_brightness(2);
     l.radius = 100000;
-    l.set_pos((cl_float4){-200, 2000, -100, 0});
+    l.set_pos((cl_float4){5000, 3000, 300, 0});
+    //l.set_pos((cl_float4){-200, 2000, -100, 0});
 
     light::add_light(&l);
 
@@ -256,6 +324,7 @@ int main(int argc, char *argv[])
 
         //if(window.can_render())
         {
+            window.generate_realtime_shadowing(*context.fetch());
             ///do manual async on thread
             event = window.draw_bulk_objs_n(*context.fetch());
 
