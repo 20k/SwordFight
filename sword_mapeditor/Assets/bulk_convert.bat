@@ -1,0 +1,1 @@
+C:\Stuff\Blender\blender.exe --background --python bulk_convert_obj.py
