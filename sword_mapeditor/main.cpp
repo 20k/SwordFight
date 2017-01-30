@@ -73,7 +73,7 @@ void load_level(objects_container* obj)
 void load_floor(objects_container* obj)
 {
     texture* tex = obj->parent->tex_ctx.make_new();
-    tex->set_create_colour(sf::Color(200, 200, 200), 128, 128);
+    tex->set_create_colour(sf::Color(220, 220, 220), 128, 128);
 
     int dsize = 1;
 
@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
 
     window.load(1680,1050,1000, "turtles", "../openclrenderer/cl2.cl", true);
 
-    window.set_camera_pos({709.88, 285.298, -759.853});
+    window.set_camera_pos({0, 285.298, -900});
 
     asset_manager asset_manage;
     asset_manage.populate("Assets");
@@ -202,9 +202,9 @@ int main(int argc, char *argv[])
     light l;
     l.set_col({1.0f, 1.0f, 1.0f, 0.0f});
     l.set_shadow_casting(0);
-    l.set_brightness(1);
+    l.set_brightness(4);
     l.radius = 100000;
-    l.set_pos((cl_float4){-200, 500, -100, 0});
+    l.set_pos((cl_float4){-200, 2000, -100, 0});
 
     light::add_light(&l);
 
