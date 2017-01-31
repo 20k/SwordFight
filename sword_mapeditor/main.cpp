@@ -247,11 +247,24 @@ struct asset_manager
             int x = id % 30;
             int y = id / 30;
 
-            cl_float4 pos = {x * 500, 100, y * 500};
+            cl_float4 pos = {x * 500, 0, y * 500};
 
             a.loaded_asset->set_pos(pos);
 
             id++;
+        }
+
+        for(asset& a : assets)
+        {
+            float miny = a.loaded_asset->get_min_y() * a.loaded_asset->dynamic_scale;
+
+            cl_float4 cpos = a.loaded_asset->pos;
+
+            cpos.y -= miny;
+
+            printf("%f my\n", miny);
+
+            a.loaded_asset->set_pos(cpos);
         }
     }
 
@@ -473,7 +486,13 @@ struct asset_manager
         {
             spos = (vec3f){intersect_point.x(), intersect_point.y(), intersect_point.z()};
 
-            a.loaded_asset->set_pos({spos.x(), spos.y(), spos.z()});
+            vec2f bound = {15000, 15000};
+
+            if(spos.x() >= -bound.x() && spos.x() < bound.x() && spos.z() >= -bound.y() && spos.z() < bound.y())
+            {
+                a.loaded_asset->set_pos({spos.x(), spos.y(), spos.z()});
+            }
+
         }
     }
 };
@@ -517,12 +536,13 @@ int main(int argc, char *argv[])
     asset_manager asset_manage;
     asset_manage.populate("Assets");
     asset_manage.load_object_all(context);
-    asset_manage.position();
 
     ///we need a context.unload_inactive
     context.load_active();
 
+
     asset_manage.scale();
+    asset_manage.position();
     asset_manage.patch_textures();
 
     sponza->scale(100.f);
