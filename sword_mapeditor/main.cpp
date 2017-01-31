@@ -716,6 +716,70 @@ struct asset_manager
 
         ImGui::End();
     }
+
+    void do_save_ui(object_context& ctx, std::string file)
+    {
+        ImGui::Begin("Save Window");
+
+        if(ImGui::Button("Save"))
+        {
+            save(ctx, file);
+        }
+
+        if(ImGui::Button("Load"))
+        {
+            load(ctx, file);
+        }
+
+        ImGui::End();
+    }
+
+    void save(object_context& ctx, std::string file)
+    {
+        std::ofstream stream(file, std::ios::out | std::ios::trunc);
+
+        for(objects_container* c : ctx.containers)
+        {
+            if(c->file == "")
+                continue;
+
+            stream << c->file << "\n";
+        }
+
+        stream.close();
+    }
+
+    void load(object_context& ctx, std::string file)
+    {
+        std::ifstream stream(file);
+
+        if(stream.good())
+        {
+            std::string file;
+
+            while(std::getline(stream, file))
+            {
+                objects_container* c = ctx.make_new();
+
+                c->set_file(file);
+                c->set_active(true);
+                c->set_unique_textures(true);
+                c->cache = false;
+
+                ctx.load_active();
+
+                ///found something invalid in the save, ah well
+                if(!c->isloaded)
+                    c->set_active(false);
+
+                c->set_dynamic_scale(100.f);
+            }
+        }
+
+        ctx.build_request();
+
+        stream.close();
+    }
 };
 
 ///gamma correct mipmap filtering
@@ -917,7 +981,7 @@ int main(int argc, char *argv[])
                 last_hovered = nullptr;
             }
 
-            if(last_hovered)
+            if(last_hovered && last_hovered != level)
             {
                 last_hovered->set_outlined(true);
             }
@@ -955,6 +1019,16 @@ int main(int argc, char *argv[])
             window.c_rot = saved_c_rot[which_context];
         }
 
+        /*if(once<sf::Keyboard::F1>())
+        {
+            asset_manage.save(secondary_context, "save.txt");
+        }
+
+        if(once<sf::Keyboard::F2>())
+        {
+            asset_manage.load(secondary_context, "save.txt");
+        }*/
+
         compute::event event;
 
         //if(window.can_render())
@@ -977,6 +1051,7 @@ int main(int argc, char *argv[])
         window.window.resetGLStates();
 
         asset_manage.do_ui();
+        asset_manage.do_save_ui(secondary_context, "save.txt");
 
         asset_manage.do_interactivity(window);
 
