@@ -832,6 +832,7 @@ int main(int argc, char *argv[])
 
     window.set_camera_pos({0, 485.298, -900});
     window.set_camera_rot({0.4, 0, 0});
+    window.c_rot_keyboard_only = window.c_rot;
 
     ImGui::SFML::Init(window.window);
 
@@ -913,12 +914,16 @@ int main(int argc, char *argv[])
 
     cl_float4 saved_c_pos[2];
     cl_float4 saved_c_rot[2];
+    cl_float4 saved_keyboard_default[2];
 
     for(auto& i : saved_c_pos)
         i = window.c_pos;
 
     for(auto& i : saved_c_rot)
         i = window.c_rot;
+
+    for(auto& i : saved_keyboard_default)
+        i = window.c_rot_keyboard_only;
 
     ///use event callbacks for rendering to make blitting to the screen and refresh
     ///asynchronous to actual bits n bobs
@@ -1018,22 +1023,26 @@ int main(int argc, char *argv[])
         {
             saved_c_pos[which_context] = window.c_pos;
             saved_c_rot[which_context] = window.c_rot;
+            saved_keyboard_default[which_context] = window.c_rot_keyboard_only;
 
             which_context = 0;
 
             window.c_pos = saved_c_pos[which_context];
             window.c_rot = saved_c_rot[which_context];
+            window.c_rot_keyboard_only = saved_keyboard_default[which_context];
         }
 
         if(key.isKeyPressed(sf::Keyboard::Num2))
         {
             saved_c_pos[which_context] = window.c_pos;
             saved_c_rot[which_context] = window.c_rot;
+            saved_keyboard_default[which_context] = window.c_rot_keyboard_only;
 
             which_context = 1;
 
             window.c_pos = saved_c_pos[which_context];
             window.c_rot = saved_c_rot[which_context];
+            window.c_rot_keyboard_only = saved_keyboard_default[which_context];
         }
 
         /*if(once<sf::Keyboard::F1>())
