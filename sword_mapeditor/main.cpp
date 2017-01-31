@@ -2,6 +2,7 @@
 #include "tinydir/tinydir.h"
 #include "../imgui/imgui.h"
 #include "../imgui/imgui-SFML.h"
+#include "../openclrenderer/util.hpp"
 
 
 ///todo eventually
@@ -744,6 +745,10 @@ struct asset_manager
                 continue;
 
             stream << c->file << "\n";
+
+            vec3f pos = {c->pos.x, c->pos.y, c->pos.z};
+
+            stream << pos << "\n";
         }
 
         stream.close();
@@ -759,12 +764,24 @@ struct asset_manager
 
             while(std::getline(stream, file))
             {
+                std::string posstr;
+                std::getline(stream, posstr);
+
+                std::vector<std::string> splitted = split(posstr, ' ');
+
+                cl_float4 pos;
+
+                pos.x = atof(splitted[0].c_str());
+                pos.y = atof(splitted[1].c_str());
+                pos.z = atof(splitted[2].c_str());
+
                 objects_container* c = ctx.make_new();
 
                 c->set_file(file);
                 c->set_active(true);
                 c->set_unique_textures(true);
                 c->cache = false;
+                c->set_pos(pos);
 
                 ctx.load_active();
 
