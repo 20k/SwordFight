@@ -218,6 +218,25 @@ struct asset_manager
 
     objects_container* last_hovered_object = nullptr;
 
+    int grid_size = 40;
+    bool use_grid = false;
+
+    cl_float4 grid_lock(cl_float4 in)
+    {
+        if(!use_grid)
+            return in;
+
+        vec3f v = {in.x, in.y, in.z};
+
+        v = v / grid_size;
+
+        v = round(v);
+
+        v = v * grid_size;
+
+        return {v.x(), v.y(), v.z()};
+    }
+
     void populate(const std::string& asset_dir)
     {
         tinydir_dir dir;
@@ -394,6 +413,26 @@ struct asset_manager
         ImGui::End();
     }
 
+    void do_grid_ui()
+    {
+        ImGui::Begin("Grid UI");
+
+        ImGui::Checkbox("Toggle Grid", &use_grid);
+
+        std::string str;
+
+        str = std::string("GS ") + std::to_string(grid_size);
+
+        //ImGui::Button(str.c_str());
+
+        ImGui::InputInt("Grid Size", &grid_size);
+
+        ImGui::End();
+    }
+
+    float cdx = 0;
+    float cdy = 0;
+
     void do_interactivity(engine& window)
     {
         sf::Keyboard key;
@@ -408,7 +447,31 @@ struct asset_manager
         }*/
 
         if(last_hovered_object == nullptr)
+        {
+            cdx = 0;
+            cdy = 0;
+
             return;
+        }
+
+        if(last_hovered_object != nullptr)
+        {
+            last_hovered_object->set_quantise_position(false);
+        }
+
+        if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right))
+        {
+            cdx = 0;
+            cdy = 0;
+
+            return;
+        }
+
+        cdx += dx;
+        cdy += dy;
+
+        cdx = dx;
+        cdy = dy;
 
         float fov_const = calculate_fov_constant_from_hfov(window.horizontal_fov_degrees, window.width);
 
@@ -432,7 +495,7 @@ struct asset_manager
         object_proj.x() = object_proj.x() + window.width/2.f;
         object_proj.y() = object_proj.y() + window.height/2.f;
 
-        vec3f new_pos = {object_proj.x() + dx, object_proj.y() + -dy, object_proj.z()};
+        vec3f new_pos = {object_proj.x() + cdx, object_proj.y() + -cdy, object_proj.z()};
 
         float yplane = object_pos.y();
 
@@ -446,13 +509,13 @@ struct asset_manager
 
         ///really we want distance to projection plane (?) but... close enough, this is only for controls
 
-        vec3f current_relative_mouse_projected_pos = {dx * object_depth / fov_const, dy * object_depth / fov_const, 0.f};
+        vec3f current_relative_mouse_projected_pos = {cdx * object_depth / fov_const, cdy * object_depth / fov_const, 0.f};
 
         float move_len = current_relative_mouse_projected_pos.xy().length();
 
         vec3f move_axis = {0, 0, 0};
 
-        float len = sqrt(dx*dx + dy*dy);
+        float len = sqrt(cdx*cdx + cdy*cdy);
 
         /*if(mouse.isButtonPressed(sf::Mouse::Left))
         {
@@ -523,15 +586,21 @@ struct asset_manager
 
         //move_axis = move_axis.norm() * move_len;
 
-        vec3f spos = object_pos + move_axis;
+        vec3f next_pos = object_pos + move_axis;
+
+        cl_float4 next_clpos = {next_pos.x(), next_pos.y(), next_pos.z()};
+        cl_float4 current_clpos = last_hovered_object->pos;
 
         //a.loaded_asset->set_pos({spos.x(), spos.y(), spos.z()});
 
-        last_hovered_object->set_pos({spos.x(), spos.y(), spos.z()});
+        if(move_axis.y() != 0)
+            last_hovered_object->set_pos(next_clpos);
 
         if(mouse.isButtonPressed(sf::Mouse::Left))
         {
-            spos = (vec3f){intersect_point.x(), intersect_point.y(), intersect_point.z()};
+            vec3f spos = (vec3f){intersect_point.x(), intersect_point.y(), intersect_point.z()};
+
+            next_clpos = {spos.x(), spos.y(), spos.z()};
 
             vec2f bound = {15000, 15000};
 
@@ -539,9 +608,36 @@ struct asset_manager
             {
                 //a.loaded_asset->set_pos({spos.x(), spos.y(), spos.z()});
 
-                last_hovered_object->set_pos({spos.x(), spos.y(), spos.z()});
+                last_hovered_object->set_pos(next_clpos);
             }
         }
+
+        if(use_grid)
+        {
+            last_hovered_object->set_quantise_position(true, grid_size);
+        }
+
+        /*if(!approx_equal((vec3f){next_clpos.x, next_clpos.y, next_clpos.z}, (vec3f){current_clpos.x, current_clpos.y, current_clpos.z}))
+        {
+            cdx = 0;
+            cdy = 0;
+        }*/
+
+        /*if(!approx_equal(next_clpos.x, current_clpos.x, 0.1f))
+        {
+            cdx = 0;
+        }
+
+        if(!approx_equal(next_clpos.z, current_clpos.z, 0.1f))
+        {
+            cdy = 0;
+        }
+
+        if(!approx_equal(next_clpos.y, current_clpos.y, 0.1f))
+        {
+            cdx = 0;
+            cdy = 0;
+        }*/
     }
 
     ///have a save stack too
@@ -587,6 +683,8 @@ struct asset_manager
 
         c->set_file(file);
         c->set_active(true);
+        c->set_unique_textures(true); ///hack to fix texture sharing issues across contexts
+        c->cache = false; ///we're going to need to fix the texture hack issue
 
         ctx.load_active();
         ctx.build_request();
@@ -595,7 +693,7 @@ struct asset_manager
 
         position_object(c);
 
-        c->set_pos({intersect.x(), intersect.y(), intersect.z()});
+        c->set_pos(grid_lock({intersect.x(), intersect.y(), intersect.z()}));
 
         printf("PASTE PASTE PASTE\n");
     }
@@ -651,7 +749,8 @@ int main(int argc, char *argv[])
     window.append_opencl_extra_command_line("-DCAN_OUTLINE");
     window.load(1680,1050,1000, "turtles", "../openclrenderer/cl2.cl", true);
 
-    window.set_camera_pos({0, 285.298, -900});
+    window.set_camera_pos({0, 485.298, -900});
+    window.set_camera_rot({0.4, 0, 0});
 
     ImGui::SFML::Init(window.window);
 
@@ -696,7 +795,7 @@ int main(int argc, char *argv[])
 
     window.set_light_data(light_data);
 
-    objects_container* level = context.make_new();
+    objects_container* level = secondary_context.make_new();
 
     level->set_load_func(std::bind(load_floor, std::placeholders::_1));
     level->set_active(true);
@@ -709,12 +808,13 @@ int main(int argc, char *argv[])
     ///lets fix this... next time, with JAMES!!!!
     context.load_active();
     context.build(true);
+    secondary_context.load_active();
     secondary_context.build(true);
 
     quaternion q;
     q.load_from_euler({-M_PI/2, 0, 0});
     level->set_rot_quat(q);
-    level->set_dynamic_scale(1000.f);
+    level->set_dynamic_scale(10000.f);
 
     sf::Image crab;
     crab.loadFromFile("ico.png");
@@ -729,6 +829,15 @@ int main(int argc, char *argv[])
     objects_container* last_hovered = nullptr;
 
     int which_context = 0;
+
+    cl_float4 saved_c_pos[2];
+    cl_float4 saved_c_rot[2];
+
+    for(auto& i : saved_c_pos)
+        i = window.c_pos;
+
+    for(auto& i : saved_c_rot)
+        i = window.c_rot;
 
     ///use event callbacks for rendering to make blitting to the screen and refresh
     ///asynchronous to actual bits n bobs
@@ -755,6 +864,8 @@ int main(int argc, char *argv[])
         asset_manage.check_copy();
         asset_manage.check_paste_object(cctx, window);
         asset_manage.copy_ui();
+
+        asset_manage.do_grid_ui();
 
         if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right) && !mouse.isButtonPressed(sf::Mouse::XButton1))
         {
@@ -792,6 +903,11 @@ int main(int argc, char *argv[])
                 i->set_outlined(false);
             }
 
+            if(last_hovered != nullptr)
+            {
+                last_hovered->set_quantise_position(false);
+            }
+
             if(object_id != -1 && depth != -1)
             {
                 last_hovered = cctx.containers[object_id];
@@ -819,12 +935,24 @@ int main(int argc, char *argv[])
 
         if(key.isKeyPressed(sf::Keyboard::Num1))
         {
+            saved_c_pos[which_context] = window.c_pos;
+            saved_c_rot[which_context] = window.c_rot;
+
             which_context = 0;
+
+            window.c_pos = saved_c_pos[which_context];
+            window.c_rot = saved_c_rot[which_context];
         }
 
         if(key.isKeyPressed(sf::Keyboard::Num2))
         {
+            saved_c_pos[which_context] = window.c_pos;
+            saved_c_rot[which_context] = window.c_rot;
+
             which_context = 1;
+
+            window.c_pos = saved_c_pos[which_context];
+            window.c_rot = saved_c_rot[which_context];
         }
 
         compute::event event;
@@ -849,6 +977,7 @@ int main(int argc, char *argv[])
         window.window.resetGLStates();
 
         asset_manage.do_ui();
+
         asset_manage.do_interactivity(window);
 
         ImGui::Render();
