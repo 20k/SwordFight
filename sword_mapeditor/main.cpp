@@ -118,6 +118,31 @@ bool once()
     return false;
 }
 
+template<sf::Keyboard::Key k1, sf::Keyboard::Key k2>
+bool key_combo()
+{
+    sf::Keyboard key;
+
+    static bool last = false;
+
+    bool b1 = key.isKeyPressed(k1);
+    bool b2 = key.isKeyPressed(k2);
+
+    if(b1 && b2 && !last)
+    {
+        last = true;
+
+        return true;
+    }
+
+    if(!b1 || !b2)
+    {
+        last = false;
+    }
+
+    return false;
+}
+
 void load_floor(objects_container* obj)
 {
     texture* tex = obj->parent->tex_ctx.make_new();
@@ -191,7 +216,7 @@ struct asset_manager
 {
     std::vector<asset> assets;
 
-    int last_hovered = -1;
+    objects_container* last_hovered_object = nullptr;
 
     void populate(const std::string& asset_dir)
     {
@@ -236,6 +261,17 @@ struct asset_manager
         {
             i.load_object(ctx);
         }
+    }
+
+    void position_object(objects_container* obj)
+    {
+        float miny = obj->get_min_y() * obj->dynamic_scale;
+
+        cl_float4 cpos = obj->pos;
+
+        cpos.y -= miny;
+
+        obj->set_pos(cpos);
     }
 
     void position()
@@ -286,11 +322,11 @@ struct asset_manager
     {
         if(c == nullptr)
         {
-            last_hovered = -1;
+            last_hovered_object = nullptr;
             return;
         }
 
-        for(int i=0; i<assets.size(); i++)
+        /*for(int i=0; i<assets.size(); i++)
         {
             if(assets[i].loaded_asset->file == c->file)
             {
@@ -299,7 +335,9 @@ struct asset_manager
             }
         }
 
-        last_hovered = -1;
+        last_hovered = -1;*/
+
+        last_hovered_object = c;
     }
 
     void do_ui()
@@ -308,8 +346,11 @@ struct asset_manager
 
         std::string hovered_name;
 
-        if(last_hovered != -1)
-            hovered_name = assets[last_hovered].loaded_asset->file;
+        //if(last_hovered != -1)
+        //    hovered_name = assets[last_hovered].loaded_asset->file;
+
+        if(last_hovered_object != nullptr)
+            hovered_name = last_hovered_object->file;
 
         ImGui::Button(hovered_name.c_str());
 
@@ -364,18 +405,18 @@ struct asset_manager
         /*if(once<sf::Mouse::Left>() && last_hovered != -1)
         {
             asset& a = assets[last_hovered];
-
-
         }*/
 
-        if(last_hovered == -1)
+        if(last_hovered_object == nullptr)
             return;
 
         float fov_const = calculate_fov_constant_from_hfov(window.horizontal_fov_degrees, window.width);
 
-        asset& a = assets[last_hovered];
+        //asset& a = assets[last_hovered];
 
-        cl_float4 pos = a.loaded_asset->pos;
+        //cl_float4 pos = a.loaded_asset->pos;
+
+        cl_float4 pos = last_hovered_object->pos;
 
         vec3f object_pos = {pos.x, pos.y, pos.z};
 
@@ -484,7 +525,9 @@ struct asset_manager
 
         vec3f spos = object_pos + move_axis;
 
-        a.loaded_asset->set_pos({spos.x(), spos.y(), spos.z()});
+        //a.loaded_asset->set_pos({spos.x(), spos.y(), spos.z()});
+
+        last_hovered_object->set_pos({spos.x(), spos.y(), spos.z()});
 
         if(mouse.isButtonPressed(sf::Mouse::Left))
         {
@@ -494,9 +537,86 @@ struct asset_manager
 
             if(spos.x() >= -bound.x() && spos.x() < bound.x() && spos.z() >= -bound.y() && spos.z() < bound.y())
             {
-                a.loaded_asset->set_pos({spos.x(), spos.y(), spos.z()});
+                //a.loaded_asset->set_pos({spos.x(), spos.y(), spos.z()});
+
+                last_hovered_object->set_pos({spos.x(), spos.y(), spos.z()});
             }
         }
+    }
+
+    ///have a save stack too
+
+    objects_container* asset_to_copy_object = nullptr;
+
+    void check_copy()
+    {
+        if(key_combo<sf::Keyboard::LControl, sf::Keyboard::C>())
+        {
+            //asset_to_copy = last_hovered;
+            asset_to_copy_object = last_hovered_object;
+        }
+    }
+
+    void check_paste_object(object_context& ctx, engine& window)
+    {
+        if(!key_combo<sf::Keyboard::LControl, sf::Keyboard::V>())
+            return;
+
+        if(asset_to_copy_object == nullptr)
+            return;
+
+        //asset& a = assets[asset_to_copy];
+
+        float fov_const = calculate_fov_constant_from_hfov(window.horizontal_fov_degrees, window.width);
+
+        ///depth of 1 FROM THE PROJECTION PLANE
+        vec3f local_pos = {window.get_mouse_x(), window.height - window.get_mouse_y(), 1};
+
+        vec3f unproj_pos = {local_pos.x() - window.width / 2.f, local_pos.y() - window.height / 2.f, local_pos.z()};
+
+        unproj_pos.x() = unproj_pos.x() * local_pos.z() / fov_const;
+        unproj_pos.y() = unproj_pos.y() * local_pos.z() / fov_const;
+
+        vec3f camera_ray = unproj_pos.back_rot({0,0,0}, {window.c_rot.x, window.c_rot.y, window.c_rot.z});
+
+        vec3f intersect = ray_plane_intersect(camera_ray, {window.c_pos.x, window.c_pos.y, window.c_pos.z}, {0, 1, 0}, {0, asset_to_copy_object->pos.y, 0});
+
+        std::string file = asset_to_copy_object->file;
+
+        objects_container* c = ctx.make_new();
+
+        c->set_file(file);
+        c->set_active(true);
+
+        ctx.load_active();
+        ctx.build_request();
+
+        c->set_dynamic_scale(asset_to_copy_object->dynamic_scale);
+
+        position_object(c);
+
+        c->set_pos({intersect.x(), intersect.y(), intersect.z()});
+
+        printf("PASTE PASTE PASTE\n");
+    }
+
+    void copy_ui()
+    {
+        ImGui::Begin("Copied");
+
+        if(asset_to_copy_object != nullptr)
+        {
+            std::string aname = asset_to_copy_object->file;
+
+            ///beware if button
+            ImGui::Button(aname.c_str());
+        }
+        else
+        {
+            ImGui::Button("None");
+        }
+
+        ImGui::End();
     }
 };
 
@@ -630,9 +750,11 @@ int main(int argc, char *argv[])
 
         ImGui::SFML::Update(deltaClock.restart());
 
-        int last_hovered_asset = -1;
-
         object_context& cctx = which_context == 0 ? context : secondary_context;
+
+        asset_manage.check_copy();
+        asset_manage.check_paste_object(cctx, window);
+        asset_manage.copy_ui();
 
         if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right) && !mouse.isButtonPressed(sf::Mouse::XButton1))
         {
