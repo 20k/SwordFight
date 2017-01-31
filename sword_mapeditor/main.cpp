@@ -244,8 +244,8 @@ struct asset_manager
 
         for(asset& a : assets)
         {
-            int x = id % 30;
-            int y = id / 30;
+            int x = id % 25;
+            int y = id / 25;
 
             cl_float4 pos = {x * 500, 0, y * 500};
 
@@ -261,8 +261,6 @@ struct asset_manager
             cl_float4 cpos = a.loaded_asset->pos;
 
             cpos.y -= miny;
-
-            printf("%f my\n", miny);
 
             a.loaded_asset->set_pos(cpos);
         }
@@ -286,9 +284,15 @@ struct asset_manager
 
     void set_last_hovered(objects_container* c)
     {
+        if(c == nullptr)
+        {
+            last_hovered = -1;
+            return;
+        }
+
         for(int i=0; i<assets.size(); i++)
         {
-            if(assets[i].loaded_asset == c)
+            if(assets[i].loaded_asset->file == c->file)
             {
                 last_hovered = i;
                 return;
@@ -492,7 +496,6 @@ struct asset_manager
             {
                 a.loaded_asset->set_pos({spos.x(), spos.y(), spos.z()});
             }
-
         }
     }
 };
@@ -515,6 +518,7 @@ int main(int argc, char *argv[])
     sf::Clock load_time;
 
     object_context context;
+    object_context secondary_context;
 
     auto sponza = context.make_new();
     //sponza->set_file("../openclrenderer/sp2/sp2.obj");
@@ -539,6 +543,7 @@ int main(int argc, char *argv[])
 
     ///we need a context.unload_inactive
     context.load_active();
+    secondary_context.load_active();
 
 
     asset_manage.scale();
@@ -584,6 +589,7 @@ int main(int argc, char *argv[])
     ///lets fix this... next time, with JAMES!!!!
     context.load_active();
     context.build(true);
+    secondary_context.build(true);
 
     quaternion q;
     q.load_from_euler({-M_PI/2, 0, 0});
@@ -601,6 +607,8 @@ int main(int argc, char *argv[])
     sf::Clock deltaClock;
 
     objects_container* last_hovered = nullptr;
+
+    int which_context = 0;
 
     ///use event callbacks for rendering to make blitting to the screen and refresh
     ///asynchronous to actual bits n bobs
@@ -624,6 +632,8 @@ int main(int argc, char *argv[])
 
         int last_hovered_asset = -1;
 
+        object_context& cctx = which_context == 0 ? context : secondary_context;
+
         if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right) && !mouse.isButtonPressed(sf::Mouse::XButton1))
         {
             cl_int frag_id = -1;
@@ -640,8 +650,8 @@ int main(int argc, char *argv[])
             ///but really thats not going to be enough time to remove a stall. This needs testing. We could overlap it with shadow generation
             if(origin[0] >= 0 && origin[0] < window.width && origin[1] >= 0 && origin[1] < window.height)
             {
-                clEnqueueReadImage(cl::cqueue.get(), context.fetch()->g_id_screen_tex.get(), CL_FALSE, origin, region, 0, 0, &frag_id, 0, nullptr, nullptr);
-                clEnqueueReadBuffer(cl::cqueue.get(), context.fetch()->depth_buffer[1].get(), CL_FALSE, sizeof(cl_uint) * (y * window.width + x), sizeof(cl_uint), &depth, 0, nullptr, nullptr);
+                clEnqueueReadImage(cl::cqueue.get(), cctx.fetch()->g_id_screen_tex.get(), CL_FALSE, origin, region, 0, 0, &frag_id, 0, nullptr, nullptr);
+                clEnqueueReadBuffer(cl::cqueue.get(), cctx.fetch()->depth_buffer[1].get(), CL_FALSE, sizeof(cl_uint) * (y * window.width + x), sizeof(cl_uint), &depth, 0, nullptr, nullptr);
             }
 
             cl::cqueue.finish();
@@ -653,16 +663,16 @@ int main(int argc, char *argv[])
 
             cl::cqueue.finish();
 
-            int object_id = context.translate_gpu_o_id_to_container_offset(o_id);
+            int object_id = cctx.translate_gpu_o_id_to_container_offset(o_id);
 
-            for(auto& i : context.containers)
+            for(auto& i : cctx.containers)
             {
                 i->set_outlined(false);
             }
 
             if(object_id != -1 && depth != -1)
             {
-                last_hovered = context.containers[object_id];
+                last_hovered = cctx.containers[object_id];
             }
             else
             {
@@ -685,22 +695,32 @@ int main(int argc, char *argv[])
             global_position += (vec3f){window.c_pos.x, window.c_pos.y, window.c_pos.z};*/
         }
 
+        if(key.isKeyPressed(sf::Keyboard::Num1))
+        {
+            which_context = 0;
+        }
+
+        if(key.isKeyPressed(sf::Keyboard::Num2))
+        {
+            which_context = 1;
+        }
+
         compute::event event;
 
         //if(window.can_render())
         {
-            window.generate_realtime_shadowing(*context.fetch());
+            window.generate_realtime_shadowing(*cctx.fetch());
             ///do manual async on thread
-            event = window.draw_bulk_objs_n(*context.fetch());
+            event = window.draw_bulk_objs_n(*cctx.fetch());
 
             window.set_render_event(event);
 
-            context.fetch()->swap_buffers();
+            cctx.fetch()->swap_buffers();
 
             window.increase_render_events();
         }
 
-        window.blit_to_screen(*context.fetch());
+        window.blit_to_screen(*cctx.fetch());
 
         window.render_block();
 
@@ -714,10 +734,15 @@ int main(int argc, char *argv[])
         window.flip();
 
         context.flush_locations();
+        secondary_context.flush_locations();
 
         context.load_active();
         context.build_tick();
         context.flip();
+
+        secondary_context.load_active();
+        secondary_context.build_tick();
+        secondary_context.flip();
 
         if(key.isKeyPressed(sf::Keyboard::M))
             std::cout << c.getElapsedTime().asMicroseconds() << std::endl;

@@ -58,6 +58,7 @@
 		</Compiler>
 		<Linker>
 			<Add option="-lmingw32" />
+			<Add option="-limgui" />
 			<Add option="-lsfml-graphics" />
 			<Add option="-lsfml-audio" />
 			<Add option="-lsfml-network" />
@@ -75,6 +76,7 @@
 			<Add option="-lopenal32" />
 			<Add option="-logg" />
 			<Add option="-lsdl2" />
+			<Add option="-limm32" />
 		</Linker>
 		<Unit filename="../openclrenderer/camera_effects.cpp" />
 		<Unit filename="../openclrenderer/cl2.cl">
