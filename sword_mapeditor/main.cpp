@@ -783,10 +783,21 @@ struct asset_manager
 
             stream << c->position_quantise_grid_size << "\n";
 
-            printf("SHOULD QUANT %i\n", c->position_quantise);
+            //printf("SHOULD QUANT %i\n", c->position_quantise);
         }
 
         stream.close();
+    }
+
+    bool context_contains(object_context& ctx, std::string file)
+    {
+        for(auto& i : ctx.containers)
+        {
+            if(i->file == file && i->isloaded)
+                return true;
+        }
+
+        return false;
     }
 
     void load(object_context& ctx, std::string file)
@@ -844,8 +855,11 @@ struct asset_manager
 
                 c->set_file(file);
                 c->set_active(true);
-                c->set_unique_textures(true);
-                c->cache = false;
+
+                ///too tired to figure out the texture issue at the moment
+                //c->set_unique_textures(true);
+                //c->cache = false;
+
                 c->set_pos(pos);
 
                 ctx.load_active();
@@ -893,6 +907,9 @@ struct asset_manager
     void do_object_rotation(engine& window)
     {
         if(last_hovered_object == nullptr)
+            return;
+
+        if(!window.focus)
             return;
 
         float scroll = window.get_scrollwheel_delta();
@@ -1228,6 +1245,12 @@ int main(int argc, char *argv[])
             ImGui::SFML::ProcessEvent(Event);
 
             window.update_scrollwheel_delta(Event);
+
+            if(Event.type == sf::Event::GainedFocus)
+                window.set_focus(true);
+
+            if(Event.type == sf::Event::LostFocus)
+                window.set_focus(false);
         }
 
         ImGui::SFML::Update(deltaClock.restart());
@@ -1237,28 +1260,35 @@ int main(int argc, char *argv[])
         //asset_manage.check_copy();
         //asset_manage.check_paste_object(cctx, window);
 
-        asset_manage.check_copy_stack();
-        asset_manage.check_paste_stack(cctx, window);
+        if(window.focus)
+        {
+            asset_manage.check_copy_stack();
+            asset_manage.check_paste_stack(cctx, window);
+        }
+
         //asset_manage.copy_ui();
 
-        asset_manage.do_dyn_scale(window);
-        asset_manage.do_object_rotation(window);
-        asset_manage.do_reset();
+        if(window.focus)
+        {
+            asset_manage.do_dyn_scale(window);
+            asset_manage.do_object_rotation(window);
+            asset_manage.do_reset();
+        }
 
         asset_manage.do_grid_ui();
         asset_manage.do_paste_stack_ui();
 
-        if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>())
+        if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>() && window.focus)
         {
             asset_manage.save(secondary_context, "save.txt");
         }
 
-        if(once<sf::Keyboard::Delete>() && last_hovered != level)
+        if(once<sf::Keyboard::Delete>() && last_hovered != level && window.focus)
         {
             asset_manage.del(last_hovered);
         }
 
-        if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right) && !mouse.isButtonPressed(sf::Mouse::XButton1))
+        if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right) && !mouse.isButtonPressed(sf::Mouse::XButton1) && window.focus)
         {
             cl_int frag_id = -1;
             cl_uint depth = -1;
@@ -1328,7 +1358,7 @@ int main(int argc, char *argv[])
             global_position += (vec3f){window.c_pos.x, window.c_pos.y, window.c_pos.z};*/
         }
 
-        if(key.isKeyPressed(sf::Keyboard::Num1))
+        if(key.isKeyPressed(sf::Keyboard::Num1) && window.focus)
         {
             saved_c_pos[which_context] = window.c_pos;
             saved_c_rot[which_context] = window.c_rot;
@@ -1341,7 +1371,7 @@ int main(int argc, char *argv[])
             window.c_rot_keyboard_only = saved_keyboard_default[which_context];
         }
 
-        if(key.isKeyPressed(sf::Keyboard::Num2))
+        if(key.isKeyPressed(sf::Keyboard::Num2) && window.focus)
         {
             saved_c_pos[which_context] = window.c_pos;
             saved_c_rot[which_context] = window.c_rot;
@@ -1371,6 +1401,8 @@ int main(int argc, char *argv[])
             window.generate_realtime_shadowing(*cctx.fetch());
             ///do manual async on thread
             event = window.draw_bulk_objs_n(*cctx.fetch());
+
+            event = window.do_pseudo_aa();
 
             window.set_render_event(event);
 
