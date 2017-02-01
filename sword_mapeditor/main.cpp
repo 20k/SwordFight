@@ -1135,6 +1135,8 @@ objects_container* load_map_reference(object_context& ctx)
 }
 
 ///need to delete objects next
+///make the floor cuboid like the old experiment
+///or at least just made up of small squares
 int main(int argc, char *argv[])
 {
     lg::set_logfile("./logging.txt");
@@ -1162,6 +1164,7 @@ int main(int argc, char *argv[])
     engine window;
 
     window.append_opencl_extra_command_line("-DCAN_OUTLINE");
+    window.append_opencl_extra_command_line("-DSTYLISED");
     window.load(1680,1050,1000, "turtles", "../openclrenderer/cl2.cl", true);
 
     window.set_camera_pos({0, 485.298, -900});
