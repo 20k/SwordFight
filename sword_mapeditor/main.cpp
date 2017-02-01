@@ -157,6 +157,8 @@ void load_floor(objects_container* obj)
 
     obj_rect(&temp_obj, *tex, (cl_float2){dsize, dsize});
 
+    //obj_rect_tessellated(&temp_obj, *tex, (cl_float2){dsize, dsize}, 10.f);
+
     ///subobject position set by obj->set_pos in load_object_cube
     obj->objs.push_back(temp_obj.objs[0]);
 
@@ -1117,7 +1119,7 @@ objects_container* load_map_reference(object_context& ctx)
 
     c->set_active(true);
     c->cache = false;
-    c->set_load_func(std::bind(obj_rect, std::placeholders::_1, *tex, (cl_float2){1000, 1000}));
+    c->set_load_func(std::bind(obj_rect_tessellated, std::placeholders::_1, *tex, (cl_float2){1000, 1000}, 100));
 
     ctx.load_active();
 
@@ -1199,7 +1201,7 @@ int main(int argc, char *argv[])
     l.set_shadow_casting(1);
     l.set_brightness(4);
     l.radius = 100000;
-    l.set_pos((cl_float4){5000, 3000, 300, 0});
+    l.set_pos((cl_float4){5000, 15000, 300, 0});
     //l.set_pos((cl_float4){-200, 2000, -100, 0});
 
     light* current_light = light::add_light(&l);
@@ -1294,7 +1296,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            current_light->set_brightness(4);
+            current_light->set_brightness(2);
         }
 
         //asset_manage.check_copy();
