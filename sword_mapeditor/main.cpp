@@ -749,6 +749,8 @@ struct asset_manager
             vec3f pos = {c->pos.x, c->pos.y, c->pos.z};
 
             stream << pos << "\n";
+
+            stream << c->dynamic_scale << "\n";
         }
 
         stream.close();
@@ -775,6 +777,11 @@ struct asset_manager
                 pos.y = atof(splitted[1].c_str());
                 pos.z = atof(splitted[2].c_str());
 
+                std::string scalestr;
+                std::getline(stream, scalestr);
+
+                float scale = atof(scalestr.c_str());
+
                 objects_container* c = ctx.make_new();
 
                 c->set_file(file);
@@ -789,7 +796,7 @@ struct asset_manager
                 if(!c->isloaded)
                     c->set_active(false);
 
-                c->set_dynamic_scale(100.f);
+                c->set_dynamic_scale(scale);
             }
         }
 
@@ -797,10 +804,88 @@ struct asset_manager
 
         stream.close();
     }
+
+    void do_dyn_scale(engine& window)
+    {
+        sf::Mouse mouse;
+
+        if(!mouse.isButtonPressed(sf::Mouse::XButton1))
+            return;
+
+        if(last_hovered_object == nullptr)
+            return;
+
+        float dyn_scale = last_hovered_object->dynamic_scale;
+
+        //dyn_scale += window.get_scrollwheel_delta();
+
+        float dx = window.get_mouse_delta_x();
+        float dy = window.get_mouse_delta_y();
+
+        dyn_scale += dx;
+
+        dyn_scale = std::max(dyn_scale, 5.f);
+
+        last_hovered_object->set_dynamic_scale(dyn_scale);
+    }
+
+    void do_object_rotation(engine& window)
+    {
+        if(last_hovered_object == nullptr)
+            return;
+
+        float scroll = window.get_scrollwheel_delta();
+
+        quaternion q;
+        q.load_from_euler({0, scroll/10.f, 0});
+
+        quaternion crot;
+        crot = last_hovered_object->rot_quat;
+
+        quaternion res;
+        res.load_from_matrix(q.get_rotation_matrix() * crot.get_rotation_matrix());
+
+        last_hovered_object->set_rot_quat(res);
+    }
+
+    void do_reset()
+    {
+        if(!once<sf::Mouse::Middle>())
+            return;
+
+        if(last_hovered_object == nullptr)
+            return;
+
+        last_hovered_object->set_dynamic_scale(100.f);
+        last_hovered_object->set_rot_quat(quaternion().identity());
+    }
 };
 
-///gamma correct mipmap filtering
-///7ish pre tile deferred
+objects_container* load_map_reference(object_context& ctx)
+{
+    objects_container* c = ctx.make_new();
+
+    texture* tex = ctx.tex_ctx.make_new();
+    tex->set_location("mapshots/map_texture.png");
+
+    c->set_active(true);
+    c->cache = false;
+    c->set_load_func(std::bind(obj_rect, std::placeholders::_1, *tex, (cl_float2){1000, 1000}));
+
+    ctx.load_active();
+
+    quat q;
+    q.load_from_euler({-M_PI/2, 0, 0});
+
+    c->set_rot_quat(q);
+    c->set_dynamic_scale(30.f);
+
+    ctx.build_request();
+
+    return c;
+}
+
+///need to delete objects next
 int main(int argc, char *argv[])
 {
     lg::set_logfile("./logging.txt");
@@ -865,7 +950,7 @@ int main(int argc, char *argv[])
     light l;
     l.set_col({1.0f, 1.0f, 1.0f, 0.0f});
     l.set_shadow_casting(1);
-    l.set_brightness(2);
+    l.set_brightness(4);
     l.radius = 100000;
     l.set_pos((cl_float4){5000, 3000, 300, 0});
     //l.set_pos((cl_float4){-200, 2000, -100, 0});
@@ -877,12 +962,13 @@ int main(int argc, char *argv[])
 
     window.set_light_data(light_data);
 
-    objects_container* level = secondary_context.make_new();
+    /*objects_container* level = secondary_context.make_new();
 
     level->set_load_func(std::bind(load_floor, std::placeholders::_1));
-    level->set_active(true);
-    level->cache = false;
+    level->set_active(false);
+    level->cache = false;*/
 
+    objects_container* level = load_map_reference(secondary_context);
 
     ///reallocating the textures of one context
     ///requires invaliding the textures of the second context
@@ -893,10 +979,10 @@ int main(int argc, char *argv[])
     secondary_context.load_active();
     secondary_context.build(true);
 
-    quaternion q;
-    q.load_from_euler({-M_PI/2, 0, 0});
-    level->set_rot_quat(q);
-    level->set_dynamic_scale(10000.f);
+    //quaternion q;
+    //q.load_from_euler({-M_PI/2, 0, 0});
+    //level->set_rot_quat(q);
+    //level->set_dynamic_scale(10000.f);
 
     sf::Image crab;
     crab.loadFromFile("ico.png");
@@ -941,6 +1027,8 @@ int main(int argc, char *argv[])
                 window.window.close();
 
             ImGui::SFML::ProcessEvent(Event);
+
+            window.update_scrollwheel_delta(Event);
         }
 
         ImGui::SFML::Update(deltaClock.restart());
@@ -950,6 +1038,10 @@ int main(int argc, char *argv[])
         asset_manage.check_copy();
         asset_manage.check_paste_object(cctx, window);
         asset_manage.copy_ui();
+
+        asset_manage.do_dyn_scale(window);
+        asset_manage.do_object_rotation(window);
+        asset_manage.do_reset();
 
         asset_manage.do_grid_ui();
 
@@ -1008,7 +1100,11 @@ int main(int argc, char *argv[])
                 last_hovered->set_outlined(true);
             }
 
-            asset_manage.set_last_hovered(last_hovered);
+            if(last_hovered != level)
+                asset_manage.set_last_hovered(last_hovered);
+
+            if(last_hovered == level)
+                asset_manage.set_last_hovered(nullptr);
 
             /*float actual_depth = ((float)depth / UINT_MAX) * 350000.f;
 
