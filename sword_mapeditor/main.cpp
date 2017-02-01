@@ -3,6 +3,7 @@
 #include "../imgui/imgui.h"
 #include "../imgui/imgui-SFML.h"
 #include "../openclrenderer/util.hpp"
+#include "../openclrenderer/vec.hpp"
 
 
 ///todo eventually
@@ -643,7 +644,7 @@ struct asset_manager
 
     ///have a save stack too
 
-    objects_container* asset_to_copy_object = nullptr;
+    /*objects_container* asset_to_copy_object = nullptr;
 
     void check_copy()
     {
@@ -716,7 +717,7 @@ struct asset_manager
         }
 
         ImGui::End();
-    }
+    }*/
 
     void do_save_ui(object_context& ctx, std::string file)
     {
@@ -742,6 +743,9 @@ struct asset_manager
         for(objects_container* c : ctx.containers)
         {
             if(c->file == "")
+                continue;
+
+            if(!c->isactive)
                 continue;
 
             stream << c->file << "\n";
@@ -873,6 +877,143 @@ struct asset_manager
 
         last_hovered_object->set_dynamic_scale(100.f);
         last_hovered_object->set_rot_quat(quaternion().identity());
+    }
+
+    std::vector<objects_container*> paste_asset_stack;
+
+    void add_to_paste_stack(objects_container* st)
+    {
+        if(st == nullptr)
+            return;
+
+        paste_asset_stack.push_back(st);
+    }
+
+    void clear_asset_stack()
+    {
+        paste_asset_stack.clear();
+    }
+
+    void remove_from_asset_stack(objects_container* st)
+    {
+        for(int i=0; i<paste_asset_stack.size(); i++)
+        {
+            if(paste_asset_stack[i] == st)
+            {
+                paste_asset_stack.erase(paste_asset_stack.begin() + i);
+                i--;
+            }
+        }
+    }
+
+    void do_paste_stack_ui()
+    {
+        ImGui::Begin("Paste Stack");
+
+        for(objects_container* o : paste_asset_stack)
+        {
+            ImGui::Button(o->file.c_str());
+        }
+
+        ImGui::End();
+
+        if(once<sf::Keyboard::X>())
+        {
+            clear_asset_stack();
+        }
+    }
+
+    void check_copy_stack()
+    {
+        if(!key_combo<sf::Keyboard::LControl, sf::Keyboard::C>())
+            return;
+
+        if(last_hovered_object == nullptr)
+            return;
+
+        paste_asset_stack.push_back(last_hovered_object);
+    }
+
+    void check_paste_stack(object_context& ctx, engine& window)
+    {
+        if(!key_combo<sf::Keyboard::LControl, sf::Keyboard::V>())
+            return;
+
+        if(paste_asset_stack.size() == 0)
+            return;
+
+        float fov_const = calculate_fov_constant_from_hfov(window.horizontal_fov_degrees, window.width);
+
+        ///depth of 1 FROM THE PROJECTION PLANE
+        vec3f local_pos = {window.get_mouse_x(), window.height - window.get_mouse_y(), 1};
+
+        vec3f unproj_pos = {local_pos.x() - window.width / 2.f, local_pos.y() - window.height / 2.f, local_pos.z()};
+
+        unproj_pos.x() = unproj_pos.x() * local_pos.z() / fov_const;
+        unproj_pos.y() = unproj_pos.y() * local_pos.z() / fov_const;
+
+        vec3f camera_ray = unproj_pos.back_rot({0,0,0}, {window.c_rot.x, window.c_rot.y, window.c_rot.z});
+
+        objects_container* cobject = paste_asset_stack[0];
+
+        vec3f intersect = ray_plane_intersect(camera_ray, {window.c_pos.x, window.c_pos.y, window.c_pos.z}, {0, 1, 0}, {0, cobject->pos.y, 0});
+
+        std::string file = cobject->file;
+
+        /*objects_container* c = ctx.make_new();
+
+        c->set_file(file);
+        c->set_active(true);
+        c->set_unique_textures(true); ///hack to fix texture sharing issues across contexts
+        c->cache = false; ///we're going to need to fix the texture hack issue
+
+        ctx.load_active();
+        ctx.build_request();
+
+        c->set_dynamic_scale(cobject->dynamic_scale);*/
+
+        cl_float4 next_pos = grid_lock({intersect.x(), intersect.y(), intersect.z()});
+        cl_float4 current_pos = cobject->pos;
+
+        cl_float4 offset_pos = sub(next_pos, current_pos);
+
+        //c->set_pos(next_pos);
+
+        for(int i=0; i<paste_asset_stack.size(); i++)
+        {
+            cl_float4 cpos = paste_asset_stack[i]->pos;
+
+            objects_container* n = ctx.make_new();
+
+            n->set_file(paste_asset_stack[i]->file);
+            n->set_active(true);
+            n->set_unique_textures(true);
+            n->cache = false;
+
+            ctx.load_active();
+            ctx.build_request();
+
+            n->set_dynamic_scale(paste_asset_stack[i]->dynamic_scale);
+
+            n->set_pos(grid_lock(add(cpos, offset_pos)));
+            n->set_rot_quat(paste_asset_stack[i]->rot_quat);
+        }
+    }
+
+    void del(objects_container* st)
+    {
+        if(last_hovered_object == st)
+            last_hovered_object = nullptr;
+
+        for(asset& a : assets)
+        {
+            if(a.loaded_asset == st)
+                return;
+        }
+
+        st->hide();
+        st->set_active(false);
+        remove_from_asset_stack(st);
     }
 };
 
@@ -1050,15 +1191,24 @@ int main(int argc, char *argv[])
 
         object_context& cctx = which_context == 0 ? context : secondary_context;
 
-        asset_manage.check_copy();
-        asset_manage.check_paste_object(cctx, window);
-        asset_manage.copy_ui();
+        //asset_manage.check_copy();
+        //asset_manage.check_paste_object(cctx, window);
+
+        asset_manage.check_copy_stack();
+        asset_manage.check_paste_stack(cctx, window);
+        //asset_manage.copy_ui();
 
         asset_manage.do_dyn_scale(window);
         asset_manage.do_object_rotation(window);
         asset_manage.do_reset();
 
         asset_manage.do_grid_ui();
+        asset_manage.do_paste_stack_ui();
+
+        if(once<sf::Keyboard::Delete>() && last_hovered != level)
+        {
+            asset_manage.del(last_hovered);
+        }
 
         if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right) && !mouse.isButtonPressed(sf::Mouse::XButton1))
         {
