@@ -751,6 +751,8 @@ struct asset_manager
             stream << pos << "\n";
 
             stream << c->dynamic_scale << "\n";
+
+            stream << c->rot_quat << "\n";
         }
 
         stream.close();
@@ -782,6 +784,17 @@ struct asset_manager
 
                 float scale = atof(scalestr.c_str());
 
+                std::string quatstr;
+                std::getline(stream, quatstr);
+
+                std::vector<std::string> quat_split = split(quatstr, ' ');
+
+                quat rquat;
+                rquat.q.v[0] = atof(quat_split[0].c_str());
+                rquat.q.v[1] = atof(quat_split[1].c_str());
+                rquat.q.v[2] = atof(quat_split[2].c_str());
+                rquat.q.v[3] = atof(quat_split[3].c_str());
+
                 objects_container* c = ctx.make_new();
 
                 c->set_file(file);
@@ -791,6 +804,8 @@ struct asset_manager
                 c->set_pos(pos);
 
                 ctx.load_active();
+
+                c->set_rot_quat(rquat);
 
                 ///found something invalid in the save, ah well
                 if(!c->isloaded)
