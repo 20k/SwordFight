@@ -216,6 +216,8 @@ struct asset
 
 struct asset_manager
 {
+    bool any_loaded = false;
+
     std::vector<asset> assets;
 
     objects_container* last_hovered_object = nullptr;
@@ -611,6 +613,11 @@ struct asset_manager
 
         //a.loaded_asset->set_pos({spos.x(), spos.y(), spos.z()});
 
+        /*if(last_hovered_object->position_quantise && !use_grid)
+        {
+            next_clpos = grid_lock(next_clpos);
+        }*/
+
         if(move_axis.y() != 0)
             last_hovered_object->set_pos(next_clpos);
 
@@ -802,6 +809,9 @@ struct asset_manager
 
     void load(object_context& ctx, std::string file)
     {
+        if(any_loaded)
+            return;
+
         std::ifstream stream(file);
 
         if(stream.good())
@@ -878,6 +888,8 @@ struct asset_manager
         ctx.build_request();
 
         stream.close();
+
+        any_loaded = true;
     }
 
     void do_dyn_scale(engine& window)
@@ -980,6 +992,25 @@ struct asset_manager
         {
             clear_asset_stack();
         }
+    }
+
+    bool hide_c = false;
+
+    void do_level_hide_ui(objects_container* c)
+    {
+        ImGui::Begin("Hide level ui");
+
+        if(ImGui::Checkbox("Hide", &hide_c))
+        {
+
+        }
+
+        if(hide_c)
+            c->hide();
+        else
+            c->set_pos({0,0,0});
+
+        ImGui::End();
     }
 
     void check_copy_stack()
@@ -1171,7 +1202,7 @@ int main(int argc, char *argv[])
     l.set_pos((cl_float4){5000, 3000, 300, 0});
     //l.set_pos((cl_float4){-200, 2000, -100, 0});
 
-    light::add_light(&l);
+    light* current_light = light::add_light(&l);
 
     auto light_data = light::build();
     ///
@@ -1257,6 +1288,15 @@ int main(int argc, char *argv[])
 
         object_context& cctx = which_context == 0 ? context : secondary_context;
 
+        if(&cctx == &context)
+        {
+            current_light->set_brightness(2);
+        }
+        else
+        {
+            current_light->set_brightness(4);
+        }
+
         //asset_manage.check_copy();
         //asset_manage.check_paste_object(cctx, window);
 
@@ -1277,6 +1317,7 @@ int main(int argc, char *argv[])
 
         asset_manage.do_grid_ui();
         asset_manage.do_paste_stack_ui();
+        asset_manage.do_level_hide_ui(level);
 
         if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>() && window.focus)
         {
@@ -1393,6 +1434,9 @@ int main(int argc, char *argv[])
         {
             asset_manage.load(secondary_context, "save.txt");
         }*/
+
+        auto dat = light::build(&light_data);
+        window.set_light_data(dat);
 
         compute::event event;
 

@@ -12,12 +12,8 @@
 				<Option type="1" />
 				<Option compiler="mingw64" />
 				<Compiler>
-					<Add option="-pg" />
 					<Add option="-g" />
 				</Compiler>
-				<Linker>
-					<Add option="-pg -lgmon" />
-				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option output="bin/Release/Mech_game" prefix_auto="1" extension_auto="1" />
@@ -40,6 +36,19 @@
 					<Add option="-O3" />
 					<Add option="-pg" />
 					<Add option="-DPROFILING" />
+				</Compiler>
+				<Linker>
+					<Add option="-pg -lgmon" />
+				</Linker>
+			</Target>
+			<Target title="CPU Profile">
+				<Option output="bin/CPU_Profile/Mech_game" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/CPU_Profile/" />
+				<Option type="1" />
+				<Option compiler="mingw64" />
+				<Compiler>
+					<Add option="-pg" />
+					<Add option="-g" />
 				</Compiler>
 				<Linker>
 					<Add option="-pg -lgmon" />
