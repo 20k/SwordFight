@@ -239,6 +239,17 @@ struct asset_manager
         return {v.x(), v.y(), v.z()};
     }
 
+    vec3f quant(vec3f in, float gsize)
+    {
+        in = in / gsize;
+
+        in = round(in);
+
+        in = in * gsize;
+
+        return in;
+    }
+
     void populate(const std::string& asset_dir)
     {
         tinydir_dir dir;
@@ -456,10 +467,10 @@ struct asset_manager
             return;
         }
 
-        if(last_hovered_object != nullptr)
+        /*if(last_hovered_object != nullptr)
         {
             last_hovered_object->set_quantise_position(false);
-        }
+        }*/
 
         if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right))
         {
@@ -467,6 +478,11 @@ struct asset_manager
             cdy = 0;
 
             return;
+        }
+
+        if(last_hovered_object->position_quantise && !use_grid)
+        {
+            last_hovered_object->pos = conv_implicit<cl_float4>(quant({last_hovered_object->pos.x, last_hovered_object->pos.y, last_hovered_object->pos.z}, last_hovered_object->position_quantise_grid_size));
         }
 
         cdx += dx;
@@ -614,10 +630,12 @@ struct asset_manager
             }
         }
 
-        if(use_grid)
+        /*if(use_grid)
         {
             last_hovered_object->set_quantise_position(true, grid_size);
-        }
+        }*/
+
+        last_hovered_object->set_quantise_position(use_grid, grid_size);
 
         /*if(!approx_equal((vec3f){next_clpos.x, next_clpos.y, next_clpos.z}, (vec3f){current_clpos.x, current_clpos.y, current_clpos.z}))
         {
@@ -752,11 +770,20 @@ struct asset_manager
 
             vec3f pos = {c->pos.x, c->pos.y, c->pos.z};
 
+            //if(c->position_quantise)
+            //    pos = quant(pos, c->position_quantise_grid_size);
+
             stream << pos << "\n";
 
             stream << c->dynamic_scale << "\n";
 
             stream << c->rot_quat << "\n";
+
+            stream << (int)c->position_quantise << "\n";
+
+            stream << c->position_quantise_grid_size << "\n";
+
+            printf("SHOULD QUANT %i\n", c->position_quantise);
         }
 
         stream.close();
@@ -799,6 +826,20 @@ struct asset_manager
                 rquat.q.v[2] = atof(quat_split[2].c_str());
                 rquat.q.v[3] = atof(quat_split[3].c_str());
 
+                int should_quantise;
+
+                std::string shouldquant;
+                std::getline(stream, shouldquant);
+
+                should_quantise = atoi(shouldquant.c_str());
+
+                float quant_grid;
+
+                std::string quantgrid;
+                std::getline(stream, quantgrid);
+
+                quant_grid = atof(quantgrid.c_str());
+
                 objects_container* c = ctx.make_new();
 
                 c->set_file(file);
@@ -810,6 +851,7 @@ struct asset_manager
                 ctx.load_active();
 
                 c->set_rot_quat(rquat);
+                c->set_quantise_position(should_quantise, quant_grid);
 
                 ///found something invalid in the save, ah well
                 if(!c->isloaded)
@@ -997,6 +1039,7 @@ struct asset_manager
 
             n->set_pos(grid_lock(add(cpos, offset_pos)));
             n->set_rot_quat(paste_asset_stack[i]->rot_quat);
+            n->set_quantise_position(paste_asset_stack[i]->position_quantise, paste_asset_stack[i]->position_quantise_grid_size);
         }
     }
 
@@ -1205,6 +1248,11 @@ int main(int argc, char *argv[])
         asset_manage.do_grid_ui();
         asset_manage.do_paste_stack_ui();
 
+        if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>())
+        {
+            asset_manage.save(secondary_context, "save.txt");
+        }
+
         if(once<sf::Keyboard::Delete>() && last_hovered != level)
         {
             asset_manage.del(last_hovered);
@@ -1246,10 +1294,10 @@ int main(int argc, char *argv[])
                 i->set_outlined(false);
             }
 
-            if(last_hovered != nullptr)
+            /*if(last_hovered != nullptr)
             {
                 last_hovered->set_quantise_position(false);
-            }
+            }*/
 
             if(object_id != -1 && depth != -1)
             {
