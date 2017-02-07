@@ -798,17 +798,6 @@ struct asset_manager
         stream.close();
     }
 
-    bool context_contains(object_context& ctx, std::string file)
-    {
-        for(auto& i : ctx.containers)
-        {
-            if(i->file == file && i->isloaded)
-                return true;
-        }
-
-        return false;
-    }
-
     void load(object_context& ctx, std::string file)
     {
         if(any_loaded)
@@ -1110,6 +1099,95 @@ struct asset_manager
     }
 };
 
+void into_squares(objects_container* pobj, texture& tex, cl_float2 dim, float tessellate_dim)
+{
+    cl_float2 hdim = {dim.x/2, dim.y/2};
+
+    ///1 + this many of points
+    ///how many of length tessellate dim fit into dim
+    float xnum = dim.x / tessellate_dim;
+    float ynum = dim.y / tessellate_dim;
+
+    int xp = xnum;
+    int yp = ynum;
+
+    float start_x = -dim.x/2;
+    float start_y = -dim.y/2;
+
+    for(int y = 0; y < yp; y++)
+    {
+        for(int x = 0; x < xp; x++)
+        {
+            object obj;
+            obj.isloaded = true;
+
+            std::array<cl_float4, 6> tris;
+
+            tris[0] = {start_x + tessellate_dim, start_y, 0};
+            tris[1] = {start_x, start_y, 0};
+            tris[2] = {start_x, start_y + tessellate_dim, 0};
+
+            tris[3] = {start_x + tessellate_dim, start_y, 0};
+            tris[4] = {start_x, start_y + tessellate_dim, 0};
+            tris[5] = {start_x + tessellate_dim, start_y + tessellate_dim, 0};
+
+            triangle t1, t2;
+
+            t1.vertices[0].set_pos(tris[0]);
+            t1.vertices[1].set_pos(tris[1]);
+            t1.vertices[2].set_pos(tris[2]);
+
+            t2.vertices[0].set_pos(tris[3]);
+            t2.vertices[1].set_pos(tris[4]);
+            t2.vertices[2].set_pos(tris[5]);
+
+            cl_float4 normal = {0, 0, -1};
+
+            t1.vertices[0].set_normal(normal);
+            t1.vertices[1].set_normal(normal);
+            t1.vertices[2].set_normal(normal);
+
+            t2.vertices[0].set_normal(normal);
+            t2.vertices[1].set_normal(normal);
+            t2.vertices[2].set_normal(normal);
+
+            for(int i=0; i<3; i++)
+            {
+                float vx = (t1.vertices[i].get_pos().x + dim.x/2) / dim.x;
+                float vy = (t1.vertices[i].get_pos().y + dim.y/2) / dim.y;
+
+                t1.vertices[i].set_vt({vx, vy});
+            }
+
+            for(int i=0; i<3; i++)
+            {
+                float vx = (t2.vertices[i].get_pos().x + dim.x/2) / dim.x;
+                float vy = (t2.vertices[i].get_pos().y + dim.y/2) / dim.y;
+
+                t2.vertices[i].set_vt({vx, vy});
+            }
+
+            obj.tri_list.push_back(t1);
+            obj.tri_list.push_back(t2);
+
+            obj.tri_num = obj.tri_list.size();
+
+            obj.tid = tex.id;
+
+            pobj->objs.push_back(obj);
+
+            start_x += tessellate_dim;
+        }
+
+        start_y += tessellate_dim;
+        start_x = -dim.x/2;
+    }
+
+    pobj->isloaded = true;
+}
+
+
+
 objects_container* load_map_reference(object_context& ctx)
 {
     objects_container* c = ctx.make_new();
@@ -1119,7 +1197,7 @@ objects_container* load_map_reference(object_context& ctx)
 
     c->set_active(true);
     c->cache = false;
-    c->set_load_func(std::bind(obj_rect_tessellated, std::placeholders::_1, *tex, (cl_float2){1000, 1000}, 100));
+    c->set_load_func(std::bind(into_squares, std::placeholders::_1, *tex, (cl_float2){1000, 1000}, 10));
 
     ctx.load_active();
 
@@ -1134,9 +1212,244 @@ objects_container* load_map_reference(object_context& ctx)
     return c;
 }
 
+uint32_t wang_hash(uint32_t seed)
+{
+    seed = (seed ^ 61) ^ (seed >> 16);
+    seed *= 9;
+    seed = seed ^ (seed >> 4);
+    seed *= 0x27d4eb2d;
+    seed = seed ^ (seed >> 15);
+    return seed;
+}
+
+uint32_t rand_xorshift(uint32_t rng_state)
+{
+    // Xorshift algorithm from George Marsaglia's paper
+    rng_state ^= (rng_state << 13);
+    rng_state ^= (rng_state >> 17);
+    rng_state ^= (rng_state << 5);
+    return rng_state;
+}
+
+void scatter_vert(vertex& v, float amount)
+{
+    vec3f pos = xyz_to_vec(v.get_pos());
+
+    uint32_t base = wang_hash(pos.x() * 1000000 + pos.y() * 1000 + pos.z());
+
+    uint32_t seed2 = rand_xorshift(base);
+    uint32_t seed3 = rand_xorshift(seed2);
+    uint32_t seed4 = rand_xorshift(seed3);
+
+    float f1 = (float)seed2 / (float)UINT_MAX;
+    float f2 = (float)seed3 / (float)UINT_MAX;
+    float f3 = (float)seed4 / (float)UINT_MAX;
+
+    vec3f rseed = (vec3f){f1, f2, f3};
+    rseed = (rseed - 0.5f) * 2;
+
+    rseed.x() *= 5 * amount;
+    rseed.y() *= 5 * amount;
+
+    rseed = rseed * 1.f + pos;
+
+    //pos = pos + randv<3, float>((vec3f){-1, -1, -1}*20, (vec3f){1, 1, 1}*20);
+
+    v.set_pos({rseed.x(), rseed.y(), rseed.z()});
+}
+
+void scatter(objects_container* c, float displace_amount = 3)
+{
+    for(object& o : c->objs)
+    {
+        for(triangle& t : o.tri_list)
+        {
+            for(vertex& v : t.vertices)
+            {
+                vec3f pos = xyz_to_vec(v.get_pos());
+
+                uint32_t base = wang_hash(pos.x() * 1000000 + pos.y() * 1000 + pos.z());
+
+                uint32_t seed2 = rand_xorshift(base);
+                uint32_t seed3 = rand_xorshift(seed2);
+                uint32_t seed4 = rand_xorshift(seed3);
+
+                float f1 = (float)seed2 / (float)UINT_MAX;
+                float f2 = (float)seed3 / (float)UINT_MAX;
+                float f3 = (float)seed4 / (float)UINT_MAX;
+
+                vec3f rseed = (vec3f){f1, f2, f3};
+                rseed = (rseed - 0.5f) * 2;
+
+                rseed.x() *= displace_amount;
+                rseed.y() *= displace_amount;
+                //rseed.z() = 0;
+
+                rseed = rseed * 1.f + pos;
+
+                //pos = pos + randv<3, float>((vec3f){-1, -1, -1}*20, (vec3f){1, 1, 1}*20);
+
+                v.set_pos({rseed.x(), rseed.y(), rseed.z()});
+            }
+        }
+    }
+}
+
+///I think I'm going to have to do normal mapping to get the detail I actually want
+void displace_near_tris(engine& window, objects_container* floor, object_context& ctx)
+{
+    vec3f screen_mouse = {window.get_mouse_x(), window.height - window.get_mouse_y(), 1.f};
+
+    vec3f world_ray = screen_mouse.depth_unproject({window.width, window.height}, calculate_fov_constant_from_hfov(window.horizontal_fov_degrees, window.width)).back_rot(0, window.get_camera_rot());
+
+    ///might need to negate intersection
+    vec3f intersect = ray_plane_intersect(world_ray.norm(), window.get_camera_pos(), {0, 1, 0}, {0,0,0});
+
+    //printf("ISECT %f %f %f\n", EXPAND_3(intersect));
+
+    vec3f nearest_vertex = {0, 9999999, 0};
+
+    for(object& o : floor->objs)
+    {
+        for(triangle& t : o.tri_list)
+        {
+            for(vertex& v : t.vertices)
+            {
+                vec3f lpos = xyz_to_vec(v.get_pos()) * o.dynamic_scale;
+
+                lpos = o.rot_quat.get_rotation_matrix() * lpos;
+
+                lpos = lpos + xyz_to_vec(o.pos);
+
+                if((lpos.xz() - intersect.xz()).length() < (nearest_vertex.xz() - intersect.xz()).length())
+                {
+                    nearest_vertex = lpos;
+                }
+
+                //printf("LPOS %f %f %f\n", EXPAND_3(lpos));
+            }
+        }
+    }
+
+    sf::Mouse mouse;
+
+    if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right))
+        return;
+
+    //printf("NEAREST %f %f %f\nINTERSECT %f %f %f", EXPAND_3(nearest_vertex), EXPAND_3(intersect));
+
+    float displace_dir = 0.f;
+
+    if(mouse.isButtonPressed(sf::Mouse::Left))
+        displace_dir = 1;
+
+    if(mouse.isButtonPressed(sf::Mouse::Right))
+        displace_dir = -1;
+
+    displace_dir *= 2.f;
+
+    for(object& o : floor->objs)
+    {
+        o.set_outlined(false);
+
+        int which_vertex = 0;
+
+        //for(triangle& t : o.tri_list)
+        for(int ti = 0; ti < o.tri_list.size(); ti++)
+        {
+            bool dirty = false;
+
+            triangle& t = o.tri_list[ti];
+            triangle backup = t;
+
+            //for(vertex& v : t.vertices)
+            for(int vi = 0; vi < 3; vi++)
+            {
+                vertex& v = t.vertices[vi];
+
+                vec3f original_pos = xyz_to_vec(v.get_pos());
+
+                ///we need to project the position
+                vec3f lpos = o.rot_quat.get_rotation_matrix() * original_pos * o.dynamic_scale;
+
+                lpos = lpos + xyz_to_vec(o.pos);
+
+                float dist = (lpos.xz() - nearest_vertex.xz()).length();
+
+                if(dist < 0.01f)
+                {
+                    /*vec3f pos = xyz_to_vec(v.get_pos());
+
+                    pos.z() += displace_dir;
+
+                    v.set_pos(conv_implicit<cl_float4>(pos));*/
+
+                    scatter_vert(v, 1);
+
+
+                    //int byte_offset = which_vertex * sizeof(vertex);
+
+                    //int byte_base = o.gpu_tri_start * sizeof(triangle);
+
+                    //int byte_pos = byte_base + byte_offset;
+
+                    //v.set_pos({original_pos.x(), original_pos.y(), original_pos.z()});
+
+                    //clEnqueueWriteBuffer(cl::cqueue, floor->parent->fetch()->g_tri_mem.get(), CL_FALSE, byte_pos, sizeof(vertex), &v, 0, nullptr, nullptr);
+
+                    o.set_outlined(true);
+
+                    dirty = true;
+
+                    //t.vertices[0].set_normal({0, -1, 0});
+                    //t.vertices[1].set_normal({0, -1, 0});
+                    //t.vertices[2].set_normal({0, -1, 0});
+
+                    cl_float4 orig = backup.vertices[vi].get_pos();
+                    orig.z = 0;
+                    backup.vertices[vi].set_pos(orig);
+                }
+
+
+                which_vertex++;
+            }
+
+            //t.generate_flat_normals();
+
+            if(dirty)
+            {
+                for(int vi = 0; vi < 3; vi++)
+                {
+                    //cl_float4 orig = backup.vertices[vi].get_pos();
+                    //orig.z = 0;
+                    //backup.vertices[vi].set_pos(orig);
+
+                    t.vertices[vi].set_pos(backup.vertices[vi].get_pos());
+
+                    t.vertices[vi].set_normal({0, -1, 0});
+                }
+            }
+
+            if(dirty)
+            {
+                int byte_base = o.gpu_tri_start * sizeof(triangle) + ti * sizeof(triangle);
+
+                clEnqueueWriteBuffer(cl::cqueue, floor->parent->fetch()->g_tri_mem.get(), CL_FALSE, byte_base, sizeof(triangle), &t, 0, nullptr, nullptr);
+            }
+        }
+
+        //if(fabs(displace_dir) > 0.1f)
+        //    cl::cqueue.enqueue_write_buffer_async(floor->parent->fetch()->g_tri_mem, sizeof(triangle)*o.gpu_tri_start, sizeof(triangle)*o.tri_list.size(), o.tri_list.data());
+    }
+}
+
 ///need to delete objects next
 ///make the floor cuboid like the old experiment
 ///or at least just made up of small squares
+///or polygonally model the colours
+///Ok. Squares didn't work. Maybe cubes will? But itll basically be as a substitue for polygonal modelling
+///Ok. Terrain deformation. Just nudge the vertices around. Maybe procedurally add some terrain randomness too
+///radiosity point view sampling thing?
 int main(int argc, char *argv[])
 {
     lg::set_logfile("./logging.txt");
@@ -1165,6 +1478,9 @@ int main(int argc, char *argv[])
 
     window.append_opencl_extra_command_line("-DCAN_OUTLINE");
     window.append_opencl_extra_command_line("-DSTYLISED");
+    window.append_opencl_extra_command_line("-DSHADOWBIAS=200");
+    window.append_opencl_extra_command_line("-DSHADOWEXP=200");
+    window.append_opencl_extra_command_line("-DSSAO_DIV=2");
     window.load(1680,1050,1000, "turtles", "../openclrenderer/cl2.cl", true);
 
     window.set_camera_pos({0, 485.298, -900});
@@ -1204,7 +1520,7 @@ int main(int argc, char *argv[])
     l.set_shadow_casting(1);
     l.set_brightness(4);
     l.radius = 100000;
-    l.set_pos((cl_float4){5000, 15000, 300, 0});
+    l.set_pos((cl_float4){0, 15000, 300, 0});
     //l.set_pos((cl_float4){-200, 2000, -100, 0});
 
     light* current_light = light::add_light(&l);
@@ -1222,6 +1538,21 @@ int main(int argc, char *argv[])
 
     objects_container* level = load_map_reference(secondary_context);
 
+
+    texture* green_texture = secondary_context.tex_ctx.make_new();
+    //green_texture->set_create_colour(sf::Color(128, 255, 128), 32, 32);
+    green_texture->set_create_colour(sf::Color(10, 110, 10), 32, 32);
+    green_texture->force_load = true;
+
+    texture* brown_texture = secondary_context.tex_ctx.make_new();
+    brown_texture->set_create_colour(sf::Color(140, 79, 10), 32, 32);
+    //brown_texture->set_create_colour(sf::Color(244, 164, 96), 32, 32);
+    brown_texture->force_load = true;
+
+    texture* white_texture = secondary_context.tex_ctx.make_new();
+    white_texture->set_create_colour(sf::Color(180, 180, 180), 32, 32);
+    white_texture->force_load = true;
+
     ///reallocating the textures of one context
     ///requires invaliding the textures of the second context
     ///this is because textures are global
@@ -1229,7 +1560,13 @@ int main(int argc, char *argv[])
     context.load_active();
     context.build(true);
     secondary_context.load_active();
+    scatter(level);
     secondary_context.build(true);
+
+    for(auto& i : level->objs)
+    {
+        i.tid = white_texture->id;
+    }
 
     //quaternion q;
     //q.load_from_euler({-M_PI/2, 0, 0});
@@ -1247,6 +1584,7 @@ int main(int argc, char *argv[])
     sf::Clock deltaClock;
 
     objects_container* last_hovered = nullptr;
+    int last_o_id = -1;
 
     int which_context = 0;
 
@@ -1262,6 +1600,12 @@ int main(int argc, char *argv[])
 
     for(auto& i : saved_keyboard_default)
         i = window.c_rot_keyboard_only;
+
+
+    int last_mx = window.get_mouse_x();
+    int last_my = window.get_mouse_y();
+
+    vec2f last_vt_upscaled = {-1,-1};
 
     ///use event callbacks for rendering to make blitting to the screen and refresh
     ///asynchronous to actual bits n bobs
@@ -1324,6 +1668,8 @@ int main(int argc, char *argv[])
         asset_manage.do_paste_stack_ui();
         asset_manage.do_level_hide_ui(level);
 
+        displace_near_tris(window, level, secondary_context);
+
         if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>() && window.focus)
         {
             asset_manage.save(secondary_context, "save.txt");
@@ -1334,10 +1680,11 @@ int main(int argc, char *argv[])
             asset_manage.del(last_hovered);
         }
 
-        if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right) && !mouse.isButtonPressed(sf::Mouse::XButton1) && window.focus)
+        int object_id = -1;
+        cl_uint depth = -1;
+
         {
             cl_int frag_id = -1;
-            cl_uint depth = -1;
 
             int x = window.get_mouse_x();
             int y = window.height - window.get_mouse_y();
@@ -1363,10 +1710,17 @@ int main(int argc, char *argv[])
 
             cl::cqueue.finish();
 
-            int object_id = cctx.translate_gpu_o_id_to_container_offset(o_id);
+            last_o_id = o_id;
+            object_id = cctx.translate_gpu_o_id_to_container_offset(o_id);
+        }
 
+        if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right) && !mouse.isButtonPressed(sf::Mouse::XButton1) && window.focus)
+        {
             for(auto& i : cctx.containers)
             {
+                if(i == level)
+                    continue;
+
                 i->set_outlined(false);
             }
 
@@ -1395,6 +1749,7 @@ int main(int argc, char *argv[])
             if(last_hovered == level)
                 asset_manage.set_last_hovered(nullptr);
 
+
             /*float actual_depth = ((float)depth / UINT_MAX) * 350000.f;
 
             float fov = 500.f; ///will need to use real value
@@ -1403,6 +1758,125 @@ int main(int argc, char *argv[])
             vec3f global_position = local_position.back_rot(0.f, {window.c_rot.x, window.c_rot.y, window.c_rot.z});
             global_position += (vec3f){window.c_pos.x, window.c_pos.y, window.c_pos.z};*/
         }
+
+        #ifdef TEXTURE_COLOURING
+        if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right))
+        {
+            last_vt_upscaled.v[0] = -1;
+        }
+
+        ///SPECIAL CASE TESTING
+        if(last_hovered == level && window.focus)
+        {
+            object* o = nullptr;
+
+            for(object& c : last_hovered->objs)
+            {
+                if(last_o_id == c.object_g_id)
+                    o = &c;
+            }
+
+            /*if(mouse.isButtonPressed(sf::Mouse::Left))
+            {
+                if(o != nullptr)
+                    o->tid = green_texture->id;
+            }
+
+            if(mouse.isButtonPressed(sf::Mouse::Right))
+            {
+                if(o != nullptr)
+                    o->tid = brown_texture->id;
+            }*/
+
+            vec3f col = 0;
+
+            bool lm = mouse.isButtonPressed(sf::Mouse::Left);
+            bool rm = mouse.isButtonPressed(sf::Mouse::Right);
+
+            if(lm)
+                col = {10, 110, 10};
+
+            if(rm)
+                col = {140, 79, 10};
+
+            if((lm || rm) && o != nullptr)
+            {
+                vec3f screen_mouse = {window.get_mouse_x(), window.height - window.get_mouse_y(), 1.f};
+
+                vec3f world_ray = screen_mouse.depth_unproject({window.width, window.height}, calculate_fov_constant_from_hfov(window.horizontal_fov_degrees, window.width)).back_rot(0, window.get_camera_rot());
+
+                vec3f intersect = ray_plane_intersect(world_ray.norm(), window.get_camera_pos(), {0, 1, 0}, {0,0,0});
+
+                vec2f vt = (((intersect.xz() / 500.f) / level->dynamic_scale) + 1.f) / 2.f;
+
+                vt.y() = 1.f - vt.y();
+
+                //vt = clamp(vt, 0.f, 1.f);
+
+                printf("vt %f %f\n", EXPAND_2(vt));
+
+                std::cout << "isect " << intersect << "\n";
+
+                vec2f upscaled_pos = vt * 2048.f;
+
+                upscaled_pos = clamp(upscaled_pos, 0.f, 2047);
+
+                if(last_vt_upscaled.v[0] < 0)
+                    last_vt_upscaled = upscaled_pos;
+
+                texture* tex = secondary_context.tex_ctx.id_to_tex(level->objs[0].tid);
+
+                tex->c_image.setPixel(upscaled_pos.x(), upscaled_pos.y(), sf::Color(255, 255, 255));
+
+                int thickness = 6;
+
+                vec2f line_dir;
+                int num;
+                line_draw_helper(upscaled_pos, last_vt_upscaled, line_dir, num);
+
+                vec2f start = upscaled_pos;
+
+                sf::Color cl(col.x(), col.y(), col.z());
+
+                for(int i=0; i<num + 1; i++)
+                {
+                    vec2f perp = line_dir.rot(M_PI/2);
+
+                    vec2f perp_start = start - perp * thickness;
+                    vec2f perp_end = start + perp * thickness;
+
+                    int pnum;
+                    vec2f pdir;
+
+                    line_draw_helper(perp_start, perp_end, pdir, pnum);
+
+                    for(int j=0; j<pnum+1; j++)
+                    {
+                        perp_start = clamp(perp_start, 0.f, 2046);
+
+                        tex->c_image.setPixel(perp_start.x(), perp_start.y(), cl);
+                        tex->c_image.setPixel(perp_start.x()+1, perp_start.y(), cl);
+                        tex->c_image.setPixel(perp_start.x(), perp_start.y()+1, cl);
+                        tex->c_image.setPixel(perp_start.x()+1, perp_start.y()+1, cl);
+
+                        perp_start = perp_start + pdir;
+                    }
+
+                    tex->c_image.setPixel(start.x(), start.y(), cl);
+
+                    start = start + line_dir;
+                }
+
+
+                last_mx = window.get_mouse_x();
+                last_my = window.get_mouse_y();
+
+                last_vt_upscaled = upscaled_pos;
+
+                tex->update_me_to_gpu(secondary_context.fetch()->tex_gpu_ctx);
+            }
+        }
+        #endif
 
         if(key.isKeyPressed(sf::Keyboard::Num1) && window.focus)
         {
