@@ -1384,7 +1384,7 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
 
                     v.set_pos(conv_implicit<cl_float4>(pos));*/
 
-                    scatter_vert(v, 1);
+                    //scatter_vert(v, 1);
 
 
                     //int byte_offset = which_vertex * sizeof(vertex);
@@ -1406,7 +1406,7 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
                     //t.vertices[2].set_normal({0, -1, 0});
 
                     cl_float4 orig = backup.vertices[vi].get_pos();
-                    orig.z = 0;
+                    orig.z = 5;
                     backup.vertices[vi].set_pos(orig);
                 }
 
@@ -1414,7 +1414,7 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
                 which_vertex++;
             }
 
-            //t.generate_flat_normals();
+            t.generate_flat_normals();
 
             if(dirty)
             {
@@ -1426,7 +1426,7 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
 
                     t.vertices[vi].set_pos(backup.vertices[vi].get_pos());
 
-                    t.vertices[vi].set_normal({0, -1, 0});
+                    //t.vertices[vi].set_normal({0, -1, 0});
                 }
             }
 
