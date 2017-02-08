@@ -112,7 +112,6 @@
 		<Unit filename="../openclrenderer/engine.hpp" />
 		<Unit filename="../openclrenderer/goo.cpp" />
 		<Unit filename="../openclrenderer/goo.hpp" />
-		<Unit filename="../openclrenderer/hologram.cpp" />
 		<Unit filename="../openclrenderer/hologram.hpp" />
 		<Unit filename="../openclrenderer/interact_manager.cpp" />
 		<Unit filename="../openclrenderer/interact_manager.hpp" />

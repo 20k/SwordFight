@@ -11,6 +11,44 @@ std::vector<effect*> particle_effect::effects;
 std::vector<objects_container*> cube_effect::precached_objects;
 std::vector<int> cube_effect::in_use;
 
+void fadeout_effect::make(float duration, objects_container* to_apply)
+{
+    obj = to_apply;
+    duration_ms = duration;
+    start_scale = to_apply->dynamic_scale;
+    current_scale = start_scale;
+    clk.restart();
+}
+
+void fadeout_effect::tick()
+{
+    //obj->hide();
+
+    float scale = clk.getElapsedTime().asMilliseconds() / duration_ms;
+
+    scale = (1.f - scale);
+
+    scale = clamp(scale, 0.f, 1.f);
+
+    //scale *= scale;
+
+    //scale = scale;
+
+    scale = pow(scale, 0.5f);
+
+    scale = scale * start_scale;
+
+    obj->set_dynamic_scale(scale);
+
+    if(scale <= 0.f)
+    {
+        finished = true;
+
+        obj->hide();
+        //obj->set_dynamic_scale(start_scale);
+    }
+}
+
 void cube_effect::precache(int reserve_size, object_context& _cpu_context)
 {
     object_context* cpu_context = &_cpu_context;
@@ -48,6 +86,7 @@ void cube_effect::precache(int reserve_size, object_context& _cpu_context)
 }
 
 ///this is probably a big reason for the slowdown on dying?
+///not anymore, its properly cached
 void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int _num, object_context& _cpu_context)
 {
     cpu_context = &_cpu_context;
@@ -57,12 +96,16 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
     scale = _scale;
 
     elapsed_time.restart();
+    started_fade = false;
 
     num = _num;
     team = _team;
 
     currently_using.clear();
     offset_pos.clear();
+
+    being_removed.clear();
+    being_removed.resize(num);
 
     int c = 0;
 
@@ -72,6 +115,8 @@ void cube_effect::make(float duration, vec3f _pos, float _scale, int _team, int 
             continue;
 
         currently_using.push_back(c);
+
+        precached_objects[c]->set_dynamic_scale(1.f);
 
         vec3f rd = (randf<3, float>() - 0.5f) * scale;
 
@@ -120,6 +165,9 @@ void cube_effect::tick()
 
         for(int i=0; i<e.currently_using.size(); i++)
         {
+            //if(being_removed[i])
+            //    continue;
+
             int id = e.currently_using[i];
 
             objects_container* o = precached_objects[id];
@@ -137,13 +185,29 @@ void cube_effect::tick()
             o->set_pos({pos.v[0], pos.v[1], pos.v[2]});
         }
 
+        if(!started_fade)
+        {
+            for(int& id: currently_using)
+            {
+                objects_container* o = precached_objects[id];
+
+                fadeout_effect neffect;
+                neffect.make(e.duration_ms - randf_s() * e.duration_ms * 0.3f, o);
+                neffect.on_finish = [id](){cube_effect::in_use[id] = 0;};
+
+                effect* new_effect = particle_effect::push(neffect);
+            }
+
+            started_fade = true;
+        }
+
         ///if we make them disappear one by one, itll be much more bettererer
-        float rem_frac = remaining / e.duration_ms;
+        /*float rem_frac = remaining / e.duration_ms;
 
         ///we're coming to a close
-        if(rem_frac < 0.2)
+        if(rem_frac < 1.0)
         {
-            rem_frac /= 0.2;
+            rem_frac /= 1.0;
 
             float total_num = e.num;
 
@@ -154,10 +218,25 @@ void cube_effect::tick()
             //for(int j=0; j<to_remove && j < e.objects.size(); j++)
             for(int j=0; j<to_remove && j < e.currently_using.size(); j++)
             {
-                objects_container* o = precached_objects[currently_using[j]];
+                if(being_removed[j])
+                    continue;
+
+                objects_container* o = precached_objects[e.currently_using[j]];
 
                 //o->set_pos({0, 0, -3000000});
-                o->hide();
+                //o->hide();
+
+                int cid = e.currently_using[j];
+
+                fadeout_effect neffect;
+                neffect.make(800.f, o);
+                neffect.on_finish = [j, cid](){cube_effect::in_use[cid] = 0;};
+
+                effect* new_effect = particle_effect::push(neffect);
+
+                being_removed[j] = 1;
+
+                ///instead of hiding, initiate a new effect here where the object instead fades out
             }
 
             if(remaining < 0)
@@ -165,21 +244,16 @@ void cube_effect::tick()
                 //for(auto& o : e.objects)
                 for(auto& id : e.currently_using)
                 {
-                    objects_container* o = precached_objects[id];
+                    //objects_container* o = precached_objects[id];
 
-                    //o->set_pos({0, 0, -30000000});
-                    //o->set_active(false);
+                    //o->hide();
 
-                    o->hide();
-
-                    in_use[id] = 0;
-
-                    //cpu_context->destroy(o);
+                    //in_use[id] = 0;
 
                     finished = true;
                 }
             }
-        }
+        }*/
     }
 }
 
@@ -244,6 +318,8 @@ void particle_effect::tick()
 
         if(effects[i]->finished)
         {
+            effects[i]->on_finish();
+
             delete effects[i];
 
             effects.erase(effects.begin() + i);

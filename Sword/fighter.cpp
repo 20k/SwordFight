@@ -812,6 +812,7 @@ void fighter::die()
     {
         i.set_hp(-1.f);
         i.set_active(false);
+        i.obj()->hide(); ///so we can do this alloclessly
     }
 
     weapon.model->set_active(false);
@@ -853,6 +854,8 @@ void fighter::die()
             e.make(death_time, pos, 50.f, team, 5, *cpu_context);
             particle_effect::push(e);
         }
+
+        weapon.obj()->hide();
     }
 
     update_lights();

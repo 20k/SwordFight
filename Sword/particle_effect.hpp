@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <vec/vec.hpp>
 #include <vector>
+#include <functional>
 
 struct object_context;
 
@@ -22,6 +23,20 @@ struct effect
     virtual void activate() {};
 
     virtual ~effect() = default;
+
+    std::function<void()> on_finish = [](){};
+};
+
+struct fadeout_effect : effect
+{
+    float start_scale = 0;
+    float current_scale = 0;
+    objects_container* obj = nullptr;
+    sf::Clock clk;
+    float delay_ms = 0.f;
+
+    void tick();
+    void make(float duration, objects_container* to_apply);
 };
 
 struct cube_effect : effect
@@ -37,8 +52,11 @@ struct cube_effect : effect
     int num;
     int team;
 
+    std::vector<int> being_removed;
     std::vector<int> currently_using;
     std::vector<vec3f> offset_pos;
+
+    bool started_fade;
 
     void tick();
     void make(float duration, vec3f _pos, float _scale, int _team, int _num, object_context& cpu);
@@ -78,13 +96,15 @@ struct particle_effect
     static void tick();
 
     template<typename T>
-    static void push(const T& thing)
+    static effect* push(const T& thing)
     {
         effect* e = new T(thing);
 
         particle_effect::effects.push_back(e);
 
         e->activate();
+
+        return e;
     }
 };
 
