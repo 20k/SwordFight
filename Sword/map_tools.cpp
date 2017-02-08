@@ -206,6 +206,8 @@ void load_map_cube(objects_container* obj, const std::vector<std::vector<int>>& 
 
                     lnormal = lnormal.rot(0.f, rot);
 
+                    lpos = round(lpos);
+
                     v.set_pos({lpos.x(), lpos.y(), lpos.z()});
                     v.set_normal({lnormal.x(), lnormal.y(), lnormal.z()});
                 }
