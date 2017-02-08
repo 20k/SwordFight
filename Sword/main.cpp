@@ -1536,9 +1536,18 @@ int main(int argc, char *argv[])
             transparency_context.flush_locations(false, &event);
         }*/
 
-        ///async inadequate, causing bugs i believe
-        context.build_tick(false);
-        transparency_context.build_tick(false);
+        compute::event* render_event = nullptr;
+
+        if(window.event_queue.size() > 0)
+        {
+            render_event = &window.event_queue.front();
+        }
+
+        /*context.build_tick(false, render_event);
+        transparency_context.build_tick(false, render_event);*/
+
+        context.build_tick(false, nullptr);
+        transparency_context.build_tick(false, nullptr);
 
         context.flip();
         transparency_context.flip();
