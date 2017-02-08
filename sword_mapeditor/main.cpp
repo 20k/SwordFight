@@ -757,9 +757,14 @@ struct asset_manager
     {
         ImGui::Begin("Save Window");
 
-        if(ImGui::Button("Save"))
+        if(ImGui::Button("Save Objects"))
         {
-            save(ctx, file, floor);
+            save_objects(ctx, file);
+        }
+
+        if(ImGui::Button("Save Terrain"))
+        {
+            save_terrain(file, floor);
         }
 
         if(ImGui::Button("Load"))
@@ -770,7 +775,7 @@ struct asset_manager
         ImGui::End();
     }
 
-    void save(object_context& ctx, std::string file, objects_container* floor)
+    void save_objects(object_context& ctx, std::string file)
     {
         std::ofstream stream(file, std::ios::out | std::ios::trunc);
 
@@ -803,9 +808,10 @@ struct asset_manager
         }
 
         stream.close();
+    }
 
-        //std::ofstream stream2(file + "d", std::ios::out | std::ios::trunc);
-
+    void save_terrain(std::string file, objects_container* floor)
+    {
         FILE* pFile = fopen((file + "d").c_str(), "wb");
 
         for(object& o : floor->objs)
@@ -1767,10 +1773,10 @@ int main(int argc, char *argv[])
         if(last_hovered == nullptr)
             displace_near_tris(window, level, secondary_context, displace_vals);
 
-        if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>() && window.focus)
+        /*if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>() && window.focus)
         {
             asset_manage.save(secondary_context, "save.txt", level);
-        }
+        }*/
 
         if(once<sf::Keyboard::Delete>() && last_hovered != level && window.focus)
         {
@@ -1845,6 +1851,9 @@ int main(int argc, char *argv[])
 
             if(last_hovered == level)
                 asset_manage.set_last_hovered(nullptr);
+
+            if(last_hovered == level)
+                last_hovered = nullptr;
 
 
             /*float actual_depth = ((float)depth / UINT_MAX) * 350000.f;
