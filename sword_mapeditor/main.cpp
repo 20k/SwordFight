@@ -1114,12 +1114,13 @@ void into_squares(objects_container* pobj, texture& tex, cl_float2 dim, float te
     float start_x = -dim.x/2;
     float start_y = -dim.y/2;
 
+    object obj;
+    obj.isloaded = true;
+
     for(int y = 0; y < yp; y++)
     {
         for(int x = 0; x < xp; x++)
         {
-            object obj;
-            obj.isloaded = true;
 
             std::array<cl_float4, 6> tris;
 
@@ -1170,11 +1171,11 @@ void into_squares(objects_container* pobj, texture& tex, cl_float2 dim, float te
             obj.tri_list.push_back(t1);
             obj.tri_list.push_back(t2);
 
-            obj.tri_num = obj.tri_list.size();
+            //obj.tri_num = obj.tri_list.size();
 
-            obj.tid = tex.id;
+            //obj.tid = tex.id;
 
-            pobj->objs.push_back(obj);
+            //pobj->objs.push_back(obj);
 
             start_x += tessellate_dim;
         }
@@ -1183,10 +1184,15 @@ void into_squares(objects_container* pobj, texture& tex, cl_float2 dim, float te
         start_x = -dim.x/2;
     }
 
+    obj.tri_num = obj.tri_list.size();
+
+    obj.tid = tex.id;
+
+    pobj->objs.push_back(obj);
+
     pobj->isloaded = true;
+
 }
-
-
 
 objects_container* load_map_reference(object_context& ctx)
 {
@@ -1291,6 +1297,8 @@ void scatter(objects_container* c, float displace_amount = 3)
 
                 v.set_pos({rseed.x(), rseed.y(), rseed.z()});
             }
+
+            t.generate_flat_normals();
         }
     }
 }
@@ -1298,6 +1306,8 @@ void scatter(objects_container* c, float displace_amount = 3)
 ///I think I'm going to have to do normal mapping to get the detail I actually want
 void displace_near_tris(engine& window, objects_container* floor, object_context& ctx)
 {
+    //return;
+
     vec3f screen_mouse = {window.get_mouse_x(), window.height - window.get_mouse_y(), 1.f};
 
     vec3f world_ray = screen_mouse.depth_unproject({window.width, window.height}, calculate_fov_constant_from_hfov(window.horizontal_fov_degrees, window.width)).back_rot(0, window.get_camera_rot());
@@ -1348,6 +1358,15 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
 
     displace_dir *= 2.f;
 
+    #define FIXED
+    #ifdef FIXED
+    if(displace_dir > 0)
+        displace_dir = 2;
+
+    if(displace_dir < 0)
+        displace_dir = 0;
+    #endif
+
     for(object& o : floor->objs)
     {
         o.set_outlined(false);
@@ -1397,7 +1416,7 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
 
                     //clEnqueueWriteBuffer(cl::cqueue, floor->parent->fetch()->g_tri_mem.get(), CL_FALSE, byte_pos, sizeof(vertex), &v, 0, nullptr, nullptr);
 
-                    o.set_outlined(true);
+                    //o.set_outlined(true);
 
                     dirty = true;
 
@@ -1406,15 +1425,16 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
                     //t.vertices[2].set_normal({0, -1, 0});
 
                     cl_float4 orig = backup.vertices[vi].get_pos();
-                    orig.z = 5;
+                    //orig.z = 5;
+                    orig.z = displace_dir;
                     backup.vertices[vi].set_pos(orig);
                 }
-
 
                 which_vertex++;
             }
 
             t.generate_flat_normals();
+            backup.generate_flat_normals();
 
             if(dirty)
             {
@@ -1428,8 +1448,14 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
 
                     //t.vertices[vi].set_normal({0, -1, 0});
                 }
+
+                ///ok. This is a bit of a weird one, this is used for a triangle to know what object its related to
+                ///but its only set cpu side depending on performance optimisation circumstances
+                ///so we need to set it here as well in case an object has too many triangles to be done cpu side
+                t.vertices[0].set_pad(o.object_g_id);
             }
 
+            ///we're doing something wrong here, works after a rebuild
             if(dirty)
             {
                 int byte_base = o.gpu_tri_start * sizeof(triangle) + ti * sizeof(triangle);
@@ -1477,7 +1503,7 @@ int main(int argc, char *argv[])
     engine window;
 
     window.append_opencl_extra_command_line("-DCAN_OUTLINE");
-    window.append_opencl_extra_command_line("-DSTYLISED");
+    //window.append_opencl_extra_command_line("-DSTYLISED");
     window.append_opencl_extra_command_line("-DSHADOWBIAS=200");
     window.append_opencl_extra_command_line("-DSHADOWEXP=200");
     window.append_opencl_extra_command_line("-DSSAO_DIV=2");
@@ -1649,6 +1675,7 @@ int main(int argc, char *argv[])
         //asset_manage.check_copy();
         //asset_manage.check_paste_object(cctx, window);
 
+        #if 1
         if(window.focus)
         {
             asset_manage.check_copy_stack();
@@ -1877,9 +1904,11 @@ int main(int argc, char *argv[])
             }
         }
         #endif
+        #endif // 0
 
         if(key.isKeyPressed(sf::Keyboard::Num1) && window.focus)
         {
+
             saved_c_pos[which_context] = window.c_pos;
             saved_c_rot[which_context] = window.c_rot;
             saved_keyboard_default[which_context] = window.c_rot_keyboard_only;
@@ -1940,6 +1969,8 @@ int main(int argc, char *argv[])
 
         window.window.resetGLStates();
 
+        #if 1
+
         asset_manage.do_ui();
         asset_manage.do_save_ui(secondary_context, "save.txt");
 
@@ -1947,10 +1978,14 @@ int main(int argc, char *argv[])
 
         ImGui::Render();
 
+        #endif
+
         window.flip();
 
-        context.flush_locations();
-        secondary_context.flush_locations();
+        /*context.flush_locations();
+        secondary_context.flush_locations();*/
+
+        cctx.flush_locations();
 
         context.load_active();
         context.build_tick();
