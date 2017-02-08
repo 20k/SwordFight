@@ -1764,7 +1764,8 @@ int main(int argc, char *argv[])
         asset_manage.do_paste_stack_ui();
         asset_manage.do_level_hide_ui(level);
 
-        displace_near_tris(window, level, secondary_context, displace_vals);
+        if(last_hovered == nullptr)
+            displace_near_tris(window, level, secondary_context, displace_vals);
 
         if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>() && window.focus)
         {
