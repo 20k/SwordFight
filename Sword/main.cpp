@@ -1543,8 +1543,8 @@ int main(int argc, char *argv[])
             render_event = &window.event_queue.front();
         }
 
-        /*context.build_tick(false, render_event);
-        transparency_context.build_tick(false, render_event);*/
+        /*context.build_tick(true, render_event);
+        transparency_context.build_tick(true, render_event);*/
 
         context.build_tick(false, nullptr);
         transparency_context.build_tick(false, nullptr);
