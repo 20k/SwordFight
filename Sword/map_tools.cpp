@@ -128,7 +128,7 @@ float get_cube_half_length(int width)
 
 void load_map_cube(objects_container* obj, const std::vector<std::vector<int>>& map_def, int width, int height)
 {
-    for(int i=0; i<map_def.size(); i++)
+    /*for(int i=0; i<map_def.size(); i++)
     {
         objects_container temp_obj;
         temp_obj.parent = obj->parent;
@@ -162,6 +162,64 @@ void load_map_cube(objects_container* obj, const std::vector<std::vector<int>>& 
     }
 
     obj->independent_subobjects = true;
+    obj->isloaded = true;*/
+
+    object base;
+    base.isloaded = true;
+
+    for(int i=0; i<map_def.size(); i++)
+    {
+        objects_container temp_obj;
+        temp_obj.parent = obj->parent;
+        load_map(&temp_obj, map_def[i], width, height);
+
+        float len = get_cube_half_length(width) * game_map::scale;
+
+        vec3f rot = map_namespace::map_cube_rotations[i];
+        ///rotating them isn't rotating the whole thing
+        ///bloody non composing objects ;_;
+        ///SHOULD HAVE USED MATRICES
+        ///I REGRET EVERYTHING
+
+        for(auto& o : temp_obj.objs)
+        {
+            vec3f local_offset = (vec3f){o.pos.x, o.pos.y, o.pos.z} - (vec3f){width/2, 0, width/2};
+
+            vec3f local_rotated_offset = local_offset.rot({0,len,0}, rot) + (vec3f){0,len,0};
+
+            cl_float4 pos = {local_rotated_offset.v[0], local_rotated_offset.v[1], local_rotated_offset.v[2]};
+
+            //o.set_pos(pos);
+            //o.set_rot({rot.v[0], rot.v[1], rot.v[2]});
+
+            //obj->objs.push_back(o);
+
+            for(triangle& t : o.tri_list)
+            {
+                for(vertex& v : t.vertices)
+                {
+                    vec3f lpos = {v.get_pos().x, v.get_pos().y, v.get_pos().z};
+                    vec3f lnormal = {v.get_normal().x, v.get_normal().y, v.get_normal().z};
+
+                    lpos = lpos.rot({0,0,0}, rot);
+                    lpos = lpos + local_rotated_offset;
+
+                    lnormal = lnormal.rot(0.f, rot);
+
+                    v.set_pos({lpos.x(), lpos.y(), lpos.z()});
+                    v.set_normal({lnormal.x(), lnormal.y(), lnormal.z()});
+                }
+
+                base.tid = o.tid;
+                base.tri_list.push_back(t);
+            }
+        }
+    }
+
+    base.tri_num = base.tri_list.size();
+
+    obj->objs.push_back(base);
+
     obj->isloaded = true;
 }
 

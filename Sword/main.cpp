@@ -495,6 +495,7 @@ int main(int argc, char *argv[])
     window.append_opencl_extra_command_line("-D SHADOWBIAS=150");
     window.append_opencl_extra_command_line("-D MIP_BIAS=2.f");
     window.append_opencl_extra_command_line("-D CAN_INTEGRATED_BLEND");
+    //window.append_opencl_extra_command_line("-D STYLISED");
     window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true);
     ImGui::SFML::Init(window.window);
     window.manual_input = true;
