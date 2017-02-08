@@ -145,6 +145,13 @@ bool key_combo()
     return false;
 }
 
+struct displace_info
+{
+    vec3f pos;
+    int yval;
+    //int id_offset = 0;
+};
+
 void load_floor(objects_container* obj)
 {
     texture* tex = obj->parent->tex_ctx.make_new();
@@ -746,24 +753,24 @@ struct asset_manager
         ImGui::End();
     }*/
 
-    void do_save_ui(object_context& ctx, std::string file)
+    void do_save_ui(object_context& ctx, std::string file, objects_container* floor)
     {
         ImGui::Begin("Save Window");
 
         if(ImGui::Button("Save"))
         {
-            save(ctx, file);
+            save(ctx, file, floor);
         }
 
         if(ImGui::Button("Load"))
         {
-            load(ctx, file);
+            load(ctx, file, floor);
         }
 
         ImGui::End();
     }
 
-    void save(object_context& ctx, std::string file)
+    void save(object_context& ctx, std::string file, objects_container* floor)
     {
         std::ofstream stream(file, std::ios::out | std::ios::trunc);
 
@@ -796,9 +803,20 @@ struct asset_manager
         }
 
         stream.close();
+
+        //std::ofstream stream2(file + "d", std::ios::out | std::ios::trunc);
+
+        FILE* pFile = fopen((file + "d").c_str(), "wb");
+
+        for(object& o : floor->objs)
+        {
+            fwrite(&o.tri_list[0], sizeof(triangle), o.tri_list.size(), pFile);
+        }
+
+        fclose(pFile);
     }
 
-    void load(object_context& ctx, std::string file)
+    void load(object_context& ctx, std::string file, objects_container* floor)
     {
         if(any_loaded)
             return;
@@ -879,6 +897,29 @@ struct asset_manager
         ctx.build_request();
 
         stream.close();
+
+        FILE* pFile = fopen((file + "d").c_str(), "rb");
+
+        fseek(pFile, 0L, SEEK_END);
+        int file_len = ftell(pFile);
+        rewind(pFile);
+
+        int num_tris = file_len / sizeof(triangle);
+
+        if(num_tris == floor->objs[0].tri_list.size())
+        {
+            floor->objs[0].tri_list.resize(num_tris);
+
+            fread(&floor->objs[0].tri_list[0], sizeof(triangle), num_tris, pFile);
+
+            fclose(pFile);
+
+            floor->parent->build_request();
+        }
+        else
+        {
+            printf("Err invalid num of tris \n\n\n\n\n\n\n\n");
+        }
 
         any_loaded = true;
     }
@@ -1303,8 +1344,9 @@ void scatter(objects_container* c, float displace_amount = 3)
     }
 }
 
+
 ///I think I'm going to have to do normal mapping to get the detail I actually want
-void displace_near_tris(engine& window, objects_container* floor, object_context& ctx)
+void displace_near_tris(engine& window, objects_container* floor, object_context& ctx, std::vector<displace_info>& displace_vals)
 {
     //return;
 
@@ -1367,6 +1409,8 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
         displace_dir = 0;
     #endif
 
+    bool any_dirty = false;
+
     for(object& o : floor->objs)
     {
         o.set_outlined(false);
@@ -1428,6 +1472,8 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
                     //orig.z = 5;
                     orig.z = displace_dir;
                     backup.vertices[vi].set_pos(orig);
+
+                    any_dirty = true;
                 }
 
                 which_vertex++;
@@ -1466,6 +1512,27 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
 
         //if(fabs(displace_dir) > 0.1f)
         //    cl::cqueue.enqueue_write_buffer_async(floor->parent->fetch()->g_tri_mem, sizeof(triangle)*o.gpu_tri_start, sizeof(triangle)*o.tri_list.size(), o.tri_list.data());
+    }
+
+    if(any_dirty)
+    {
+        displace_info inf;
+        inf.pos = nearest_vertex;
+        inf.yval = displace_dir;
+
+        if(displace_vals.size() == 0)
+            displace_vals.push_back(inf);
+        else
+        {
+            displace_info& bac = displace_vals.back();
+
+            if((bac.pos == inf.pos) && (bac.yval == displace_dir))
+            {
+                return;
+            }
+
+            displace_vals.push_back(inf);
+        }
     }
 }
 
@@ -1633,6 +1700,8 @@ int main(int argc, char *argv[])
 
     vec2f last_vt_upscaled = {-1,-1};
 
+    std::vector<displace_info> displace_vals;
+
     ///use event callbacks for rendering to make blitting to the screen and refresh
     ///asynchronous to actual bits n bobs
     ///clSetEventCallback
@@ -1695,11 +1764,11 @@ int main(int argc, char *argv[])
         asset_manage.do_paste_stack_ui();
         asset_manage.do_level_hide_ui(level);
 
-        displace_near_tris(window, level, secondary_context);
+        displace_near_tris(window, level, secondary_context, displace_vals);
 
         if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>() && window.focus)
         {
-            asset_manage.save(secondary_context, "save.txt");
+            asset_manage.save(secondary_context, "save.txt", level);
         }
 
         if(once<sf::Keyboard::Delete>() && last_hovered != level && window.focus)
@@ -1954,7 +2023,7 @@ int main(int argc, char *argv[])
             ///do manual async on thread
             event = window.draw_bulk_objs_n(*cctx.fetch());
 
-            event = window.do_pseudo_aa();
+            //event = window.do_pseudo_aa();
 
             window.set_render_event(event);
 
@@ -1972,7 +2041,7 @@ int main(int argc, char *argv[])
         #if 1
 
         asset_manage.do_ui();
-        asset_manage.do_save_ui(secondary_context, "save.txt");
+        asset_manage.do_save_ui(secondary_context, "save.txt", level);
 
         asset_manage.do_interactivity(window);
 
