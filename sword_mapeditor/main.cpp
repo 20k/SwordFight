@@ -1429,7 +1429,7 @@ int main(int argc, char *argv[])
         asset_manage.do_paste_stack_ui();
         asset_manage.do_level_ui(level, white_texture, floor_texture);
 
-        if(last_hovered == nullptr)
+        if(last_hovered == nullptr && window.focus)
             displace_near_tris(window, level, secondary_context);
 
         /*if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>() && window.focus)
