@@ -5,76 +5,6 @@
 #include "../openclrenderer/util.hpp"
 #include "../openclrenderer/vec.hpp"
 
-
-///todo eventually
-///split into dynamic and static objects
-
-///todo
-///fix memory management to not be atrocious
-
-///we're completely hampered by memory latency
-
-///rift head movement is wrong
-
-#if 0
-void load_map(objects_container* obj, int width, int height)
-{
-    texture* tex = obj->parent->tex_ctx.make_new();
-    tex->set_create_colour(sf::Color(200, 200, 200), 128, 128);
-
-    for(int y=0; y<height; y++)
-    {
-        for(int x=0; x<width; x++)
-        {
-            //vec3f world_pos_end = get_world_loc(map_def, {x, y}, {width, height});
-            //vec3f world_pos_start = world_pos_end;
-
-            float scale = 10.f;
-
-            float height = sin(((float)x/width) * M_PI);
-
-            height = 1 * scale/10;
-
-            vec3f world_pos_end = {x*scale, height*scale, y*scale};
-            vec3f world_pos_start = world_pos_end;
-
-            world_pos_start.v[1] = -1;
-
-            objects_container temp_obj;
-            temp_obj.parent = obj->parent;
-
-            ///so the first 6 are always the lower section of the cube away from end, and the last 6 are towards the end
-            load_object_cube_tex(&temp_obj, world_pos_start, world_pos_end, scale/2, *tex, false);
-
-            ///Ok. So the first two triangles are the base of the cube. We never need this ever
-            temp_obj.objs[0].tri_list.erase(temp_obj.objs[0].tri_list.begin() + 0);
-            temp_obj.objs[0].tri_list.erase(temp_obj.objs[0].tri_list.begin() + 0);
-
-            /*if(get_map_loc(map_def, {x, y}, {width, height}) == 0)
-            {
-                for(int i=0; i<8; i++)
-                {
-                    temp_obj.objs[0].tri_list.pop_back();
-                }
-            }*/
-
-            temp_obj.objs[0].tri_num = temp_obj.objs[0].tri_list.size();
-
-            ///subobject position set by obj->set_pos in load_object_cube
-            obj->objs.push_back(temp_obj.objs[0]);
-        }
-    }
-
-    obj->independent_subobjects = true;
-    obj->isloaded = true;
-}
-
-void load_level(objects_container* obj)
-{
-    return load_map(obj, 100, 100);
-}
-#endif
-
 ///has the button been pressed once, and only once
 template<sf::Keyboard::Key k>
 bool once()
@@ -164,8 +94,6 @@ void load_floor(objects_container* obj)
 
     obj_rect(&temp_obj, *tex, (cl_float2){dsize, dsize});
 
-    //obj_rect_tessellated(&temp_obj, *tex, (cl_float2){dsize, dsize}, 10.f);
-
     ///subobject position set by obj->set_pos in load_object_cube
     obj->objs.push_back(temp_obj.objs[0]);
 
@@ -217,9 +145,6 @@ struct asset
 
         loaded_asset->set_file(asset_path);
         loaded_asset->set_active(true);
-
-
-        //loaded_asset->set_load_func(obj_load_blank_tex);
     }
 };
 
@@ -369,17 +294,6 @@ struct asset_manager
             return;
         }
 
-        /*for(int i=0; i<assets.size(); i++)
-        {
-            if(assets[i].loaded_asset->file == c->file)
-            {
-                last_hovered = i;
-                return;
-            }
-        }
-
-        last_hovered = -1;*/
-
         last_hovered_object = c;
     }
 
@@ -408,15 +322,6 @@ struct asset_manager
 
 
         ImGui::Begin("Asset list");
-
-        /*for(int i=0; i<assets.size(); i++)
-        {
-            asset& a = assets[i];
-
-            //ImGui::CollapsingHeader
-
-            //ImGui::Button(a.loaded_asset->file.c_str(), ImVec2(0, 14));
-        }*/
 
         for(auto& i : directory_to_asset_name)
         {
@@ -465,11 +370,6 @@ struct asset_manager
         float dx = window.get_mouse_delta_x();
         float dy = window.get_mouse_delta_y();
 
-        /*if(once<sf::Mouse::Left>() && last_hovered != -1)
-        {
-            asset& a = assets[last_hovered];
-        }*/
-
         if(last_hovered_object == nullptr)
         {
             cdx = 0;
@@ -477,11 +377,6 @@ struct asset_manager
 
             return;
         }
-
-        /*if(last_hovered_object != nullptr)
-        {
-            last_hovered_object->set_quantise_position(false);
-        }*/
 
         if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right))
         {
@@ -503,10 +398,6 @@ struct asset_manager
         cdy = dy;
 
         float fov_const = calculate_fov_constant_from_hfov(window.horizontal_fov_degrees, window.width);
-
-        //asset& a = assets[last_hovered];
-
-        //cl_float4 pos = a.loaded_asset->pos;
 
         cl_float4 pos = last_hovered_object->pos;
 
@@ -546,50 +437,6 @@ struct asset_manager
 
         float len = sqrt(cdx*cdx + cdy*cdy);
 
-        /*if(mouse.isButtonPressed(sf::Mouse::Left))
-        {
-            move_axis.x() = 1;
-        }
-
-        if(mouse.isButtonPressed(sf::Mouse::XButton1))
-        {
-            move_axis.y() = 1;
-        }
-
-        if(mouse.isButtonPressed(sf::Mouse::Right))
-        {
-            move_axis.z() = 1;
-        }
-
-        if(move_axis.x() == 1)
-        {
-            //if(dx < 0)
-            //    move_axis.x() = -move_axis.x();
-
-            move_axis.x() = move_axis.x() * current_relative_mouse_projected_pos.x();
-        }
-
-        if(move_axis.y() == 1)
-        {
-            //if(dy > 0)
-            //    move_axis.y() = -move_axis.y();
-
-            move_axis.y() = move_axis.y() * -current_relative_mouse_projected_pos.y();
-        }
-
-        if(move_axis.z() == 1)
-        {
-            move_axis.z() = move_axis.z() * current_relative_mouse_projected_pos.x();
-        }*/
-
-        ///new control scheme, hold left click for xz axis, right click for y axis
-
-        /*if(mouse.isButtonPressed(sf::Mouse::Left))
-        {
-            move_axis.x() = 1;
-            move_axis.z() = 1;
-        }*/
-
         if(mouse.isButtonPressed(sf::Mouse::Right))
         {
             move_axis.y() = 1;
@@ -597,9 +444,6 @@ struct asset_manager
 
         if(move_axis.x() == 1)
         {
-            //if(dx < 0)
-            //    move_axis.x() = -move_axis.x();
-
             move_axis.x() = move_axis.x() * current_relative_mouse_projected_pos.x();
         }
 
@@ -613,19 +457,10 @@ struct asset_manager
             move_axis.z() = move_axis.z() * -current_relative_mouse_projected_pos.y();
         }
 
-        //move_axis = move_axis.norm() * move_len;
-
         vec3f next_pos = object_pos + move_axis;
 
         cl_float4 next_clpos = {next_pos.x(), next_pos.y(), next_pos.z()};
         cl_float4 current_clpos = last_hovered_object->pos;
-
-        //a.loaded_asset->set_pos({spos.x(), spos.y(), spos.z()});
-
-        /*if(last_hovered_object->position_quantise && !use_grid)
-        {
-            next_clpos = grid_lock(next_clpos);
-        }*/
 
         if(move_axis.y() != 0)
             last_hovered_object->set_pos(next_clpos);
@@ -646,112 +481,8 @@ struct asset_manager
             }
         }
 
-        /*if(use_grid)
-        {
-            last_hovered_object->set_quantise_position(true, grid_size);
-        }*/
-
         last_hovered_object->set_quantise_position(use_grid, grid_size);
-
-        /*if(!approx_equal((vec3f){next_clpos.x, next_clpos.y, next_clpos.z}, (vec3f){current_clpos.x, current_clpos.y, current_clpos.z}))
-        {
-            cdx = 0;
-            cdy = 0;
-        }*/
-
-        /*if(!approx_equal(next_clpos.x, current_clpos.x, 0.1f))
-        {
-            cdx = 0;
-        }
-
-        if(!approx_equal(next_clpos.z, current_clpos.z, 0.1f))
-        {
-            cdy = 0;
-        }
-
-        if(!approx_equal(next_clpos.y, current_clpos.y, 0.1f))
-        {
-            cdx = 0;
-            cdy = 0;
-        }*/
     }
-
-    ///have a save stack too
-
-    /*objects_container* asset_to_copy_object = nullptr;
-
-    void check_copy()
-    {
-        if(key_combo<sf::Keyboard::LControl, sf::Keyboard::C>())
-        {
-            //asset_to_copy = last_hovered;
-            asset_to_copy_object = last_hovered_object;
-        }
-    }
-
-    void check_paste_object(object_context& ctx, engine& window)
-    {
-        if(!key_combo<sf::Keyboard::LControl, sf::Keyboard::V>())
-            return;
-
-        if(asset_to_copy_object == nullptr)
-            return;
-
-        //asset& a = assets[asset_to_copy];
-
-        float fov_const = calculate_fov_constant_from_hfov(window.horizontal_fov_degrees, window.width);
-
-        ///depth of 1 FROM THE PROJECTION PLANE
-        vec3f local_pos = {window.get_mouse_x(), window.height - window.get_mouse_y(), 1};
-
-        vec3f unproj_pos = {local_pos.x() - window.width / 2.f, local_pos.y() - window.height / 2.f, local_pos.z()};
-
-        unproj_pos.x() = unproj_pos.x() * local_pos.z() / fov_const;
-        unproj_pos.y() = unproj_pos.y() * local_pos.z() / fov_const;
-
-        vec3f camera_ray = unproj_pos.back_rot({0,0,0}, {window.c_rot.x, window.c_rot.y, window.c_rot.z});
-
-        vec3f intersect = ray_plane_intersect(camera_ray, {window.c_pos.x, window.c_pos.y, window.c_pos.z}, {0, 1, 0}, {0, asset_to_copy_object->pos.y, 0});
-
-        std::string file = asset_to_copy_object->file;
-
-        objects_container* c = ctx.make_new();
-
-        c->set_file(file);
-        c->set_active(true);
-        c->set_unique_textures(true); ///hack to fix texture sharing issues across contexts
-        c->cache = false; ///we're going to need to fix the texture hack issue
-
-        ctx.load_active();
-        ctx.build_request();
-
-        c->set_dynamic_scale(asset_to_copy_object->dynamic_scale);
-
-        position_object(c);
-
-        c->set_pos(grid_lock({intersect.x(), intersect.y(), intersect.z()}));
-
-        printf("PASTE PASTE PASTE\n");
-    }
-
-    void copy_ui()
-    {
-        ImGui::Begin("Copied");
-
-        if(asset_to_copy_object != nullptr)
-        {
-            std::string aname = asset_to_copy_object->file;
-
-            ///beware if button
-            ImGui::Button(aname.c_str());
-        }
-        else
-        {
-            ImGui::Button("None");
-        }
-
-        ImGui::End();
-    }*/
 
     void do_save_ui(object_context& ctx, std::string file, objects_container* floor)
     {
@@ -803,8 +534,6 @@ struct asset_manager
             stream << (int)c->position_quantise << "\n";
 
             stream << c->position_quantise_grid_size << "\n";
-
-            //printf("SHOULD QUANT %i\n", c->position_quantise);
         }
 
         stream.close();
@@ -881,10 +610,6 @@ struct asset_manager
                 c->set_file(file);
                 c->set_active(true);
 
-                ///too tired to figure out the texture issue at the moment
-                //c->set_unique_textures(true);
-                //c->cache = false;
-
                 c->set_pos(pos);
 
                 ctx.load_active();
@@ -941,8 +666,6 @@ struct asset_manager
             return;
 
         float dyn_scale = last_hovered_object->dynamic_scale;
-
-        //dyn_scale += window.get_scrollwheel_delta();
 
         float dx = window.get_mouse_delta_x();
         float dy = window.get_mouse_delta_y();
@@ -1033,8 +756,9 @@ struct asset_manager
     }
 
     bool hide_c = false;
+    bool textured_c = false;
 
-    void do_level_hide_ui(objects_container* c)
+    void do_level_ui(objects_container* c, texture* white, texture* regular)
     {
         ImGui::Begin("Hide level ui");
 
@@ -1047,6 +771,26 @@ struct asset_manager
             c->hide();
         else
             c->set_pos({0,0,0});
+
+        if(ImGui::Checkbox("Textured", &textured_c))
+        {
+
+        }
+
+        if(textured_c)
+        {
+            for(auto& o : c->objs)
+            {
+                o.tid = regular->id;
+            }
+        }
+        else
+        {
+            for(auto& o : c->objs)
+            {
+                o.tid = white->id;
+            }
+        }
 
         ImGui::End();
     }
@@ -1088,24 +832,10 @@ struct asset_manager
 
         std::string file = cobject->file;
 
-        /*objects_container* c = ctx.make_new();
-
-        c->set_file(file);
-        c->set_active(true);
-        c->set_unique_textures(true); ///hack to fix texture sharing issues across contexts
-        c->cache = false; ///we're going to need to fix the texture hack issue
-
-        ctx.load_active();
-        ctx.build_request();
-
-        c->set_dynamic_scale(cobject->dynamic_scale);*/
-
         cl_float4 next_pos = grid_lock({intersect.x(), intersect.y(), intersect.z()});
         cl_float4 current_pos = cobject->pos;
 
         cl_float4 offset_pos = sub(next_pos, current_pos);
-
-        //c->set_pos(next_pos);
 
         for(int i=0; i<paste_asset_stack.size(); i++)
         {
@@ -1218,12 +948,6 @@ void into_squares(objects_container* pobj, texture& tex, cl_float2 dim, float te
             obj.tri_list.push_back(t1);
             obj.tri_list.push_back(t2);
 
-            //obj.tri_num = obj.tri_list.size();
-
-            //obj.tid = tex.id;
-
-            //pobj->objs.push_back(obj);
-
             start_x += tessellate_dim;
         }
 
@@ -1306,8 +1030,6 @@ void scatter_vert(vertex& v, float amount)
 
     rseed = rseed * 1.f + pos;
 
-    //pos = pos + randv<3, float>((vec3f){-1, -1, -1}*20, (vec3f){1, 1, 1}*20);
-
     v.set_pos({rseed.x(), rseed.y(), rseed.z()});
 }
 
@@ -1336,11 +1058,8 @@ void scatter(objects_container* c, float displace_amount = 3)
 
                 rseed.x() *= displace_amount;
                 rseed.y() *= displace_amount;
-                //rseed.z() = 0;
 
                 rseed = rseed * 1.f + pos;
-
-                //pos = pos + randv<3, float>((vec3f){-1, -1, -1}*20, (vec3f){1, 1, 1}*20);
 
                 v.set_pos({rseed.x(), rseed.y(), rseed.z()});
             }
@@ -1352,18 +1071,14 @@ void scatter(objects_container* c, float displace_amount = 3)
 
 
 ///I think I'm going to have to do normal mapping to get the detail I actually want
-void displace_near_tris(engine& window, objects_container* floor, object_context& ctx, std::vector<displace_info>& displace_vals)
+void displace_near_tris(engine& window, objects_container* floor, object_context& ctx)
 {
-    //return;
-
     vec3f screen_mouse = {window.get_mouse_x(), window.height - window.get_mouse_y(), 1.f};
 
     vec3f world_ray = screen_mouse.depth_unproject({window.width, window.height}, calculate_fov_constant_from_hfov(window.horizontal_fov_degrees, window.width)).back_rot(0, window.get_camera_rot());
 
     ///might need to negate intersection
     vec3f intersect = ray_plane_intersect(world_ray.norm(), window.get_camera_pos(), {0, 1, 0}, {0,0,0});
-
-    //printf("ISECT %f %f %f\n", EXPAND_3(intersect));
 
     vec3f nearest_vertex = {0, 9999999, 0};
 
@@ -1383,8 +1098,6 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
                 {
                     nearest_vertex = lpos;
                 }
-
-                //printf("LPOS %f %f %f\n", EXPAND_3(lpos));
             }
         }
     }
@@ -1393,8 +1106,6 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
 
     if(!mouse.isButtonPressed(sf::Mouse::Left) && !mouse.isButtonPressed(sf::Mouse::Right))
         return;
-
-    //printf("NEAREST %f %f %f\nINTERSECT %f %f %f", EXPAND_3(nearest_vertex), EXPAND_3(intersect));
 
     float displace_dir = 0.f;
 
@@ -1453,29 +1164,10 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
 
                     v.set_pos(conv_implicit<cl_float4>(pos));*/
 
-                    //scatter_vert(v, 1);
-
-
-                    //int byte_offset = which_vertex * sizeof(vertex);
-
-                    //int byte_base = o.gpu_tri_start * sizeof(triangle);
-
-                    //int byte_pos = byte_base + byte_offset;
-
-                    //v.set_pos({original_pos.x(), original_pos.y(), original_pos.z()});
-
-                    //clEnqueueWriteBuffer(cl::cqueue, floor->parent->fetch()->g_tri_mem.get(), CL_FALSE, byte_pos, sizeof(vertex), &v, 0, nullptr, nullptr);
-
-                    //o.set_outlined(true);
-
                     dirty = true;
 
-                    //t.vertices[0].set_normal({0, -1, 0});
-                    //t.vertices[1].set_normal({0, -1, 0});
-                    //t.vertices[2].set_normal({0, -1, 0});
 
                     cl_float4 orig = backup.vertices[vi].get_pos();
-                    //orig.z = 5;
                     orig.z = displace_dir;
                     backup.vertices[vi].set_pos(orig);
 
@@ -1492,13 +1184,7 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
             {
                 for(int vi = 0; vi < 3; vi++)
                 {
-                    //cl_float4 orig = backup.vertices[vi].get_pos();
-                    //orig.z = 0;
-                    //backup.vertices[vi].set_pos(orig);
-
                     t.vertices[vi].set_pos(backup.vertices[vi].get_pos());
-
-                    //t.vertices[vi].set_normal({0, -1, 0});
                 }
 
                 ///ok. This is a bit of a weird one, this is used for a triangle to know what object its related to
@@ -1514,30 +1200,6 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
 
                 clEnqueueWriteBuffer(cl::cqueue, floor->parent->fetch()->g_tri_mem.get(), CL_FALSE, byte_base, sizeof(triangle), &t, 0, nullptr, nullptr);
             }
-        }
-
-        //if(fabs(displace_dir) > 0.1f)
-        //    cl::cqueue.enqueue_write_buffer_async(floor->parent->fetch()->g_tri_mem, sizeof(triangle)*o.gpu_tri_start, sizeof(triangle)*o.tri_list.size(), o.tri_list.data());
-    }
-
-    if(any_dirty)
-    {
-        displace_info inf;
-        inf.pos = nearest_vertex;
-        inf.yval = displace_dir;
-
-        if(displace_vals.size() == 0)
-            displace_vals.push_back(inf);
-        else
-        {
-            displace_info& bac = displace_vals.back();
-
-            if((bac.pos == inf.pos) && (bac.yval == displace_dir))
-            {
-                return;
-            }
-
-            displace_vals.push_back(inf);
         }
     }
 }
@@ -1652,6 +1314,10 @@ int main(int argc, char *argv[])
     white_texture->set_create_colour(sf::Color(180, 180, 180), 32, 32);
     white_texture->force_load = true;
 
+    texture* floor_texture = secondary_context.tex_ctx.make_new();
+    floor_texture->set_location("mapshots/map_texture.png");
+    floor_texture->force_load = true;
+
     ///reallocating the textures of one context
     ///requires invaliding the textures of the second context
     ///this is because textures are global
@@ -1664,13 +1330,8 @@ int main(int argc, char *argv[])
 
     for(auto& i : level->objs)
     {
-        i.tid = white_texture->id;
+        //i.tid = white_texture->id;
     }
-
-    //quaternion q;
-    //q.load_from_euler({-M_PI/2, 0, 0});
-    //level->set_rot_quat(q);
-    //level->set_dynamic_scale(10000.f);
 
     sf::Image crab;
     crab.loadFromFile("ico.png");
@@ -1705,8 +1366,6 @@ int main(int argc, char *argv[])
     int last_my = window.get_mouse_y();
 
     vec2f last_vt_upscaled = {-1,-1};
-
-    std::vector<displace_info> displace_vals;
 
     ///use event callbacks for rendering to make blitting to the screen and refresh
     ///asynchronous to actual bits n bobs
@@ -1768,10 +1427,10 @@ int main(int argc, char *argv[])
 
         asset_manage.do_grid_ui();
         asset_manage.do_paste_stack_ui();
-        asset_manage.do_level_hide_ui(level);
+        asset_manage.do_level_ui(level, white_texture, floor_texture);
 
         if(last_hovered == nullptr)
-            displace_near_tris(window, level, secondary_context, displace_vals);
+            displace_near_tris(window, level, secondary_context);
 
         /*if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>() && window.focus)
         {
