@@ -864,6 +864,9 @@ struct asset_manager
         if(last_hovered_object == st)
             last_hovered_object = nullptr;
 
+        if(st == nullptr)
+            return;
+
         for(asset& a : assets)
         {
             if(a.loaded_asset == st)
@@ -1437,7 +1440,7 @@ int main(int argc, char *argv[])
             asset_manage.save(secondary_context, "save.txt", level);
         }*/
 
-        if(once<sf::Keyboard::Delete>() && last_hovered != level && window.focus)
+        if(once<sf::Keyboard::Delete>() && last_hovered != level && window.focus && last_hovered != nullptr)
         {
             asset_manage.del(last_hovered);
         }
