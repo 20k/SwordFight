@@ -1069,8 +1069,8 @@ void abberate_vts(objects_container* obj)
             {
                 cl_float2 vt = v.get_vt();
 
-                vt.x *= 20.f;
-                vt.y *= 20.f;
+                vt.x *= 2.f;
+                vt.y *= 2.f;
 
                 v.set_vt(vt);
             }
