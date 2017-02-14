@@ -652,6 +652,11 @@ struct asset_manager
             printf("Err invalid num of tris \n\n\n\n\n\n\n\n");
         }
 
+        for(triangle& t : floor->objs[0].tri_list)
+        {
+            t.vertices[0].set_pad(floor->objs[0].object_g_id);
+        }
+
         any_loaded = true;
     }
 
