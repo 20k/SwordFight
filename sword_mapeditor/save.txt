@@ -6749,7 +6749,7 @@ Assets/HouseModelLowPoly/Wall3.obj
 0
 1
 Assets/HouseModelLowPoly/Roof1.obj
--2703.316162 450.805420 -493.581543
+-2703.316162 450.805420 -493.581482
 155
 0.000000 0.605186 0.000000 0.796084
 0
@@ -7477,7 +7477,7 @@ Assets/NaturePack/naturePack_010.obj
 Assets/NaturePack/naturePack_008.obj
 2446.608887 0.001953 10741.991211
 259
-0.000000 -0.973848 0.000000 0.227202
+0.000000 -0.973848 0.000000 0.227201
 0
 1
 Assets/NaturePack/naturePack_077.obj

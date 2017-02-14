@@ -992,6 +992,62 @@ objects_container* load_map_reference(object_context& ctx)
     return c;
 }
 
+void colour_object(objects_container* obj)
+{
+    for(object& o : obj->objs)
+    {
+        for(triangle& t : o.tri_list)
+        {
+            bool all_low = true;
+
+            for(vertex& v : t.vertices)
+            {
+                /*if(v.get_pos().z > 1)
+                    //v.set_vertex_col(0, 0, 1, 255);
+                    v.set_vertex_col(193, 154, 107, 255);
+                else
+                    //v.set_vertex_col(0,0,0,0);
+                    //v.set_vertex_col(34, 139, 34, 255);
+                    v.set_vertex_col(0.2705 * 255.f, 0.407843 * 255.f, 0.4 * 255.f, 255);*/
+
+                if(v.get_pos().z < 1)
+                    all_low = false;
+
+            }
+
+            for(vertex& v : t.vertices)
+            {
+                if(all_low)
+                {
+                    v.set_vertex_col(193, 154, 107, 255);
+                }
+                else
+                {
+                    v.set_vertex_col(0.2705 * 255.f, 0.407843 * 255.f, 0.4 * 255.f, 255);
+                }
+            }
+
+            t.vertices[0].set_pad(o.object_g_id);
+        }
+
+        int byte_base = o.gpu_tri_start * sizeof(triangle);
+
+        clEnqueueWriteBuffer(cl::cqueue, obj->parent->fetch()->g_tri_mem.get(), CL_FALSE, byte_base, sizeof(triangle) * o.tri_list.size(), &o.tri_list[0], 0, nullptr, nullptr);
+    }
+}
+
+void colour_ui(objects_container* obj)
+{
+    ImGui::Begin("Colour Floor");
+
+    if(ImGui::Button("Colour Floor") && obj != nullptr)
+    {
+        colour_object(obj);
+    }
+
+    ImGui::End();
+}
+
 uint32_t wang_hash(uint32_t seed)
 {
     seed = (seed ^ 61) ^ (seed >> 16);
@@ -1431,6 +1487,8 @@ int main(int argc, char *argv[])
         asset_manage.do_grid_ui();
         asset_manage.do_paste_stack_ui();
         asset_manage.do_level_ui(level, white_texture, floor_texture);
+
+        colour_ui(level);
 
         if(last_hovered == nullptr && window.focus)
             displace_near_tris(window, level, secondary_context);
