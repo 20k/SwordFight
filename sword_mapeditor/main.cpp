@@ -1022,14 +1022,22 @@ void colour_object(objects_container* obj)
 
             for(vertex& v : t.vertices)
             {
+                vec3f col;
+
                 if(all_low)
                 {
-                    v.set_vertex_col(193, 154, 107, 255);
+                    col = {193, 154, 107};
                 }
                 else
                 {
-                    v.set_vertex_col(0.2705 * 255.f, 0.407843 * 255.f, 0.4 * 255.f, 255);
+                    col = {0.2705 * 255.f, 0.407843 * 255.f, 0.4 * 255.f};
                 }
+
+                col = col + col * randf_s(-0.01f, 0.01f);
+
+                col = clamp(col, 0.f, 255.f);
+
+                v.set_vertex_col(col.x(), col.y(), col.z(), 255);
             }
 
             t.vertices[0].set_pad(o.object_g_id);
