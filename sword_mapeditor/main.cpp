@@ -980,6 +980,9 @@ objects_container* load_map_reference(object_context& ctx)
     texture* tex = ctx.tex_ctx.make_new();
     tex->set_location("mapshots/map_texture.png");
 
+    texture* normal = ctx.tex_ctx.make_new();
+    normal->set_location("random_normal_map.png");
+
     c->set_active(true);
     c->cache = false;
     c->set_load_func(std::bind(into_squares, std::placeholders::_1, *tex, (cl_float2){1000, 1000}, 10));
@@ -993,6 +996,11 @@ objects_container* load_map_reference(object_context& ctx)
     c->set_dynamic_scale(30.f);
 
     ctx.build_request();
+
+    for(object& o : c->objs)
+    {
+        o.rid = normal->id;
+    }
 
     return c;
 }
@@ -1049,13 +1057,45 @@ void colour_object(objects_container* obj)
     }
 }
 
-void colour_ui(objects_container* obj)
+void abberate_vts(objects_container* obj)
 {
-    ImGui::Begin("Colour Floor");
+    for(object& o : obj->objs)
+    {
+        for(triangle& t : o.tri_list)
+        {
+            bool all_low = true;
+
+            for(vertex& v : t.vertices)
+            {
+                cl_float2 vt = v.get_vt();
+
+                vt.x *= 20.f;
+                vt.y *= 20.f;
+
+                v.set_vt(vt);
+            }
+
+            t.vertices[0].set_pad(o.object_g_id);
+        }
+
+        int byte_base = o.gpu_tri_start * sizeof(triangle);
+
+        clEnqueueWriteBuffer(cl::cqueue, obj->parent->fetch()->g_tri_mem.get(), CL_FALSE, byte_base, sizeof(triangle) * o.tri_list.size(), &o.tri_list[0], 0, nullptr, nullptr);
+    }
+}
+
+void tri_ui(objects_container* obj)
+{
+    ImGui::Begin("Tri UI");
 
     if(ImGui::Button("Colour Floor") && obj != nullptr)
     {
         colour_object(obj);
+    }
+
+    if(ImGui::Button("Fiddle Vts") && obj != nullptr)
+    {
+        abberate_vts(obj);
     }
 
     ImGui::End();
@@ -1501,7 +1541,7 @@ int main(int argc, char *argv[])
         asset_manage.do_paste_stack_ui();
         asset_manage.do_level_ui(level, white_texture, floor_texture);
 
-        colour_ui(level);
+        tri_ui(level);
 
         if(last_hovered == nullptr && window.focus)
             displace_near_tris(window, level, secondary_context);
