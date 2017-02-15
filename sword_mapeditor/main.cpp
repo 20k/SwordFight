@@ -1543,7 +1543,7 @@ int main(int argc, char *argv[])
 
         tri_ui(level);
 
-        if(last_hovered == nullptr && window.focus)
+        if(last_hovered == nullptr && window.focus && (&cctx == &secondary_context))
             displace_near_tris(window, level, secondary_context);
 
         /*if(key_combo<sf::Keyboard::LControl, sf::Keyboard::S>() && window.focus)
