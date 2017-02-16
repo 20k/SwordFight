@@ -148,6 +148,51 @@ struct asset
     }
 };
 
+//col = {0.2705 * 255.f, 0.407843 * 255.f, 0.4 * 255.f};
+void modify_texture_colour_dynamic(object_context& ctx)
+{
+    objects_container* found_object = nullptr;
+
+    for(objects_container* c : ctx.containers)
+    {
+        if(c->file.find("naturePack_007") != std::string::npos)
+        {
+            found_object = c;
+            break;
+        }
+    }
+
+    if(found_object == nullptr)
+    {
+        lg::log("NONE FOUND ERIROP");
+        return;
+    }
+
+    int green_tid = found_object->objs[0].tid;
+    int brown_tid = found_object->objs[1].tid;
+
+    texture* green_tex = ctx.tex_ctx.id_to_tex(green_tid);
+    texture* brown_tex = ctx.tex_ctx.id_to_tex(brown_tid);
+
+    green_tex->unload();
+    green_tex->set_load_from_other_texture(brown_tex);
+
+    ctx.build(true);
+
+    /*texture* tex = ctx.tex_ctx.id_to_tex(tid);
+
+    ///should probably have a texture is dirty flag
+    tex->unload();
+
+    vec3f col = {0.2705 * 255.f, 0.407843 * 255.f, 0.4 * 255.f};
+
+    ///Hmm. This wont be loaded yet. I don't want it to be that you have to manually load it
+    ///as the deferred loading etc is nice. But then... I guess its impossible to do nicely
+    tex->set_create_colour(sf::Color(col.x(), col.y(), col.z()), 32, 32);
+
+    ctx.build(true);*/
+}
+
 struct asset_manager
 {
     bool any_loaded = false;
@@ -657,6 +702,10 @@ struct asset_manager
             t.vertices[0].set_pad(floor->objs[0].object_g_id);
         }
 
+        ctx.build(true);
+
+        modify_texture_colour_dynamic(ctx);
+
         any_loaded = true;
     }
 
@@ -1038,7 +1087,7 @@ void colour_object(objects_container* obj)
                 }
                 else
                 {
-                    col = {0.2705 * 255.f, 0.407843 * 255.f, 0.4 * 255.f};
+                    col = {0.2705 * 255.f, 0.407843 * 255.f, 0.4 * 255.f}; ///forest green
                 }
 
                 col = col + col * randf_s(-0.01f, 0.01f);
@@ -1316,6 +1365,7 @@ void displace_near_tris(engine& window, objects_container* floor, object_context
     }
 }
 
+
 ///need to delete objects next
 ///make the floor cuboid like the old experiment
 ///or at least just made up of small squares
@@ -1340,6 +1390,8 @@ int main(int argc, char *argv[])
 
     object_context context;
     object_context secondary_context;
+
+    secondary_context.set_clear_colour({0, 204/255.f, 255/255.f});
 
     auto sponza = context.make_new();
     //sponza->set_file("../openclrenderer/sp2/sp2.obj");
@@ -1439,6 +1491,9 @@ int main(int argc, char *argv[])
     secondary_context.load_active();
     scatter(level);
     secondary_context.build(true);
+
+    modify_texture_colour_dynamic(context);
+    modify_texture_colour_dynamic(secondary_context);
 
     for(auto& i : level->objs)
     {
