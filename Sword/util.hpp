@@ -47,5 +47,29 @@ bool once()
     return false;
 }
 
+template<sf::Keyboard::Key k1, sf::Keyboard::Key k2>
+bool key_combo()
+{
+    sf::Keyboard key;
+
+    static bool last = false;
+
+    bool b1 = key.isKeyPressed(k1);
+    bool b2 = key.isKeyPressed(k2);
+
+    if(b1 && b2 && !last)
+    {
+        last = true;
+
+        return true;
+    }
+
+    if(!b1 || !b2)
+    {
+        last = false;
+    }
+
+    return false;
+}
 
 #endif // UTIL_HPP_INCLUDED
