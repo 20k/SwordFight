@@ -709,7 +709,7 @@ int main(int argc, char *argv[])
             cl_uint o_id = -1;
 
             if(frag_id >= 0)
-                clEnqueueReadBuffer(cl::cqueue.get(), window.g_tid_buf.get(), CL_FALSE, sizeof(cl_uint) * (frag_id * 6 + 5), sizeof(cl_uint), &o_id, 0, nullptr, nullptr);
+                clEnqueueReadBuffer(cl::cqueue.get(), window.g_tid_buf.get(), CL_FALSE, sizeof(cl_uint) * (frag_id * 5 + 4), sizeof(cl_uint), &o_id, 0, nullptr, nullptr);
 
             cl::cqueue.finish();
 
