@@ -147,6 +147,7 @@ struct asset_manager
 
     void save_terrain(std::string file, objects_container* floor);
 
+    ///this is what we need to pull out
     void load(object_context& ctx, std::string file, objects_container* floor);
 
     void do_dyn_scale(engine& window);
