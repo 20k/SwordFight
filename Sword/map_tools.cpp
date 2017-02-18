@@ -164,6 +164,7 @@ void load_map_cube(objects_container* obj, const std::vector<std::vector<int>>& 
     obj->independent_subobjects = true;
     obj->isloaded = true;*/
 
+    ///0.2ms optimisation here ish
     object base;
     base.isloaded = true;
 

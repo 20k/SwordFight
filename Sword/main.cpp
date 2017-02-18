@@ -924,6 +924,7 @@ int main(int argc, char *argv[])
         my_fight->cube_info = &debug_map_cube;
 
         window.raw_input_set_active(s.use_raw_input);
+        window.set_manage_frametimes(s.use_frametime_management);
 
         if(controls_state == 0 && window.focus && !in_menu)
         {

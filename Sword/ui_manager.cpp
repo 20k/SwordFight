@@ -64,6 +64,8 @@ void ui_manager::tick_settings(float ftime_ms)
     horizontal_fov_degrees.set_default(sett->horizontal_fov_degrees);
     horizontal_fov_degrees.set_bound(1, 170);
 
+    use_frametime_management.set_default(sett->use_frametime_management);
+
     if(saved_settings_w != sett->width || saved_settings_h != sett->height)
     {
         saved_settings_w = sett->width;
@@ -121,6 +123,12 @@ void ui_manager::tick_settings(float ftime_ms)
 
     vals.use_post_aa = use_post_aa.instantiate_and_get("Use post AA").ret;
     vals.use_raw_input = use_raw_input.instantiate_and_get("Use raw input").ret;
+    vals.use_frametime_management = use_frametime_management.instantiate_and_get("Use frametime management").ret;
+
+    if(ImGui::IsItemHovered())
+    {
+        ImGui::SetTooltip("Adds small delays (up to 0.5ms) to provide a slightly more consistent frame pacing");
+    }
 
     vals.frames_of_input_lag = frames_of_input_lag.instantiate_and_get("Frames of input lag").ret;
 
@@ -181,6 +189,14 @@ void ui_manager::tick_settings(float ftime_ms)
     if(sett->frames_of_input_lag != vals.frames_of_input_lag)
     {
         sett->frames_of_input_lag = vals.frames_of_input_lag;
+
+        config_dirty = true;
+    }
+
+    ///we should really use a string so we can iterate
+    if(sett->use_frametime_management != vals.use_frametime_management)
+    {
+        sett->use_frametime_management = vals.use_frametime_management;
 
         config_dirty = true;
     }

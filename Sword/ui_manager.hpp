@@ -267,6 +267,7 @@ struct configuration_values
     int use_raw_input = 1;
     int frames_of_input_lag = 1;
     float horizontal_fov_degrees = 120;
+    int use_frametime_management = 0;
 };
 
 struct fighter;
@@ -292,8 +293,11 @@ struct ui_manager
     window_element_checkbox<int> use_post_aa;
     window_element_checkbox<int> use_raw_input;
 
+
     window_element_getter<int> frames_of_input_lag;
     window_slider_getter<float> horizontal_fov_degrees;
+
+    window_element_checkbox<int> use_frametime_management;
 
     int saved_settings_w = 0;
     int saved_settings_h = 0;
