@@ -828,29 +828,6 @@ int main(int argc, char *argv[])
 
             window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
 
-
-            /*PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
-            glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
-
-            sf::Image img;
-            img.create(32, 32);
-
-            sf::Texture tex;
-            tex.loadFromImage(img);
-
-            sf::Sprite spr(tex);
-
-            window.window.draw(spr);
-
-            //window.render_me = true;
-            //window.blit_to_screen(*context.fetch());
-            window.load(r_x-1, r_y-2, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
-            //window.window.resetGLStates();
-            //window.render_me = true;
-            //window.blit_to_screen(*context.fetch());
-            window.window.draw(spr);
-            window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);*/
-
             ImGui::SFML::Init(window.window);
 
             window.raw_input_init();
