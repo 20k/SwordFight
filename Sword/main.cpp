@@ -808,20 +808,48 @@ int main(int argc, char *argv[])
 
         if(do_resize)
         {
-            context.destroy_context_unrenewables();
-            transparency_context.destroy_context_unrenewables();
+            bool do_resize_hack = true;
 
-            glFinish();
-            window.render_block();
+            if(!do_resize_hack)
+            {
+                context.destroy_context_unrenewables();
+                transparency_context.destroy_context_unrenewables();
 
-            cl::cqueue.finish();
-            cl::cqueue2.finish();
-            cl::cqueue_ooo.finish();
-            glFinish();
+                glFinish();
+                window.render_block();
+
+                cl::cqueue.finish();
+                cl::cqueue2.finish();
+                cl::cqueue_ooo.finish();
+                glFinish();
+            }
 
             lg::log("resize ", r_x, " ", r_y, " ", s.width, " ", s.height, " ", ui_manage.saved_settings_w, " ", ui_manage.saved_settings_h);
 
             window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
+
+
+            /*PFNGLBINDFRAMEBUFFEREXTPROC glBindFramebufferEXT = (PFNGLBINDFRAMEBUFFEREXTPROC)wglGetProcAddress("glBindFramebufferEXT");
+            glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER, 0);
+
+            sf::Image img;
+            img.create(32, 32);
+
+            sf::Texture tex;
+            tex.loadFromImage(img);
+
+            sf::Sprite spr(tex);
+
+            window.window.draw(spr);
+
+            //window.render_me = true;
+            //window.blit_to_screen(*context.fetch());
+            window.load(r_x-1, r_y-2, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
+            //window.window.resetGLStates();
+            //window.render_me = true;
+            //window.blit_to_screen(*context.fetch());
+            window.window.draw(spr);
+            window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);*/
 
             ImGui::SFML::Init(window.window);
 
@@ -833,41 +861,44 @@ int main(int argc, char *argv[])
 
             window.set_light_data(light_data);
 
-            context.load_active();
-            context.build(true);
-
-            transparency_context.load_active();
-            transparency_context.build(true);
-
-            context.increment_context_id();
-            transparency_context.increment_context_id();
-
-            context.fetch()->ensure_screen_buffers(window.width, window.height);
-            transparency_context.fetch()->ensure_screen_buffers(window.width, window.height);
-
-            gpu_context = context.fetch();
-
-
-            window.set_object_data(*gpu_context);
-            window.set_light_data(light_data);
-            //window.set_tex_data(gpu_context->tex_gpu);
-
-            #ifdef SPACE
-
-            if(s.quality != 0)
+            if(!do_resize_hack)
             {
-                g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
+                context.load_active();
+                context.build(true);
 
-                space_res.init(window.width, window.height);
+                transparency_context.load_active();
+                transparency_context.build(true);
+
+                context.increment_context_id();
+                transparency_context.increment_context_id();
+
+                context.fetch()->ensure_screen_buffers(window.width, window.height);
+                transparency_context.fetch()->ensure_screen_buffers(window.width, window.height);
+
+                gpu_context = context.fetch();
+
+
+                window.set_object_data(*gpu_context);
+                window.set_light_data(light_data);
+                //window.set_tex_data(gpu_context->tex_gpu);
+
+                #ifdef SPACE
+
+                if(s.quality != 0)
+                {
+                    g_star_cloud = point_cloud_manager::alloc_point_cloud(stars);
+
+                    space_res.init(window.width, window.height);
+                }
+
+                #endif
+
+                //text::set_renderwindow(window.window);
+
+                cl::cqueue.finish();
+                cl::cqueue2.finish();
+                cl::cqueue_ooo.finish();
             }
-
-            #endif
-
-            //text::set_renderwindow(window.window);
-
-            cl::cqueue.finish();
-            cl::cqueue2.finish();
-            cl::cqueue_ooo.finish();
         }
 
         /*if(s.enable_debugging)
