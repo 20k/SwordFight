@@ -49,7 +49,7 @@ std::function<void(objects_container*)> world_map::get_load_func()
     return std::bind(load_map_cube, std::placeholders::_1, map_def, width, height);
 }
 
-void gameplay_state::set_map(world_map& _map)
+void gameplay_state::set_map(polygonal_world_map& _map)
 {
     current_map = _map;
 }
@@ -242,7 +242,7 @@ void load_map_cube(objects_container* obj, const std::vector<std::vector<int>>& 
     obj->isloaded = true;
 }
 
-bool is_wall(vec2f world_pos, const std::vector<int>& map_def, int width, int height)
+bool world_map::is_wall(vec2f world_pos, const std::vector<int>& map_def, int width, int height)
 {
     ///so world pos has been scaled
     ///and the level geometry has been moved by 0.5 to the right
@@ -268,7 +268,7 @@ bool is_wall(vec2f world_pos, const std::vector<int>& map_def, int width, int he
 }
 
 ///so, it looks like we basically just need to replace this function, and the one above, to fix 3d collision detection
-bool rectangle_in_wall(vec2f centre, vec2f dim, const std::vector<int>& map_def, int width, int height)
+bool world_map::rectangle_in_wall(vec2f centre, vec2f dim, const std::vector<int>& map_def, int width, int height)
 {
     vec2f hd = dim/2.f;
 
@@ -288,12 +288,22 @@ bool rectangle_in_wall(vec2f centre, vec2f dim, const std::vector<int>& map_def,
     return false;
 }
 
-bool rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st)
+bool world_map::rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st)
 {
     if(st == nullptr)
         return false;
 
     int face = 0;
 
-    return rectangle_in_wall(centre, dim, st->current_map.map_def[face], st->current_map.width, st->current_map.height);
+    return rectangle_in_wall(centre, dim, map_def[face], width, height);
+}
+
+bool polygonal_world_map::is_wall(vec3f world_pos)
+{
+    return false;
+}
+
+bool polygonal_world_map::rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st)
+{
+    return false;
 }

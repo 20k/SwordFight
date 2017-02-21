@@ -440,13 +440,6 @@ int main(int argc, char *argv[])
     context.set_blend_render_context(transparency_context);
     #endif
 
-    world_map default_map;
-    //default_map.init(map_namespace::map_one, 11, 12);
-    default_map.init(0);
-
-    gameplay_state current_state;
-    current_state.set_map(default_map);
-
     texture* floor_reflection_tex = context.tex_ctx.make_new_cached("./Res/object_reflection_map.png");
     floor_reflection_tex->set_location("./Res/object_reflection_map.png");
 
@@ -491,6 +484,11 @@ int main(int argc, char *argv[])
 
     polygonal_world_map polygonal_map;
     polygonal_map.init(context, "Res/poly_maps/midmap_1.txt");
+
+
+    gameplay_state current_state;
+    current_state.set_map(polygonal_map);
+
 
     lg::log("Post polygonal world map");
 
@@ -556,14 +554,21 @@ int main(int argc, char *argv[])
 
     light l;
     //l.set_col({1.0, 1.0, 1.0, 0});
-    l.set_col({1.0, 1.0, 1.0, 0});
+    /*l.set_col({1.0, 1.0, 1.0, 0});
     l.set_shadow_casting(1);
     l.set_brightness(0.515f);
     //l.set_brightness(0.415f);
     l.set_diffuse(1.f);
     l.set_pos({0, 5000, -000, 0});
-    l.set_is_static(1);
+    l.set_is_static(1);*/
     //l.set_godray_intensity(0.5f);
+
+    l.set_col({1.0f, 1.0f, 1.0f, 0.0f});
+    l.set_shadow_casting(1);
+    l.set_brightness(1.5);
+    l.radius = 100000;
+    l.set_pos((cl_float4){0, 15000, 300, 0});
+    l.set_is_static(1);
 
     light::add_light(&l);
 
@@ -652,7 +657,8 @@ int main(int argc, char *argv[])
         menu_handler.current_menu_state = menu_system::INGAME;
     }
 
-    context.set_clear_colour({135/255.f, 206/255.f, 250/255.f});
+    //context.set_clear_colour({135/255.f, 206/255.f, 250/255.f});
+    context.set_clear_colour({105/255.f, 156/255.f, 200/255.f});
 
     transparency_context.build(true);
 

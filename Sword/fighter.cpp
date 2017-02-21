@@ -1650,12 +1650,12 @@ vec2f fighter::get_wall_corrected_move(vec2f pos, vec2f move_dir)
     vec2f dir_move = move_dir;
     vec2f lpos = pos;
 
-    if(rectangle_in_wall(lpos + (vec2f){dir_move.v[0], 0.f}, get_approx_dim(), game_state))
+    if(game_state->current_map.rectangle_in_wall(lpos + (vec2f){dir_move.v[0], 0.f}, get_approx_dim(), game_state))
     {
         dir_move.v[0] = 0.f;
         xw = true;
     }
-    if(rectangle_in_wall(lpos + (vec2f){0.f, dir_move.v[1]}, get_approx_dim(), game_state))
+    if(game_state->current_map.rectangle_in_wall(lpos + (vec2f){0.f, dir_move.v[1]}, get_approx_dim(), game_state))
     {
         dir_move.v[1] = 0.f;
         yw = true;
@@ -1664,7 +1664,7 @@ vec2f fighter::get_wall_corrected_move(vec2f pos, vec2f move_dir)
     ///if I move into wall, but yw and xw aren't true, stop
     ///there are some diagonal cases here which might result in funky movement
     ///but largely should be fine
-    if(rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state) && !xw && !yw)
+    if(game_state->current_map.rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state) && !xw && !yw)
     {
         dir_move = 0.f;
     }
@@ -1815,7 +1815,7 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         ///just in case!
         ///disappearing may be because the pos is being destroyed by this
         ///hypothetical
-        if(!rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state))
+        if(!game_state->current_map.rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state))
         {
             float real_move = dir_move.length();
 
