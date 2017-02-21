@@ -25,9 +25,10 @@ vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fi
 {
     if(current_time > time_ms)
     {
+        should_play_foot_sounds = is_jumping;
+
         current_time = 0;
         is_jumping = false;
-
         return {0,0,0};
     }
 
@@ -35,6 +36,8 @@ vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fi
     {
         return {0,0,0};
     }
+
+    should_play_foot_sounds = false;
 
     vec3f offset = {0, 0, 0};
 
@@ -2005,6 +2008,11 @@ void fighter::do_foot_sounds(bool is_player)
     if(dead())
         return;
 
+    if(suppress_foot_sounds && foot_supression_timer.getElapsedTime().asMilliseconds() / 1000.f < time_to_suppress_foot_sounds_s)
+        return;
+
+    suppress_foot_sounds = false;
+
     const int asphalt_start = 2;
     const int foot_nums = 8;
 
@@ -2060,6 +2068,28 @@ void fighter::do_foot_sounds(bool is_player)
     else
     {
         right_foot_sound = false;
+    }
+
+    if(jump_info.should_play_foot_sounds)
+    {
+        left_foot_sound = true;
+        right_foot_sound = true;
+
+        sound::add(current_num + asphalt_start, centre, is_relative);
+
+        current_num = (current_num + 1) % foot_nums;
+
+        sound::add(current_num + asphalt_start, centre, is_relative);
+
+        current_num = (current_num + 1) % foot_nums;
+
+        jump_info.should_play_foot_sounds = false;
+
+        suppress_foot_sounds = true;
+        time_to_suppress_foot_sounds_s = 0.2f;
+        foot_supression_timer.restart();
+
+        //lg::log("HI THERE\n\n\n\n\n\n\n");
     }
 }
 

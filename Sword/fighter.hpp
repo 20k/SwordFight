@@ -672,6 +672,7 @@ struct jump_descriptor
 {
     vec2f dir = {0,0};
 
+    bool should_play_foot_sounds = false;
     float current_time = 0;
     bool is_jumping = false;
     vec3f pre_jump_pos = {0,0,0};
@@ -972,6 +973,9 @@ struct fighter
 
     void set_contexts(object_context* _cpu, object_context_data* _gpu);
 
+    sf::Clock foot_supression_timer;
+    float time_to_suppress_foot_sounds_s = 0.f;
+    bool suppress_foot_sounds = false;
     void do_foot_sounds(bool is_player = false);
 
     void set_name(std::string _name);
