@@ -762,8 +762,6 @@ struct clientside_parry_info
 struct light;
 struct gameplay_state;
 
-struct map_cube_info;
-
 struct network_fighter;
 struct server_networking;
 
@@ -781,8 +779,6 @@ struct fighter
     bool reset_screenshake_flinch = false;
 
     bool name_info_initialised = false;
-
-    map_cube_info* cube_info = nullptr;
 
     std::vector<clientside_parry_info> clientside_parry_inf;
 

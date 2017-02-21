@@ -277,7 +277,7 @@ bool rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st)
     if(st == nullptr)
         return false;
 
-    int face = st->current_map.cube_info->face;
+    int face = 0;
 
     return rectangle_in_wall(centre, dim, st->current_map.map_def[face], st->current_map.width, st->current_map.height);
 }

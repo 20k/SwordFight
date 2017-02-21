@@ -168,9 +168,6 @@ void debug_controls(fighter* my_fight, engine& window)
         my_fight->queue_attack(attacks::SPRINT);
     }
 
-    if(my_fight->cube_info)
-        walk_dir = my_fight->cube_info->transform_move_dir_no_rot(walk_dir);
-
     my_fight->walk_dir(walk_dir, sprint);
 }
 
@@ -203,9 +200,6 @@ void fps_controls(fighter* my_fight, engine& window)
 
     if(crouching)
         sprint = false;
-
-    if(my_fight->cube_info)
-        walk_dir = my_fight->cube_info->transform_move_dir_no_rot(walk_dir);
 
     my_fight->walk_dir(walk_dir, sprint);
 
@@ -318,9 +312,6 @@ void fps_trombone_controls(fighter* my_fight, engine& window)
 
     if(crouching)
         sprint = false;
-
-    if(my_fight->cube_info)
-        walk_dir = my_fight->cube_info->transform_move_dir_no_rot(walk_dir);
 
     my_fight->walk_dir(walk_dir, sprint);
 
@@ -449,12 +440,9 @@ int main(int argc, char *argv[])
     context.set_blend_render_context(transparency_context);
     #endif
 
-    map_cube_info debug_map_cube;
-
     world_map default_map;
     //default_map.init(map_namespace::map_one, 11, 12);
     default_map.init(0);
-    default_map.cube_info = &debug_map_cube;
 
     gameplay_state current_state;
     current_state.set_map(default_map);
@@ -916,8 +904,6 @@ int main(int argc, char *argv[])
                 }
             }
         }*/
-
-        my_fight->cube_info = &debug_map_cube;
 
         window.raw_input_set_active(s.use_raw_input);
         window.set_manage_frametimes(s.use_frametime_management);
