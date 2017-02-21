@@ -268,6 +268,7 @@ struct configuration_values
     int frames_of_input_lag = 1;
     float horizontal_fov_degrees = 120;
     int use_frametime_management = 0;
+    int is_fullscreen = 0;
 };
 
 struct fighter;
@@ -298,9 +299,11 @@ struct ui_manager
     window_slider_getter<float> horizontal_fov_degrees;
 
     window_element_checkbox<int> use_frametime_management;
+    window_element_checkbox<int> is_fullscreen;
 
     int saved_settings_w = 0;
     int saved_settings_h = 0;
+    int saved_settings_is_fullscreen = 0;
 
     settings* sett;
 

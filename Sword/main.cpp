@@ -465,7 +465,8 @@ int main(int argc, char *argv[])
     window.append_opencl_extra_command_line("-D MIP_BIAS=2.f");
     window.append_opencl_extra_command_line("-D CAN_INTEGRATED_BLEND");
     //window.append_opencl_extra_command_line("-D STYLISED");
-    window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true);
+
+    window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true, false);
     ImGui::SFML::Init(window.window);
     window.manual_input = true;
 
@@ -697,7 +698,6 @@ int main(int argc, char *argv[])
 
         window.reset_scrollwheel_delta();
 
-        bool fullscreen = window.is_fullscreen;
         bool do_resize = false;
         int r_x = window.get_width();
         int r_y = window.get_height();
@@ -757,7 +757,6 @@ int main(int argc, char *argv[])
             sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
 
             do_resize = true;
-            fullscreen = !fullscreen;
 
             r_x = desktop.width;
             r_y = desktop.height;
@@ -766,6 +765,7 @@ int main(int argc, char *argv[])
 
             s.width = r_x;
             s.height = r_y;
+            s.is_fullscreen = !s.is_fullscreen;
 
             s.save("./res/settings.txt");
         }
@@ -780,6 +780,24 @@ int main(int argc, char *argv[])
             lg::log("dynamic resize");
 
             s.save("./res/settings.txt");
+        }
+
+        if(window.is_fullscreen != s.is_fullscreen)
+        {
+            do_resize = true;
+
+            if(s.is_fullscreen)
+            {
+                sf::VideoMode desktop = sf::VideoMode::getDesktopMode();
+
+                r_x = desktop.width;
+                r_y = desktop.height;
+
+                lg::log("dyn fullscreen ", r_x, " ", r_y);
+
+                s.width = r_x;
+                s.height = r_y;
+            }
         }
 
         if(s.horizontal_fov_degrees != window.horizontal_fov_degrees)
@@ -813,7 +831,7 @@ int main(int argc, char *argv[])
 
             lg::log("resize ", r_x, " ", r_y, " ", s.width, " ", s.height, " ", ui_manage.saved_settings_w, " ", ui_manage.saved_settings_h);
 
-            window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, fullscreen);
+            window.load(r_x, r_y, 1000, title, "../openclrenderer/cl2.cl", true, s.is_fullscreen);
 
             ImGui::SFML::Init(window.window);
 

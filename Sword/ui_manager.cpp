@@ -66,6 +66,8 @@ void ui_manager::tick_settings(float ftime_ms)
 
     use_frametime_management.set_default(sett->use_frametime_management);
 
+    is_fullscreen.set_default(sett->is_fullscreen);
+
     if(saved_settings_w != sett->width || saved_settings_h != sett->height)
     {
         saved_settings_w = sett->width;
@@ -73,6 +75,13 @@ void ui_manager::tick_settings(float ftime_ms)
 
         res_x.val = saved_settings_w;
         res_y.val = saved_settings_h;
+    }
+
+    if(saved_settings_is_fullscreen != sett->is_fullscreen)
+    {
+        saved_settings_is_fullscreen = sett->is_fullscreen;
+
+        is_fullscreen.val = sett->is_fullscreen;
     }
 
     //printf("RES X Y %i %i\n", res_x.val, res_y.val);
@@ -130,15 +139,18 @@ void ui_manager::tick_settings(float ftime_ms)
         ImGui::SetTooltip("Adds small delays (up to 0.5ms) to provide a slightly more consistent frame pacing");
     }
 
+    vals.is_fullscreen = is_fullscreen.instantiate_and_get("Fullscreen").ret;
+
     vals.frames_of_input_lag = frames_of_input_lag.instantiate_and_get("Frames of input lag").ret;
 
     vals.horizontal_fov_degrees = horizontal_fov_degrees.instantiate_and_get("FoV angle (horizontal)").ret;
 
-    if(ImGui::Button("Update Resolution and/or FoV"))
+    if(ImGui::Button("Update Resolution, Fullscreen, and/or FoV"))
     {
         sett->width = vals.width;
         sett->height = vals.height;
         sett->horizontal_fov_degrees = vals.horizontal_fov_degrees;
+        sett->is_fullscreen = vals.is_fullscreen;
 
         config_dirty = true;
     }
