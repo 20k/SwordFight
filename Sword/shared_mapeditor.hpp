@@ -170,14 +170,6 @@ void load_floor_from_file(objects_container* obj, const std::string& file)
     obj->set_rot_quat(q);
     obj->set_dynamic_scale(30.f);
 
-    ///wait. I don't need to do this and is actively counterproductive to my mental model of how this works
-    ///bloody fix this dirty hack
-    /*for(triangle& t : obj->objs[0].tri_list)
-    {
-        t.vertices[0].set_pad(floor->objs[0].object_g_id);
-    }
-
-    ctx.build(true);*/
 
     obj->isloaded = true;
     obj->set_active(true);
