@@ -510,6 +510,8 @@ void load_floor_from_file(objects_container* obj, const std::string& file)
 {
     FILE* pFile = fopen((file + "d").c_str(), "rb");
 
+    assert(pFile != nullptr);
+
     fseek(pFile, 0L, SEEK_END);
     int file_len = ftell(pFile);
     rewind(pFile);
