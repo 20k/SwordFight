@@ -89,6 +89,7 @@ void load_map(objects_container* obj, const std::vector<int>& map_def, int width
 
 void load_map_cube(objects_container* obj, const std::vector<std::vector<int>>& map_def, int width, int height);
 
+///move these into world map, make equivalent for polygonal world map
 ///xz, where z is y in 2d space
 bool is_wall(vec2f world_pos, const std::vector<int>& map_def, int width, int height);
 ///ok, update me to work with new cubemap system
