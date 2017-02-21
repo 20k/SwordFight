@@ -37,9 +37,17 @@ struct world_map
     //void init(const std::vector<int>& _map, int w, int h);
     void init(int map_id);
 
-    int get_real_dim();
-
     std::function<void(objects_container*)> get_load_func();
+};
+
+struct polygonal_world_map
+{
+    objects_container* level_floor;
+    std::vector<objects_container*> other_objects;
+
+    std::string name;
+
+    void init(object_context& ctx, const std::string& file);
 };
 
 struct game_mode_exec;

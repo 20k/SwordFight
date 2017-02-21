@@ -450,7 +450,7 @@ int main(int argc, char *argv[])
     texture* floor_reflection_tex = context.tex_ctx.make_new_cached("./Res/object_reflection_map.png");
     floor_reflection_tex->set_location("./Res/object_reflection_map.png");
 
-    objects_container* floor = context.make_new();
+    /*objects_container* floor = context.make_new();
     //floor->set_load_func(default_map.get_load_func());
 
     floor->set_load_func(std::bind(load_map_cube, std::placeholders::_1, map_namespace::map_cube_one, 24, 24));
@@ -460,7 +460,7 @@ int main(int argc, char *argv[])
     floor->cache = false;
     floor->set_active(true);
     //floor->set_pos({0, bodypart::default_position[bodypart::LFOOT].v[1] - bodypart::scale/3, 0});
-    floor->offset_pos({0, FLOOR_CONST, 0});
+    floor->offset_pos({0, FLOOR_CONST, 0});*/
 
     //floor->set_active(false);
 
@@ -488,6 +488,11 @@ int main(int argc, char *argv[])
     //window.window.setFramerateLimit(60.f);
 
     lg::log("loaded");
+
+    polygonal_world_map polygonal_map;
+    polygonal_map.init(context, "Res/poly_maps/midmap_1.txt");
+
+    lg::log("Post polygonal world map");
 
     //text::set_renderwindow(window.window);
 
@@ -526,9 +531,9 @@ int main(int argc, char *argv[])
 
     ///a very high roughness is better (low spec), but then i think we need to remove the overhead lights
     ///specular component
-    floor->set_specular(0.01f);
+    /*floor->set_specular(0.01f);
     floor->set_diffuse(4.f);
-    floor->set_is_static(true);
+    floor->set_is_static(true);*/
 
     lg::log("prebuild");
 

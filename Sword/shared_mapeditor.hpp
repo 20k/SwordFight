@@ -7,6 +7,8 @@
 #include <vec/vec.hpp>
 #include "../openclrenderer/objects_container.hpp"
 #include "../openclrenderer/object_context.hpp"
+#include "../openclrenderer/texture.hpp"
+#include "../openclrenderer/util.hpp"
 
 inline
 void modify_texture_colour_dynamic(object_context& ctx)

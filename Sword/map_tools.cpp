@@ -3,6 +3,7 @@
 #include "map_tools.hpp"
 #include "../openclrenderer/vec.hpp"
 #include "../openclrenderer/obj_load.hpp"
+#include "shared_mapeditor.hpp"
 
 /*void world_map::init(const std::vector<int>& _map, int w, int h)
 {
@@ -18,19 +19,34 @@ void world_map::init(int map_id)
     height = game_map::map_dims[map_id].v[1];
 }
 
+void polygonal_world_map::init(object_context& ctx, const std::string& file)
+{
+    name = file;
+
+    level_floor = ctx.make_new();
+
+    other_objects = load_level_from_file(ctx, file);
+
+    load_floor_from_file(level_floor, file);
+
+    level_floor->set_is_static(true);
+
+    for(auto& i : other_objects)
+    {
+        i->set_is_static(true);
+
+        i->offset_pos({0, FLOOR_CONST, 0});
+    }
+
+    level_floor->offset_pos({0, FLOOR_CONST, 0});
+}
+
 std::function<void(objects_container*)> world_map::get_load_func()
 {
     if(width == 0 || height == 0)
         throw std::runtime_error("wildly invalid map, what do");
 
     return std::bind(load_map_cube, std::placeholders::_1, map_def, width, height);
-}
-
-int world_map::get_real_dim()
-{
-    int largest = std::max(width, height);
-
-    return largest * game_map::scale;
 }
 
 void gameplay_state::set_map(world_map& _map)
