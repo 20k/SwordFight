@@ -2088,8 +2088,6 @@ void fighter::do_foot_sounds(bool is_player)
         suppress_foot_sounds = true;
         time_to_suppress_foot_sounds_s = 0.2f;
         foot_supression_timer.restart();
-
-        //lg::log("HI THERE\n\n\n\n\n\n\n");
     }
 }
 
