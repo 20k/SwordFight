@@ -422,6 +422,7 @@ void asset_manager::save_terrain(std::string file, objects_container* floor)
     fclose(pFile);
 }
 
+#if 0
 std::vector<objects_container*> load_level_from_file(object_context& ctx, const std::string& file)
 {
     std::ifstream stream(file);
@@ -561,6 +562,7 @@ void load_floor_from_file(objects_container* obj, const std::string& file)
 
     obj->parent->build(true);
 }
+#endif
 
 void asset_manager::load(object_context& ctx, std::string file, objects_container* floor)
 {

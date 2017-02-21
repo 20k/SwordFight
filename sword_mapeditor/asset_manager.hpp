@@ -7,6 +7,7 @@
 #include "../openclrenderer/util.hpp"
 #include "../openclrenderer/vec.hpp"
 #include "../sword/util.hpp"
+#include "shared_mapeditor.hpp"
 
 inline
 void load_floor(objects_container* obj)
@@ -60,6 +61,7 @@ struct asset
 };
 
 //col = {0.2705 * 255.f, 0.407843 * 255.f, 0.4 * 255.f};
+#if 0
 inline
 void modify_texture_colour_dynamic(object_context& ctx)
 {
@@ -104,6 +106,7 @@ void modify_texture_colour_dynamic(object_context& ctx)
 
     ctx.build(true);*/
 }
+#endif
 
 std::vector<objects_container*> load_level_from_file(object_context& ctx, const std::string& file);
 void load_floor_from_file(objects_container* obj, const std::string& file);
