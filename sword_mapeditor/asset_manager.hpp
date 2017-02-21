@@ -105,6 +105,9 @@ void modify_texture_colour_dynamic(object_context& ctx)
     ctx.build(true);*/
 }
 
+std::vector<objects_container*> load_level_from_file(object_context& ctx, const std::string& file);
+void load_floor_from_file(objects_container* obj, const std::string& file);
+
 struct asset_manager
 {
     bool any_loaded = false;

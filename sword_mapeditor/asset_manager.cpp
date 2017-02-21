@@ -422,12 +422,137 @@ void asset_manager::save_terrain(std::string file, objects_container* floor)
     fclose(pFile);
 }
 
+std::vector<objects_container*> load_level_from_file(object_context& ctx, const std::string& file)
+{
+    std::ifstream stream(file);
+
+    std::vector<objects_container*> objs;
+
+    if(stream.good())
+    {
+        std::string file;
+
+        while(std::getline(stream, file))
+        {
+            std::string posstr;
+            std::getline(stream, posstr);
+
+            std::vector<std::string> splitted = split(posstr, ' ');
+
+            cl_float4 pos;
+
+            pos.x = atof(splitted[0].c_str());
+            pos.y = atof(splitted[1].c_str());
+            pos.z = atof(splitted[2].c_str());
+
+            std::string scalestr;
+            std::getline(stream, scalestr);
+
+            float scale = atof(scalestr.c_str());
+
+            std::string quatstr;
+            std::getline(stream, quatstr);
+
+            std::vector<std::string> quat_split = split(quatstr, ' ');
+
+            quat rquat;
+            rquat.q.v[0] = atof(quat_split[0].c_str());
+            rquat.q.v[1] = atof(quat_split[1].c_str());
+            rquat.q.v[2] = atof(quat_split[2].c_str());
+            rquat.q.v[3] = atof(quat_split[3].c_str());
+
+            int should_quantise;
+
+            std::string shouldquant;
+            std::getline(stream, shouldquant);
+
+            should_quantise = atoi(shouldquant.c_str());
+
+            float quant_grid;
+
+            std::string quantgrid;
+            std::getline(stream, quantgrid);
+
+            quant_grid = atof(quantgrid.c_str());
+
+            objects_container* c = ctx.make_new();
+
+            c->set_file(file);
+            c->set_active(true);
+
+            c->set_pos(pos);
+
+            ctx.load_active();
+
+            c->set_rot_quat(rquat);
+            c->set_quantise_position(should_quantise, quant_grid);
+
+            ///found something invalid in the save, ah well
+            if(!c->isloaded)
+                c->set_active(false);
+
+            c->set_dynamic_scale(scale);
+
+            objs.push_back(c);
+        }
+    }
+
+    ctx.build_request();
+
+    stream.close();
+
+    modify_texture_colour_dynamic(ctx);
+
+    return objs;
+}
+
+void load_floor_from_file(objects_container* obj, const std::string& file)
+{
+    FILE* pFile = fopen((file + "d").c_str(), "rb");
+
+    fseek(pFile, 0L, SEEK_END);
+    int file_len = ftell(pFile);
+    rewind(pFile);
+
+    int num_tris = file_len / sizeof(triangle);
+
+    object floor_obj;
+    floor_obj.isloaded = true;
+    floor_obj.tri_list.resize(num_tris);
+    floor_obj.tri_num = floor_obj.tri_list.size();
+
+    obj->objs.push_back(floor_obj);
+
+    {
+        //floor->objs[0].tri_list.resize(num_tris);
+
+        fread(&obj->objs[0].tri_list[0], sizeof(triangle), num_tris, pFile);
+
+        fclose(pFile);
+
+        obj->parent->build_request();
+    }
+
+    ///wait. I don't need to do this and is actively counterproductive to my mental model of how this works
+    ///bloody fix this dirty hack
+    /*for(triangle& t : obj->objs[0].tri_list)
+    {
+        t.vertices[0].set_pad(floor->objs[0].object_g_id);
+    }
+
+    ctx.build(true);*/
+
+    obj->isloaded = true;
+
+    obj->parent->build(true);
+}
+
 void asset_manager::load(object_context& ctx, std::string file, objects_container* floor)
 {
     if(any_loaded)
         return;
 
-    std::ifstream stream(file);
+    /*std::ifstream stream(file);
 
     if(stream.good())
     {
@@ -523,6 +648,8 @@ void asset_manager::load(object_context& ctx, std::string file, objects_containe
         printf("Err invalid num of tris \n\n\n\n\n\n\n\n");
     }
 
+    ///wait. I don't need to do this and is actively counterproductive to my mental model of how this works
+    ///bloody fix this dirty hack
     for(triangle& t : floor->objs[0].tri_list)
     {
         t.vertices[0].set_pad(floor->objs[0].object_g_id);
@@ -530,7 +657,24 @@ void asset_manager::load(object_context& ctx, std::string file, objects_containe
 
     ctx.build(true);
 
-    modify_texture_colour_dynamic(ctx);
+    modify_texture_colour_dynamic(ctx);*/
+
+    /*objects_container* level_bits = ctx.make_new();
+
+    level_bits->set_load_func(std::bind(load_level_from_file, std::placeholders::_1, file));
+    level_bits->set_active(true);
+    level_bits->independent_subobjects = true;*/
+
+    std::vector<objects_container*> containers = load_level_from_file(ctx, file);
+
+    /*floor->unload();
+    floor->set_load_func(std::bind(load_floor_from_file, std::placeholders::_1, file));
+    floor->set_active(true);
+
+    ctx.load_active();
+    ctx.build(true);*/
+
+    load_floor_from_file(floor, file);
 
     any_loaded = true;
 }
