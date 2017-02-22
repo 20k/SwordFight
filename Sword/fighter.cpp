@@ -1498,6 +1498,14 @@ void fighter::tick(bool is_player)
     else
     {
         pos.v[1] = 0;
+
+        ///do height off ground
+        if(game_state != nullptr)
+        {
+            float ground_height = game_state->current_map.get_ground_height(pos);
+
+            pos.v[1] = -ground_height;
+        }
     }
 
     ///again needs to be made frametime independent
@@ -1572,6 +1580,7 @@ void fighter::tick(bool is_player)
     IK_foot(1, parts[RFOOT].pos, {0, -cdist * crouch_frac, 0}, {0, -cdist * crouch_frac, 0}, {0,0,0});
 
     weapon.set_pos(parts[bodypart::LHAND].pos);
+
 
     ///process death
 

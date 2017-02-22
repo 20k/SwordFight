@@ -11,6 +11,7 @@ struct objects_container;
 //#include "../openclrenderer/objects_conta
 
 #include "../sword_server/game_server/game_modes.hpp"
+#include "flat_poly_collision_handler.hpp"
 
 /*static std::vector<int>
 map_test =
@@ -49,6 +50,7 @@ struct world_map
 
 struct polygonal_world_map
 {
+    flat_poly_collision_handler floor_collision_handler;
     objects_container* level_floor;
     std::vector<objects_container*> other_objects;
 
@@ -59,6 +61,7 @@ struct polygonal_world_map
     bool is_wall(vec3f world_pos);
 
     bool rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st);
+    float get_ground_height(vec3f pos);
 };
 
 struct game_mode_exec;

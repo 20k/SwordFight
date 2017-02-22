@@ -39,6 +39,14 @@ void polygonal_world_map::init(object_context& ctx, const std::string& file)
     }
 
     level_floor->offset_pos({0, FLOOR_CONST, 0});
+
+    floor_collision_handler.set_obj(level_floor);
+    floor_collision_handler.construct_collision_map(100);
+}
+
+float polygonal_world_map::get_ground_height(vec3f pos)
+{
+    return floor_collision_handler.get_heightmap_of_world_pos(pos);
 }
 
 std::function<void(objects_container*)> world_map::get_load_func()

@@ -854,6 +854,8 @@ int main(int argc, char *argv[])
                 context.increment_context_id();
                 transparency_context.increment_context_id();
 
+                ///I suppose this is actually unnecessary as itll be done later... its a just in case
+                ///should we be programming for just in case?
                 context.fetch()->ensure_screen_buffers(window.width, window.height);
                 transparency_context.fetch()->ensure_screen_buffers(window.width, window.height);
 
