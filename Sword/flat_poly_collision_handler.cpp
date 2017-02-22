@@ -108,7 +108,7 @@ void interpolate_get_const(cl_float3 f, cl_float3 x, cl_float3 y, float rconstan
 }
 
 ///world object phrased in terms of XZ as its plane
-float flat_poly_collision_handler::get_heightmap_of_world_pos(vec3f pos)
+float flat_poly_collision_handler::get_heightmap_of_world_pos(vec3f pos, vec3f* optional_normal)
 {
     vec2f cpos = {pos.x(), pos.z()};
 
@@ -126,10 +126,10 @@ float flat_poly_collision_handler::get_heightmap_of_world_pos(vec3f pos)
 
     //printf("%i %i %i CXY\n", cx, cy, cset.size());
 
-    vec2f nearest_pos = {1000000, 1000000};
+    /*vec2f nearest_pos = {1000000, 1000000};
     //float nearest_dist = FLT_MAX;
     int nearest_num = -1;
-    int nearest_vn = -1;
+    int nearest_vn = -1;*/
 
     for(const int& index : cset)
     {
@@ -157,6 +157,8 @@ float flat_poly_collision_handler::get_heightmap_of_world_pos(vec3f pos)
         cl_float4 v1p = v1.get_pos();
         cl_float4 v2p = v2.get_pos();
         cl_float4 v3p = v3.get_pos();
+
+        cl_float4 v1n = v1.get_normal();
 
         v1p = mult(v1p, obj->dynamic_scale);
         v2p = mult(v2p, obj->dynamic_scale);
@@ -200,6 +202,11 @@ float flat_poly_collision_handler::get_heightmap_of_world_pos(vec3f pos)
             //idepth = 1.f / idepth;
 
             //idepth = idepth - 100;
+
+            if(optional_normal != nullptr)
+            {
+                *optional_normal = xyz_to_vec(v1n);
+            }
 
             return idepth;
         }

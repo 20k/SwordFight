@@ -61,7 +61,7 @@ struct polygonal_world_map
     bool is_wall(vec3f world_pos);
 
     bool rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st);
-    float get_ground_height(vec3f pos);
+    float get_ground_height(vec3f pos, vec3f* optional_normal = nullptr);
 };
 
 struct game_mode_exec;

@@ -44,9 +44,9 @@ void polygonal_world_map::init(object_context& ctx, const std::string& file)
     floor_collision_handler.construct_collision_map(100);
 }
 
-float polygonal_world_map::get_ground_height(vec3f pos)
+float polygonal_world_map::get_ground_height(vec3f pos, vec3f* optional_normal)
 {
-    return floor_collision_handler.get_heightmap_of_world_pos(pos);
+    return floor_collision_handler.get_heightmap_of_world_pos(pos, optional_normal);
 }
 
 std::function<void(objects_container*)> world_map::get_load_func()

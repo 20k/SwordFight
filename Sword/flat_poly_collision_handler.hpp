@@ -19,7 +19,7 @@ struct flat_poly_collision_handler
 
     void construct_collision_map(int pnumber_of_cells_in_one_dimension = 100);
 
-    float get_heightmap_of_world_pos(vec3f pos);
+    float get_heightmap_of_world_pos(vec3f pos, vec3f* optional_normal = nullptr);
 };
 
 #endif // FLAT_POLY_COLLISION_HANDLER_HPP_INCLUDED

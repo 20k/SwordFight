@@ -2406,7 +2406,7 @@ void fighter::update_render_positions()
     float lfoot_extra_bob = 0;
     float rfoot_extra_bob = 0;
 
-    ///ehh....
+    ///ehh.... makes everything a bit too wobby. Review this when I'm less tired
     /*if(game_state != nullptr)
     {
         lfoot_extra_bob = -game_state->current_map.get_ground_height(parts[LFOOT].global_pos) - pos.v[1];
@@ -2523,6 +2523,7 @@ void fighter::update_render_positions()
 
     if(game_state != nullptr)
     {
+        ///take normal, turn normal to axis angle, rotate foot about that. Ez
         float lfoot_extra = -game_state->current_map.get_ground_height(parts[LFOOT].global_pos);
         float rfoot_extra = -game_state->current_map.get_ground_height(parts[RFOOT].global_pos);
 
