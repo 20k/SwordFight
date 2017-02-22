@@ -980,7 +980,7 @@ int main(int argc, char *argv[])
             if(controls_state != 1)
             {
                 my_fight->cancel_hands();
-                my_fight->queue_attack(attacks::REST);
+                my_fight->queue_attack(attacks::FAST_REST);
             }
 
             controls_state = 1;
