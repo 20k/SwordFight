@@ -432,7 +432,7 @@ namespace attacks
 {
     enum attacks
     {
-        SLASH,
+        SLASH = 0,
         OVERHEAD,
         SLASH_ALT,
         OVERHEAD_ALT,
@@ -443,6 +443,7 @@ namespace attacks
         FEINT,
         SPRINT,
         TROMBONE,
+        FAST_REST,
         COUNT
     };
 
@@ -456,6 +457,9 @@ namespace attacks
         0.4f,
         0.6f,
         0.5f,
+        0.f,
+        0.f,
+        0.f,
         0.f,
         0.f,
         0.f,
@@ -595,6 +599,13 @@ static std::vector<movement> trombone_hold
     {0, {-50, -50, -100}, 200, 0, bodypart::LHAND, mov::ORIENT_TOWARDS_FACE}
 };
 
+static std::vector<movement> fast_rest =
+{
+    {0, {0, -200, -100}, 200, 1, bodypart::LHAND, mov::NONE}
+};
+
+
+
 ///?
 //static std::vector<movement> jump;
 ///hmm. This is probably a bad plan
@@ -613,6 +624,7 @@ static std::map<attack_t, attack> attack_list =
     {attacks::FEINT, {feint}},
     {attacks::SPRINT, {sprint}},
     {attacks::TROMBONE, {trombone_hold}},
+    {attacks::FAST_REST, {fast_rest}},
 };
 
 /*static std::map<attack_t, attack> attack_list2 =

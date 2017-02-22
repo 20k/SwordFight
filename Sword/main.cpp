@@ -955,27 +955,40 @@ int main(int argc, char *argv[])
             window.tick_mouse();
         }
 
-        bool should_transition = false;
-        bool trombone_transition = false;
-
-        should_transition = once<sf::Keyboard::Escape>();
-        trombone_transition = once<sf::Keyboard::Num1>();
-
-        should_transition |= trombone_transition;
-
-        if(should_transition && window.focus && !in_menu)
+        if(once<sf::Keyboard::Escape>() && window.focus && !in_menu)
         {
+            if(controls_state == 2)
+                controls_state = -1;
+
             controls_state = (controls_state + 1) % 2;
 
             window.c_rot_keyboard_only = window.c_rot;
         }
 
-        if(trombone_transition && window.focus)
+        if(once<sf::Keyboard::Num1>() && window.focus)
         {
-            if(controls_state < 2)
+            /*if(controls_state < 2)
                 controls_state = 2;
             else
+            {
                 controls_state = 1;
+
+                my_fight->moves.clear();
+                my_fight->queue_attack(attacks::FAST_REST);
+            }*/
+
+            if(controls_state != 1)
+            {
+                my_fight->cancel_hands();
+                my_fight->queue_attack(attacks::REST);
+            }
+
+            controls_state = 1;
+        }
+
+        if(once<sf::Keyboard::Num2>() && window.focus)
+        {
+            controls_state = 2;
         }
 
         if(controls_state == 0 && window.focus && !in_menu)

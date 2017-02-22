@@ -122,6 +122,9 @@ float flat_poly_collision_handler::get_heightmap_of_world_pos(vec3f pos, vec3f* 
     int cx = cell_pos.x();
     int cy = cell_pos.y();
 
+    cx = clamp(cx, 0, number_of_cells_in_one_dimension-1);
+    cy = clamp(cy, 0, number_of_cells_in_one_dimension-1);
+
     std::set<int>& cset = coords_to_indices[cy*number_of_cells_in_one_dimension + cx];
 
     //printf("%i %i %i CXY\n", cx, cy, cset.size());

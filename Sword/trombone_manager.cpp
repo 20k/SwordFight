@@ -6,6 +6,7 @@
 #include "sound.hpp"
 #include "fighter.hpp"
 #include "server_networking.hpp"
+#include "../openclrenderer/texture.hpp"
 
 void trombone_manager::init(object_context* _ctx)
 {
@@ -54,6 +55,14 @@ void trombone_manager::init(object_context* _ctx)
 
     ctx->load_active();
     ctx->build_request();
+
+    texture* yellow = ctx->tex_ctx.make_new();
+    yellow->set_create_colour(sf::Color(216, 188, 61), 32, 32);
+
+    for(auto& i : trombone->objs)
+    {
+        i.tid = yellow->id;
+    }
 
     trombone->set_dynamic_scale(50.f);
 

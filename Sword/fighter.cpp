@@ -1437,6 +1437,7 @@ void fighter::tick(bool is_player)
         {
             ///focus pos is relative to player, but does NOT include look_displacement OR world anything
             vec3f old_pos = focus_pos;
+
             focus_pos = current_pos;
 
             ///losing a frame currently, FIXME
@@ -2148,6 +2149,9 @@ bool fighter::can_attack(bodypart_t type)
     ///nothing going, we can queue attack
     if(any_queued == -1)
         return true;
+
+    if(going_pos == -1)
+        return false;
 
     float queue_time = moves[going_pos].time_remaining();
 
