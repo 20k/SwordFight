@@ -21,6 +21,7 @@
 
 #include "../openclrenderer/texture.hpp"
 
+///separate jumping and falling eventually
 vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fight)
 {
     /*if(current_time > time_ms)
