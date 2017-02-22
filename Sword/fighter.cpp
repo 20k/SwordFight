@@ -23,14 +23,14 @@
 
 vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fight)
 {
-    if(current_time > time_ms)
+    /*if(current_time > time_ms)
     {
         should_play_foot_sounds = is_jumping;
 
         current_time = 0;
         is_jumping = false;
         return {0,0,0};
-    }
+    }*/
 
     if(!is_jumping)
     {
@@ -51,6 +51,9 @@ vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fi
     offset = offset * dt_struct * last_speed;
 
     float frac = current_time / time_ms;
+
+    if(frac > 1)
+        frac = 1;
 
     ///move in a sine curve, cos is the differential of sin
     float dh = cos(frac * M_PI);
@@ -1498,6 +1501,19 @@ void fighter::tick(bool is_player)
 
     vec3f jump_displacement = jump_info.get_relative_jump_displacement_tick(frametime, this);
 
+    ///0 is normal, paths are about -60
+    float ground_height = 0;
+
+    if(game_state != nullptr)
+        ground_height = -game_state->current_map.get_ground_height(pos);
+
+    float current_height = pos.v[1];
+
+    if(current_height < ground_height - 1.f)
+    {
+        jump_info.terminate_early();
+    }
+
     ///still jumping
     if(jump_info.is_jumping)
     {
@@ -1505,17 +1521,7 @@ void fighter::tick(bool is_player)
     }
     else
     {
-        pos.v[1] = 0;
-
-        ///do height off ground
-        if(game_state != nullptr)
-        {
-            sf::Clock clk;
-
-            float ground_height = game_state->current_map.get_ground_height(pos);
-
-            pos.v[1] = -ground_height;
-        }
+        pos.v[1] = ground_height;
     }
 
     ///again needs to be made frametime independent
