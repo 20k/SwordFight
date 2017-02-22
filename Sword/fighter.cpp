@@ -2403,11 +2403,24 @@ void fighter::update_render_positions()
 
     just_spawned = false;
 
+    float lfoot_extra_bob = 0;
+    float rfoot_extra_bob = 0;
+
+    ///ehh....
+    /*if(game_state != nullptr)
+    {
+        lfoot_extra_bob = -game_state->current_map.get_ground_height(parts[LFOOT].global_pos) - pos.v[1];
+        rfoot_extra_bob = -game_state->current_map.get_ground_height(parts[RFOOT].global_pos) - pos.v[1];
+    }*/
+
     std::map<int, float> foot_heights;
 
     ///bob OPPOSITE side of body
-    float r_bob = parts[LFOOT].pos.v[1] - rest_positions[LFOOT].v[1];
     float l_bob = parts[RFOOT].pos.v[1] - rest_positions[RFOOT].v[1];
+    float r_bob = parts[LFOOT].pos.v[1] - rest_positions[LFOOT].v[1];
+
+    l_bob += lfoot_extra_bob;
+    r_bob += rfoot_extra_bob;
 
     foot_heights[0] = l_bob * 0.7 + r_bob * 0.3;
     foot_heights[1] = l_bob * 0.3 + r_bob * 0.7;
@@ -2506,6 +2519,24 @@ void fighter::update_render_positions()
         p.set_global_rot(angles);
 
         p.update_model();
+    }
+
+    if(game_state != nullptr)
+    {
+        float lfoot_extra = -game_state->current_map.get_ground_height(parts[LFOOT].global_pos);
+        float rfoot_extra = -game_state->current_map.get_ground_height(parts[RFOOT].global_pos);
+
+        vec3f lglobal = parts[LFOOT].global_pos;
+        vec3f rglobal = parts[RFOOT].global_pos;
+
+        lglobal.v[1] += lfoot_extra - pos.v[1];
+        rglobal.v[1] += rfoot_extra - pos.v[1];
+
+        parts[LFOOT].set_global_pos(lglobal);
+        parts[RFOOT].set_global_pos(rglobal);
+
+        parts[LFOOT].update_model();
+        parts[RFOOT].update_model();
     }
 
     auto r = to_world_space(pos, rot, weapon.pos, weapon.rot);
