@@ -54,30 +54,6 @@ void flat_poly_collision_handler::construct_collision_map(int pnumber_of_cells_i
     {
         triangle& t = obj->objs[0].tri_list[i];
 
-        /*for(int vc = 0; vc < 3; vc++)
-        {
-            vertex& v = t.vertices[vc];
-
-            cl_float4 pos = v.get_pos();
-
-            pos = mult(pos, obj->dynamic_scale);
-
-            vec2f vpos = {pos.x, pos.y};
-
-            vpos = vpos - minv;
-
-            vpos = vpos / (maxv - minv);
-
-            vec2f cell_pos = vpos * number_of_cells_in_one_dimension;
-
-            cell_pos = clamp(cell_pos, 0.f, (float)number_of_cells_in_one_dimension-1);
-
-            int cx = cell_pos.x();
-            int cy = cell_pos.y();
-
-            coords_to_indices[cy*number_of_cells_in_one_dimension + cx].insert(i);
-        }*/
-
         vec3f mint = t.get_min_max().first;
         vec3f maxt = t.get_min_max().second;
 
@@ -173,10 +149,6 @@ float flat_poly_collision_handler::get_heightmap_of_world_pos(vec3f pos)
                 nearest_pos = vpos.xy();
             }
         }*/
-
-        //printf("hello %i\n", index);
-
-
 
         vertex& v1 = t.vertices[0];
         vertex& v2 = t.vertices[1];

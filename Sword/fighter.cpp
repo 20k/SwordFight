@@ -69,6 +69,14 @@ vec3f jump_descriptor::get_relative_jump_displacement_tick(float dt, fighter* fi
     return offset;
 }
 
+void jump_descriptor::terminate_early()
+{
+    should_play_foot_sounds = is_jumping;
+
+    current_time = 0;
+    is_jumping = false;
+}
+
 const vec3f* bodypart::init_default()
 {
     using namespace bodypart;
@@ -1502,6 +1510,8 @@ void fighter::tick(bool is_player)
         ///do height off ground
         if(game_state != nullptr)
         {
+            sf::Clock clk;
+
             float ground_height = game_state->current_map.get_ground_height(pos);
 
             pos.v[1] = -ground_height;

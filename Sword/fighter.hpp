@@ -684,6 +684,8 @@ struct jump_descriptor
     ///this will let you jump into walls
     vec3f get_absolute_jump_displacement_tick(float dt, fighter* fight);
     vec3f get_relative_jump_displacement_tick(float dt, fighter* fight);
+
+    void terminate_early();
 };
 
 #define MAX_NAME_LENGTH 16
