@@ -80,7 +80,7 @@ void trombone_packet_callback(void* ptr, int N, trombone_manager& manage)
 
     if(ntone >= 0 && ntone < manage.max_tones)
     {
-        sound::add(11 + ntone, ntr->pos, true, false);
+        sound::add(11 + ntone, ntr->pos, true, true, true, 0.05f);
 
         manage.tone = ntone;
     }
@@ -176,7 +176,7 @@ void trombone_manager::play(fighter* my_fight, int offset)
 
     tone = clamp(tone + offset, 0, max_tones-1);
 
-    sound::add(11 + tone, my_fight->parts[bodypart::BODY].global_pos, true, false);
+    sound::add(11 + tone, my_fight->parts[bodypart::BODY].global_pos, true, true, true, 0.05f);
 
     local_representation.tone = tone;
     local_representation.dirty = 1;

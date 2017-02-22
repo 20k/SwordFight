@@ -29,9 +29,9 @@ void sound::add_extra_soundfile(const std::string& file)
 
 ///1 is clang, 0 is hrrk
 ///we need per-sound attenuation
-///also, the distance needs to drop much more rapidly. This has likely just never been noticed
+///also, the distance needs to drop much more rapidly. This has likely just never been noticed. Units kerfuffle?
 ///because not playing with 4+ players
-void sound::add(int type, vec3f pos, bool relative, bool random)
+void sound::add(int type, vec3f pos, bool relative, bool random, bool random_volume, float random_amount)
 {
     static int loaded = 0;
 
@@ -86,11 +86,13 @@ void sound::add(int type, vec3f pos, bool relative, bool random)
     sd.setBuffer(s[type]);
 
     if(random)
-        sd.setPitch(randf_s(0.8f, 1.20f));
+        sd.setPitch(randf_s(1 - 0.2f*random_amount, 1 + 0.2f*random_amount));
 
     sd.setRelativeToListener(true);
     sd.setAttenuation(0.005f);
-    sd.setVolume(randf_s(80, 100));
+
+    if(random_volume)
+        sd.setVolume(randf_s(80, 100));
 
     sd.setPosition(-rel.v[0], rel.v[1], -rel.v[2]); ///sfml is probably opengl coords. X may be backwards
 

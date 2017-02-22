@@ -9,7 +9,7 @@ struct sound
     static vec3f listener_pos;
     static vec3f listener_rot;
 
-    static void add(int type, vec3f pos, bool relative = false, bool random = true);
+    static void add(int type, vec3f pos, bool relative = false, bool random = true, bool random_volume = true, float random_pitch_amount = 1.f);
 
     static void set_listener(vec3f pos, vec3f rot);
 
