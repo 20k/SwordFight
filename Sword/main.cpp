@@ -861,7 +861,7 @@ int main(int argc, char *argv[])
 
 
                 window.set_object_data(*gpu_context);
-                window.set_light_data(light_data);
+                //window.set_light_data(light_data);
                 //window.set_tex_data(gpu_context->tex_gpu);
 
                 #ifdef SPACE
@@ -951,7 +951,7 @@ int main(int argc, char *argv[])
         bool should_transition = false;
         bool trombone_transition = false;
 
-        should_transition = once<sf::Keyboard::X>();
+        should_transition = once<sf::Keyboard::Escape>();
         trombone_transition = once<sf::Keyboard::Num1>();
 
         should_transition |= trombone_transition;
