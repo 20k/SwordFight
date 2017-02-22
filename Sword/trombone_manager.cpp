@@ -161,13 +161,19 @@ void trombone_manager::position_model(fighter* my_fight)
     my_fight->override_rhand_pos((front_slider - my_fight->pos).back_rot(0, my_fight->rot));
 }
 
-void trombone_manager::play(fighter* my_fight)
+void trombone_manager::play(fighter* my_fight, int offset)
 {
+    int old_tone = tone;
+
+    tone = clamp(tone + offset, 0, max_tones-1);
+
     sound::add(11 + tone, my_fight->parts[bodypart::BODY].global_pos, true, false);
 
     local_representation.tone = tone;
     local_representation.dirty = 1;
     local_representation.pos = my_fight->parts[bodypart::BODY].global_pos;
+
+    tone = old_tone;
 }
 
 void trombone_manager::set_active(bool active)

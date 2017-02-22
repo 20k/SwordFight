@@ -43,7 +43,7 @@ struct trombone_manager
     void network_tick(int player_id);
     void tick(engine& window, fighter* my_fight);
     void position_model(fighter* my_fight);
-    void play(fighter* my_fight);
+    void play(fighter* my_fight, int offset = 0);
 
     void set_active(bool active);
 

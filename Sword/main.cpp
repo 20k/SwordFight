@@ -320,6 +320,11 @@ void fps_trombone_controls(fighter* my_fight, engine& window)
     if(once<sf::Mouse::Left>())
         trombone.play(my_fight);
 
+    if(once<sf::Mouse::Right>())
+    {
+        trombone.play(my_fight, 4);
+    }
+
     //if(once<sf::Keyboard::Z>())
     my_fight->queue_attack(attacks::TROMBONE);
 
@@ -1302,6 +1307,7 @@ int main(int argc, char *argv[])
             window.process_input();
         #endif*/
 
+        #define CLAMP_VIEW
         #ifdef CLAMP_VIEW
         window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
         #endif
