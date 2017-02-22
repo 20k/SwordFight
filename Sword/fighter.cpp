@@ -2416,6 +2416,7 @@ void fighter::update_render_positions()
     std::map<int, float> foot_heights;
 
     ///bob OPPOSITE side of body
+    ///we're getting some pretty aggressive popping on strafe, needs fixing possibly with smoothing
     float l_bob = parts[RFOOT].pos.v[1] - rest_positions[RFOOT].v[1];
     float r_bob = parts[LFOOT].pos.v[1] - rest_positions[LFOOT].v[1];
 
