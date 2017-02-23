@@ -975,7 +975,7 @@ void fighter::set_look(vec3f _look)
 
     vec3f new_look = _look;
 
-    vec3f clamps = {M_PI/8.f, M_PI/12.f, M_PI/8.f};
+    vec3f clamps = {M_PI/6.f, M_PI/12.f, M_PI/8.f};
     new_look = clamp(new_look, -clamps, clamps);
 
     vec3f origin = parts[bodypart::BODY].pos;
