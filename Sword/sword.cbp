@@ -118,7 +118,6 @@
 		<Unit filename="../openclrenderer/light.cpp" />
 		<Unit filename="../openclrenderer/light.hpp" />
 		<Unit filename="../openclrenderer/logging.cpp" />
-		<Unit filename="../openclrenderer/network.hpp" />
 		<Unit filename="../openclrenderer/obj_g_descriptor.hpp" />
 		<Unit filename="../openclrenderer/obj_info_struct.cpp" />
 		<Unit filename="../openclrenderer/obj_info_struct.hpp" />
@@ -161,6 +160,8 @@
 		<Unit filename="colour_defines.hpp" />
 		<Unit filename="fighter.cpp" />
 		<Unit filename="fighter.hpp" />
+		<Unit filename="flat_poly_collision_handler.cpp" />
+		<Unit filename="flat_poly_collision_handler.hpp" />
 		<Unit filename="game_state_manager.cpp" />
 		<Unit filename="game_state_manager.hpp" />
 		<Unit filename="main.cpp" />
@@ -182,6 +183,7 @@
 			<Option weight="45" />
 		</Unit>
 		<Unit filename="server_networking.hpp" />
+		<Unit filename="shared_mapeditor.hpp" />
 		<Unit filename="sound.cpp" />
 		<Unit filename="sound.hpp" />
 		<Unit filename="text.cpp" />

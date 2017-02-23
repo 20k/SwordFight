@@ -1549,9 +1549,6 @@ void fighter::tick(bool is_player)
     else
     {
         IK_hand(1, rhand_override_pos, shoulder_rotation, arms_are_locked, true);
-
-        parts[RHAND].set_global_pos(rhand_override_pos);
-        parts[RHAND].update_model();
     }
 
     vec3f slave_to_master = parts[LHAND].pos - parts[RHAND].pos;
@@ -1578,7 +1575,14 @@ void fighter::tick(bool is_player)
 
     float cdist = 2 * bodypart::scale / 2.f;
 
-    for(auto& i : {HEAD, BODY, LUPPERARM, RUPPERARM, LLOWERARM, RLOWERARM, LHAND, RHAND})
+    std::vector<bodypart_t> valid_parts_for_crouching = {HEAD, BODY, LUPPERARM, RUPPERARM, LLOWERARM, RLOWERARM, LHAND};
+
+    if(!rhand_overridden)
+    {
+        valid_parts_for_crouching.push_back(RHAND);
+    }
+
+    for(auto& i : valid_parts_for_crouching)
     {
         auto type = i;
 
