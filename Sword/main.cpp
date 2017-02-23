@@ -695,6 +695,9 @@ int main(int argc, char *argv[])
 
         window.set_max_input_lag_frames(s.frames_of_input_lag);
 
+        ///this is why the trombone gets inactivated on alt tab, the window is no longer in focus
+        ///so the fps trombone controls don't work and it doesn't counter this
+        ///IE SHIT CODE MATE
         my_fight->trombone_manage.set_active(false);
 
         bool in_menu = menu_handler.should_do_menu();
