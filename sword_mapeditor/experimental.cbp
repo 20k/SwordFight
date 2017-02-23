@@ -140,6 +140,7 @@
 		<Unit filename="asset_manager.cpp" />
 		<Unit filename="asset_manager.hpp" />
 		<Unit filename="main.cpp" />
+		<Unit filename="shared_mapeditor.hpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
