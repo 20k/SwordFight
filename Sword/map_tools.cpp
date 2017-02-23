@@ -25,9 +25,11 @@ void polygonal_world_map::init(object_context& ctx, const std::string& file)
 
     level_floor = ctx.make_new();
 
-    other_objects = load_level_from_file(ctx, file);
+    float scale_mult = 1.2f;
 
-    load_floor_from_file(level_floor, file);
+    other_objects = load_level_from_file(ctx, file, scale_mult);
+
+    load_floor_from_file(level_floor, file, scale_mult);
 
     level_floor->set_is_static(true);
 

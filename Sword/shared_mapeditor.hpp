@@ -42,11 +42,8 @@ void modify_texture_colour_dynamic(object_context& ctx)
     ctx.build(true);
 }
 
-std::vector<objects_container*> load_level_from_file(object_context& ctx, const std::string& file);
-void load_floor_from_file(objects_container* obj, const std::string& file);
-
 inline
-std::vector<objects_container*> load_level_from_file(object_context& ctx, const std::string& file)
+std::vector<objects_container*> load_level_from_file(object_context& ctx, const std::string& file, float scale_mult = 1.f)
 {
     std::ifstream stream(file);
 
@@ -65,14 +62,14 @@ std::vector<objects_container*> load_level_from_file(object_context& ctx, const 
 
             cl_float4 pos;
 
-            pos.x = atof(splitted[0].c_str());
-            pos.y = atof(splitted[1].c_str());
-            pos.z = atof(splitted[2].c_str());
+            pos.x = atof(splitted[0].c_str()) * scale_mult;
+            pos.y = atof(splitted[1].c_str()) * scale_mult;
+            pos.z = atof(splitted[2].c_str()) * scale_mult;
 
             std::string scalestr;
             std::getline(stream, scalestr);
 
-            float scale = atof(scalestr.c_str());
+            float scale = atof(scalestr.c_str()) * scale_mult;
 
             std::string quatstr;
             std::getline(stream, quatstr);
@@ -131,7 +128,7 @@ std::vector<objects_container*> load_level_from_file(object_context& ctx, const 
 }
 
 inline
-void load_floor_from_file(objects_container* obj, const std::string& file)
+void load_floor_from_file(objects_container* obj, const std::string& file, float scale_mult = 1)
 {
     FILE* pFile = fopen((file + "d").c_str(), "rb");
 
@@ -170,7 +167,7 @@ void load_floor_from_file(objects_container* obj, const std::string& file)
     q.load_from_euler({-M_PI/2, 0, 0});
 
     obj->set_rot_quat(q);
-    obj->set_dynamic_scale(30.f);
+    obj->set_dynamic_scale(30.f * scale_mult);
 
 
     obj->isloaded = true;
