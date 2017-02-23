@@ -1,7 +1,8 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
-#include "../openclrenderer/smoke.hpp"
-#include "../sword/vec.hpp"
+//#include "../openclrenderer/smoke.hpp"
+//#include "../sword/vec.hpp"
+#include <vec/vec.hpp>
 
 using namespace std;
 
@@ -13,7 +14,7 @@ void plop(int x, int y, vec3f* r, int width)
 {
     uint32_t pos = y*width + x;
 
-    r[pos] = r[pos] + (vec3f){0, 1, 0};
+    r[pos] = r[pos] + (vec3f){0, 0, 1};
 
     for(int j=-1; j<2; j++)
     {
@@ -25,7 +26,7 @@ void plop(int x, int y, vec3f* r, int width)
             int xv = (x + i + width) % width;
             int yv = (y + j + width) % width;
 
-            r[IX(xv, yv)] = r[IX(xv, yv)] + (vec3f){i, 1, j};
+            r[IX(xv, yv)] = r[IX(xv, yv)] + (vec3f){i, j, 1};
         }
     }
 }
@@ -55,7 +56,7 @@ std::map<setting_t, setting> options =
 
 int main()
 {
-    setting_t type = setting_list::BODYPART;
+    setting_t type = setting_list::FLOOR;
 
     setting s = options[type];
 
@@ -87,7 +88,7 @@ int main()
     }*/
 
     for(uint32_t i=0; i<width*height; i++)
-        r[i] = {0,1,0};
+        r[i] = {0,0,1};
 
 
     /*for(int z=0; z<depth; z++)
@@ -176,7 +177,7 @@ int main()
         }
     }*/
 
-    img.saveToFile("norm_body.png");
+    img.saveToFile("norm_body_correct.png");
 
     return 0;
 }
