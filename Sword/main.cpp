@@ -967,16 +967,6 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::Num1>() && window.focus)
         {
-            /*if(controls_state < 2)
-                controls_state = 2;
-            else
-            {
-                controls_state = 1;
-
-                my_fight->moves.clear();
-                my_fight->queue_attack(attacks::FAST_REST);
-            }*/
-
             if(controls_state != 1)
             {
                 my_fight->cancel_hands();
