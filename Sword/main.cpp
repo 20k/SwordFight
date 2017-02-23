@@ -238,7 +238,7 @@ void fps_controls(fighter* my_fight, engine& window)
     //window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
 
     ///this will probably break
-    my_fight->set_look({-window.c_rot_keyboard_only.s[0], window.get_mouse_sens_adjusted_x() / 1.f, 0});
+    my_fight->set_look({-window.c_rot.s[0], window.get_mouse_sens_adjusted_x() / 1.f, 0});
 
 
     vec2f m;
@@ -326,13 +326,14 @@ void fps_trombone_controls(fighter* my_fight, engine& window)
     }
 
     //if(once<sf::Keyboard::Z>())
-    my_fight->queue_attack(attacks::TROMBONE);
+    if(!sprint)
+        my_fight->queue_attack(attacks::TROMBONE);
 
     if(once<sf::Keyboard::Space>())
         my_fight->try_jump();
 
     ///this will probably break
-    my_fight->set_look({-window.c_rot_keyboard_only.s[0], window.get_mouse_sens_adjusted_x() / 1.f, 0});
+    my_fight->set_look({-window.c_rot.s[0], window.get_mouse_sens_adjusted_x() / 1.f, 0});
 
 
     vec2f m;
@@ -973,11 +974,15 @@ int main(int argc, char *argv[])
                 my_fight->queue_attack(attacks::FAST_REST);
             }
 
+            window.c_rot_keyboard_only = window.c_rot;
+
             controls_state = 1;
         }
 
         if(once<sf::Keyboard::Num2>() && window.focus)
         {
+            window.c_rot_keyboard_only = window.c_rot;
+
             controls_state = 2;
         }
 
