@@ -1425,11 +1425,14 @@ int main(int argc, char *argv[])
             render_event = &window.event_queue.front();
         }
 
-        /*context.build_tick(true, render_event);
-        transparency_context.build_tick(true, render_event);*/
-
+        //#define ASYNC_BUILD
+        #ifdef ASYNC_BUILD
+        context.build_tick(true, render_event);
+        transparency_context.build_tick(true, render_event);
+        #else
         context.build_tick(false, nullptr);
         transparency_context.build_tick(false, nullptr);
+        #endif
 
         context.flip();
         transparency_context.flip();
