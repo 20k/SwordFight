@@ -241,7 +241,7 @@ void fps_controls(fighter* my_fight, engine& window)
     my_fight->set_look({-window.c_rot.s[0], window.get_mouse_sens_adjusted_x() / 1.f, 0});
 
 
-    vec2f m;
+    /*vec2f m;
     m.v[0] = window.get_mouse_sens_adjusted_x();
     m.v[1] = window.get_mouse_sens_adjusted_y();
 
@@ -254,7 +254,7 @@ void fps_controls(fighter* my_fight, engine& window)
     ///ie we give no fucks anymore because the mouse look scheme is fully consistent from local -> global
     ///ie we can ignore this, just apply the overall matrix rotation and offset to te position
     ///and etc
-    my_fight->set_rot_diff({0, -yout, 0.f});
+    my_fight->set_rot_diff({0, -yout, 0.f});*/
 }
 
 pos_rot update_screenshake_camera(fighter* my_fight, cl_float4 c_pos, cl_float4 c_rot, float time_ms)
@@ -336,7 +336,7 @@ void fps_trombone_controls(fighter* my_fight, engine& window)
     my_fight->set_look({-window.c_rot.s[0], window.get_mouse_sens_adjusted_x() / 1.f, 0});
 
 
-    vec2f m;
+    /*vec2f m;
     m.v[0] = window.get_mouse_sens_adjusted_x();
     m.v[1] = window.get_mouse_sens_adjusted_y();
 
@@ -349,15 +349,11 @@ void fps_trombone_controls(fighter* my_fight, engine& window)
     ///ie we give no fucks anymore because the mouse look scheme is fully consistent from local -> global
     ///ie we can ignore this, just apply the overall matrix rotation and offset to te position
     ///and etc
-    my_fight->set_rot_diff({0, -yout, 0.f});
+    my_fight->set_rot_diff({0, -yout, 0.f});*/
 }
 
 input_delta fps_camera_controls(float frametime, const input_delta& input, engine& window, fighter* my_fight)
 {
-    vec3f pos = (vec3f){0, my_fight->smoothed_crouch_offset, 0} + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult;
-
-    cl_float4 c_pos = {pos.v[0], pos.v[1], pos.v[2]};
-
     vec2f m;
     m.v[0] = window.get_mouse_sens_adjusted_x();
     m.v[1] = window.get_mouse_sens_adjusted_y();
@@ -368,6 +364,9 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
     float source_m_yaw = 0.0003839723f;
 
     float out = m.v[1] * source_m_yaw;
+    float yout = m.v[0] * source_m_yaw;
+
+    my_fight->set_rot_diff({0, -yout, 0.f});
 
     o_rot.v[1] = my_fight->rot.v[1];
     //o_rot.v[0] += m.v[1] / 150.f;
@@ -377,13 +376,23 @@ input_delta fps_camera_controls(float frametime, const input_delta& input, engin
 
     cl_float4 c_rot = {o_rot.v[0], -o_rot.v[1] + M_PI, o_rot.v[2]};
 
+    ///using c_rot_backup breaks everything, but its fine beacuse we're not needing to use this immutably
+    return {{0,0,0,0}, sub(c_rot, input.c_rot_keyboard_only), 0.f};
+    //return {sub(c_pos, input.c_pos), sub(c_rot, input.c_rot)};
+}
+
+cl_float4 get_c_pos(float frametime, const input_delta& input, engine& window, fighter* my_fight)
+{
+    vec3f pos = (vec3f){0, my_fight->smoothed_crouch_offset, 0} + my_fight->pos + my_fight->camera_bob * my_fight->camera_bob_mult;
+
+    cl_float4 c_rot = window.c_rot;
+    cl_float4 c_pos = {pos.v[0], pos.v[1], pos.v[2]};
+
     pos_rot coffset = update_screenshake_camera(my_fight, c_pos, c_rot, frametime / 1000.f);
 
     c_pos = sub(c_pos, (cl_float4){coffset.pos.v[0], coffset.pos.v[1], coffset.pos.v[2]});
 
-    ///using c_rot_backup breaks everything, but its fine beacuse we're not needing to use this immutably
-    return {sub(c_pos, input.c_pos), sub(c_rot, input.c_rot_keyboard_only), 0.f};
-    //return {sub(c_pos, input.c_pos), sub(c_rot, input.c_rot)};
+    return c_pos;
 }
 
 #include <stdio.h>
@@ -938,6 +947,19 @@ int main(int argc, char *argv[])
             }
         }*/
 
+        ///blit finished frame. Implicit sync means that this IS correctly executed at the right time
+        window.blit_to_screen(*context.fetch());
+
+        window.render_block();
+
+        ///dispatch the beginning of the next frame
+        if(window.max_input_lag_frames == 0)
+        {
+            ///don't care about the latency on these things
+            window.draw_bulk_objs_n(*transparency_context.fetch());
+            window.generate_realtime_shadowing(*context.fetch());
+        }
+
         window.raw_input_set_active(s.use_raw_input);
         window.set_manage_frametimes(s.use_frametime_management);
 
@@ -980,6 +1002,10 @@ int main(int argc, char *argv[])
             controls_state = 2;
         }
 
+        if(!in_menu)
+            window.process_input();
+
+        ///latest mouse+kb input
         if(controls_state == 0 && window.focus && !in_menu)
             debug_controls(my_fight, window);
         if(controls_state == 1 && window.focus && !in_menu)
@@ -1126,6 +1152,7 @@ int main(int argc, char *argv[])
         if(hit_p != -1)
             printf("%s\n", bodypart::names[hit_p % (bodypart::COUNT)].c_str());*/
 
+        ///latest fighter input
         my_fight->tick(true);
 
         my_fight->shared_tick(&server);
@@ -1198,24 +1225,36 @@ int main(int argc, char *argv[])
         ///the async event for the draw_bulk_objs_n event has finished
         ///and this can fire
 
+        //bool use_fast_implicit_sync = window.use_efficient_cl_gl_interop();
+
         ///cl/gl interop guarantees cl gl queue so don't need to do this here can do this after
-        window.render_block();
+        ///if we're synced and window.max_input_lag_frames > 0, or if we're not synced quickly, do this
+        ///ie the former is the special case for fast syncing, the latter is the general case
+        //if((use_fast_implicit_sync && window.max_input_lag_frames > 0) || !use_fast_implicit_sync)
+        //    window.render_block();
+
+        //if(window.max_input_lag_frames > 0)
+        //    window.render_block();
+
+        ///flush fighter input to gpu, this is the latest from this frame, no rendering (thats important) has taken place so far
+        ///transparency context is one frame behind, but fuck that guy
+
+        window.c_pos = get_c_pos(window.get_frametime(), {window.c_pos, window.c_rot, window.c_rot_keyboard_only}, window, my_fight);
 
         if(window.max_input_lag_frames == 0)
         {
             ///get freshest input
-            if(!in_menu)
-                window.process_input();
+            //if(!in_menu)
+            //    window.process_input();
 
             context.flush_locations();
             transparency_context.flush_locations();
-
-            window.draw_bulk_objs_n(*transparency_context.fetch());
-            window.generate_realtime_shadowing(*context.fetch());
         }
 
-        window.blit_to_screen(*context.fetch());
 
+        ///only do this if we're using a fast sync
+        //if(use_fast_implicit_sync && window.max_input_lag_frames == 0)
+        //    window.render_block();
 
         if(!my_fight->dead())
         {
@@ -1228,15 +1267,6 @@ int main(int argc, char *argv[])
         }
 
         server.update_fighter_name_infos();
-
-        ///I need to reenable text drawing
-        ///possibly split up window.display into display and flip
-        ///then have display set a flag if its appropriate to flip the screen
-        ///that way we can still keep the async rendering
-        ///but also allow drawing on top of teh 3d scene
-        ///we'll need to allow window querying to say should we draw
-        ///otherwise in async we'll waste huge performance
-        ///in synchronous that's not a problem
 
         if(once<sf::Keyboard::F1>() && window.focus)
         {
@@ -1337,8 +1367,8 @@ int main(int argc, char *argv[])
             if(window.max_input_lag_frames > 0)
             {
                 ///get freshest input
-                if(!in_menu)
-                    window.process_input();
+                //if(!in_menu)
+                //    window.process_input();
 
                 if(window.event_queue.size() > 0)
                 {
@@ -1361,7 +1391,7 @@ int main(int argc, char *argv[])
 
             //window.draw_bulk_objs_n(*tctx);
 
-
+            ///this is when input is consumed
             event = window.draw_bulk_objs_n(*cdat);
 
             if(s.use_post_aa)
