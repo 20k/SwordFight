@@ -1278,40 +1278,13 @@ int main(int argc, char *argv[])
 
         sound::update_listeners();
 
-        ///so, we blit space to screen, but that might not have finished before
-        ///the async event for the draw_bulk_objs_n event has finished
-        ///and this can fire
-
-        //bool use_fast_implicit_sync = window.use_efficient_cl_gl_interop();
-
-        ///cl/gl interop guarantees cl gl queue so don't need to do this here can do this after
-        ///if we're synced and window.max_input_lag_frames > 0, or if we're not synced quickly, do this
-        ///ie the former is the special case for fast syncing, the latter is the general case
-        //if((use_fast_implicit_sync && window.max_input_lag_frames > 0) || !use_fast_implicit_sync)
-        //    window.render_block();
-
-        //if(window.max_input_lag_frames > 0)
-        //    window.render_block();
-
-        ///flush fighter input to gpu, this is the latest from this frame, no rendering (thats important) has taken place so far
-        ///transparency context is one frame behind, but fuck that guy
-
         window.c_pos = get_c_pos(window.get_frametime(), {window.c_pos, window.c_rot, window.c_rot_keyboard_only}, window, my_fight);
 
         if(window.max_input_lag_frames == 0)
         {
-            ///get freshest input
-            //if(!in_menu)
-            //    window.process_input();
-
             context.flush_locations();
             transparency_context.flush_locations();
         }
-
-
-        ///only do this if we're using a fast sync
-        //if(use_fast_implicit_sync && window.max_input_lag_frames == 0)
-        //    window.render_block();
 
         if(!my_fight->dead())
         {
