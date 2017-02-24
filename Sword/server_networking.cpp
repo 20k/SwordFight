@@ -379,6 +379,8 @@ void server_networking::ping()
 }
 
 ///so basically the whole client -> master server stuff is an infinite pile of total bullshit
+///setting a server to join shouldn't be a tick operation, it should be a one off so we can do it through the UI
+///rewrite this
 void server_networking::tick(object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys)
 {
     this_frame_stats = network_statistics();

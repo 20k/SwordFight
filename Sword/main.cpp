@@ -1198,6 +1198,7 @@ int main(int argc, char *argv[])
         ///the async event for the draw_bulk_objs_n event has finished
         ///and this can fire
 
+        ///cl/gl interop guarantees cl gl queue so don't need to do this here can do this after
         window.render_block();
 
         if(window.max_input_lag_frames == 0)
