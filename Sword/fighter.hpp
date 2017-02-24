@@ -974,6 +974,10 @@ struct fighter
     void checked_death(); ///only die if we should
     bool dead();
 
+    ///0 = sword, 1 = trombone, if we need more add an enum
+    int current_weapon = 0;
+    void set_weapon(int weapon_id);
+
     void tick_cape();
 
     vec2f get_wall_corrected_move(vec2f pos, vec2f move_dir);

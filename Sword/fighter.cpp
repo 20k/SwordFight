@@ -939,6 +939,34 @@ bool fighter::dead()
     return (num_dead() > num_needed_to_die()) || performed_death;
 }
 
+void fighter::set_weapon(int weapon_id)
+{
+    if(weapon_id == current_weapon)
+        return;
+
+    if(weapon_id == 0)
+    {
+        cancel_hands();
+        queue_attack(attacks::FAST_REST);
+
+        trombone_manage.set_active(false);
+    }
+
+    ///trombone is already managing its shizzle because it has different requirements to the above
+    ///its a bit silly. OK so when you're sprinting with the trombone that's not performing any kind of 'move'
+    ///but it does with the sword
+    ///so going from trombone -> sword we can just cancel and queue attack
+    ///whereas as from sword -> trombone we have to ensure that it will always assume the trombone position
+    ///which may not work if we're sprinting. A cleaner solution would be to cancel any ongoing moves
+    ///but this may break future functionality, so really this is a clustertruck all around
+    if(weapon_id == 1)
+    {
+        trombone_manage.set_active(true);
+    }
+
+    current_weapon = weapon_id;
+}
+
 void fighter::tick_cape()
 {
     return;

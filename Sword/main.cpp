@@ -351,7 +351,7 @@ void fps_trombone_controls(fighter* my_fight, engine& window)
     ///and etc
     my_fight->set_rot_diff({0, -yout, 0.f});
 
-    trombone.set_active(true);
+    //trombone.set_active(true);
 }
 
 input_delta fps_camera_controls(float frametime, const input_delta& input, engine& window, fighter* my_fight)
@@ -698,7 +698,7 @@ int main(int argc, char *argv[])
         ///this is why the trombone gets inactivated on alt tab, the window is no longer in focus
         ///so the fps trombone controls don't work and it doesn't counter this
         ///IE SHIT CODE MATE
-        my_fight->trombone_manage.set_active(false);
+        //my_fight->trombone_manage.set_active(false);
 
         bool in_menu = menu_handler.should_do_menu();
 
@@ -971,11 +971,13 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::Num1>() && window.focus)
         {
-            if(controls_state != 1)
+            /*if(controls_state != 1)
             {
                 my_fight->cancel_hands();
                 my_fight->queue_attack(attacks::FAST_REST);
-            }
+            }*/
+
+            my_fight->set_weapon(0);
 
             window.c_rot_keyboard_only = window.c_rot;
 
@@ -984,6 +986,8 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::Num2>() && window.focus)
         {
+            my_fight->set_weapon(1);
+
             window.c_rot_keyboard_only = window.c_rot;
 
             controls_state = 2;
