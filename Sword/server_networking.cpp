@@ -378,6 +378,7 @@ void server_networking::ping()
     udp_send(to_game, vec.ptr);
 }
 
+///so basically the whole client -> master server stuff is an infinite pile of total bullshit
 void server_networking::tick(object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys)
 {
     this_frame_stats = network_statistics();
