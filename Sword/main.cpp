@@ -950,6 +950,64 @@ int main(int argc, char *argv[])
         ///blit finished frame. Implicit sync means that this IS correctly executed at the right time
         window.blit_to_screen(*context.fetch());
 
+        if(once<sf::Keyboard::F1>() && window.focus)
+        {
+            show_ftime = !show_ftime;
+        }
+
+        if(once<sf::Keyboard::F2>() && window.focus)
+        {
+            ui_manage.internal_net_stats_show_toggle = !ui_manage.internal_net_stats_show_toggle;
+        }
+
+        ui_manage.tick(window.get_frametime_ms());
+
+        if(controls_state == 0)
+        {
+            ui_manage.tick_settings(window.get_frametime_ms());
+        }
+
+        ui_manage.tick_frametime_graph(window.get_frametime_ms(), show_ftime);
+        ui_manage.tick_networking_graph(server.get_frame_stats());
+
+        ui_manage.tick_health_display(my_fight);
+
+        ui_manage.tick_render();
+
+        window.window.resetGLStates();
+
+        if(window.render_me && !in_menu)
+        {
+            text::draw(&window.window);
+        }
+
+        if(window.render_me && central_pip)
+        {
+            float rad = 2;
+
+            sf::CircleShape circle;
+            circle.setRadius(rad);
+            circle.setOutlineThickness(1.f);
+            circle.setOutlineColor(sf::Color(255, 255, 255, 128));
+            circle.setFillColor(sf::Color(255, 255, 255, 255));
+
+            circle.setPointCount(100);
+
+            circle.setPosition({(int)(window.width/2.f - (rad + 0.5f)), (int)(window.height/2.f - (rad + 0.5f))});
+
+            window.window.draw(circle);
+        }
+
+
+        ///this is pretty dodgey to do the menu like this
+        if(menu_handler.should_do_menu())
+        {
+            menu_handler.do_menu(window);
+        }
+
+        window.flip();
+
+
         window.render_block();
 
         ///dispatch the beginning of the next frame
@@ -1267,63 +1325,6 @@ int main(int argc, char *argv[])
         }
 
         server.update_fighter_name_infos();
-
-        if(once<sf::Keyboard::F1>() && window.focus)
-        {
-            show_ftime = !show_ftime;
-        }
-
-        if(once<sf::Keyboard::F2>() && window.focus)
-        {
-            ui_manage.internal_net_stats_show_toggle = !ui_manage.internal_net_stats_show_toggle;
-        }
-
-        ui_manage.tick(window.get_frametime_ms());
-
-        if(controls_state == 0)
-        {
-            ui_manage.tick_settings(window.get_frametime_ms());
-        }
-
-        ui_manage.tick_frametime_graph(window.get_frametime_ms(), show_ftime);
-        ui_manage.tick_networking_graph(server.get_frame_stats());
-
-        ui_manage.tick_health_display(my_fight);
-
-        ui_manage.tick_render();
-
-        window.window.resetGLStates();
-
-        if(window.render_me && !in_menu)
-        {
-            text::draw(&window.window);
-        }
-
-        if(window.render_me && central_pip)
-        {
-            float rad = 2;
-
-            sf::CircleShape circle;
-            circle.setRadius(rad);
-            circle.setOutlineThickness(1.f);
-            circle.setOutlineColor(sf::Color(255, 255, 255, 128));
-            circle.setFillColor(sf::Color(255, 255, 255, 255));
-
-            circle.setPointCount(100);
-
-            circle.setPosition({(int)(window.width/2.f - (rad + 0.5f)), (int)(window.height/2.f - (rad + 0.5f))});
-
-            window.window.draw(circle);
-        }
-
-
-        ///this is pretty dodgey to do the menu like this
-        if(menu_handler.should_do_menu())
-        {
-            menu_handler.do_menu(window);
-        }
-
-        window.flip();
 
         ///so this + render_event is basically causing two stalls
         //window.render_block(); ///so changing render block above blit_to_screen also fixes
