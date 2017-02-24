@@ -971,12 +971,6 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::Num1>() && window.focus)
         {
-            /*if(controls_state != 1)
-            {
-                my_fight->cancel_hands();
-                my_fight->queue_attack(attacks::FAST_REST);
-            }*/
-
             my_fight->set_weapon(0);
 
             window.c_rot_keyboard_only = window.c_rot;

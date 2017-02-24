@@ -2559,7 +2559,7 @@ void fighter::update_render_positions()
         p.update_model();
     }
 
-    if(game_state != nullptr)
+    if(game_state != nullptr && !jump_info.is_jumping)
     {
         ///take normal, turn normal to axis angle, rotate foot about that. Ez
         float lfoot_extra = -game_state->current_map.get_ground_height(parts[LFOOT].global_pos);
