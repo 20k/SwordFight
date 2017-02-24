@@ -350,8 +350,6 @@ void fps_trombone_controls(fighter* my_fight, engine& window)
     ///ie we can ignore this, just apply the overall matrix rotation and offset to te position
     ///and etc
     my_fight->set_rot_diff({0, -yout, 0.f});
-
-    //trombone.set_active(true);
 }
 
 input_delta fps_camera_controls(float frametime, const input_delta& input, engine& window, fighter* my_fight)
@@ -694,11 +692,6 @@ int main(int argc, char *argv[])
         sf::Clock c;
 
         window.set_max_input_lag_frames(s.frames_of_input_lag);
-
-        ///this is why the trombone gets inactivated on alt tab, the window is no longer in focus
-        ///so the fps trombone controls don't work and it doesn't counter this
-        ///IE SHIT CODE MATE
-        //my_fight->trombone_manage.set_active(false);
 
         bool in_menu = menu_handler.should_do_menu();
 
