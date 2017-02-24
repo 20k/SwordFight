@@ -1007,7 +1007,6 @@ int main(int argc, char *argv[])
 
         window.flip();
 
-
         window.render_block();
 
         ///dispatch the beginning of the next frame
@@ -1433,13 +1432,6 @@ int main(int argc, char *argv[])
             window.set_render_event(event);
             #endif
         }
-
-        ///should probably put this before rendering and block on the previous render event
-        /*if(window.max_input_lag_frames > 0)
-        {
-            context.flush_locations(false, &event);
-            transparency_context.flush_locations(false, &event);
-        }*/
 
         compute::event* render_event = nullptr;
 
