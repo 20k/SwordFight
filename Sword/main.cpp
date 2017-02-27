@@ -1278,7 +1278,8 @@ int main(int argc, char *argv[])
 
         sound::update_listeners();
 
-        window.c_pos = get_c_pos(window.get_frametime(), {window.c_pos, window.c_rot, window.c_rot_keyboard_only}, window, my_fight);
+        if(controls_state != 0)
+            window.c_pos = get_c_pos(window.get_frametime(), {window.c_pos, window.c_rot, window.c_rot_keyboard_only}, window, my_fight);
 
         if(window.max_input_lag_frames == 0)
         {
