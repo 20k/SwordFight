@@ -20,14 +20,14 @@ std::string respawn_info::get_display_string()
 server_networking::server_networking()
 {
     ///this is a hack
-    master_info.timeout_delay = 1000.f;
+    //master_info.timeout_delay = 1000.f;
     //game_info.timeout_delay = 1000.f;
 }
 
 void server_networking::join_master()
 {
     ///timeout 1 second
-    if(master_info.owns_socket() && !master_info.within_timeout())
+    /*if(master_info.owns_socket() && !master_info.within_timeout())
     {
         master_info = tcp_connect(MASTER_IP, MASTER_PORT, 1, 0);
 
@@ -41,6 +41,15 @@ void server_networking::join_master()
         to_master = tcp_sock(master_info.get());
 
         lg::log("joined master server");
+    }*/
+
+    if(!to_master_udp.valid())
+    {
+        to_master_udp.close();
+
+        to_master_udp = udp_connect(MASTER_IP, MASTER_CLIENT_PORT);
+
+        lg::log("Created master UDP port");
     }
 }
 
@@ -157,7 +166,7 @@ std::vector<game_server> server_networking::get_serverlist(byte_fetch& fetch)
 
 void server_networking::ping_master()
 {
-    if(!to_master.valid())
+    if(!to_master_udp.valid())
         return;
 
     pinged = true;
@@ -167,7 +176,7 @@ void server_networking::ping_master()
     vec.push_back(message::CLIENT);
     vec.push_back(canary_end);
 
-    tcp_send(to_master, vec.ptr);
+    udp_send(to_master_udp, vec.ptr);
 }
 
 ///ok so this is all wrong ;_; revert commits
@@ -388,9 +397,17 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
     ///tries to join
     join_master();
 
-    if(sock_readable(to_master))
+    bool any_recv_from_master = true;
+
+    while(any_recv_from_master && sock_readable(to_master_udp))
     {
-        auto data = tcp_recv(to_master);
+        sockaddr_storage to_master_store;
+
+        //auto data = tcp_recv(to_master);
+
+        auto data = udp_receive_from(to_master_udp, &to_master_store);
+
+        any_recv_from_master = data.size() > 0;
 
         ///actually, we only want to ping master once
         ///unless we set a big timeout and repeatedly ping master
@@ -432,7 +449,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     print_serverlist();
 
                     ///we're done here
-                    to_master.close();
+                    //to_master.close();
                 }
                 else
                 {
@@ -1115,6 +1132,8 @@ int32_t server_networking::get_id_from_fighter(fighter* f)
 
 void server_networking::print_serverlist()
 {
+    lg::log("START GAMESERVERS:");
+
     for(int i=0; i<(int)server_list.size(); i++)
     {
         lg::log("SN: ", i, " ", server_list[i].address.c_str(), ":", server_list[i].their_host_port.c_str());

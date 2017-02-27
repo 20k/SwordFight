@@ -434,6 +434,8 @@ int main(int argc, char *argv[])
         //std::cout.rdbuf(lg::output->rdbuf());
     }
 
+    networking_init();
+
     /*texture tex;
     tex.type = 0;
     tex.set_unique();

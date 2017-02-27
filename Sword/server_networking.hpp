@@ -119,10 +119,11 @@ struct server_networking
     sf::Clock time_since_last_send;
     float time_between_sends_ms = 15;
 
-    sock_info master_info;
+    //sock_info master_info;
     //sock_info game_info;
 
-    tcp_sock to_master;
+    //tcp_sock to_master;
+    udp_sock to_master_udp;
     udp_sock to_game;
 
     sockaddr_storage to_game_store;
