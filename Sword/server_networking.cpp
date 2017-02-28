@@ -306,7 +306,8 @@ std::map<int, ptr_info> build_host_network_stack(network_player* net_fight, serv
 }*/
 
 ///wait wait... so the game server gets the ping to itself of the client, and that's considered
-///the ping from my client to the other client? WTF?
+///the ping from my client to the other client?
+///Ok. We just add our ping to server and their ping to server, makes sense
 void server_networking::handle_ping_data(byte_fetch& arg)
 {
     byte_fetch fetch = arg;
