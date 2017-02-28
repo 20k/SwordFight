@@ -491,7 +491,7 @@ void ui_manager::tick_render()
 ///friends, search, history
 void server_browser::tick(float ftime_ms, server_networking& networking)
 {
-    const std::vector<game_server>& servers = networking.server_list;
+    std::vector<game_server>& servers = networking.server_list;
 
     std::vector<int> max_sizes = {-1, -1};
 
@@ -513,6 +513,8 @@ void server_browser::tick(float ftime_ms, server_networking& networking)
 
         std::string player_str = std::to_string(server.current_players) + "/" + std::to_string(server.max_players);
 
+        std::string ping_str = std::to_string(server.ping) + "ms";
+
         for(int i=name.length(); i < max_sizes[0]; i++)
         {
             name = name + " ";
@@ -528,6 +530,32 @@ void server_browser::tick(float ftime_ms, server_networking& networking)
         ImGui::SameLine();
 
         ImGui::Button(player_str.c_str());
+
+        ImGui::SameLine();
+
+        ImGui::Button(ping_str.c_str());
+    }
+
+    if(ImGui::Button("Refresh"))
+    {
+        networking.ping_master();
+
+        for(game_server& server : servers)
+        {
+            networking.ping_gameserver(server.address, server.their_host_port);
+
+            server.pinged = true;
+        }
+    }
+
+    for(game_server& server : servers)
+    {
+        if(server.pinged)
+            continue;
+
+        networking.ping_gameserver(server.address, server.their_host_port);
+
+        server.pinged = true;
     }
 
     ImGui::End();

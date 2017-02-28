@@ -1107,8 +1107,8 @@ int main(int argc, char *argv[])
         #endif // DELAY_SIMULATE
 
         ///debugging
-        if(!server.joined_game && !in_menu)
-            server.set_game_to_join(0);
+        //if(!server.joined_game && !in_menu)
+        //    server.set_game_to_join(0);
 
         std::string display_string = server.game_info.get_display_string();
 

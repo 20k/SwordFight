@@ -2,6 +2,7 @@
 #include "fighter.hpp"
 #include "sound.hpp"
 #include "network_fighter_model.hpp"
+#include "../sword_server/master_server/server.hpp"
 
 std::vector<delay_information> delay_vectors;
 float delay_ms = 200.f;
@@ -164,6 +165,7 @@ std::vector<game_server> server_networking::get_serverlist(byte_fetch& fetch)
     return std::vector<game_server>();
 }
 
+///gives CLIENTRESPONSE
 void server_networking::ping_master()
 {
     if(!to_master_udp.valid())
@@ -379,6 +381,22 @@ void server_networking::handle_ping(byte_fetch& arg)
     arg = fetch;
 }
 
+void server_networking::handle_ping_gameserver_response(byte_fetch& arg)
+{
+    byte_fetch fetch = arg;
+
+    int32_t found_end = fetch.get<int32_t>();
+
+    if(found_end != canary_end)
+    {
+        lg::log("Canary error in handle ping gameserver response");
+        return;
+    }
+
+    arg = fetch;
+}
+
+///don't use this?
 void server_networking::ping()
 {
     byte_vector vec;
@@ -390,12 +408,123 @@ void server_networking::ping()
     udp_send(to_game, vec.ptr);
 }
 
+void server_networking::ping_gameserver(const std::string& address, const std::string& port)
+{
+    udp_sock nsock = udp_connect(address, port);
+
+    if(!nsock.valid())
+        return;
+
+    in_progress_ping cur_ping;
+
+    cur_ping.address = address;
+    cur_ping.port = port;
+    cur_ping.sock = nsock;
+
+    current_server_pings.push_back(cur_ping);
+
+    byte_vector vec;
+    vec.push_back(canary_start);
+    vec.push_back(message::PING_GAMESERVER);
+    vec.push_back(canary_end);
+
+    udp_send(nsock, vec.ptr);
+}
+
+void set_gameserver_ping(const std::string& address, const std::string& port, float ping_us, std::vector<game_server>& servers)
+{
+    for(auto& i : servers)
+    {
+        if(i.address != address)
+            continue;
+
+        if(i.their_host_port != port)
+            continue;
+
+        i.ping = ping_us / 1000.f;
+    }
+}
+
+void server_networking::tick_gameserver_ping_responses()
+{
+    for(int i=0; i<current_server_pings.size(); i++)
+    {
+        bool terminate = false;
+
+        udp_sock& sock = current_server_pings[i].sock;
+
+        bool any_recv = true;
+
+        while(any_recv && sock_readable(sock))
+        {
+            sockaddr_storage to_server;
+
+            auto data = udp_receive_from(sock, &to_server);
+
+            any_recv = data.size() > 0;
+
+            byte_fetch fetch;
+            fetch.ptr.swap(data);
+
+            while(!fetch.finished() && any_recv)
+            {
+                int32_t found_canary = fetch.get<int32_t>();
+
+                while(found_canary != canary_start && !fetch.finished())
+                {
+                    found_canary = fetch.get<int32_t>();
+                }
+
+                int32_t type = fetch.get<int32_t>();
+
+                if(type == message::PING_GAMESERVER_RESPONSE)
+                {
+                    handle_ping_gameserver_response(fetch);
+
+                    ///ok we've got a ping back
+                    set_gameserver_ping(current_server_pings[i].address, current_server_pings[i].port, current_server_pings[i].clk.getElapsedTime().asMicroseconds(), server_list);
+
+                    terminate = true;
+                }
+            }
+        }
+
+        if(!terminate)
+            continue;
+
+        sock.close();
+
+        current_server_pings.erase(current_server_pings.begin() + i);
+        i--;
+    }
+}
+
+std::vector<game_server> merge_gameservers(const std::vector<game_server>& old_servers, const std::vector<game_server>& new_servers)
+{
+    std::vector<game_server> ret = new_servers;
+
+    for(game_server& new_server : ret)
+    {
+        for(const game_server& old_server : old_servers)
+        {
+            if(new_server.address == old_server.address && new_server.their_host_port == old_server.their_host_port)
+            {
+                new_server = old_server;
+            }
+        }
+    }
+
+    return ret;
+}
+
 ///so basically the whole client -> master server stuff is an infinite pile of total bullshit
 ///setting a server to join shouldn't be a tick operation, it should be a one off so we can do it through the UI
 ///rewrite this
 void server_networking::tick(object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys)
 {
     this_frame_stats = network_statistics();
+
+    tick_gameserver_ping_responses();
 
     ///tries to join
     join_master();
@@ -444,9 +573,11 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             {
                 auto servs = get_serverlist(fetch);
 
-                if(servs.size() > 0)
+                //if(servs.size() > 0)
                 {
-                    server_list = servs;
+                    //server_list = servs;
+                    server_list = merge_gameservers(server_list, servs);
+
                     has_serverlist = true;
 
                     print_serverlist();
@@ -454,12 +585,12 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     ///we're done here
                     //to_master.close();
                 }
-                else
+                /*else
                 {
                     lg::log("Network error or 0 gameservers available");
 
                     pinged = false; ///invalid response, ping again
-                }
+                }*/
             }
         }
     }
@@ -709,6 +840,12 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 /*handle_ping_response(fetch);*/
 
                 lg::log("Err, this is totally invalid, ping response");
+            }
+
+            if(type == message::PING_GAMESERVER_RESPONSE)
+            {
+                ///but ignore the ping we set, as we already have this
+                handle_ping_gameserver_response(fetch);
             }
         }
     }
@@ -1135,7 +1272,7 @@ int32_t server_networking::get_id_from_fighter(fighter* f)
 
 void server_networking::print_serverlist()
 {
-    lg::log("START GAMESERVERS:");
+    lg::log("START GAMESERVER LIST:");
 
     for(int i=0; i<(int)server_list.size(); i++)
     {

@@ -106,6 +106,18 @@ struct server_networking;
 
 std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight, server_networking* networking);
 
+struct game_server;
+
+struct in_progress_ping
+{
+    sf::Clock clk;
+
+    std::string address;
+    std::string port;
+
+    udp_sock sock;
+};
+
 struct server_networking
 {
     packet_clumper packet_clump;
@@ -182,7 +194,14 @@ struct server_networking
     void handle_ping_response(byte_fetch& fetch);
     void handle_ping(byte_fetch& fetch);
     void handle_ping_data(byte_fetch& fetch);
+    void handle_ping_gameserver_response(byte_fetch& fetch);
+
     void ping();
+    void ping_gameserver(const std::string& address, const std::string& port);
+    void tick_gameserver_ping_responses(); ///remember that if we're connected to a server and we do this, we'll have a duplicated sock!
+
+    ///for server browser
+    std::vector<in_progress_ping> current_server_pings;
 
     network_statistics get_frame_stats();
 
