@@ -507,10 +507,16 @@ std::vector<game_server> merge_gameservers(const std::vector<game_server>& old_s
     {
         for(const game_server& old_server : old_servers)
         {
+            ///this has probably changed, and is also likely not useful information
+            ///but its here anyway for debugging potentially
+            std::string new_my_port = new_server.my_port_to_them;
+
             if(new_server.address == old_server.address && new_server.their_host_port == old_server.their_host_port)
             {
                 new_server = old_server;
             }
+
+            new_server.my_port_to_them = new_my_port;
         }
     }
 
