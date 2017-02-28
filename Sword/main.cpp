@@ -501,6 +501,7 @@ int main(int argc, char *argv[])
     polygonal_world_map polygonal_map;
     polygonal_map.init(context, "Res/poly_maps/midmap_1.txt");
 
+    server_browser server_browse;
 
     gameplay_state current_state;
     current_state.set_map(polygonal_map);
@@ -973,6 +974,8 @@ int main(int argc, char *argv[])
         ui_manage.tick_networking_graph(server.get_frame_stats());
 
         ui_manage.tick_health_display(my_fight);
+
+        server_browse.tick(window.get_frametime_ms(), server);
 
         ui_manage.tick_render();
 

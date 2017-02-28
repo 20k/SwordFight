@@ -305,6 +305,8 @@ std::map<int, ptr_info> build_host_network_stack(network_player* net_fight, serv
     lg::log("Received ping response");
 }*/
 
+///wait wait... so the game server gets the ping to itself of the client, and that's considered
+///the ping from my client to the other client? WTF?
 void server_networking::handle_ping_data(byte_fetch& arg)
 {
     byte_fetch fetch = arg;

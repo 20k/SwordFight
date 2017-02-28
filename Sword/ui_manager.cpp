@@ -4,6 +4,7 @@
 #include "fighter.hpp"
 #include "server_networking.hpp"
 #include "imgui_extension.hpp"
+#include "server_networking.hpp"
 
 int window_element_ids::label_gid;
 
@@ -485,4 +486,49 @@ void ui_manager::tick_render()
     ImGui::Render();
 
     any_render = false;
+}
+
+///friends, search, history
+void server_browser::tick(float ftime_ms, server_networking& networking)
+{
+    const std::vector<game_server>& servers = networking.server_list;
+
+    std::vector<int> max_sizes = {-1, -1};
+
+    for(const game_server& server : servers)
+    {
+        std::string name = server.address + ":" + server.their_host_port;
+
+        std::string player_str = std::to_string(server.current_players) + "/" + std::to_string(server.max_players);
+
+        max_sizes[0] = std::max(max_sizes[0], (int)name.length());
+        max_sizes[1] = std::max(max_sizes[1], (int)player_str.length());
+    }
+
+    ImGui::Begin("Server Browser");
+
+    for(const game_server& server : servers)
+    {
+        std::string name = server.address + ":" + server.their_host_port;
+
+        std::string player_str = std::to_string(server.current_players) + "/" + std::to_string(server.max_players);
+
+        for(int i=name.length(); i < max_sizes[0]; i++)
+        {
+            name = name + " ";
+        }
+
+        for(int i = player_str.length(); i < max_sizes[1]; i++)
+        {
+            player_str = player_str + " ";
+        }
+
+        ImGui::Button(name.c_str());
+
+        ImGui::SameLine();
+
+        ImGui::Button(player_str.c_str());
+    }
+
+    ImGui::End();
 }

@@ -334,4 +334,11 @@ struct ui_manager
     bool internal_net_stats_show_toggle = false;
 };
 
+struct server_networking;
+
+struct server_browser
+{
+    void tick(float ftime_ms, server_networking& networking);
+};
+
 #endif // UI_MANAGER_HPP_INCLUDED
