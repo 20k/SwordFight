@@ -1099,6 +1099,7 @@ int main(int argc, char *argv[])
 
         server.set_my_fighter(my_fight);
 
+        ///we should probably move this underneath my_fight.tick
         if(!in_menu)
             server.tick(&context, &transparency_context, &current_state, &phys);
 
@@ -1107,8 +1108,8 @@ int main(int argc, char *argv[])
         #endif // DELAY_SIMULATE
 
         ///debugging
-        //if(!server.joined_game && !in_menu)
-        //    server.set_game_to_join(0);
+        if(!server.joined_game && !in_menu)
+            server.set_game_to_join(0);
 
         std::string display_string = server.game_info.get_display_string();
 
