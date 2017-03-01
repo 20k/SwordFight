@@ -10,6 +10,9 @@
 
 void trombone_manager::init(object_context* _ctx)
 {
+    if(trombone != nullptr)
+        return;
+
     ctx = _ctx;
 
     std::string volume = "mezzo-forte";
@@ -110,7 +113,7 @@ void trombone_manager::network_tick(int player_id)
 
 void trombone_manager::tick(engine& window, fighter* my_fight)
 {
-    my_fight->weapon.set_active(!network_trombone_descriptor.is_active);
+    //my_fight->weapon.set_active(!network_trombone_descriptor.is_active);
 
     if(my_fight->network_id != -1)
         network_tick(my_fight->network_id);
@@ -128,7 +131,7 @@ void trombone_manager::tick(engine& window, fighter* my_fight)
 
     tone = clamp(tone, 0, max_tones-1);
 
-    position_model(my_fight);
+    //position_model(my_fight);
 }
 
 void trombone_manager::position_model(fighter* my_fight)

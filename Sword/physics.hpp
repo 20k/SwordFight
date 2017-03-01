@@ -30,6 +30,7 @@ struct physics
     std::vector<physobj> bodies;
 
     void add_objects_container(part* p, fighter* parent);
+    void remove_objects_container(part* p, fighter* parent);
 
     void load();
 

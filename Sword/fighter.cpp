@@ -597,6 +597,12 @@ objects_container* sword::obj()
 
 void sword::update_model()
 {
+    if(!is_active)
+    {
+        model->hide();
+        return;
+    }
+
     model->set_pos({pos.v[0], pos.v[1], pos.v[2]});
     model->set_rot({rot.v[0], rot.v[1], rot.v[2]});
 }
@@ -615,10 +621,24 @@ void sword::set_active(bool active)
 {
     is_active = active;
 
+    bool was_active = obj()->isactive;
+
+    obj()->set_active(true);
+
+    if(was_active == false)
+    {
+        obj()->parent->build_request();
+    }
+
     if(!is_active)
     {
         model->hide();
     }
+}
+
+bool sword::is_currently_active()
+{
+    return is_active;
 }
 
 link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thickness = 18.f, vec3f offset = {0,0,0})
@@ -797,7 +817,9 @@ void fighter::respawn(vec2f _pos)
         i.set_active(true);
     }
 
-    weapon.model->set_active(true);
+    //weapon.model->set_active(true);
+
+    activate_current_weapon();
 
     for(auto& i : joint_links)
     {
@@ -830,8 +852,11 @@ void fighter::die()
         i.obj()->hide(); ///so we can do this alloclessly
     }
 
-    weapon.model->set_active(false);
-    weapon.model->hide();
+    //weapon.model->set_active(false);
+    //weapon.model->hide();
+
+    weapon.set_active(false);
+    trombone_manage.set_active(false);
 
     for(auto& i : joint_links)
     {
@@ -853,8 +878,8 @@ void fighter::die()
     }
 
     {
-        vec3f weapon_pos = xyz_to_vec(weapon.model->pos);
-        vec3f weapon_rot = xyz_to_vec(weapon.model->rot);
+        vec3f weapon_pos = xyz_to_vec(weapon.obj()->pos);
+        vec3f weapon_rot = xyz_to_vec(weapon.obj()->rot);
 
         vec3f weapon_dir = (vec3f){0, 1, 0}.rot({0,0,0}, weapon_rot);
 
@@ -950,6 +975,7 @@ void fighter::set_weapon(int weapon_id)
         queue_attack(attacks::FAST_REST);
 
         trombone_manage.set_active(false);
+        weapon.set_active(true);
     }
 
     ///trombone is already managing its shizzle because it has different requirements to the above
@@ -962,9 +988,26 @@ void fighter::set_weapon(int weapon_id)
     if(weapon_id == 1)
     {
         trombone_manage.set_active(true);
+        weapon.set_active(false);
     }
 
     current_weapon = weapon_id;
+}
+
+void fighter::activate_current_weapon()
+{
+    trombone_manage.set_active(false);
+    weapon.set_active(false);
+
+    if(current_weapon == 0)
+    {
+        weapon.set_active(true);
+    }
+
+    if(current_weapon == 1)
+    {
+        trombone_manage.set_active(true);
+    }
 }
 
 void fighter::tick_cape()
@@ -1337,6 +1380,7 @@ void fighter::tick(bool is_player)
         float sword_len = weapon.length;
 
         ///current sword tip
+        ///in local coordinates? this is probably why the sword hack doesn't work
         vec3f sword_vec = (vec3f){0, sword_len, 0}.rot({0,0,0}, weapon.rot) + weapon.pos;
 
         vec3f desired_sword_vec = {sword_vec.v[0], head_vec.v[1], sword_vec.v[2]};
@@ -2581,8 +2625,25 @@ void fighter::update_render_positions()
     auto r = to_world_space(pos, rot, weapon.pos, weapon.rot);
 
 
-    weapon.model->set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
-    weapon.model->set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
+    //weapon.obj()->set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
+    //weapon.obj()->set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
+
+    //weapon.set_pos(r.pos);
+    //weapon.set_rot(r.rot);
+
+    //weapon.update_model();
+
+    if(weapon.is_currently_active())
+    {
+        weapon.obj()->set_pos({r.pos.v[0], r.pos.v[1], r.pos.v[2]});
+        weapon.obj()->set_rot({r.rot.v[0], r.rot.v[1], r.rot.v[2]});
+    }
+    else
+    {
+        weapon.obj()->hide();
+    }
+
+    trombone_manage.position_model(this);
 
     ///calculate distance between links, dynamically adjust positioning
     ///so there's equal slack on both sides
@@ -2766,7 +2827,7 @@ void fighter::update_lights()
 
     my_lights[1]->set_pos({bpos.v[0], bpos.v[1], bpos.v[2]});
 
-    vec3f sword_tip = xyz_to_vec(weapon.model->pos) + (vec3f){0, weapon.length, 0}.rot({0,0,0}, xyz_to_vec(weapon.model->rot));
+    vec3f sword_tip = xyz_to_vec(weapon.obj()->pos) + (vec3f){0, weapon.length, 0}.rot({0,0,0}, xyz_to_vec(weapon.obj()->rot));
 
     my_lights[2]->set_pos({sword_tip.v[0], sword_tip.v[1], sword_tip.v[2]});
 
@@ -3392,6 +3453,18 @@ void fighter::set_physics(physics* _phys)
     }
 }
 
+void fighter::remove_from_physics()
+{
+    assert(phys);
+
+    for(part& i : parts)
+    {
+        phys->remove_objects_container(&i, this);
+    }
+
+    phys = nullptr;
+}
+
 void fighter::cancel(bodypart_t type)
 {
     for(auto it = moves.begin(); it != moves.end();)
@@ -3661,7 +3734,7 @@ void fighter::check_and_play_sounds(bool player)
 
     if(local.play_clang_audio || net.play_clang_audio)
     {
-        vec3f pos = xyz_to_vec(weapon.model->pos);
+        vec3f pos = xyz_to_vec(weapon.obj()->pos);
 
         if(player)
         {

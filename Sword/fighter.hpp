@@ -637,7 +637,6 @@ static std::map<attack_t, attack> attack_list =
 struct sword
 {
     ///if you want global, you have to poke around in here ( sadface )
-    objects_container* model;
 
     ///everything here is *local*,
     vec3f pos;
@@ -664,10 +663,12 @@ struct sword
     void update_model();
 
     void set_active(bool active);
+    bool is_currently_active();
 
 private:
     object_context* cpu_context = nullptr;
     bool is_active = true;
+    objects_container* model;
 };
 
 ///define attacks in terms of a start, an end, a time, and possibly a smoothing function
@@ -945,6 +946,7 @@ struct fighter
     void set_team(int _team);
 
     void set_physics(physics* phys);
+    void remove_from_physics();
 
     void cancel(bodypart_t type);
 
@@ -977,6 +979,7 @@ struct fighter
     ///0 = sword, 1 = trombone, if we need more add an enum
     int current_weapon = 0;
     void set_weapon(int weapon_id);
+    void activate_current_weapon();
 
     void tick_cape();
 

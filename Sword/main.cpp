@@ -1030,7 +1030,7 @@ int main(int argc, char *argv[])
             window.set_relative_mouse_mode(false);
             window.tick_mouse();
         }
-        if((controls_state == 1 || controls_state == 2) && window.focus && !in_menu)
+        if(controls_state == 1 && window.focus && !in_menu)
         {
             window.set_relative_mouse_mode(true);
             window.tick_mouse();
@@ -1038,7 +1038,7 @@ int main(int argc, char *argv[])
 
         if(once<sf::Keyboard::Escape>() && window.focus && !in_menu)
         {
-            if(controls_state == 2)
+            if(controls_state != 0)
                 controls_state = -1;
 
             controls_state = (controls_state + 1) % 2;
@@ -1061,7 +1061,7 @@ int main(int argc, char *argv[])
 
             window.c_rot_keyboard_only = window.c_rot;
 
-            controls_state = 2;
+            controls_state = 1;
         }
 
         if(!in_menu)
@@ -1070,17 +1070,23 @@ int main(int argc, char *argv[])
         ///latest mouse+kb input
         if(controls_state == 0 && window.focus && !in_menu)
             debug_controls(my_fight, window);
-        if(controls_state == 1 && window.focus && !in_menu)
-            fps_controls(my_fight, window);
-        if(controls_state == 2 && window.focus && !in_menu)
-            fps_trombone_controls(my_fight, window);
+
+        if(controls_state != 0 && window.focus && !in_menu)
+        {
+            if(my_fight->current_weapon == 0)
+                fps_controls(my_fight, window);
+
+            if(my_fight->current_weapon == 1)
+                fps_trombone_controls(my_fight, window);
+        }
+
 
         control_input c_input;
 
         if(controls_state == 0)
             c_input = control_input();
 
-        if(controls_state == 1 || controls_state == 2)
+        if(controls_state == 1)
             c_input = control_input(std::bind(fps_camera_controls, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, my_fight),
                               process_controls_empty);
 
@@ -1099,7 +1105,9 @@ int main(int argc, char *argv[])
 
         server.set_my_fighter(my_fight);
 
-        ///we should probably move this underneath my_fight.tick
+        ///we should probably move this underneath my_fight.tick for sending, and have a separate function for receiving
+        ///might remove a frame of input latency across the network
+        ///or do threading *kill me*
         if(!in_menu)
             server.tick(&context, &transparency_context, &current_state, &phys);
 

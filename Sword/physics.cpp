@@ -95,6 +95,18 @@ void physics::add_objects_container(part* _p, fighter* _parent)
     bodies.push_back(p);
 }
 
+void physics::remove_objects_container(part* _p, fighter* _parent)
+{
+    for(int i=0; i<bodies.size(); i++)
+    {
+        if(bodies[i].p == _p && bodies[i].parent == _parent)
+        {
+            bodies.erase(bodies.begin() + i);
+            i--;
+        }
+    }
+}
+
 ///this entire method seems like a hacky bunch of shite
 ///REMEMBER, DEAD OBJECTS ARE STILL CHECKED AGAINST. This is bad for performance (although who cares), but moreover its producing BUGS
 ///FIXME
@@ -104,7 +116,7 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     if(my_parent->num_dead() >= my_parent->num_needed_to_die())
         return -1;
 
-    if(w.model->isactive == false)
+    if(w.is_currently_active() == false || w.obj()->isactive == false)
         return -1;
 
     ///we're recoiling, definitely can't hit anything
@@ -113,9 +125,9 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
         return -1;
 
     //vec3f s_rot = w.rot;
-    vec3f s_pos = xyz_to_vec(w.model->pos); ///this is its worldspace position
+    vec3f s_pos = xyz_to_vec(w.obj()->pos); ///this is its worldspace position
 
-    vec3f dir = (vec3f){0, 1, 0}.rot({0,0,0}, xyz_to_vec(w.model->rot));
+    vec3f dir = (vec3f){0, 1, 0}.rot({0,0,0}, xyz_to_vec(w.obj()->rot));
     dir = dir.norm();
 
     //vec3f world_move_dir = sword_move_dir.rot({0,0,0}, xyz_to_vec(w.model.rot));
