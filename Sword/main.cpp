@@ -1080,7 +1080,6 @@ int main(int argc, char *argv[])
                 fps_trombone_controls(my_fight, window);
         }
 
-
         control_input c_input;
 
         if(controls_state == 0)
