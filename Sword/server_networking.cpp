@@ -1197,8 +1197,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         ///uuh. there uuh. Ok
         ///Why is this here? Seriously?
         ///Subobjects for robustness?
-        i.second.fight->weapon.model->set_pos(i.second.fight->weapon.model->pos);
-        i.second.fight->weapon.model->set_rot(i.second.fight->weapon.model->rot);
+        i.second.fight->weapon.obj()->set_pos(i.second.fight->weapon.obj()->pos);
+        i.second.fight->weapon.obj()->set_rot(i.second.fight->weapon.obj()->rot);
 
         //i.second.fight->weapon.set_pos(xyz_to_vec(i.second.fight->weapon.obj()->pos));
         //i.second.fight->weapon.set_rot(xyz_to_vec(i.second.fight->weapon.obj()->rot));

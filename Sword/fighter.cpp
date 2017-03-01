@@ -855,8 +855,6 @@ void fighter::die()
     //weapon.model->set_active(false);
     //weapon.model->hide();
 
-    weapon.set_active(false);
-    trombone_manage.set_active(false);
 
     for(auto& i : joint_links)
     {
@@ -894,8 +892,6 @@ void fighter::die()
             e.make(death_time, pos, 50.f, team, 5, *cpu_context);
             particle_effect::push(e);
         }
-
-        weapon.obj()->hide();
     }
 
     update_lights();
@@ -906,6 +902,9 @@ void fighter::die()
         l.make(5000.f, i);
         particle_effect::push(l);
     }
+
+    weapon.set_active(false);
+    trombone_manage.set_active(false);
 
     //network::host_update(&net.dead);
 
