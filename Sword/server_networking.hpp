@@ -124,6 +124,16 @@ struct in_progress_ping
 ///but... pulling it out into a game server class would be as much effort as creating a simple disconnect method
 ///and I'm not sure if chopping it up into persistent and non persistent resources is useful, as inevitably
 ///a game server class will end up containing more information and the distinction will be lost
+///BUT... it means we could add more resources to it that would be easy freed automagically rather than having to maintain
+///a disconnect function
+
+///Things that need to be destroyed in a disconnect:
+///to_game should be closed. to_game_store is invalid. Init = false
+///Should tear down fighter and rebuild it completely, which needs it to be removed from the physics system
+///clear discovered fighters, clear registered network variables, clear packet callback perplayer, joined_game = false
+///my_id = -1, have_id = false, trying to join game = false
+///Then need to readd fighter afterwards
+///lets go down the separate class route which we can destroy. game_server_session_resouces
 struct server_networking
 {
     packet_clumper packet_clump;
@@ -135,7 +145,7 @@ struct server_networking
     gamemode_info game_info;
 
     sf::Clock time_since_last_send;
-    float time_between_sends_ms = 15;
+    float time_between_sends_ms = 15; ///unused
 
     //sock_info master_info;
     //sock_info game_info;
