@@ -118,6 +118,12 @@ struct in_progress_ping
     udp_sock sock;
 };
 
+///ok. Maybe I should do this properly
+///Ideally we'd actually pull out all the networking thats relevant to a server into a
+///game server class. That way, when we join we can just destroy it and make a new one
+///but... pulling it out into a game server class would be as much effort as creating a simple disconnect method
+///and I'm not sure if chopping it up into persistent and non persistent resources is useful, as inevitably
+///a game server class will end up containing more information and the distinction will be lost
 struct server_networking
 {
     packet_clumper packet_clump;
