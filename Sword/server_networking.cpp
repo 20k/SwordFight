@@ -3,9 +3,7 @@
 #include "sound.hpp"
 #include "network_fighter_model.hpp"
 #include "../sword_server/master_server/server.hpp"
-
-std::vector<delay_information> delay_vectors;
-float delay_ms = 200.f;
+#include "network_update_wrappers.hpp"
 
 std::string respawn_info::get_display_string()
 {
@@ -63,11 +61,11 @@ void server_networking::join_game_tick(const std::string& address, const std::st
     //    game_info = tcp_connect(address, GAMESERVER_PORT, 5, 0);
 
     //if(game_info.valid())
-    if(!to_game.valid())
+    if(!connected_server.to_game.valid())
     {
-        to_game.close();
+        connected_server.to_game.close();
 
-        to_game = udp_connect(address, port);
+        connected_server.to_game = udp_connect(address, port);
 
         ///send request to join
         byte_vector vec;
@@ -75,13 +73,13 @@ void server_networking::join_game_tick(const std::string& address, const std::st
         vec.push_back(message::CLIENTJOINREQUEST);
         vec.push_back(canary_end);
 
-        udp_send(to_game, vec.ptr);
+        udp_send(connected_server.to_game, vec.ptr);
 
         trying_to_join_game = false;
         joined_game = true; ///uuh. ok then, sure i guess
-        have_id = false;
-        my_id = -1;
-        discovered_fighters.clear();
+        connected_server.have_id = false;
+        connected_server.my_id = -1;
+        connected_server.discovered_fighters.clear();
 
         lg::log("Connected gameserver ", address.c_str(), ":", port.c_str());
     }
@@ -183,7 +181,7 @@ void server_networking::ping_master()
 
 ///ok so this is all wrong ;_; revert commits
 ///trombone needs to be part of fighter
-std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight, server_networking* networking)
+std::map<int, ptr_info> build_fighter_network_stack(network_player* net_fight, game_server_session_resources* networking)
 {
     fighter* fight = net_fight->fight;
     network_fighter* net = net_fight->net_fighter;
@@ -261,7 +259,7 @@ void set_map_element(std::map<int, ptr_info>& change, std::map<int, ptr_info>& s
     return false;
 }*/
 
-std::map<int, ptr_info> build_host_network_stack(network_player* net_fight, server_networking* networking)
+std::map<int, ptr_info> build_host_network_stack(network_player* net_fight, game_server_session_resources* networking)
 {
     fighter* fight = net_fight->fight;
     network_fighter* net = net_fight->net_fighter;
@@ -321,13 +319,13 @@ void server_networking::handle_ping_data(byte_fetch& arg)
         int32_t player_id = fetch.get<int32_t>();
         float player_ping = fetch.get<float>();
 
-        network_player& net_play = discovered_fighters[player_id];
+        network_player& net_play = connected_server.discovered_fighters[player_id];
 
         if(net_play.id < 0)
         {
             lg::log("Invalid playerid ", net_play.id);
 
-            discovered_fighters.erase(player_id);
+            connected_server.discovered_fighters.erase(player_id);
 
             continue;
         }
@@ -376,7 +374,7 @@ void server_networking::handle_ping(byte_fetch& arg)
     vec.push_back(message::PING_RESPONSE);
     vec.push_back(canary_end);
 
-    udp_send(to_game, vec.ptr);
+    udp_send(connected_server.to_game, vec.ptr);
 
     arg = fetch;
 }
@@ -405,7 +403,7 @@ void server_networking::ping()
     vec.push_back(message::PING);
     vec.push_back(canary_end);
 
-    udp_send(to_game, vec.ptr);
+    udp_send(connected_server.to_game, vec.ptr);
 }
 
 void server_networking::ping_gameserver(const std::string& address, const std::string& port)
@@ -603,9 +601,9 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
     bool any_recv = true;
 
-    while(any_recv && sock_readable(to_game))
+    while(any_recv && sock_readable(connected_server.to_game))
     {
-        auto data = udp_receive_from(to_game, &to_game_store);
+        auto data = udp_receive_from(connected_server.to_game, &connected_server.to_game_store);
         is_init = true;
 
         any_recv = data.size() > 0;
@@ -645,11 +643,11 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     continue;
                 }
 
-                if(discovered_fighters[player_id].id == -1 && have_id)
+                if(connected_server.discovered_fighters[player_id].id == -1 && connected_server.have_id)
                 {
-                    discovered_fighters[player_id] = make_networked_player(player_id, ctx, tctx, st, phys, graphics_settings);
+                    connected_server.discovered_fighters[player_id] = make_networked_player(player_id, ctx, tctx, st, phys, graphics_settings);
 
-                    for(auto& i : discovered_fighters)
+                    for(auto& i : connected_server.discovered_fighters)
                     {
                         if(i.first == player_id)
                             continue;
@@ -663,16 +661,16 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 ///I don't have my id yet, which means that everything might be fucked
                 ///I actually am not 100% sure if this is a problem
 
-                if(!have_id)
+                if(!connected_server.have_id)
                 {
                     lg::log("no id, skipping");
-                    discovered_fighters.clear();
+                    connected_server.discovered_fighters.clear();
                     continue;
                 }
 
-                network_player& play = discovered_fighters[player_id];
+                network_player& play = connected_server.discovered_fighters[player_id];
 
-                std::map<int, ptr_info> arg_map = build_fighter_network_stack(&play, this);
+                std::map<int, ptr_info> arg_map = build_fighter_network_stack(&play, &connected_server);
 
                 if(component_id < 0 || component_id >= arg_map.size())
                 {
@@ -696,30 +694,13 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 play.disconnect_timer.restart();
 
-                if(packet_callback_perplayer.find(player_id) != packet_callback_perplayer.end())
+                if(connected_server.packet_callback_perplayer.find(player_id) != connected_server.packet_callback_perplayer.end())
                 {
-                    if(packet_callback_perplayer[player_id].find(component_id) != packet_callback_perplayer[player_id].end())
+                    if(connected_server.packet_callback_perplayer[player_id].find(component_id) != connected_server.packet_callback_perplayer[player_id].end())
                     {
-                        packet_callback_perplayer[player_id][component_id](comp.ptr, comp.size);
+                        connected_server.packet_callback_perplayer[player_id][component_id](comp.ptr, comp.size);
                     }
                 }
-
-                ///done for me now
-                if(player_id == my_id)
-                    continue;
-
-                /*for(auto& i : play.fight->parts)
-                {
-                    ///???
-                    i.obj()->set_pos(i.obj()->pos);
-                    i.obj()->set_rot(i.obj()->rot);
-                }
-
-                play.fight->weapon.model->set_pos(play.fight->weapon.model->pos);
-                play.fight->weapon.model->set_rot(play.fight->weapon.model->rot);
-
-                play.fight->overwrite_parts_from_model();
-                play.fight->network_update_render_positions();*/
             }
 
             if(type == message::CLIENTJOINACK)
@@ -730,10 +711,11 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 if(canary_found == canary_end)
                 {
-                    have_id = true;
-                    my_id = recv_id;
+                    connected_server.joined_server = true;
+                    connected_server.have_id = true;
+                    connected_server.my_id = recv_id;
 
-                    lg::log("Got joinack, I have id: ", my_id);
+                    lg::log("Got joinack, I have id: ", connected_server.my_id);
                 }
             }
 
@@ -748,10 +730,16 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 if(canary_found == canary_end)
                 {
-                    if(have_id && discovered_fighters.find(client_id) != discovered_fighters.end() && discovered_fighters[client_id].fight)
-                        discovered_fighters[client_id].fight->set_team(team);
+                    if(connected_server.have_id &&
+                            connected_server.discovered_fighters.find(client_id) != connected_server.discovered_fighters.end() &&
+                            connected_server.discovered_fighters[client_id].fight != nullptr)
+                    {
+                        connected_server.discovered_fighters[client_id].fight->set_team(team);
+                    }
                     else
+                    {
                         lg::log("teamassignskip");
+                    }
                 }
                 else
                 {
@@ -765,12 +753,12 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             {
                 just_new_round = false;
 
-                bool prev_game = game_info.game_over();
+                bool prev_game = connected_server.game_info.game_over();
 
-                game_info.process_gamemode_update(fetch);
+                connected_server.game_info.process_gamemode_update(fetch);
 
                 ///just swapped from not game over to it is game over!
-                if(prev_game == true && !game_info.game_over())
+                if(prev_game == true && !connected_server.game_info.game_over())
                 {
                     just_new_round = true;
                 }
@@ -784,8 +772,8 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 if(canary_found == canary_end)
                 {
-                    if(have_id && discovered_fighters[my_id].fight != nullptr)
-                        discovered_fighters[my_id].fight->respawn(new_pos);
+                    if(connected_server.have_id && connected_server.discovered_fighters[connected_server.my_id].fight != nullptr)
+                        connected_server.discovered_fighters[connected_server.my_id].fight->respawn(new_pos);
                     else
                         lg::log("respawn skip");
                 }
@@ -811,7 +799,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 if(canary_found == canary_end)
                 {
-                    respawn_inf = {time_elapsed, respawn_time};
+                    connected_server.respawn_inf = {time_elapsed, respawn_time};
                 }
                 else
                 {
@@ -856,12 +844,12 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         }
     }
 
-    if(is_init && to_game.valid())// && (time_since_last_send.getElapsedTime().asMicroseconds() / 1000.f) > time_between_sends_ms)
+    if(is_init && connected_server.to_game.valid())// && (time_since_last_send.getElapsedTime().asMicroseconds() / 1000.f) > time_between_sends_ms)
     {
-        if(have_id && discovered_fighters[my_id].fight != nullptr)
+        if(connected_server.have_id && connected_server.discovered_fighters[connected_server.my_id].fight != nullptr)
         {
-            fighter* nfight = discovered_fighters[my_id].fight;
-            network_fighter* net_nfight = discovered_fighters[my_id].net_fighter;
+            fighter* nfight = connected_server.discovered_fighters[connected_server.my_id].fight;
+            network_fighter* net_nfight = connected_server.discovered_fighters[connected_server.my_id].net_fighter;
 
             network_fighter network_backup = *net_nfight;
 
@@ -888,7 +876,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                     if(id_who_hit_me >= 0)
                     {
-                        network_player& play = discovered_fighters[id_who_hit_me];
+                        network_player& play = connected_server.discovered_fighters[id_who_hit_me];
 
                         if(play.id >= 0)
                         {
@@ -909,7 +897,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                         {
                             lg::log("Error, invalid fighter beginning delayed damage delta ", play.id);
 
-                            discovered_fighters.erase(id_who_hit_me);
+                            connected_server.discovered_fighters.erase(id_who_hit_me);
                         }
                     }
 
@@ -931,9 +919,9 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             }
 
             ///wtf? We're overwriting the whole networking model for this fighter!!
-            *discovered_fighters[my_id].net_fighter = discovered_fighters[my_id].fight->construct_network_fighter();
+            *connected_server.discovered_fighters[connected_server.my_id].net_fighter = connected_server.discovered_fighters[connected_server.my_id].fight->construct_network_fighter();
 
-            std::map<int, ptr_info> host_stack = build_host_network_stack(&discovered_fighters[my_id], this);
+            std::map<int, ptr_info> host_stack = build_host_network_stack(&connected_server.discovered_fighters[connected_server.my_id], &connected_server);
 
             ///update remote fighters about me
             for(auto& i : host_stack)
@@ -945,7 +933,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 byte_vector vec;
                 vec.push_back(canary_start);
                 vec.push_back(message::FORWARDING);
-                vec.push_back<net_type::player_t>(my_id);
+                vec.push_back<net_type::player_t>(connected_server.my_id);
                 vec.push_back<net_type::component_t>(id);
 
                 vec.push_back<net_type::len_t>(inf.size);
@@ -960,7 +948,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
             ///uuh. Looking increasingly like we should just include the home fighter in this one, eh?
             ///all networking for foreign fighters and some of my own (its the same for both)
             ///except home fighters network more things per-frame
-            for(auto& net_fighter : discovered_fighters)
+            for(auto& net_fighter : connected_server.discovered_fighters)
             {
                 fighter* fight = net_fighter.second.fight;
                 int fight_id = net_fighter.first;
@@ -1004,7 +992,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 ///they'll just be teleported across the map
                 ///parts don't reinitialise properly
                 ///I believe this is fixed now
-                if(my_id != net_fighter.first)
+                if(connected_server.my_id != net_fighter.first)
                 {
                     ///maybe if fight->local?
                     if(fight->local.send_clang_audio)
@@ -1055,7 +1043,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 if(fight->net.reported_dead)
                 {
-                    int32_t player_id = get_id_from_fighter(fight);
+                    int32_t player_id = connected_server.get_id_from_fighter(fight);
                     int32_t player_who_killed_me_id = fight->player_id_i_was_last_hit_by;
                     ///im pretty sure this is valid if fight->net.reported_dead is true
                     ///the sequence is - fighter hits player, broadcasts hp_delta and their id for the hit into
@@ -1080,7 +1068,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                     vec.push_back<int32_t>(player_who_killed_me_id); ///extra data
                     vec.push_back<int32_t>(canary_end);
 
-                    udp_send(to_game, vec.ptr);
+                    udp_send(connected_server.to_game, vec.ptr);
 
                     fight->net.reported_dead = 0;
                 }
@@ -1088,14 +1076,14 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 *net_fight = backup;
             }
 
-            fighter* my_fighter = discovered_fighters[my_id].fight;
-            network_fighter* net_fighter = discovered_fighters[my_id].net_fighter;
+            fighter* my_fighter = connected_server.discovered_fighters[connected_server.my_id].fight;
+            network_fighter* net_fighter = connected_server.discovered_fighters[connected_server.my_id].net_fighter;
 
             ///my name is not my network name
             ///update my network name and pipe to other clients
             if(my_fighter->name_resend_timer.getElapsedTime().asMilliseconds() > my_fighter->name_resend_time)
             {
-                network_update_element<vec<MAX_NAME_LENGTH + 1, int8_t>>(this, &net_fighter->network_fighter_inf.name, &discovered_fighters[my_id]);
+                network_update_element<vec<MAX_NAME_LENGTH + 1, int8_t>>(this, &net_fighter->network_fighter_inf.name, &connected_server.discovered_fighters[connected_server.my_id]);
 
                 my_fighter->name_resend_timer.restart();
             }
@@ -1108,7 +1096,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
                 vec.push_back<int32_t>(message::RESPAWNREQUEST);
                 vec.push_back<int32_t>(canary_end);
 
-                udp_send(to_game, vec.ptr);
+                udp_send(connected_server.to_game, vec.ptr);
             }
 
             time_since_last_send.restart();
@@ -1127,9 +1115,9 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         join_game_tick(trying_to_join_address, trying_to_join_port);
     }
 
-    for(auto& i : discovered_fighters)
+    for(auto& i : connected_server.discovered_fighters)
     {
-        if(i.first == my_id)
+        if(i.first == connected_server.my_id)
         {
             if(i.second.id >= 0 && i.second.fight)
                 i.second.fight->save_network_representation(*i.second.net_fighter);
@@ -1186,11 +1174,11 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         ///probably due to the order of applying network models
         ///so at this point, this fighter has had its net_fighter_copy thing updated with recoil request
         ///if clientside parry
-        #define ENABLE_CLIENTSIDE_PARRY
-        #ifdef ENABLE_CLIENTSIDE_PARRY
-        if(have_id && discovered_fighters[my_id].fight)
-            i.second.fight->check_clientside_parry(discovered_fighters[my_id].fight);
-        #endif
+#define ENABLE_CLIENTSIDE_PARRY
+#ifdef ENABLE_CLIENTSIDE_PARRY
+        if(connected_server.have_id && connected_server.discovered_fighters[connected_server.my_id].fight)
+            i.second.fight->check_clientside_parry(connected_server.discovered_fighters[connected_server.my_id].fight);
+#endif
 
         i.second.fight->network_update_render_positions();
 
@@ -1213,7 +1201,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         }
 
         if(i.second.disconnect_timer.getElapsedTime().asMicroseconds() / 1000.f >= i.second.disconnect_time_ms
-           && !i.second.fight->dead())
+                && !i.second.fight->dead())
         {
             i.second.fight->die();
             i.second.cleanup = true;
@@ -1222,64 +1210,17 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
         }
     }
 
-    for(auto it = discovered_fighters.begin(); it != discovered_fighters.end(); it++)
+    for(auto it = connected_server.discovered_fighters.begin(); it != connected_server.discovered_fighters.end(); it++)
     {
         if(it->second.cleanup)
         {
-            it = discovered_fighters.erase(it);
+            it = connected_server.discovered_fighters.erase(it);
         }
     }
 
-    game_info.tick();
-    reliable_manager.tick(to_game);
+    connected_server.game_info.tick();
+    reliable_manager.tick(connected_server.to_game);
     packet_clump.tick();
-}
-
-void server_networking::update_fighter_name_infos()
-{
-    for(auto& i : discovered_fighters)
-    {
-        if(i.first == my_id)
-            continue;
-
-        if(i.second.id < 0)
-        {
-            lg::log("super bad error, invalid fighter 2");
-            continue;
-        }
-
-        if(!i.second.fight->dead())
-            i.second.fight->update_name_info(true);
-    }
-}
-
-void server_networking::update_fighter_gpu_name()
-{
-    for(auto& i : discovered_fighters)
-    {
-        if(i.first == my_id)
-            continue;
-
-        if(i.second.id < 0)
-        {
-            lg::log("super bad error, invalid fighter 2");
-            continue;
-        }
-
-        if(!i.second.fight->dead())
-            i.second.fight->update_gpu_name();
-    }
-}
-
-int32_t server_networking::get_id_from_fighter(fighter* f)
-{
-    for(auto& i : discovered_fighters)
-    {
-        if(i.second.fight == f)
-            return i.first;
-    }
-
-    return -1;
 }
 
 void server_networking::print_serverlist()
@@ -1329,42 +1270,7 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
     return play;
 }
 
-void server_networking::set_my_fighter(fighter* fight)
-{
-    if(!have_id)
-        return;
 
-    network_player net_player;
-
-    net_player.net_fighter = new network_fighter;
-    net_player.fight = fight;
-    net_player.id = my_id;
-
-    //discovered_fighters[my_id] = {new network_fighter, fight, my_id};
-
-    discovered_fighters[my_id] = net_player;
-
-    fight->set_network_id(my_id);
-}
-
-void server_networking::update_network_variable(int player_id, int num)
-{
-    if(!have_id || discovered_fighters[player_id].fight == nullptr || player_id == -1)
-    {
-        lg::log("Warning, no fighter id or null fighter set in update_network_variable");
-        return;
-    }
-
-    auto net_map = build_fighter_network_stack(&discovered_fighters[player_id], this);
-
-    if(net_map.find(num) == net_map.end())
-    {
-        lg::log("No element with offset num ", num, " found");
-        return;
-    }
-
-    network_update_element(this, net_map[num].ptr, &discovered_fighters[player_id], net_map[num].size);
-}
 
 void gamemode_info::process_gamemode_update(byte_fetch& arg)
 {
@@ -1419,7 +1325,7 @@ std::vector<fighter*> server_networking::get_fighters()
 {
     std::vector<fighter*> ret;
 
-    for(auto& i : discovered_fighters)
+    for(auto& i : connected_server.discovered_fighters)
     {
         if(i.second.fight)
         {

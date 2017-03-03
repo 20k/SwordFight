@@ -1102,7 +1102,7 @@ int main(int argc, char *argv[])
             server.ping();
         }*/
 
-        server.set_my_fighter(my_fight);
+        server.connected_server.set_my_fighter(my_fight);
 
         ///we should probably move this underneath my_fight.tick for sending, and have a separate function for receiving
         ///might remove a frame of input latency across the network
@@ -1118,13 +1118,13 @@ int main(int argc, char *argv[])
         if(!server.joined_game && !in_menu)
             server.set_game_to_join(0);
 
-        std::string display_string = server.game_info.get_display_string();
+        std::string display_string = server.connected_server.game_info.get_display_string();
 
         text::add(display_string, 0, (vec2f){window.width/2.f, window.height - 20});
 
-        if(server.game_info.game_over())
+        if(server.connected_server.game_info.game_over())
         {
-            text::add(server.game_info.get_game_over_string(), 0, (vec2f){window.width/2.f, window.height/2.f});
+            text::add(server.connected_server.game_info.get_game_over_string(), 0, (vec2f){window.width/2.f, window.height/2.f});
         }
 
         ///network players don't die on a die
@@ -1136,7 +1136,7 @@ int main(int argc, char *argv[])
 
         if(my_fight->dead())
         {
-            std::string disp_string = server.respawn_inf.get_display_string();
+            std::string disp_string = server.connected_server.respawn_inf.get_display_string();
 
             text::add(disp_string, 0, (vec2f){window.width/2.f, 20});
         }
@@ -1310,7 +1310,7 @@ int main(int argc, char *argv[])
             fight2.update_name_info();
         }
 
-        server.update_fighter_name_infos();
+        server.connected_server.update_fighter_name_infos();
 
         ///so this + render_event is basically causing two stalls
         //window.render_block(); ///so changing render block above blit_to_screen also fixes
@@ -1394,7 +1394,7 @@ int main(int argc, char *argv[])
 
         fight.update_gpu_name();
         fight2.update_gpu_name();
-        server.update_fighter_gpu_name();
+        server.connected_server.update_fighter_gpu_name();
         window.window.resetGLStates();
 
         //if(window.can_render())

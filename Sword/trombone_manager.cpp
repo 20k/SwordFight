@@ -103,12 +103,12 @@ void trombone_manager::network_tick(int player_id)
         network_representation = local_representation;
 
         if(network_offset >= 0)
-            network->update_network_variable(player_id, network_offset);
+            network->connected_server.update_network_variable(network, player_id, network_offset);
     }
 
     local_representation.dirty = 0;
 
-    network->update_network_variable(player_id, network_active_offset);
+    network->connected_server.update_network_variable(network, player_id, network_active_offset);
 }
 
 void trombone_manager::tick(engine& window, fighter* my_fight)
@@ -198,24 +198,26 @@ void trombone_manager::set_active(bool active)
     }
 }
 
+///remember to fix all this when we disconnect from the server
 void trombone_manager::register_server_networking(fighter* my_fight, server_networking* networking)
 {
     network = networking;
 
     ///only register if we're invalid
+    ///change this to check with the connected server
     if(network_offset != -1)
         return;
 
     if(my_fight->network_id == -1)
         return;
 
-    network_offset = network->register_network_variable(my_fight->network_id, &network_representation);
-    network_active_offset = network->register_network_variable(my_fight->network_id, &network_trombone_descriptor.is_active);
+    network_offset = network->connected_server.register_network_variable(my_fight->network_id, &network_representation);
+    network_active_offset = network->connected_server.register_network_variable(my_fight->network_id, &network_trombone_descriptor.is_active);
 
     ///only register callback if we're now valid
     if(network_offset == -1)
         return;
 
-    network->register_packet_callback(my_fight->network_id, network_offset, std::bind(trombone_packet_callback, std::placeholders::_1, std::placeholders::_2, *this));
+    network->connected_server.register_packet_callback(my_fight->network_id, network_offset, std::bind(trombone_packet_callback, std::placeholders::_1, std::placeholders::_2, *this));
     //network->register_packet_callback(my_fight->network_id, network_active_offset, trombone_debug);
 }
