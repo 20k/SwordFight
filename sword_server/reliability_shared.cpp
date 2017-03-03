@@ -88,6 +88,15 @@ void reliability_manager::tick(udp_sock& sock)
 
 void reliability_manager::tick(udp_sock& sock, sockaddr_storage& store)
 {
+    if(!sock.valid())
+    {
+        data_receiving.clear();
+        data_sending.clear();
+        packet_ids_to_ack.clear();
+
+        return;
+    }
+
     float time_elapsed = clk.getElapsedTime().asMicroseconds() / 1000.f;
     clk.restart();
 
