@@ -1514,7 +1514,7 @@ void fighter::tick(bool is_player)
             ///losing a frame currently, FIXME
             ///if the sword hits something, not again until the next move
             ///make me a function?
-            if(i.hit_id < 0 && i.does(mov::DAMAGING))
+            if(i.hit_id < 0 && i.does(mov::DAMAGING) && phys != nullptr)
             {
                 ///this is the GLOBAL move dir, current_pos could be all over the place due to interpolation, lag etc
                 vec3f move_dir = (focus_pos - old_pos).norm();
@@ -3006,6 +3006,11 @@ void fighter::check_clientside_parry(fighter* non_networked_fighter)
     ///this needs to be a more complex check if the non networked fighter has any pending hits from this client
     ///but its still crap, we might miss a frame or two in the interim if some of the packets are jittered
     //if(net.is_damaging)
+
+    if(phys == nullptr)
+    {
+        return;
+    }
 
     bool any_pending_hits = net.is_damaging;
 
