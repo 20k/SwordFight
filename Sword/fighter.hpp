@@ -784,6 +784,7 @@ struct server_networking;
 ///what a clusterfuck
 ///OK, its not the skeleton thats an issue, that's actually seemingly necessarily quite heavily integrated
 ///its the networking model, and directly networking components thats extremely problematic
+///write an unload method that will unload models, and also remove the trombone from the networking system
 struct fighter
 {
     trombone_manager trombone_manage;

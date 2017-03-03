@@ -162,6 +162,8 @@
 		<Unit filename="fighter.hpp" />
 		<Unit filename="flat_poly_collision_handler.cpp" />
 		<Unit filename="flat_poly_collision_handler.hpp" />
+		<Unit filename="game_server_session_resources.cpp" />
+		<Unit filename="game_server_session_resources.hpp" />
 		<Unit filename="game_state_manager.cpp" />
 		<Unit filename="game_state_manager.hpp" />
 		<Unit filename="main.cpp" />
