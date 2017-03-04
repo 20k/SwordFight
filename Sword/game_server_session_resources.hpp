@@ -127,11 +127,21 @@ struct game_server_session_resources
         return num;
     }
 
+    void unregister_all_player_network_variables(int player_id)
+    {
+        registered_network_variable_perplayer.erase(player_id);
+    }
+
     void update_network_variable(server_networking* server, int player_id, int num);
 
     void register_packet_callback(int player_id, int component_id, std::function<void(void*, int)> func)
     {
         packet_callback_perplayer[player_id][component_id] = func;
+    }
+
+    void unregister_all_player_packet_callback(int player_id)
+    {
+        packet_callback_perplayer.erase(player_id);
     }
 };
 

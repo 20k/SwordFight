@@ -843,6 +843,9 @@ struct fighter
     fighter(object_context& cpu_context, object_context_data& gpu_context);
     ~fighter();
     void load();
+    ///from all systems
+    ///physics, models, networking need to go
+    void fully_unload();
 
     ///ideally we want movements to be ptrs, then delete them on removal
     std::map<bodypart_t, movement> action_map;

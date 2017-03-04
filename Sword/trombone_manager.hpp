@@ -65,6 +65,8 @@ struct trombone_manager
     net_trombone_descriptor network_trombone_descriptor;
 
     server_networking* network = nullptr;
+
+    void fully_unload(fighter* my_fight);
 };
 
 #endif // TROMBONE_MANAGER_HPP_INCLUDED

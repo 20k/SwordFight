@@ -712,6 +712,34 @@ fighter::~fighter()
     delete net_fighter_copy;
 }
 
+void fighter::fully_unload()
+{
+    for(part& p : parts)
+    {
+        p.obj()->set_active(false);
+    }
+
+    weapon.obj()->set_active(false);
+    //trombone_manage.trombone->set_active(false);
+    trombone_manage.fully_unload(this);
+
+    for(link& l : joint_links)
+    {
+        l.obj->set_active(false);
+    }
+
+    for(light* l : my_lights)
+    {
+        light::remove_light(l);
+    }
+
+    remove_from_physics();
+
+    network_id = -1;
+
+    ///everything else should be raii'd. Network_id = -1 is just for myself so I can remember what's going better here
+}
+
 void fighter::load()
 {
     trombone_manage.init(cpu_context);

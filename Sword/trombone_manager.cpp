@@ -192,6 +192,11 @@ void trombone_manager::set_active(bool active)
 {
     network_trombone_descriptor.is_active = active;
 
+    if(active)
+    {
+        trombone->set_active(true);
+    }
+
     if(!network_trombone_descriptor.is_active)
     {
         trombone->hide();
@@ -220,4 +225,15 @@ void trombone_manager::register_server_networking(fighter* my_fight, server_netw
 
     network->connected_server.register_packet_callback(my_fight->network_id, network_offset, std::bind(trombone_packet_callback, std::placeholders::_1, std::placeholders::_2, *this));
     //network->register_packet_callback(my_fight->network_id, network_active_offset, trombone_debug);
+}
+
+void trombone_manager::fully_unload(fighter* my_fight)
+{
+    trombone->set_active(false);
+
+    network_offset = -1;
+    network_active_offset = -1;
+
+    network->connected_server.unregister_all_player_network_variables(my_fight->network_id);
+    network->connected_server.unregister_all_player_packet_callback(my_fight->network_id);
 }
