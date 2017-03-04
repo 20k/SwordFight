@@ -720,7 +720,6 @@ void fighter::fully_unload()
     }
 
     weapon.obj()->set_active(false);
-    //trombone_manage.trombone->set_active(false);
     trombone_manage.fully_unload(this);
 
     for(link& l : joint_links)
