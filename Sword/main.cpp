@@ -397,6 +397,25 @@ cl_float4 get_c_pos(float frametime, const input_delta& input, engine& window, f
 
 #include <stdio.h>
 
+void init_fighter(fighter* fight, physics* phys, int quality, gameplay_state* current_state, object_context& ctx, object_context& secondary_context, std::string name, bool is_offline_client)
+{
+    fight->set_team(0);
+    fight->set_quality(quality);
+    fight->set_gameplay_state(current_state);
+
+    ctx.load_active();
+
+    fight->set_physics(phys);
+
+    fight->is_offline_client = is_offline_client;
+
+    fight->set_secondary_context(&secondary_context);
+
+    lg::log("post set secondary context (transparency)");
+
+    fight->set_name(name);
+}
+
 ///make textures go from start to dark to end
 ///need to make sound not play multiple times
 ///build then flip is invalid
@@ -515,18 +534,11 @@ int main(int argc, char *argv[])
     window.set_camera_rot({0, 1.6817, 0});
     window.c_rot_keyboard_only = window.c_rot;
 
-    fighter fight(context, *gpu_context);
+    /*fighter fight(context, *gpu_context);
     fight.set_team(0);
     fight.set_quality(s.quality);
-    fight.set_gameplay_state(&current_state);
+    fight.set_gameplay_state(&current_state);*/
     //fight.my_cape.make_stable(&fight);
-
-    fighter fight2(context, *gpu_context);
-    fight2.set_team(1);
-    fight2.set_pos({0, 0, -650});
-    fight2.set_rot({0, M_PI, 0});
-    fight2.set_quality(s.quality);
-    fight2.set_gameplay_state(&current_state);
 
     lg::log("loaded fighters");
 
@@ -537,12 +549,17 @@ int main(int argc, char *argv[])
 
     context.load_active();
 
+    fighter fight(context, *context.fetch());
+    init_fighter(&fight, &phys, s.quality, &current_state, context, transparency_context, s.name, true);
+
+    fighter fight2(context, *context.fetch());
+    init_fighter(&fight2, &phys, s.quality, &current_state, context, transparency_context, "Philip", true);
+
+    fight2.set_pos({0, 0, -650});
+    fight2.set_rot({0, M_PI, 0});
+    fight2.set_team(1);
+
     lg::log("postload");
-
-    fight.set_physics(&phys);
-    fight2.set_physics(&phys);
-
-    lg::log("set physics");
 
     ///a very high roughness is better (low spec), but then i think we need to remove the overhead lights
     ///specular component
@@ -560,7 +577,6 @@ int main(int argc, char *argv[])
     //floor->set_ss_reflective(true);
 
     lg::log("postbuild");
-
 
     auto ctx = context.fetch();
     window.set_object_data(*ctx);
@@ -647,20 +663,7 @@ int main(int argc, char *argv[])
         lg::log(context.containers.size());
     }
 
-    fight.is_offline_client = true;
-    fight2.is_offline_client = true;
-
-    fight.set_secondary_context(&transparency_context);
-    fight2.set_secondary_context(&transparency_context);
-
-    lg::log("post set secondary context (transparency)");
-
-    fight.set_name(s.name);
-    fight2.set_name("Philip");
-
     fighter* net_test = nullptr;
-
-    lg::log("post name rendering");
 
     context.fetch()->ensure_screen_buffers(window.width, window.height);
     transparency_context.fetch()->ensure_screen_buffers(window.width, window.height);
@@ -1330,6 +1333,7 @@ int main(int argc, char *argv[])
         #define CLAMP_VIEW
         #ifdef CLAMP_VIEW
         window.c_rot.x = clamp(window.c_rot.x, -M_PI/2.f, M_PI/2.f);
+        window.c_rot_keyboard_only.x = clamp(window.c_rot_keyboard_only.x, -M_PI/2.f, M_PI/2.f);
         #endif
 
         #ifdef SPACE

@@ -491,6 +491,8 @@ void ui_manager::tick_render()
 ///friends, search, history
 void server_browser::tick(float ftime_ms, server_networking& networking)
 {
+    just_disconnected = false;
+
     std::vector<game_server>& servers = networking.server_list;
 
     std::vector<int> max_sizes = {-1, -1};
@@ -513,7 +515,7 @@ void server_browser::tick(float ftime_ms, server_networking& networking)
 
         std::string player_str = std::to_string(server.current_players) + "/" + std::to_string(server.max_players);
 
-        std::string ping_str = std::to_string(server.ping) + "ms";
+        std::string ping_str = std::to_string((int)server.ping) + "ms";
 
         for(int i=name.length(); i < max_sizes[0]; i++)
         {
@@ -525,15 +527,29 @@ void server_browser::tick(float ftime_ms, server_networking& networking)
             player_str = player_str + " ";
         }
 
-        ImGui::Button(name.c_str());
+        bool any_clicked = false;
+
+        any_clicked |= ImGui::Button(name.c_str());
 
         ImGui::SameLine();
 
-        ImGui::Button(player_str.c_str());
+        any_clicked |= ImGui::Button(player_str.c_str());
 
         ImGui::SameLine();
 
-        ImGui::Button(ping_str.c_str());
+        any_clicked |= ImGui::Button(ping_str.c_str());
+
+        if(any_clicked)
+        {
+            if(networking.connected_server.joined_server)
+            {
+                just_disconnected = true;
+
+                networking.connected_server.disconnect();
+            }
+
+            networking.set_game_to_join(server.address, server.their_host_port);
+        }
     }
 
     if(ImGui::Button("Refresh"))
@@ -548,6 +564,16 @@ void server_browser::tick(float ftime_ms, server_networking& networking)
         }
     }
 
+    if(ImGui::Button("Disconnect"))
+    {
+        just_disconnected = true;
+
+        if(networking.connected_server.joined_server)
+        {
+            networking.connected_server.disconnect();
+        }
+    }
+
     for(game_server& server : servers)
     {
         if(server.pinged)
@@ -559,4 +585,9 @@ void server_browser::tick(float ftime_ms, server_networking& networking)
     }
 
     ImGui::End();
+}
+
+bool server_browser::has_disconnected()
+{
+    return just_disconnected;
 }

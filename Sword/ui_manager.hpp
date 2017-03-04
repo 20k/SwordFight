@@ -338,6 +338,9 @@ struct server_networking;
 
 struct server_browser
 {
+    bool just_disconnected = false;
+    bool has_disconnected();
+
     void tick(float ftime_ms, server_networking& networking);
 };
 

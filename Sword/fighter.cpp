@@ -732,9 +732,14 @@ void fighter::fully_unload()
         light::remove_light(l);
     }
 
+    ///bit hacky, we're just arbitrarily picking an object to get the context of
+    object_context& ctx = *weapon.obj()->parent;
+
     remove_from_physics();
 
     network_id = -1;
+
+    ctx.build_request();
 
     ///everything else should be raii'd. Network_id = -1 is just for myself so I can remember what's going better here
 }

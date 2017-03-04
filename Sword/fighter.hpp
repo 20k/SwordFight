@@ -843,6 +843,7 @@ struct fighter
     std::vector<part> parts;
     vec3f old_pos[bodypart::COUNT];
 
+    //fighter();
     fighter(object_context& cpu_context, object_context_data& gpu_context);
     ~fighter();
     void load();
