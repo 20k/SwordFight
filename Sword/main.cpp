@@ -1149,14 +1149,14 @@ int main(int argc, char *argv[])
         ///so just respawning doesnt fix, sometimes (mostly) doing enter does
         ///but not alwaysf
         ///something very odd. Rewrite texturing
-        if(once<sf::Keyboard::Return>() && window.focus && s.enable_debugging)
+        /*if(once<sf::Keyboard::Return>() && window.focus && s.enable_debugging)
         {
             context.build(true);
             transparency_context.build(true);
 
             context.flip();
             transparency_context.flip();
-        }
+        }*/
 
         //static float debug_look = 0;
         //my_fight->set_look({sin(debug_look), 0, 0});
