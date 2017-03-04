@@ -732,6 +732,8 @@ void fighter::fully_unload()
         light::remove_light(l);
     }
 
+    name_container->set_active(false);
+
     ///bit hacky, we're just arbitrarily picking an object to get the context of
     object_context& ctx = *weapon.obj()->parent;
 
@@ -3656,6 +3658,9 @@ void fighter::update_gpu_name()
     if(gpu_name_dirty >= 1)
         return;
 
+    if(name_container->isactive == false)
+        return;
+
     name_tex.setActive(true);
 
     name_tex_gpu->update_gpu_texture(name_tex.getTexture(), transparency_context->fetch()->tex_gpu_ctx, false, cl::cqueue2);
@@ -3711,6 +3716,9 @@ void fighter::set_secondary_context(object_context* _transparency_context)
 void fighter::update_name_info(bool networked_fighter)
 {
     if(!name_container)
+        return;
+
+    if(name_container->isactive == false)
         return;
 
     vec3f head_pos = parts[bodypart::HEAD].global_pos;
