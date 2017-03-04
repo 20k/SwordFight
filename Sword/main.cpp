@@ -690,6 +690,10 @@ int main(int argc, char *argv[])
 
     bool going = true;
 
+    objects_container* memory_test = context.make_new();
+    memory_test->set_file("./Res/high/bodypart_red.obj");
+    memory_test->set_unique_textures(true);
+
     ///fix depth ordering with transparency
     while(going)
     {
@@ -979,9 +983,61 @@ int main(int argc, char *argv[])
 
             my_fight = nfighter;
 
+
+            context.load_active();
+            transparency_context.load_active();
+
             context.build(true);
             transparency_context.build(true);
         }
+
+        if(once<sf::Keyboard::F12>())
+        {
+            my_fight->fully_unload();
+            delete my_fight;
+
+            fighter* nfighter = new fighter(context);
+
+            init_fighter(nfighter, &phys, s.quality, &current_state, context, transparency_context, s.name, true);
+
+            my_fight = nfighter;
+
+
+            context.load_active();
+            transparency_context.load_active();
+
+            context.build(true);
+            transparency_context.build(true);
+        }
+
+        /*if(once<sf::Keyboard::F12>())
+        {
+            memory_test->set_active(false);
+            memory_test->destroy_textures();
+            memory_test->unload();
+            memory_test->parent->destroy(memory_test);
+
+            //context.load_active();
+            //context.build(true);
+
+            context.build_request();
+
+            //objects_container* nmem = context.make_new();
+
+            //memory_test = nmem;
+            memory_test = context.make_new();
+            memory_test->set_file("./Res/high/bodypart_red.obj");
+            memory_test->set_unique_textures(true);
+            memory_test->set_active(true);
+            memory_test->cache = false;
+
+            context.load_active();
+            context.build(true);
+        }*/
+
+        //printf("MEM SIZE APPROX %imb\n", context.get_approx_debug_cpu_memory_size() / 1024 / 1024);
+
+        //printf("TEX SIZE APPROX %imb\n", context.tex_ctx.get_approx_debug_cpu_memory_size() / 1024 / 1024);
 
         ui_manage.tick_render();
 

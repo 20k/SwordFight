@@ -170,6 +170,7 @@ part::~part()
 
 void part::set_active(bool active)
 {
+
     model->set_active(active);
     model->hide();
 
@@ -259,6 +260,7 @@ void part::load_team_model()
     model->set_file(to_load);
 
     model->unload();
+    model->destroy_textures();
 
     set_active(true);
 
@@ -706,6 +708,7 @@ fighter::fighter(object_context& _cpu_context) : weapon(_cpu_context), my_cape(_
     net_fighter_copy = new network_fighter;
 }
 
+
 fighter::~fighter()
 {
     delete net_fighter_copy;
@@ -713,6 +716,8 @@ fighter::~fighter()
 
 void fighter::fully_unload()
 {
+    remove_from_physics();
+
     for(part& p : parts)
     {
         p.obj()->set_active(false);
@@ -722,6 +727,9 @@ void fighter::fully_unload()
 
     weapon.obj()->set_active(false);
     weapon.obj()->destroy_textures();
+
+    cosmetic.tophat->set_active(false);
+    cosmetic.tophat->destroy_textures();
 
     trombone_manage.fully_unload(this);
 
@@ -744,8 +752,6 @@ void fighter::fully_unload()
     ///bit hacky, we're just arbitrarily picking an object to get the context of
     object_context& ctx = *weapon.obj()->parent;
 
-    remove_from_physics();
-
     network_id = -1;
 
     ctx.build_request();
@@ -758,9 +764,9 @@ void fighter::fully_unload()
     for(auto& l : joint_links)
         l.obj->parent->destroy(l.obj);
 
-
     name_container->parent->destroy(name_container);
 
+    cosmetic.tophat->parent->destroy(cosmetic.tophat);
 
     ///everything else should be raii'd. Network_id = -1 is just for myself so I can remember what's going better here
 }
@@ -3456,6 +3462,7 @@ void fighter::set_team(int _team)
     for(auto& i : joint_links)
     {
         i.obj->set_active(false);
+        i.obj->parent->destroy(i.obj);
     }
 
     joint_links.clear();
