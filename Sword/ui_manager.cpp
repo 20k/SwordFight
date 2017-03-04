@@ -578,6 +578,13 @@ void server_browser::tick(float ftime_ms, server_networking& networking)
         }
     }
 
+    if(networking.connected_server.joined_server)
+    {
+        std::string in_server_str = "Currently Connected to " + networking.connected_server.to_game.get_peer_ip() + ":" + networking.connected_server.to_game.get_peer_port();
+
+        ImGui::Button(in_server_str.c_str());
+    }
+
     for(game_server& server : servers)
     {
         if(server.pinged)
