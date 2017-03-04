@@ -534,12 +534,6 @@ int main(int argc, char *argv[])
     window.set_camera_rot({0, 1.6817, 0});
     window.c_rot_keyboard_only = window.c_rot;
 
-    /*fighter fight(context, *gpu_context);
-    fight.set_team(0);
-    fight.set_quality(s.quality);
-    fight.set_gameplay_state(&current_state);*/
-    //fight.my_cape.make_stable(&fight);
-
     lg::log("loaded fighters");
 
     physics phys;
@@ -692,12 +686,7 @@ int main(int argc, char *argv[])
     ui_manager ui_manage;
     ui_manage.init(s);
 
-    //trombone_manager trombone_manage;
-    //trombone_manage.init(&context);
-    //trombone_manage.register_server_networking(&server);
-
     bool show_ftime = false;
-
 
     bool going = true;
 
