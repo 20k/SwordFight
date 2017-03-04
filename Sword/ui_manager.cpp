@@ -539,6 +539,10 @@ void server_browser::tick(float ftime_ms, server_networking& networking)
 
         any_clicked |= ImGui::Button(ping_str.c_str());
 
+        ImGui::SameLine();
+
+        any_clicked |= ImGui::Button("Connect");
+
         if(any_clicked)
         {
             if(networking.connected_server.joined_server)
