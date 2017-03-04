@@ -566,10 +566,10 @@ void server_browser::tick(float ftime_ms, server_networking& networking)
 
     if(ImGui::Button("Disconnect"))
     {
-        just_disconnected = true;
-
         if(networking.connected_server.joined_server)
         {
+            just_disconnected = true;
+
             networking.connected_server.disconnect();
         }
     }

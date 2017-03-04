@@ -1245,7 +1245,7 @@ void server_networking::print_serverlist()
 ///nope, thatll just leak memory, which is uuh. Fine? Probably causing huge memory leaks?
 network_player server_networking::make_networked_player(int32_t id, object_context* ctx, object_context* tctx, gameplay_state* current_state, physics* phys, int quality)
 {
-    fighter* net_fighter = new fighter(*ctx, *ctx->fetch());
+    fighter* net_fighter = new fighter(*ctx);
 
     net_fighter->set_team(0);
     net_fighter->set_pos({0, 0, 0});

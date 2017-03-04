@@ -677,10 +677,9 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
 }
 
 ///need to only maintain 1 copy of this, I'm just a muppet
-fighter::fighter(object_context& _cpu_context, object_context_data& _gpu_context) : weapon(_cpu_context), my_cape(_cpu_context, _gpu_context)
+fighter::fighter(object_context& _cpu_context) : weapon(_cpu_context), my_cape(_cpu_context, *_cpu_context.fetch())
 {
     cpu_context = &_cpu_context;
-    gpu_context = &_gpu_context;
 
     for(int i=0; i<bodypart::COUNT; i++)
     {
@@ -733,6 +732,8 @@ void fighter::fully_unload()
     }
 
     name_container->set_active(false);
+
+    name_container->parent->build_request();
 
     ///bit hacky, we're just arbitrarily picking an object to get the context of
     object_context& ctx = *weapon.obj()->parent;
@@ -3614,14 +3615,11 @@ void fighter::flinch(float time_ms)
     reset_screenshake_flinch = true;
 }
 
-void fighter::set_contexts(object_context* _cpu, object_context_data* _gpu)
+/*void fighter::set_contexts(object_context* _cpu)
 {
     if(_cpu)
         cpu_context = _cpu;
-
-    if(_gpu)
-        gpu_context = _gpu;
-}
+}*/
 
 ///problem is, whenever someone's name gets updated, everyone else's old name gets overwritten
 ///we need to update all fighters whenever there's an update, or a new fighter created

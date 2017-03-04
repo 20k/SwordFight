@@ -844,7 +844,7 @@ struct fighter
     vec3f old_pos[bodypart::COUNT];
 
     //fighter();
-    fighter(object_context& cpu_context, object_context_data& gpu_context);
+    fighter(object_context& cpu_context);
     ~fighter();
     void load();
     ///from all systems
@@ -1000,7 +1000,7 @@ struct fighter
     vec3f look_displacement;
     vec3f old_look_displacement;
 
-    void set_contexts(object_context* _cpu, object_context_data* _gpu);
+    //void set_contexts(object_context* _cpu);
 
     sf::Clock foot_supression_timer;
     float time_to_suppress_foot_sounds_s = 0.f;
@@ -1032,7 +1032,6 @@ private:
     vec2f last_walk_dir;
 
     object_context* cpu_context = nullptr;
-    object_context_data* gpu_context = nullptr;
 
     object_context* transparency_context = nullptr;
 

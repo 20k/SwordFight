@@ -543,10 +543,10 @@ int main(int argc, char *argv[])
 
     context.load_active();
 
-    fighter fight(context, *context.fetch());
+    fighter fight(context);
     init_fighter(&fight, &phys, s.quality, &current_state, context, transparency_context, s.name, true);
 
-    fighter fight2(context, *context.fetch());
+    fighter fight2(context);
     init_fighter(&fight2, &phys, s.quality, &current_state, context, transparency_context, "Philip", true);
 
     fight2.set_pos({0, 0, -650});
@@ -969,6 +969,15 @@ int main(int argc, char *argv[])
 
         server_browse.tick(window.get_frametime_ms(), server);
 
+        if(server_browse.has_disconnected())
+        {
+            fighter* nfighter = new fighter(context);
+
+            init_fighter(nfighter, &phys, s.quality, &current_state, context, transparency_context, s.name, true);
+
+            my_fight = nfighter;
+        }
+
         ui_manage.tick_render();
 
         window.window.resetGLStates();
@@ -1385,7 +1394,7 @@ int main(int argc, char *argv[])
             //window.draw_godrays(*cdat);
         }
 
-        fight.update_gpu_name();
+        my_fight->update_gpu_name();
         fight2.update_gpu_name();
         server.connected_server.update_fighter_gpu_name();
         window.window.resetGLStates();
