@@ -739,6 +739,7 @@ void fighter::fully_unload()
     name_container->set_active(false);
 
     name_container->parent->build_request();
+    name_container->destroy_textures();
 
     ///bit hacky, we're just arbitrarily picking an object to get the context of
     object_context& ctx = *weapon.obj()->parent;
@@ -756,6 +757,9 @@ void fighter::fully_unload()
 
     for(auto& l : joint_links)
         l.obj->parent->destroy(l.obj);
+
+
+    name_container->parent->destroy(name_container);
 
 
     ///everything else should be raii'd. Network_id = -1 is just for myself so I can remember what's going better here
