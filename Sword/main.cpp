@@ -543,8 +543,8 @@ int main(int argc, char *argv[])
 
     context.load_active();
 
-    fighter fight(context);
-    init_fighter(&fight, &phys, s.quality, &current_state, context, transparency_context, s.name, true);
+    fighter* fight = new fighter(context);
+    init_fighter(fight, &phys, s.quality, &current_state, context, transparency_context, s.name, true);
 
     fighter fight2(context);
     init_fighter(&fight2, &phys, s.quality, &current_state, context, transparency_context, "Philip", true);
@@ -613,13 +613,13 @@ int main(int argc, char *argv[])
     sf::Mouse mouse;
     sf::Keyboard key;
 
-    vec3f original_pos = fight.parts[bodypart::LFOOT].pos;
+    vec3f original_pos = fight->parts[bodypart::LFOOT].pos;
 
     vec3f seek_pos = original_pos;
 
     vec3f rest_position = {0, -200, -100};
 
-    fighter* my_fight = &fight;
+    fighter* my_fight = fight;
 
     #ifdef SPACE
     lg::log("Presspace");
@@ -971,11 +971,16 @@ int main(int argc, char *argv[])
 
         if(server_browse.has_disconnected())
         {
+            delete my_fight;
+
             fighter* nfighter = new fighter(context);
 
             init_fighter(nfighter, &phys, s.quality, &current_state, context, transparency_context, s.name, true);
 
             my_fight = nfighter;
+
+            context.build(true);
+            transparency_context.build(true);
         }
 
         ui_manage.tick_render();

@@ -568,18 +568,18 @@ void server_browser::tick(float ftime_ms, server_networking& networking)
         }
     }
 
-    if(ImGui::Button("Disconnect"))
-    {
-        if(networking.connected_server.joined_server)
-        {
-            just_disconnected = true;
-
-            networking.connected_server.disconnect();
-        }
-    }
-
     if(networking.connected_server.joined_server)
     {
+        if(ImGui::Button("Disconnect"))
+        {
+            if(networking.connected_server.joined_server)
+            {
+                just_disconnected = true;
+
+                networking.connected_server.disconnect();
+            }
+        }
+
         std::string in_server_str = "Currently Connected to " + networking.connected_server.to_game.get_peer_ip() + ":" + networking.connected_server.to_game.get_peer_port();
 
         ImGui::Button(in_server_str.c_str());

@@ -165,7 +165,7 @@ part::part(bodypart_t t, object_context& context) : part(context)
 
 part::~part()
 {
-    model->set_active(false);
+    //model->set_active(false);
 }
 
 void part::set_active(bool active)
@@ -716,14 +716,19 @@ void fighter::fully_unload()
     for(part& p : parts)
     {
         p.obj()->set_active(false);
+        p.obj()->destroy_textures();
+
     }
 
     weapon.obj()->set_active(false);
+    weapon.obj()->destroy_textures();
+
     trombone_manage.fully_unload(this);
 
     for(link& l : joint_links)
     {
         l.obj->set_active(false);
+        l.obj->destroy_textures();
     }
 
     for(light* l : my_lights)
@@ -743,6 +748,15 @@ void fighter::fully_unload()
     network_id = -1;
 
     ctx.build_request();
+
+    for(auto& p : parts)
+        p.obj()->parent->destroy(p.obj());
+
+    weapon.obj()->parent->destroy(weapon.obj());
+
+    for(auto& l : joint_links)
+        l.obj->parent->destroy(l.obj);
+
 
     ///everything else should be raii'd. Network_id = -1 is just for myself so I can remember what's going better here
 }

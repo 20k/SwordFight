@@ -230,6 +230,8 @@ void trombone_manager::register_server_networking(fighter* my_fight, server_netw
 void trombone_manager::fully_unload(fighter* my_fight)
 {
     trombone->set_active(false);
+    trombone->destroy_textures();
+    trombone->parent->destroy(trombone);
 
     network_offset = -1;
     network_active_offset = -1;

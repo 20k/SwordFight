@@ -99,13 +99,14 @@ void game_server_session_resources::disconnect()
     {
         fighter* fight = net_fights.second.fight;
 
-        fight->fully_unload();
-
-        /*if(fight->network_id != my_id)
+        if(fight->network_id != my_id)
         {
             delete fight;
-            delete net_fights.second.net_fighter;
-        }*/
+        }
+
+        delete net_fights.second.net_fighter;
+
+        fight->fully_unload();
     }
 
     *this = game_server_session_resources();
