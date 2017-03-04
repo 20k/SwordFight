@@ -90,3 +90,23 @@ void game_server_session_resources::update_network_variable(server_networking* s
 
     network_update_element(server, net_map[num].ptr, &discovered_fighters[player_id], net_map[num].size);
 }
+
+void game_server_session_resources::disconnect()
+{
+    to_game.close();
+
+    for(auto net_fights : discovered_fighters)
+    {
+        fighter* fight = net_fights.second.fight;
+
+        fight->fully_unload();
+
+        /*if(fight->network_id != my_id)
+        {
+            delete fight;
+            delete net_fights.second.net_fighter;
+        }*/
+    }
+
+    *this = game_server_session_resources();
+}

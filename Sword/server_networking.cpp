@@ -125,6 +125,14 @@ void server_networking::set_game_to_join(int id)
     return set_game_to_join(serv.address, serv.their_host_port);
 }
 
+void server_networking::disconnect_game()
+{
+    connected_server.disconnect();
+
+    joined_game = false;
+    trying_to_join_game = false;
+}
+
 std::vector<game_server> server_networking::get_serverlist(byte_fetch& fetch)
 {
     int32_t server_num = fetch.get<int32_t>();

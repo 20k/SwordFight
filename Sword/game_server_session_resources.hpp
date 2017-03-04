@@ -143,6 +143,8 @@ struct game_server_session_resources
     {
         packet_callback_perplayer.erase(player_id);
     }
+
+    void disconnect();
 };
 
 #endif // GAME_SERVER_SESSION_RESOURCES_HPP_INCLUDED

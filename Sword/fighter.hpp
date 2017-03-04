@@ -785,6 +785,9 @@ struct server_networking;
 ///OK, its not the skeleton thats an issue, that's actually seemingly necessarily quite heavily integrated
 ///its the networking model, and directly networking components thats extremely problematic
 ///write an unload method that will unload models, and also remove the trombone from the networking system
+///in the future, we could solve physics things with a membership object
+///on init puts us in the physics system, on deconstruct removes us. Means we don't have to worry about it
+///ever
 struct fighter
 {
     trombone_manager trombone_manage;
