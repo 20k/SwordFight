@@ -991,7 +991,7 @@ int main(int argc, char *argv[])
             transparency_context.build(true);
         }
 
-        if(once<sf::Keyboard::F12>())
+        /*if(once<sf::Keyboard::F12>())
         {
             my_fight->fully_unload();
             delete my_fight;
@@ -1008,7 +1008,7 @@ int main(int argc, char *argv[])
 
             context.build(true);
             transparency_context.build(true);
-        }
+        }*/
 
         /*if(once<sf::Keyboard::F12>())
         {
