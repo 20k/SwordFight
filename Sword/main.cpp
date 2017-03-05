@@ -971,7 +971,8 @@ int main(int argc, char *argv[])
 
         ui_manage.tick_health_display(my_fight);
 
-        server_browse.tick(window.get_frametime_ms(), server);
+        if(controls_state == 0)
+            server_browse.tick(window.get_frametime_ms(), server);
 
         if(server_browse.has_disconnected())
         {
