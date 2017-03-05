@@ -112,7 +112,6 @@ void game_server_session_resources::disconnect()
             delete fight;
 
         delete net_fights.second.net_fighter;
-
     }
 
     *this = game_server_session_resources();

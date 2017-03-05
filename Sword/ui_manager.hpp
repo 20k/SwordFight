@@ -319,6 +319,7 @@ struct ui_manager
     void tick_frametime_graph(float ftime_ms, bool display);
     void tick_networking_graph(const network_statistics& net_stats);
 
+    void tick_health_display_old(fighter* my_fight);
     void tick_health_display(fighter* my_fight);
 
     void tick_render();

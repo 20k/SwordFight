@@ -964,6 +964,7 @@ void fighter::die()
 
     weapon.set_active(false);
     trombone_manage.set_active(false);
+    name_container->hide();
 
     //network::host_update(&net.dead);
 

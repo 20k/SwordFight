@@ -405,7 +405,7 @@ void ui_manager::tick_networking_graph(const network_statistics& net_stats)
     //ImGui::PlotLines("", &ftime_history[0], ftime_history.size(), 0, nullptr, minf, maxf, ImVec2(400, height));
 }
 
-void ui_manager::tick_health_display(fighter* my_fight)
+void ui_manager::tick_health_display_old(fighter* my_fight)
 {
     /*PlotHistogram(const char* label, const float* values, int values_count,
                   int values_offset = 0, const char* overlay_text = NULL,
@@ -416,7 +416,7 @@ void ui_manager::tick_health_display(fighter* my_fight)
 
     std::vector<float> vals;
     std::vector<std::string> labels;
-    std::string rtext;
+    //std::string rtext;
 
     for(int i=HEAD; i <= RFOOT; i++)
     {
@@ -426,7 +426,7 @@ void ui_manager::tick_health_display(fighter* my_fight)
         vals.push_back(my_fight->parts[i].hp);
         labels.push_back(short_names[i]);
 
-        rtext = rtext + short_names[i];
+        //rtext = rtext + short_names[i];
     }
 
     ImGui::Begin("Health Display");
@@ -472,6 +472,88 @@ void ui_manager::tick_health_display(fighter* my_fight)
     }
 
     ImGui::EndGroup();
+
+    ImGui::End();
+
+    any_render = true;
+}
+
+void ui_manager::tick_health_display(fighter* my_fight)
+{
+    using namespace bodypart;
+
+    std::vector<float> vals;
+    std::vector<std::string> labels;
+    int max_len_label = 0;
+
+    for(int i=HEAD; i <= RFOOT; i++)
+    {
+        if(i == LHAND || i == RHAND)
+            continue;
+
+        float hp_val = my_fight->parts[i].hp;
+
+        hp_val = clamp(hp_val, 0.f, 1.f);
+
+        vals.push_back(hp_val);
+        labels.push_back(short_names[i]);
+
+        max_len_label = std::max(max_len_label, (int)short_names[i].size());
+
+        //rtext = rtext + short_names[i];
+    }
+
+    ImGui::Begin("Health Display");
+
+    for(int i=0; i < labels.size(); i++)
+    {
+        std::string label = labels[i];
+
+        for(int kk=0; kk < max_len_label - labels[i].size(); kk++)
+        {
+            label = label + " ";
+        }
+
+        float hp_frac = vals[i];
+
+        vec4f start_col = {0.9, 0.9, 0.9, 1.f};
+        vec4f end_col = {0.8f, 0.2f, 0.2f, 1.f};
+
+        vec4f ccol = start_col * hp_frac + end_col * (1.f - hp_frac);
+
+        ImGui::Text(label.c_str());
+
+        ImGui::SameLine();
+
+        int cx = ImGui::GetCursorPosX();
+        int cy = ImGui::GetCursorPosY();
+
+        std::string idstr = "##" + std::to_string(i);
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6, 0.6, 0.6, 1));
+
+        ImGui::Button((idstr + "BACK").c_str(), ImVec2(102, 14));
+
+        ImGui::PopStyleColor();
+
+        ImGui::SetCursorPosX(cx+1);
+        ImGui::SetCursorPosY(cy+1);
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5, 0.5, 0.5, 1));
+
+        ImGui::Button(idstr.c_str(), ImVec2(100, 12));
+
+        ImGui::PopStyleColor();
+
+        ImGui::SetCursorPosX(cx+1);
+        ImGui::SetCursorPosY(cy+1);
+
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(ccol.x(), ccol.y(), ccol.z(), ccol.w()));
+
+        ImGui::Button(idstr.c_str(), ImVec2(100 * hp_frac, 12));
+
+        ImGui::PopStyleColor(););
+    }
 
     ImGui::End();
 
