@@ -515,11 +515,12 @@ void ui_manager::tick_health_display(fighter* my_fight)
         }
 
         float hp_frac = vals[i];
+        float hp_interpolate_frac = pow(hp_frac, 1.5f);
 
         vec4f start_col = {0.9, 0.9, 0.9, 1.f};
-        vec4f end_col = {0.8f, 0.2f, 0.2f, 1.f};
+        vec4f end_col = {0.8f, 0.1f, 0.1f, 1.f};
 
-        vec4f ccol = start_col * hp_frac + end_col * (1.f - hp_frac);
+        vec4f ccol = start_col * hp_interpolate_frac + end_col * (1.f - hp_interpolate_frac);
 
         ImGui::Text(label.c_str());
 
@@ -552,7 +553,7 @@ void ui_manager::tick_health_display(fighter* my_fight)
 
         ImGui::Button(idstr.c_str(), ImVec2(100 * hp_frac, 12));
 
-        ImGui::PopStyleColor(););
+        ImGui::PopStyleColor();
     }
 
     ImGui::End();
