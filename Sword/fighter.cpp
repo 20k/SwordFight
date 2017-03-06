@@ -126,7 +126,7 @@ const vec3f* bodypart::init_default()
 
 bool bodypart::is_invincible(bodypart b)
 {
-    return b == LHAND || b == RHAND || b == LUPPERLEG || b == RUPPERLEG || b == LLOWERLEG || b == RLOWERLEG || b == LFOOT || b == RFOOT;
+    return b == LHAND || b == RHAND || b == LLOWERLEG || b == RLOWERLEG || b == LFOOT || b == RFOOT;
 }
 
 bool bodypart::recoils_on_hit(bodypart b)
