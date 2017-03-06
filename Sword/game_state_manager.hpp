@@ -1,7 +1,8 @@
 #ifndef GAME_STATE_MANAGER_HPP_INCLUDED
 #define GAME_STATE_MANAGER_HPP_INCLUDED
 
-namespace game_state
+///this isn't game state at all! USELESS!
+/*namespace game_state
 {
     enum game_state
     {
@@ -22,6 +23,6 @@ struct state_manager
     void tick_options();
     void tick_serverbrowser();
     void tick_game();
-};
+};*/
 
 #endif // GAME_STATE_MANAGER_HPP_INCLUDED
