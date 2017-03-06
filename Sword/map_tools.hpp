@@ -29,6 +29,7 @@ map_test =
 };*/
 
 struct map_cube_info;
+struct world_collision_handler;
 
 struct world_map
 {
@@ -45,7 +46,7 @@ struct world_map
     bool is_wall(vec2f world_pos, const std::vector<int>& map_def, int width, int height);
     ///ok, update me to work with new cubemap system
     bool rectangle_in_wall(vec2f centre, vec2f dim, const std::vector<int>& map_def, int width, int height);
-    bool rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st);
+    bool rectangle_in_wall(vec2f centre, vec2f dim, world_collision_handler* collision_handler);
 };
 
 struct polygonal_world_map
@@ -60,40 +61,16 @@ struct polygonal_world_map
 
     bool is_wall(vec3f world_pos);
 
-    bool rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st);
+    bool rectangle_in_wall(vec2f centre, vec2f dim, world_collision_handler* collision_handler);
     float get_ground_height(vec3f pos, vec3f* optional_normal = nullptr);
 };
 
-struct game_mode_exec;
-
-namespace menu_state
-{
-    enum menu_state
-    {
-        MENU,
-        GAME,
-        COUNT
-    };
-}
-
-typedef menu_state::menu_state menu_t;
-
-
-///make gamemode implementation a polymorphic struct
-struct gameplay_state
+struct world_collision_handler
 {
     ///basically only used for collision
     polygonal_world_map current_map;
-    game_mode_t current_mode = game_mode::FIRST_TO_X;
-    game_mode_exec* mode_exec = nullptr;
-
-    menu_t current_menu;
 
     void set_map(polygonal_world_map& m);
-    void start_game_mode();
-
-    bool should_end_game_mode();
-    void end_game_mode();
 };
 
 ///what we really want is a map class

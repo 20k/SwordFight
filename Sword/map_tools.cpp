@@ -59,7 +59,7 @@ std::function<void(objects_container*)> world_map::get_load_func()
     return std::bind(load_map_cube, std::placeholders::_1, map_def, width, height);
 }
 
-void gameplay_state::set_map(polygonal_world_map& _map)
+void world_collision_handler::set_map(polygonal_world_map& _map)
 {
     current_map = _map;
 }
@@ -298,7 +298,7 @@ bool world_map::rectangle_in_wall(vec2f centre, vec2f dim, const std::vector<int
     return false;
 }
 
-bool world_map::rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st)
+bool world_map::rectangle_in_wall(vec2f centre, vec2f dim, world_collision_handler* st)
 {
     if(st == nullptr)
         return false;
@@ -313,7 +313,7 @@ bool polygonal_world_map::is_wall(vec3f world_pos)
     return false;
 }
 
-bool polygonal_world_map::rectangle_in_wall(vec2f centre, vec2f dim, gameplay_state* st)
+bool polygonal_world_map::rectangle_in_wall(vec2f centre, vec2f dim, world_collision_handler* st)
 {
     return false;
 }

@@ -397,11 +397,11 @@ cl_float4 get_c_pos(float frametime, const input_delta& input, engine& window, f
 
 #include <stdio.h>
 
-void init_fighter(fighter* fight, physics* phys, int quality, gameplay_state* current_state, object_context& ctx, object_context& secondary_context, std::string name, bool is_offline_client)
+void init_fighter(fighter* fight, physics* phys, int quality, world_collision_handler* collision_handler, object_context& ctx, object_context& secondary_context, std::string name, bool is_offline_client)
 {
     fight->set_team(0);
     fight->set_quality(quality);
-    fight->set_gameplay_state(current_state);
+    fight->set_world_collision_handler(collision_handler);
 
     ctx.load_active();
 
@@ -522,8 +522,8 @@ int main(int argc, char *argv[])
 
     server_browser server_browse;
 
-    gameplay_state current_state;
-    current_state.set_map(polygonal_map);
+    world_collision_handler collision_handler;
+    collision_handler.set_map(polygonal_map);
 
 
     lg::log("Post polygonal world map");
@@ -544,10 +544,10 @@ int main(int argc, char *argv[])
     context.load_active();
 
     fighter* fight = new fighter(context);
-    init_fighter(fight, &phys, s.quality, &current_state, context, transparency_context, s.name, true);
+    init_fighter(fight, &phys, s.quality, &collision_handler, context, transparency_context, s.name, true);
 
     fighter fight2(context);
-    init_fighter(&fight2, &phys, s.quality, &current_state, context, transparency_context, "Philip", true);
+    init_fighter(&fight2, &phys, s.quality, &collision_handler, context, transparency_context, "Philip", true);
 
     fight2.set_pos({0, 0, -650});
     fight2.set_rot({0, M_PI, 0});
@@ -980,7 +980,7 @@ int main(int argc, char *argv[])
 
             fighter* nfighter = new fighter(context);
 
-            init_fighter(nfighter, &phys, s.quality, &current_state, context, transparency_context, s.name, true);
+            init_fighter(nfighter, &phys, s.quality, &collision_handler, context, transparency_context, s.name, true);
 
             my_fight = nfighter;
 
@@ -999,7 +999,7 @@ int main(int argc, char *argv[])
 
             fighter* nfighter = new fighter(context);
 
-            init_fighter(nfighter, &phys, s.quality, &current_state, context, transparency_context, s.name, true);
+            init_fighter(nfighter, &phys, s.quality, &collision_handler, context, transparency_context, s.name, true);
 
             my_fight = nfighter;
 
@@ -1171,7 +1171,7 @@ int main(int argc, char *argv[])
         ///might remove a frame of input latency across the network
         ///or do threading *kill me*
         if(!in_menu)
-            server.tick(&context, &transparency_context, &current_state, &phys);
+            server.tick(&context, &transparency_context, &collision_handler, &phys);
 
         #ifdef DELAY_SIMULATE
         delay_tick();

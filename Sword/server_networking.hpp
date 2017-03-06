@@ -13,8 +13,10 @@
 
 struct fighter;
 struct object_context;
-struct gameplay_state;
 struct physics;
+struct world_collision_handler;
+struct server_networking;
+struct game_server;
 
 
 ///merge into the map_tool definition???
@@ -40,12 +42,6 @@ struct network_statistics
 ///weapon.model/pos/rot
 ///net.is_blocking
 ///net.recoil
-
-
-struct server_networking;
-
-
-struct game_server;
 
 struct in_progress_ping
 {
@@ -115,12 +111,12 @@ struct server_networking
     void disconnect_game();
 
     ///does not modify internal state
-    network_player make_networked_player(int32_t id, object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys, int quality);
+    network_player make_networked_player(int32_t id, object_context* ctx, object_context* tctx, world_collision_handler* hn, physics* phys, int quality);
 
     static std::vector<game_server> get_serverlist(byte_fetch& fetch);
 
     void print_serverlist(); ///debugging really
-    void tick(object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys);
+    void tick(object_context* ctx, object_context* tctx, world_collision_handler* collision_handler, physics* phys);
     void ping_master();
 
     std::vector<fighter*> get_fighters();

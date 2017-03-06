@@ -532,7 +532,7 @@ std::vector<game_server> merge_gameservers(const std::vector<game_server>& old_s
 ///so basically the whole client -> master server stuff is an infinite pile of total bullshit
 ///setting a server to join shouldn't be a tick operation, it should be a one off so we can do it through the UI
 ///rewrite this
-void server_networking::tick(object_context* ctx, object_context* tctx, gameplay_state* st, physics* phys)
+void server_networking::tick(object_context* ctx, object_context* tctx, world_collision_handler* collision_handler, physics* phys)
 {
     this_frame_stats = network_statistics();
 
@@ -653,7 +653,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, gameplay
 
                 if(connected_server.discovered_fighters[player_id].id == -1 && connected_server.have_id)
                 {
-                    connected_server.discovered_fighters[player_id] = make_networked_player(player_id, ctx, tctx, st, phys, graphics_settings);
+                    connected_server.discovered_fighters[player_id] = make_networked_player(player_id, ctx, tctx, collision_handler, phys, graphics_settings);
 
                     for(auto& i : connected_server.discovered_fighters)
                     {
@@ -1243,7 +1243,7 @@ void server_networking::print_serverlist()
 
 ///so, its possible that the spamming of no id is causing problems
 ///nope, thatll just leak memory, which is uuh. Fine? Probably causing huge memory leaks?
-network_player server_networking::make_networked_player(int32_t id, object_context* ctx, object_context* tctx, gameplay_state* current_state, physics* phys, int quality)
+network_player server_networking::make_networked_player(int32_t id, object_context* ctx, object_context* tctx, world_collision_handler* collision_handler, physics* phys, int quality)
 {
     fighter* net_fighter = new fighter(*ctx);
 
@@ -1251,7 +1251,7 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
     net_fighter->set_pos({0, 0, 0});
     net_fighter->set_rot({0, 0, 0});
     net_fighter->set_quality(quality); ///???
-    net_fighter->set_gameplay_state(current_state);
+    net_fighter->set_world_collision_handler(collision_handler);
 
     net_fighter->set_network_id(id);
 

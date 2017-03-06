@@ -779,7 +779,7 @@ struct clientside_parry_info
 };
 
 struct light;
-struct gameplay_state;
+struct world_collision_handler;
 
 struct network_fighter;
 struct server_networking;
@@ -837,7 +837,7 @@ struct fighter
 
     int side; ///as in team?
 
-    gameplay_state* game_state;
+    world_collision_handler* collision_handler;
 
     const vec3f* rest_positions;
 
@@ -892,7 +892,7 @@ struct fighter
     int quality; /// 0 = low, 1 = high
 
     void set_quality(int _quality);
-    void set_gameplay_state(gameplay_state* st);
+    void set_world_collision_handler(world_collision_handler* st);
 
     cape my_cape;
 

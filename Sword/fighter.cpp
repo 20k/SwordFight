@@ -713,7 +713,7 @@ fighter::fighter(object_context& _cpu_context) : weapon(_cpu_context), my_cape(_
     pos = {0,0,0};
     rot = {0,0,0};
 
-    game_state = nullptr;
+    collision_handler = nullptr;
 
     net_fighter_copy = new network_fighter;
 }
@@ -1104,9 +1104,9 @@ void fighter::set_quality(int _quality)
     }
 }
 
-void fighter::set_gameplay_state(gameplay_state* st)
+void fighter::set_world_collision_handler(world_collision_handler* st)
 {
-    game_state = st;
+    collision_handler = st;
 }
 
 void fighter::set_look(vec3f _look)
@@ -1647,8 +1647,8 @@ void fighter::tick(bool is_player)
     ///0 is normal, paths are about -60
     float ground_height = 0;
 
-    if(game_state != nullptr)
-        ground_height = -game_state->current_map.get_ground_height(pos);
+    if(collision_handler != nullptr)
+        ground_height = -collision_handler->current_map.get_ground_height(pos);
 
     float current_height = pos.v[1];
 
@@ -1825,12 +1825,12 @@ vec2f fighter::get_wall_corrected_move(vec2f pos, vec2f move_dir)
     vec2f dir_move = move_dir;
     vec2f lpos = pos;
 
-    if(game_state->current_map.rectangle_in_wall(lpos + (vec2f){dir_move.v[0], 0.f}, get_approx_dim(), game_state))
+    if(collision_handler->current_map.rectangle_in_wall(lpos + (vec2f){dir_move.v[0], 0.f}, get_approx_dim(), collision_handler))
     {
         dir_move.v[0] = 0.f;
         xw = true;
     }
-    if(game_state->current_map.rectangle_in_wall(lpos + (vec2f){0.f, dir_move.v[1]}, get_approx_dim(), game_state))
+    if(collision_handler->current_map.rectangle_in_wall(lpos + (vec2f){0.f, dir_move.v[1]}, get_approx_dim(), collision_handler))
     {
         dir_move.v[1] = 0.f;
         yw = true;
@@ -1839,7 +1839,7 @@ vec2f fighter::get_wall_corrected_move(vec2f pos, vec2f move_dir)
     ///if I move into wall, but yw and xw aren't true, stop
     ///there are some diagonal cases here which might result in funky movement
     ///but largely should be fine
-    if(game_state->current_map.rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state) && !xw && !yw)
+    if(collision_handler->current_map.rectangle_in_wall(lpos + dir_move, get_approx_dim(), collision_handler) && !xw && !yw)
     {
         dir_move = 0.f;
     }
@@ -1891,9 +1891,11 @@ void fighter::walk_dir(vec2f dir, bool sprint)
 {
     last_walk_dir = dir;
 
-    if(game_state == nullptr)
+    ///compiler might fuck this declaration if we don't terminate here
+    if(collision_handler == nullptr)
     {
-        lg::log("Warning: No gameplay state for fighter");
+        lg::log("Warning: No collision handler for fighter");
+        return;
     }
 
     if(jump_info.is_jumping)
@@ -1990,7 +1992,7 @@ void fighter::walk_dir(vec2f dir, bool sprint)
         ///just in case!
         ///disappearing may be because the pos is being destroyed by this
         ///hypothetical
-        if(!game_state->current_map.rectangle_in_wall(lpos + dir_move, get_approx_dim(), game_state))
+        if(!collision_handler->current_map.rectangle_in_wall(lpos + dir_move, get_approx_dim(), collision_handler))
         {
             float real_move = dir_move.length();
 
@@ -2672,11 +2674,11 @@ void fighter::update_render_positions()
         p.update_model();
     }
 
-    if(game_state != nullptr && !jump_info.is_jumping)
+    if(collision_handler != nullptr && !jump_info.is_jumping)
     {
         ///take normal, turn normal to axis angle, rotate foot about that. Ez
-        float lfoot_extra = -game_state->current_map.get_ground_height(parts[LFOOT].global_pos);
-        float rfoot_extra = -game_state->current_map.get_ground_height(parts[RFOOT].global_pos);
+        float lfoot_extra = -collision_handler->current_map.get_ground_height(parts[LFOOT].global_pos);
+        float rfoot_extra = -collision_handler->current_map.get_ground_height(parts[RFOOT].global_pos);
 
         vec3f lglobal = parts[LFOOT].global_pos;
         vec3f rglobal = parts[RFOOT].global_pos;
