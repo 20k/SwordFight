@@ -113,8 +113,6 @@
 		<Unit filename="../openclrenderer/goo.cpp" />
 		<Unit filename="../openclrenderer/goo.hpp" />
 		<Unit filename="../openclrenderer/hologram.hpp" />
-		<Unit filename="../openclrenderer/interact_manager.cpp" />
-		<Unit filename="../openclrenderer/interact_manager.hpp" />
 		<Unit filename="../openclrenderer/light.cpp" />
 		<Unit filename="../openclrenderer/light.hpp" />
 		<Unit filename="../openclrenderer/logging.cpp" />
@@ -164,8 +162,6 @@
 		<Unit filename="flat_poly_collision_handler.hpp" />
 		<Unit filename="game_server_session_resources.cpp" />
 		<Unit filename="game_server_session_resources.hpp" />
-		<Unit filename="game_state_manager.cpp" />
-		<Unit filename="game_state_manager.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="map_tools.cpp" />
 		<Unit filename="map_tools.hpp" />
