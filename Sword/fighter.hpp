@@ -262,6 +262,9 @@ namespace bodypart
     static const vec3f* default_position = init_default();
 
     constexpr const float specular = 0.75f;
+
+    bool is_invincible(bodypart b);
+    bool recoils_on_hit(bodypart b);
 }
 
 typedef bodypart::bodypart bodypart_t;

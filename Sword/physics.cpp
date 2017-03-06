@@ -160,8 +160,8 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     const float time = 500.f;
 
 
-    bool caused_hand_recoil = false;
-    cl_float4 hand_scr = {0,0,0,0};
+    bool caused_recoil = false;
+    cl_float4 recoil_scr = {0,0,0,0};
     vec3f rel = {0,0,0};
     fighter* fighter_hit = nullptr;
 
@@ -327,13 +327,13 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                 ///this doesn't get networked...?
                 ///networking has no idea what move they're currently doing
                 ///always send them a recoil regardless, and they can work it out
-                if((type == bodypart::LHAND || type == bodypart::RHAND))
+                if(bodypart::recoils_on_hit(type))
                 {
                     if(m1.does(mov::WINDUP) || m2.does(mov::WINDUP))
                     {
-                        hand_scr = scr;
+                        recoil_scr = scr;
 
-                        caused_hand_recoil = true;
+                        caused_recoil = true;
 
                         fighter_hit = them;
                     }
@@ -354,6 +354,11 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
                     ///not host authoratitive, but will stop the clientside detection from crapping out
                     ///if we hit their hand the same tick - latency and misdetecting a hit
 
+                    continue;
+                }
+
+                if(bodypart::is_invincible(type))
+                {
                     continue;
                 }
 
@@ -385,14 +390,14 @@ int physics::sword_collides(sword& w, fighter* my_parent, vec3f sword_move_dir, 
     ///breaks flow a little
     ///rel incorrect here????
     ///no, correct as confusingly set in above loop
-    if(caused_hand_recoil)
+    if(caused_recoil)
     {
         if(do_audiovisuals)
         {
             if(is_player)
-                text::add("Smack!", time, {hand_scr.x, hand_scr.y});
+                text::add("Smack!", time, {recoil_scr.x, recoil_scr.y});
             else
-                text::add_random("MY HAND!", time);
+                text::add_random("OUCH!", time);
         }
     }
 

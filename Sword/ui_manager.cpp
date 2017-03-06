@@ -488,7 +488,7 @@ void ui_manager::tick_health_display(fighter* my_fight)
 
     for(int i=HEAD; i <= RFOOT; i++)
     {
-        if(i == LHAND || i == RHAND)
+        if(bodypart::is_invincible((bodypart_t)i))
             continue;
 
         float hp_val = my_fight->parts[i].hp;
