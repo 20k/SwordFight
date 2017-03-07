@@ -502,6 +502,7 @@ int main(int argc, char *argv[])
 
     window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true, false);
     ImGui::SFML::Init(window.window);
+    ///ImGui::NewFrame(); //??????
     window.manual_input = true;
 
     window.raw_input_set_active(s.use_raw_input);
