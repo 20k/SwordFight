@@ -49,6 +49,8 @@ struct network_player
 
 ///should probably unify this
 ///put me into game_modes?
+///This is client gamemode wrapper
+///rename?
 struct gamemode_info
 {
     game_mode_handler_shared shared_game_state;
