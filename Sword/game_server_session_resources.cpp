@@ -7,6 +7,42 @@
 std::vector<delay_information> delay_vectors;
 float delay_ms = 200.f;
 
+void gamemode_info::process_gamemode_update(byte_fetch& arg)
+{
+    byte_fetch fetch = arg;
+
+    shared_game_state.current_game_mode = (game_mode_t)fetch.get<int32_t>();
+
+    shared_game_state.current_session_state = fetch.get<decltype(shared_game_state.current_session_state)>();
+    shared_game_state.current_session_boundaries = fetch.get<decltype(shared_game_state.current_session_boundaries)>();
+
+    /*max_time_elapsed = fetch.get<float>();
+    max_kills = fetch.get<int32_t>();*/
+
+    int32_t found_end = fetch.get<int32_t>();
+
+    if(found_end != canary_end)
+    {
+        lg::log("err in proces gamemode updates bad canary");
+        return;
+    }
+
+    arg = fetch;
+
+    ///so that our timer isn't just the servers time
+    shared_game_state.clk.restart();
+}
+
+void gamemode_info::tick()
+{
+    shared_game_state.tick(true);
+}
+
+bool gamemode_info::game_over()
+{
+    return shared_game_state.game_over();
+}
+
 void game_server_session_resources::update_fighter_name_infos()
 {
     for(auto& i : discovered_fighters)

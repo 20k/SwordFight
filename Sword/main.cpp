@@ -1181,13 +1181,13 @@ int main(int argc, char *argv[])
         //if(!server.joined_game && !in_menu)
         //    server.set_game_to_join(0);
 
-        std::string display_string = server.connected_server.game_info.get_display_string();
+        std::string display_string = server.connected_server.game_info.shared_game_state.get_display_string();
 
         text::add(display_string, 0, (vec2f){window.width/2.f, window.height - 20});
 
         if(server.connected_server.game_info.game_over())
         {
-            text::add(server.connected_server.game_info.get_game_over_string(), 0, (vec2f){window.width/2.f, window.height/2.f});
+            text::add(server.connected_server.game_info.shared_game_state.get_game_over_string(), 0, (vec2f){window.width/2.f, window.height/2.f});
         }
 
         ///network players don't die on a die

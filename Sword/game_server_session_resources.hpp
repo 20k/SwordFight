@@ -7,6 +7,7 @@
 #include "../sword_server/game_server/game_modes.hpp"
 #include <net/shared.hpp>
 #include "../openclrenderer/logging.hpp"
+#include "../sword_server/game_mode_shared.hpp"
 
 struct fighter;
 struct network_fighter; ///new fighter networking model
@@ -50,21 +51,13 @@ struct network_player
 ///put me into game_modes?
 struct gamemode_info
 {
-    game_mode_t current_mode;
-
-    session_state current_session_state;
-    session_boundaries current_session_boundaries;
+    game_mode_handler_shared shared_game_state;
 
     void process_gamemode_update(byte_fetch& fetch);
-
-    std::string get_display_string();
-    std::string get_game_over_string();
 
     void tick();
 
     bool game_over();
-
-    sf::Clock clk;
 };
 
 struct respawn_info

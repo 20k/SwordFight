@@ -1278,57 +1278,6 @@ network_player server_networking::make_networked_player(int32_t id, object_conte
     return play;
 }
 
-
-
-void gamemode_info::process_gamemode_update(byte_fetch& arg)
-{
-    byte_fetch fetch = arg;
-
-    current_mode = (game_mode_t)fetch.get<int32_t>();
-
-    current_session_state = fetch.get<decltype(current_session_state)>();
-    current_session_boundaries = fetch.get<decltype(current_session_boundaries)>();
-
-    /*max_time_elapsed = fetch.get<float>();
-    max_kills = fetch.get<int32_t>();*/
-
-    int32_t found_end = fetch.get<int32_t>();
-
-    if(found_end != canary_end)
-    {
-        lg::log("err in proces gamemode updates bad canary");
-        return;
-    }
-
-    arg = fetch;
-
-    clk.restart();
-}
-
-void gamemode_info::tick()
-{
-    current_session_state.time_elapsed += (clk.getElapsedTime().asMicroseconds() / 1000.f);
-    clk.restart();
-}
-
-bool gamemode_info::game_over()
-{
-    return current_session_state.game_over(current_session_boundaries);
-}
-
-///needs to be gamemode specific really
-std::string gamemode_info::get_game_over_string()
-{
-    return current_session_state.get_game_over_string(current_session_boundaries);
-}
-
-///gamemode?
-///centre align?
-std::string gamemode_info::get_display_string()
-{
-    return current_session_state.get_current_game_state_string(current_session_boundaries);
-}
-
 std::vector<fighter*> server_networking::get_fighters()
 {
     std::vector<fighter*> ret;
