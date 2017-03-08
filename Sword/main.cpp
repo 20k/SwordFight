@@ -395,27 +395,6 @@ cl_float4 get_c_pos(float frametime, const input_delta& input, engine& window, f
     return c_pos;
 }
 
-#include <stdio.h>
-
-void init_fighter(fighter* fight, physics* phys, int quality, world_collision_handler* collision_handler, object_context& ctx, object_context& secondary_context, std::string name, bool is_offline_client)
-{
-    fight->set_team(0);
-    fight->set_quality(quality);
-    fight->set_world_collision_handler(collision_handler);
-
-    ctx.load_active();
-
-    fight->set_physics(phys);
-
-    fight->is_offline_client = is_offline_client;
-
-    fight->set_secondary_context(&secondary_context);
-
-    lg::log("post set secondary context (transparency)");
-
-    fight->set_name(name);
-}
-
 ///make textures go from start to dark to end
 ///need to make sound not play multiple times
 ///build then flip is invalid

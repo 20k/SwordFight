@@ -784,6 +784,9 @@ struct world_collision_handler;
 struct network_fighter;
 struct server_networking;
 
+
+void init_fighter(fighter* fight, physics* phys, int quality, world_collision_handler* collision_handler, object_context& ctx, object_context& secondary_context, std::string name, bool is_offline_client);
+
 ///what a clusterfuck
 ///OK, its not the skeleton thats an issue, that's actually seemingly necessarily quite heavily integrated
 ///its the networking model, and directly networking components thats extremely problematic

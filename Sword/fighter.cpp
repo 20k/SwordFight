@@ -688,6 +688,26 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
     return l;
 }
 
+void init_fighter(fighter* fight, physics* phys, int quality, world_collision_handler* collision_handler, object_context& ctx, object_context& secondary_context, std::string name, bool is_offline_client)
+{
+    fight->set_team(0);
+    fight->set_quality(quality);
+    fight->set_world_collision_handler(collision_handler);
+
+    ctx.load_active();
+
+    fight->set_physics(phys);
+
+    fight->is_offline_client = is_offline_client;
+
+    fight->set_secondary_context(&secondary_context);
+
+    lg::log("post set secondary context (transparency)");
+
+    fight->set_name(name);
+}
+
+
 ///need to only maintain 1 copy of this, I'm just a muppet
 fighter::fighter(object_context& _cpu_context) : weapon(_cpu_context), my_cape(_cpu_context, *_cpu_context.fetch())
 {
