@@ -82,8 +82,6 @@ void leap_mocap_wrapper::set_team(int id)
     if(id == team)
         return;
 
-    lg::log("TEAM ", id, "\n\n\n\n\n\n\n\n\n\n\n");
-
     capture_manager.destroy_manual_containers();
 
     vec3f col = team_info::get_team_col(id);
