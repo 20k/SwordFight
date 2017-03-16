@@ -4,6 +4,7 @@
 #include "../Leap_motioncapture/leap_motion_capture_management.hpp"
 #include "../Leap_motioncapture/mocap_animation_management.hpp"
 #include "../Leap_motioncapture/perpetual_animation_management.hpp"
+#include "../sword_server/teaminfo_shared.hpp"
 
 struct object_context;
 struct objects_container;
@@ -41,6 +42,7 @@ namespace leap_animation_names
         false,
     };
 
+    inline
     bool same_hand(leap_animation_names::animation_names name, int hand)
     {
         ///throw?
@@ -63,6 +65,7 @@ using leap_animation_names_t = leap_animation_names::animation_names;
 ///call tick after updating fighter render positions
 struct leap_mocap_wrapper
 {
+    object_context* ctx;
     sf::Clock clk;
 
     leap_motion_capture_manager capture_manager;
@@ -70,18 +73,21 @@ struct leap_mocap_wrapper
     perpetual_animation_manager looping_animations;
 
     int hand;
+    int team = 0;
 
     float time_between_snaps_s = 10.f;
 
     ///hand_side 0 -> left, hand_side 1 -> right
     ///we're moving out of leap stuff and into fighter territory mashing together
     ///this this is now allowed to drastically venture into the wilds of fighter specific code
-    leap_mocap_wrapper(object_context& ctx, int hand_side);
+    leap_mocap_wrapper(object_context& ctx, int hand_side, vec3f col = team_info::get_team_col(0));
 
     void tick(objects_container* sword);
 
     ///animation ID, NOT replay ID, although these may be the same initially
     void transition(leap_animation_names_t animation_id);
+
+    void set_team(int id);
 
 private:
     ///called in tick

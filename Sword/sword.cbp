@@ -92,6 +92,12 @@
 			<Add option="-limm32" />
 			<Add option="-lSDL2" />
 		</Linker>
+		<Unit filename="../Leap_motioncapture/leap_motion_capture_management.cpp" />
+		<Unit filename="../Leap_motioncapture/leap_motion_capture_management.hpp" />
+		<Unit filename="../Leap_motioncapture/mocap_animation_management.cpp" />
+		<Unit filename="../Leap_motioncapture/mocap_animation_management.hpp" />
+		<Unit filename="../Leap_motioncapture/perpetual_animation_management.cpp" />
+		<Unit filename="../Leap_motioncapture/perpetual_animation_management.hpp" />
 		<Unit filename="../openclrenderer/Game/Galaxy/galaxy.cpp" />
 		<Unit filename="../openclrenderer/Game/Galaxy/galaxy.hpp" />
 		<Unit filename="../openclrenderer/Game/space_manager.cpp" />
@@ -164,6 +170,8 @@
 		<Unit filename="flat_poly_collision_handler.hpp" />
 		<Unit filename="game_server_session_resources.cpp" />
 		<Unit filename="game_server_session_resources.hpp" />
+		<Unit filename="leap_mocap_wrapper.cpp" />
+		<Unit filename="leap_mocap_wrapper.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="map_tools.cpp" />
 		<Unit filename="map_tools.hpp" />

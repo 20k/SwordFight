@@ -709,7 +709,9 @@ void init_fighter(fighter* fight, physics* phys, int quality, world_collision_ha
 
 
 ///need to only maintain 1 copy of this, I'm just a muppet
-fighter::fighter(object_context& _cpu_context) : weapon(_cpu_context), my_cape(_cpu_context, *_cpu_context.fetch())
+fighter::fighter(object_context& _cpu_context) : mocap_lhand_wrapper(_cpu_context, 0), mocap_rhand_wrapper(_cpu_context, 1),
+                                                 weapon(_cpu_context),
+                                                 my_cape(_cpu_context, *_cpu_context.fetch())
 {
     cpu_context = &_cpu_context;
 
@@ -1097,6 +1099,17 @@ void fighter::activate_current_weapon()
     {
         trombone_manage.set_active(true);
     }
+}
+
+objects_container* fighter::get_current_weapon_container()
+{
+    if(current_weapon == 0)
+        return weapon.obj();
+    if(current_weapon == 1)
+        return trombone_manage.trombone;
+
+    ///will never happen
+    return nullptr;
 }
 
 void fighter::tick_cape()
@@ -3218,6 +3231,15 @@ void fighter::check_clientside_parry(fighter* non_networked_fighter)
     }
 }
 
+void fighter::update_hand_mocap()
+{
+    mocap_lhand_wrapper.tick(get_current_weapon_container());
+    mocap_rhand_wrapper.tick(get_current_weapon_container());
+
+    parts[bodypart::LHAND].obj()->hide();
+    parts[bodypart::RHAND].obj()->hide();
+}
+
 ///this is on my client
 ///we need to recoil the hitter client
 void fighter::process_delayed_deltas()
@@ -3489,6 +3511,9 @@ void fighter::set_team(int _team)
 
     weapon.set_team(team);
 
+    mocap_lhand_wrapper.set_team(team);
+    mocap_rhand_wrapper.set_team(team);
+
     if(old == team)
         return;
 
@@ -3509,10 +3534,14 @@ void fighter::set_team(int _team)
     ///not the default positions
     ///which is pretty tard
     joint_links.push_back(make_link(&parts[LUPPERARM], &parts[LLOWERARM], team, squish));
+    #ifdef OLD_HANDS
     joint_links.push_back(make_link(&parts[LLOWERARM], &parts[LHAND], team, squish));
+    #endif
 
     joint_links.push_back(make_link(&parts[RUPPERARM], &parts[RLOWERARM], team, squish));
+    #ifdef OLD_HANDS
     joint_links.push_back(make_link(&parts[RLOWERARM], &parts[RHAND], team, squish));
+    #endif
 
     joint_links.push_back(make_link(&parts[LUPPERARM], &parts[BODY], team, squish));
     joint_links.push_back(make_link(&parts[RUPPERARM], &parts[BODY], team, squish));

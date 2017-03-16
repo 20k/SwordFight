@@ -1,10 +1,12 @@
 #include "leap_mocap_wrapper.hpp"
 
-leap_mocap_wrapper::leap_mocap_wrapper(object_context& ctx, int hand_side) : mocap_manager(&capture_manager)
+
+leap_mocap_wrapper::leap_mocap_wrapper(object_context& pctx, int hand_side, vec3f col) : ctx(&pctx), mocap_manager(&capture_manager)
 {
     hand = hand_side;
 
-    capture_manager.init_manual_containers(ctx, 1);
+    //capture_manager.init_manual_containers(*ctx, 1);
+    capture_manager.init_manual_containers_with_col(*ctx, 1, col);
 
     capture_manager.load("Mocap/");
 
@@ -32,8 +34,9 @@ leap_mocap_wrapper::leap_mocap_wrapper(object_context& ctx, int hand_side) : moc
     }
 
     looping_animations.looping_animations.push_back(base_loop);
+    looping_animations.currently_going.push_back(base_loop);
 
-    perpetual_animation& anim = looping_animations.looping_animations.back();
+    perpetual_animation& anim = looping_animations.currently_going.back();
 
     anim.start(&capture_manager);
 
@@ -59,6 +62,8 @@ void leap_mocap_wrapper::handle_automatic_transitions()
 
 void leap_mocap_wrapper::tick(objects_container* sword)
 {
+    assert(sword != nullptr);
+
     handle_automatic_transitions();
 
     capture_manager.hide_manual_containers();
@@ -72,10 +77,28 @@ void leap_mocap_wrapper::tick(objects_container* sword)
     fix_replays_clipping(capture_manager, sword);
 }
 
+void leap_mocap_wrapper::set_team(int id)
+{
+    if(id == team)
+        return;
+
+    lg::log("TEAM ", id, "\n\n\n\n\n\n\n\n\n\n\n");
+
+    capture_manager.destroy_manual_containers();
+
+    vec3f col = team_info::get_team_col(id);
+
+    *this = leap_mocap_wrapper(*ctx, hand, col);
+
+    team = id;
+}
+
 void leap_mocap_wrapper::transition(leap_animation_names_t animation_id)
 {
     if(!leap_animation_names::same_hand(animation_id, hand))
         return;
+
+    //lg::log("ANIM ID ", animation_id);
 
     mocap_animation& animation = mocap_manager.animations[animation_id];
 

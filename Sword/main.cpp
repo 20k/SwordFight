@@ -1259,6 +1259,8 @@ int main(int argc, char *argv[])
                 fight2.respawn({loc.v[0], loc.v[2]});
                 fight2.set_rot(rot);
             }
+
+            fight2.update_hand_mocap();
         }
 
         /*int hit_p = phys.sword_collides(fight.weapon, &fight, {0, 0, -1});
@@ -1328,6 +1330,9 @@ int main(int argc, char *argv[])
         ///so that the listener position is exactly the body part
         my_fight->do_foot_sounds(true);
         my_fight->trombone_manage.tick(window, my_fight);
+
+        my_fight->update_hand_mocap();
+
         //my_fight->trombone_manage.set_active(false);
         //trombone_manage.tick(window, my_fight);
         //trombone_manage.register_server_networking(&server);

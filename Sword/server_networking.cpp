@@ -1139,8 +1139,10 @@ void server_networking::tick(object_context* ctx, object_context* tctx, world_co
             continue;
         }
 
+        fighter* fight = i.second.fight;
+
         ///
-        i.second.fight->construct_from_network_fighter(*i.second.net_fighter);
+        fight->construct_from_network_fighter(*i.second.net_fighter);
 
         ///for some reason, its respawning the other player a 2/3 parts dead
         ///then 3/3 parts die, and then goes to 0/3 parts
@@ -1152,31 +1154,31 @@ void server_networking::tick(object_context* ctx, object_context* tctx, world_co
         ///this causes me to respawn the fighter
         ///then that causes me to overwrite their hp with the spawned fighter's hp
         ///ffs
-        i.second.fight->manual_check_part_alive();
+        fight->manual_check_part_alive();
 
         ///we need a die if appropriate too
-        i.second.fight->respawn_if_appropriate();
-        i.second.fight->checked_death();
+        fight->respawn_if_appropriate();
+        fight->checked_death();
 
-        i.second.fight->overwrite_parts_from_model();
-        i.second.fight->manual_check_part_death();
+        fight->overwrite_parts_from_model();
+        fight->manual_check_part_death();
 
         //i.second.fight->my_cape.tick(i.second.fight);
 
-        i.second.fight->shared_tick(this);
+        fight->shared_tick(this);
 
-        i.second.fight->tick_cape();
+        fight->tick_cape();
 
-        i.second.fight->do_foot_sounds();
+        fight->do_foot_sounds();
 
-        i.second.fight->update_texture_by_part_hp();
+        fight->update_texture_by_part_hp();
 
         ///this might cause a small delay as net sound will get sent NEXT tick
-        i.second.fight->check_and_play_sounds();
+        fight->check_and_play_sounds();
 
-        i.second.fight->position_cosmetics();
+        fight->position_cosmetics();
 
-        i.second.fight->update_last_hit_id();
+        fight->update_last_hit_id();
 
         ///we're setting my fighters network recoil stuff, but it isnt being applied for some reason
         ///probably due to the order of applying network models
@@ -1185,36 +1187,43 @@ void server_networking::tick(object_context* ctx, object_context* tctx, world_co
 #define ENABLE_CLIENTSIDE_PARRY
 #ifdef ENABLE_CLIENTSIDE_PARRY
         if(connected_server.have_id && connected_server.discovered_fighters[connected_server.my_id].fight)
-            i.second.fight->check_clientside_parry(connected_server.discovered_fighters[connected_server.my_id].fight);
+            fight->check_clientside_parry(connected_server.discovered_fighters[connected_server.my_id].fight);
 #endif
 
-        i.second.fight->network_update_render_positions();
+        fight->network_update_render_positions();
 
         ///uuh. there uuh. Ok
         ///Why is this here? Seriously?
         ///Subobjects for robustness?
-        i.second.fight->weapon.obj()->set_pos(i.second.fight->weapon.obj()->pos);
-        i.second.fight->weapon.obj()->set_rot(i.second.fight->weapon.obj()->rot);
+        fight->weapon.obj()->set_pos(fight->weapon.obj()->pos);
+        fight->weapon.obj()->set_rot(fight->weapon.obj()->rot);
+
+        fight->update_hand_mocap();
+
+        #ifndef OLD_HANDS
+        //fight->
+        ///shit forgot about trombone... uuh.. lets just hope it works
+        #endif // OLD_HANDS
 
         //i.second.fight->weapon.set_pos(xyz_to_vec(i.second.fight->weapon.obj()->pos));
         //i.second.fight->weapon.set_rot(xyz_to_vec(i.second.fight->weapon.obj()->rot));
 
 
         ///death is dynamically calculated from part health
-        if(!i.second.fight->dead())
+        if(!fight->dead())
         {
             //i.second.fight->update_name_info(true);
 
-            i.second.fight->update_lights();
+            fight->update_lights();
         }
 
         if(i.second.disconnect_timer.getElapsedTime().asMicroseconds() / 1000.f >= i.second.disconnect_time_ms
-                && !i.second.fight->dead())
+                && !fight->dead())
         {
-            i.second.fight->die();
+            fight->die();
             i.second.cleanup = true;
 
-            lg::log("Disconnected player ", i.second.fight->network_id);
+            lg::log("Disconnected player ", fight->network_id);
         }
     }
 

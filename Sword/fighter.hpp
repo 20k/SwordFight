@@ -11,6 +11,7 @@
 #include "bbox.hpp"
 
 #include "cape.hpp"
+#include "leap_mocap_wrapper.hpp"
 //#include "map_tools.hpp"
 
 struct damage_info
@@ -796,6 +797,9 @@ void init_fighter(fighter* fight, physics* phys, int quality, world_collision_ha
 ///ever
 struct fighter
 {
+    leap_mocap_wrapper mocap_lhand_wrapper;
+    leap_mocap_wrapper mocap_rhand_wrapper;
+
     trombone_manager trombone_manage;
 
     ///this is the modifiable network representation of the network fighter
@@ -942,6 +946,7 @@ struct fighter
     void update_texture_by_part_hp();
     void update_last_hit_id();
     void check_clientside_parry(fighter* non_networked_fighter);
+    void update_hand_mocap();
 
     void process_delayed_deltas();
     void eliminate_clientside_parry_invulnerability_damage();
@@ -994,6 +999,7 @@ struct fighter
     int current_weapon = 0;
     void set_weapon(int weapon_id);
     void activate_current_weapon();
+    objects_container* get_current_weapon_container();
 
     void tick_cape();
 
