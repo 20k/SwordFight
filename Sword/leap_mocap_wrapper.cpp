@@ -8,18 +8,6 @@ leap_mocap_wrapper::leap_mocap_wrapper(object_context& ctx, int hand_side) : moc
 
     capture_manager.load("Mocap/");
 
-    ///left_hand
-    /*if(hand == 0)
-    {
-        mocap_manager.push_mocap_animation(leap_replay_names::LIDLE1);
-    }
-    if(hand == 1)
-    {
-        mocap_manager.push_mocap_animation(leap_replay_names::RHAND_IDLE);
-    }
-
-    mocap_manager.finish_mocap_building_animation();*/
-
     mocap_manager.push_mocap_animation(leap_replay_names::LIDLE1);
     mocap_manager.finish_mocap_building_animation();
 
@@ -56,8 +44,23 @@ leap_mocap_wrapper::leap_mocap_wrapper(object_context& ctx, int hand_side) : moc
     RHAND_IDLE,*/
 }
 
+void leap_mocap_wrapper::handle_automatic_transitions()
+{
+    if(hand == 1)
+        return;
+
+    if(clk.getElapsedTime().asSeconds() > time_between_snaps_s)
+    {
+        clk.restart();
+
+        transition(leap_animation_names::LEFT_SNAP);
+    }
+}
+
 void leap_mocap_wrapper::tick(objects_container* sword)
 {
+    handle_automatic_transitions();
+
     capture_manager.hide_manual_containers();
 
     capture_manager.tick_replays();

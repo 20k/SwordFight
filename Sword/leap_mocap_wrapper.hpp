@@ -63,11 +63,15 @@ using leap_animation_names_t = leap_animation_names::animation_names;
 ///call tick after updating fighter render positions
 struct leap_mocap_wrapper
 {
+    sf::Clock clk;
+
     leap_motion_capture_manager capture_manager;
     mocap_animation_manager mocap_manager;
     perpetual_animation_manager looping_animations;
 
     int hand;
+
+    float time_between_snaps_s = 10.f;
 
     ///hand_side 0 -> left, hand_side 1 -> right
     ///we're moving out of leap stuff and into fighter territory mashing together
@@ -78,6 +82,11 @@ struct leap_mocap_wrapper
 
     ///animation ID, NOT replay ID, although these may be the same initially
     void transition(leap_animation_names_t animation_id);
+
+private:
+    ///called in tick
+    void handle_automatic_transitions();
+
 };
 
 #endif // LEAP_MOCAP_WRAPPER_HPP_INCLUDED
