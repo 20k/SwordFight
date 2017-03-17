@@ -100,5 +100,6 @@ void leap_mocap_wrapper::transition(leap_animation_names_t animation_id)
 
     mocap_animation& animation = mocap_manager.animations[animation_id];
 
-    looping_animations.currently_going.back().interrupt_with_animation(&capture_manager, animation);
+    //looping_animations.currently_going.back().interrupt_with_animation(&capture_manager, animation);
+    looping_animations.currently_going.back().add_animation(animation);
 }

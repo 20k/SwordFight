@@ -571,7 +571,7 @@ sword::sword(object_context& cpu)
 
     model->set_pos({0, 0, -100});
     dir = {0,0,0};
-    model->set_file("./Res/sword_red.obj");
+    model->set_file("./Res/sword_red_long.obj");
     //model->set_file("./Res/trombone_cutdown_nomod.obj");
     team = -1;
 }

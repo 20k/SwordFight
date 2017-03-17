@@ -35,7 +35,7 @@ namespace mov
         ///as a consequence of the animation system, start_independent is not necessary. I might keep it for clarity however
         LOCKS_ARMS = 1 << 7, ///for visual reasons, some attacks might want to lock the arms
         PASS_THROUGH_SCREEN_CENTRE = 1 << 8,
-        FINISH_AT_90 = 1 << 9, ///degrees, ie perpendicular to the normal sword rotation
+        FINISH_AT_90 = 1 << 9, ///degrees, ie perpendicular to the normal sword rotastion
         ///we need a CAN_BE_COMBINED tag, which means that two movements can be applied at once
         FINISH_AT_SCREEN_CENTRE = 1 << 10,
         OVERHEAD_HACK = 1 << 11, ///hack to fix overhead through centre
