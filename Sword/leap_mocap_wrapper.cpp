@@ -73,7 +73,7 @@ void leap_mocap_wrapper::tick(objects_container* sword)
     mocap_manager.tick();
     looping_animations.tick(&capture_manager);
 
-    attach_replays_to_fighter_sword(capture_manager, sword);
+    attach_replays_to_fighter_sword(capture_manager, sword, 0.6f, 10 * 0.8f);
     fix_replays_clipping(capture_manager, sword);
 }
 

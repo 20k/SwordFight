@@ -1344,8 +1344,17 @@ int main(int argc, char *argv[])
 
         if(window.max_input_lag_frames == 0)
         {
-            context.flush_locations();
-            transparency_context.flush_locations();
+            //if(window.event_queue.size() > 0)
+            {
+                context.flush_locations();
+                transparency_context.flush_locations();
+
+                cl_event barrier;
+                clEnqueueBarrierWithWaitList(cl::cqueue2.get(), 0, nullptr, &barrier);
+                clEnqueueBarrierWithWaitList(cl::cqueue.get(), 1, &barrier, nullptr);
+
+                clReleaseEvent(barrier);
+            }
         }
 
         if(!my_fight->dead())
