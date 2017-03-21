@@ -709,8 +709,9 @@ void init_fighter(fighter* fight, physics* phys, int quality, world_collision_ha
 
 
 ///need to only maintain 1 copy of this, I'm just a muppet
-fighter::fighter(object_context& _cpu_context) : lhand_model(_cpu_context),
-                                                 rhand_model(_cpu_context),
+fighter::fighter(object_context& _cpu_context) :
+                                                 //lhand_model(_cpu_context),
+                                                 //rhand_model(_cpu_context),
                                                  mocap_lhand_wrapper(_cpu_context, 0),
                                                  mocap_rhand_wrapper(_cpu_context, 1),
                                                  weapon(_cpu_context),
@@ -3239,8 +3240,8 @@ void fighter::update_hand_mocap()
     mocap_lhand_wrapper.tick(get_current_weapon_container());
     mocap_rhand_wrapper.tick(get_current_weapon_container());
 
-    lhand_model.position(mocap_lhand_wrapper.capture_manager.ctrs);
-    rhand_model.position(mocap_rhand_wrapper.capture_manager.ctrs);
+    //lhand_model.position(mocap_lhand_wrapper.capture_manager.ctrs);
+    //rhand_model.position(mocap_rhand_wrapper.capture_manager.ctrs);
 
     parts[bodypart::LHAND].obj()->hide();
     parts[bodypart::RHAND].obj()->hide();

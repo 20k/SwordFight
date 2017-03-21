@@ -797,8 +797,8 @@ void init_fighter(fighter* fight, physics* phys, int quality, world_collision_ha
 ///ever
 struct fighter
 {
-    hand_cosmetics lhand_model;
-    hand_cosmetics rhand_model;
+    //hand_cosmetics lhand_model;
+    //hand_cosmetics rhand_model;
     leap_mocap_wrapper mocap_lhand_wrapper;
     leap_mocap_wrapper mocap_rhand_wrapper;
 
