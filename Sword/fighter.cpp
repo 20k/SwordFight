@@ -3245,6 +3245,16 @@ void fighter::update_hand_mocap()
 
     parts[bodypart::LHAND].obj()->hide();
     parts[bodypart::RHAND].obj()->hide();
+
+    /*for(objects_container* obj : mocap_lhand_wrapper.capture_manager.ctrs)
+    {
+        obj->hide();
+    }
+
+    for(objects_container* obj : mocap_rhand_wrapper.capture_manager.ctrs)
+    {
+        obj->hide();
+    }*/
 }
 
 ///this is on my client

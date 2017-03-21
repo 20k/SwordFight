@@ -1345,14 +1345,37 @@ int main(int argc, char *argv[])
         if(window.max_input_lag_frames == 0)
         {
             ///i get the increasing feeling this function is real slow
-            context.flush_locations();
-            transparency_context.flush_locations();
 
-            cl_event barrier;
-            clEnqueueBarrierWithWaitList(cl::cqueue2.get(), 0, nullptr, &barrier);
-            clEnqueueBarrierWithWaitList(cl::cqueue.get(), 1, &barrier, nullptr);
+            static bool one = false;
 
-            clReleaseEvent(barrier);
+            //if(!one)
+            //{
+
+                context.flush_locations();
+
+                //cl_event barrier;
+                //clEnqueueMarkerWithWaitList(cl::cqueue2.get(), 0, nullptr, &barrier);
+
+                transparency_context.flush_locations();
+
+                //one = true;
+            //}
+
+            //cl_event barrier;
+            //clEnqueueMarkerWithWaitList(cl::cqueue2.get(), 0, nullptr, &barrier);
+
+            //window.generate_realtime_shadowing(*context.fetch());
+
+            //clEnqueueMarkerWithWaitList(cl::cqueue.get(), 1, &barrier, nullptr);
+
+            /*cl_event barrier;
+            //clEnqueueBarrierWithWaitList(cl::cqueue2.get(), 0, nullptr, &barrier);
+            //clEnqueueBarrierWithWaitList(cl::cqueue.get(), 1, &barrier, nullptr);
+
+            clEnqueueMarkerWithWaitList(cl::cqueue2.get(), 0, nullptr, &barrier);
+            clEnqueueMarkerWithWaitList(cl::cqueue.get(), 1, &barrier, nullptr);
+
+            clReleaseEvent(barrier);*/
         }
 
         if(!my_fight->dead())
