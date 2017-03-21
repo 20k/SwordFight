@@ -90,6 +90,11 @@ void ui_manager::tick_settings(float ftime_ms)
     mouse_sensitivity.set_bound(0.001f, 100.f);
     vals.mouse_sens = mouse_sensitivity.instantiate_and_get("Mouse sens").ret;
 
+    if(ImGui::IsItemHovered())
+    {
+        ImGui::SetTooltip("Source mouse sens");
+    }
+
     vals.width = res_x.instantiate_and_get("Res x").ret;
     vals.height = res_y.instantiate_and_get("Res y").ret;
 
