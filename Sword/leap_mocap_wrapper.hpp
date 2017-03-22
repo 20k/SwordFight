@@ -89,10 +89,11 @@ struct leap_mocap_wrapper
 
     void set_team(int id);
 
+    vec3f get_hand_pos();
+
 private:
     ///called in tick
     void handle_automatic_transitions();
-
 };
 
 #endif // LEAP_MOCAP_WRAPPER_HPP_INCLUDED

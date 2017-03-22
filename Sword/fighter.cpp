@@ -1719,11 +1719,15 @@ void fighter::tick(bool is_player)
     shoulder_rotation += (wangle - shoulder_rotation) + shoulder_rotation * 5.f;
     shoulder_rotation /= 6;
 
-
+    ///FIX FIX FIX see below
     IK_hand(0, rot_focus, shoulder_rotation, arms_are_locked);
+    //IK_hand(0, mocap_lhand_pos, shoulder_rotation, arms_are_locked);
 
     if(!rhand_overridden)
+    {
         IK_hand(1, parts[LHAND].pos, shoulder_rotation, arms_are_locked, true);
+        //IK_hand(1, mocap_rhand_pos, shoulder_rotation, arms_are_locked, true);
+    }
     else
     {
         IK_hand(1, rhand_override_pos, shoulder_rotation, arms_are_locked, true);
@@ -1779,8 +1783,22 @@ void fighter::tick(bool is_player)
     IK_foot(0, parts[LFOOT].pos, {0, -cdist * crouch_frac, 0}, {0, -cdist * crouch_frac, 0}, {0,0,0});
     IK_foot(1, parts[RFOOT].pos, {0, -cdist * crouch_frac, 0}, {0, -cdist * crouch_frac, 0}, {0,0,0});
 
+    ///ok so this sets the weapon pos to be the left hand position
+    ///but if we set the left hand position to be the mocap hands, this breaks everything (feedback essentially)
+    ///ie we need to calculate this independently
     weapon.set_pos(parts[bodypart::LHAND].pos);
 
+
+    ///problem is that the mocap position dependent on hand position
+    /*vec3f mocap_lhand_pos = mocap_lhand_wrapper.get_hand_pos().back_rot(0.f, rot);
+    vec3f mocap_rhand_pos = mocap_rhand_wrapper.get_hand_pos().back_rot(0.f, rot);
+
+    IK_hand(0, mocap_lhand_pos, shoulder_rotation, arms_are_locked);
+
+    if(!rhand_overridden)
+    {
+        IK_hand(1, mocap_rhand_pos, shoulder_rotation, arms_are_locked, true);
+    }*/
 
     ///process death
 

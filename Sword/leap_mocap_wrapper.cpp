@@ -103,3 +103,22 @@ void leap_mocap_wrapper::transition(leap_animation_names_t animation_id)
     //looping_animations.currently_going.back().interrupt_with_animation(&capture_manager, animation);
     looping_animations.currently_going.back().add_animation(animation);
 }
+
+vec3f leap_mocap_wrapper::get_hand_pos()
+{
+    for(auto& rmap : capture_manager.currently_replaying_map)
+    {
+        current_replay& replay = rmap.second;
+
+        int cid = 2 * 4 + 0;
+
+        if(cid >= replay.containers.size())
+            return {0.f,0,0};
+
+        //printf("ello %f %f %f\n", replay.containers[cid]->pos.x, replay.containers[cid]->pos.y, replay.containers[cid]->pos.z);
+
+        return xyz_to_vec(replay.containers[cid]->pos);
+    }
+
+    return {0.f,0,0};
+}
