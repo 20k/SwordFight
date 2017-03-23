@@ -1747,6 +1747,9 @@ void fighter::tick(bool is_player)
 
         //lg::log("NEW OLD ", EXPAND_3(mocap_lhand_pos), " ", EXPAND_3(backup_lhand));
 
+        ///this is not an error future me, leap motion hand models are identified correctly as left/right from a biology perspective
+        ///whereas past idiot james used what i could SEE as the hands, so left/right are reversed from what you would expect
+        ///this is virtually never an issue except for interop
         IK_hand(0, mocap_rhand_pos, shoulder_rotation, arms_are_locked);
 
         if(!rhand_overridden)
