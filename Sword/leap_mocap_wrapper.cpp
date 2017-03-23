@@ -117,6 +117,13 @@ vec3f leap_mocap_wrapper::get_hand_pos()
 
         //printf("ello %f %f %f\n", replay.containers[cid]->pos.x, replay.containers[cid]->pos.y, replay.containers[cid]->pos.z);
 
+        ///this is baffling. Where the christ are the nans coming from?
+        ///Oh well. IM SURE NO ISSUES WHATSOEVER WILL ARISE FROM ME THINKING THIS IS FIXED
+        ///Ok. Underlying data has nans in. We've fixed the capture management to not allow nans to filter though
+        ///We really need to process underlying data and remove any nan frames. How did nans even sneak into the data in the first place?
+        //if(any_nan(xyz_to_vec(replay.containers[cid]->pos)))
+        //    continue;
+
         return xyz_to_vec(replay.containers[cid]->pos);
     }
 

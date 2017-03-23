@@ -1190,9 +1190,11 @@ float get_joint_angle(vec3f end_pos, vec3f start_pos, float s2, float s3)
 
     s1 = clamp(s1, 0.f, s2 + s3);
 
+    //printf("%f %f %f %f %f %f %f %f\n", EXPAND_3(end_pos), EXPAND_3(start_pos), s2, s3);
+
     float ic = (s2 * s2 + s3 * s3 - s1 * s1) / (2 * s2 * s3);
 
-    ic = clamp(ic, -1, 1);
+    ic = clamp(ic, -1.f, 1.f);
 
     float angle = acos ( ic );
 
@@ -1207,7 +1209,7 @@ float get_joint_angle_foot(vec3f end_pos, vec3f start_pos, float s2, float s3)
 
     float ic = (s2 * s2 + s3 * s3 - s1 * s1) / (2 * s2 * s3);
 
-    ic = clamp(ic, -1, 1);
+    ic = clamp(ic, -1.f, 1.f);
 
     float angle = acos ( ic );
 
@@ -1222,6 +1224,8 @@ void inverse_kinematic(vec3f pos, vec3f p1, vec3f p2, vec3f p3, vec3f& o_p1, vec
     float s3 = (p3 - p2).length();
 
     float joint_angle = get_joint_angle(pos, p1, s2, s3);
+
+    //printf("JANGLE %f\n", joint_angle);
 
     float max_len = (p3 - p1).length();
 
@@ -1733,6 +1737,27 @@ void fighter::tick(bool is_player)
         IK_hand(1, rhand_override_pos, shoulder_rotation, arms_are_locked, true);
     }
 
+    {
+        ///problem is that the mocap position dependent on hand position
+        vec3f mocap_lhand_pos = (mocap_lhand_wrapper.get_hand_pos() - pos).back_rot(0.f, rot);
+        vec3f mocap_rhand_pos = (mocap_rhand_wrapper.get_hand_pos() - pos).back_rot(0.f, rot);
+
+        vec3f backup_lhand = parts[bodypart::LHAND].pos;
+        vec3f backup_rhand = parts[bodypart::RHAND].pos;
+
+        //lg::log("NEW OLD ", EXPAND_3(mocap_lhand_pos), " ", EXPAND_3(backup_lhand));
+
+        IK_hand(0, mocap_rhand_pos, shoulder_rotation, arms_are_locked);
+
+        if(!rhand_overridden)
+        {
+            IK_hand(1, mocap_lhand_pos, shoulder_rotation, arms_are_locked, true);
+        }
+
+        parts[bodypart::LHAND].set_pos(backup_lhand);
+        parts[bodypart::RHAND].set_pos(backup_rhand);
+    }
+
     vec3f slave_to_master = parts[LHAND].pos - parts[RHAND].pos;
 
     ///dt smoothing doesn't work because the shoulder position is calculated
@@ -1787,18 +1812,6 @@ void fighter::tick(bool is_player)
     ///but if we set the left hand position to be the mocap hands, this breaks everything (feedback essentially)
     ///ie we need to calculate this independently
     weapon.set_pos(parts[bodypart::LHAND].pos);
-
-
-    ///problem is that the mocap position dependent on hand position
-    /*vec3f mocap_lhand_pos = mocap_lhand_wrapper.get_hand_pos().back_rot(0.f, rot);
-    vec3f mocap_rhand_pos = mocap_rhand_wrapper.get_hand_pos().back_rot(0.f, rot);
-
-    IK_hand(0, mocap_lhand_pos, shoulder_rotation, arms_are_locked);
-
-    if(!rhand_overridden)
-    {
-        IK_hand(1, mocap_rhand_pos, shoulder_rotation, arms_are_locked, true);
-    }*/
 
     ///process death
 
