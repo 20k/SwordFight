@@ -447,6 +447,7 @@ int main(int argc, char *argv[])
     object_context_data* gpu_context = context.fetch();
 
     object_context transparency_context;
+    transparency_context.set_use_linear_rendering(0);
 
     #define COMBO_BLEND
     #ifdef COMBO_BLEND
@@ -477,6 +478,7 @@ int main(int argc, char *argv[])
     window.append_opencl_extra_command_line("-D SHADOWBIAS=150");
     window.append_opencl_extra_command_line("-D MIP_BIAS=2.f");
     window.append_opencl_extra_command_line("-D CAN_INTEGRATED_BLEND");
+    window.append_opencl_extra_command_line("-D TEST_LINEAR");
     //window.append_opencl_extra_command_line("-D STYLISED");
 
     window.load(s.width,s.height, 1000, title, "../openclrenderer/cl2.cl", true, false);
