@@ -66,6 +66,16 @@ void leap_mocap_wrapper::handle_automatic_transitions()
     }
 }
 
+vec3f get_trombone_lhand_offset(vec3f up)
+{
+    return up * 40;
+}
+
+vec3f get_trombone_rhand_offset(vec3f up)
+{
+    return up * -10;
+}
+
 void leap_mocap_wrapper::tick(objects_container* sword)
 {
     assert(sword != nullptr);
@@ -83,7 +93,17 @@ void leap_mocap_wrapper::tick(objects_container* sword)
 
     if(pose == 1)
     {
+        quat lhand_quat;
+        quat rhand_quat;
 
+        lhand_quat.load_from_axis_angle({0, 0, 1, -M_PI/2});
+        rhand_quat.load_from_axis_angle({0, 0, 1, M_PI/2});
+
+        offset_info.lhand_rot = lhand_quat;
+        offset_info.rhand_rot = rhand_quat;
+
+        offset_info.get_lhand_offset = get_trombone_lhand_offset;
+        offset_info.get_rhand_offset = get_trombone_rhand_offset;
     }
 
     attach_replays_to_fighter_sword(capture_manager, sword, 0.6f, 10 * 0.8f, offset_info);

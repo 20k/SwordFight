@@ -179,7 +179,7 @@ void trombone_manager::position_model(fighter* my_fight)
     trombone->objs[9].set_pos(conv_implicit<cl_float4>(front_slider));
     trombone->objs[2].set_pos(conv_implicit<cl_float4>(front_slider));
 
-    my_fight->override_rhand_pos((front_slider - my_fight->pos).back_rot(0, my_fight->rot));
+    //my_fight->override_rhand_pos((front_slider - my_fight->pos).back_rot(0, my_fight->rot));
 }
 
 void trombone_manager::play(fighter* my_fight, int offset)
