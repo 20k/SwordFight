@@ -675,6 +675,7 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
     objects_container* o = p1->cpu_context->make_new();
     o->set_load_func(std::bind(load_object_cube_tex, std::placeholders::_1, start, finish, thickness, *ntex, false));
     o->cache = false;
+    o->set_active(true);
 
     p1->cpu_context->load_active();
 
@@ -3615,10 +3616,10 @@ void fighter::set_team(int _team)
     joint_links.push_back(make_link(&parts[LLOWERLEG], &parts[LFOOT], team, squish));
     joint_links.push_back(make_link(&parts[RLOWERLEG], &parts[RFOOT], team, squish));
 
-    for(auto& i : joint_links)
+    /*for(auto& i : joint_links)
     {
         i.obj->set_active(true);
-    }
+    }*/
 
     cpu_context->load_active();
 
