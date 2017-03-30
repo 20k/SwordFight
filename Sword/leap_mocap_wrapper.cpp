@@ -19,7 +19,13 @@ leap_mocap_wrapper::leap_mocap_wrapper(object_context& pctx, int hand_side, vec3
     mocap_manager.push_mocap_animation(leap_replay_names::LSNAP_FAST);
     mocap_manager.finish_mocap_building_animation();
 
+    mocap_manager.push_mocap_animation(leap_replay_names::LTROMBONE);
+    mocap_manager.finish_mocap_building_animation();
+
     mocap_manager.push_mocap_animation(leap_replay_names::RHAND_IDLE);
+    mocap_manager.finish_mocap_building_animation();
+
+    mocap_manager.push_mocap_animation(leap_replay_names::RTROMBONE);
     mocap_manager.finish_mocap_building_animation();
 
     perpetual_animation base_loop;
@@ -73,8 +79,17 @@ void leap_mocap_wrapper::tick(objects_container* sword)
     mocap_manager.tick();
     looping_animations.tick(&capture_manager);
 
-    attach_replays_to_fighter_sword(capture_manager, sword, 0.6f, 10 * 0.8f);
-    fix_replays_clipping(capture_manager, sword);
+    hand_offset_info offset_info;
+
+    if(pose == 1)
+    {
+
+    }
+
+    attach_replays_to_fighter_sword(capture_manager, sword, 0.6f, 10 * 0.8f, offset_info);
+
+    if(pose == 0)
+        fix_replays_clipping(capture_manager, sword);
 }
 
 void leap_mocap_wrapper::set_team(int id)

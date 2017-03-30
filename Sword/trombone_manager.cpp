@@ -142,26 +142,35 @@ void trombone_manager::position_model(fighter* my_fight)
         return;
     }
 
-    trombone->set_pos(conv_implicit<cl_float4>(my_fight->parts[bodypart::LHAND].global_pos));
+    vec3f trombone_offset = {20, 40, -20};
+
+    vec3f reference_pos = my_fight->parts[bodypart::LHAND].global_pos;
+
+    vec3f local_pos = my_fight->parts[bodypart::LHAND].pos + trombone_offset;
 
     vec3f up = {0, 1, 0};
-    vec3f forw = my_fight->parts[bodypart::LHAND].global_pos - (my_fight->parts[bodypart::HEAD].global_pos - (vec3f){0, 50, 0});
+    vec3f forw = reference_pos - (my_fight->parts[bodypart::HEAD].global_pos - (vec3f){0, 50, 0});
 
     ///horizontal shift term
     vec3f rcross = cross(forw, up).norm() * 50;
 
-    forw = my_fight->parts[bodypart::LHAND].global_pos - (my_fight->parts[bodypart::HEAD].global_pos - (vec3f){0, 50, 0} - rcross);
+    forw = reference_pos - (my_fight->parts[bodypart::HEAD].global_pos - (vec3f){0, 50, 0} - rcross);
 
     quaternion nq = look_at_quat(forw, up);
 
     quaternion izquat;
     izquat.load_from_axis_angle({0, 1, 0, -my_fight->rot.v[1]});
 
-    trombone->set_rot_quat(nq * izquat);
+    quaternion final_rot_quat = nq * izquat;
+
+    vec3f final_pos = local_pos.rot(0.f, my_fight->rot) + my_fight->pos;
+
+    trombone->set_pos(conv_implicit<cl_float4>(final_pos));
+    trombone->set_rot_quat(final_rot_quat);
 
     float tone_dist = 3.5f;
 
-    vec3f front_slider = my_fight->parts[bodypart::LHAND].global_pos;
+    vec3f front_slider = final_pos;
 
     mat3f r = trombone->rot_quat.get_rotation_matrix();
 

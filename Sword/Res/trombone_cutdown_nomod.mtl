@@ -1,4 +1,4 @@
-# Blender MTL File: 'trombone_cutdown_nomod.blend'
+# Blender MTL File: 'None'
 # Material Count: 11
 
 newmtl Line01
@@ -13,7 +13,7 @@ illum 2
 map_Kd yellow.png
 
 newmtl Line03
-Ns 88.235294
+Ns 86.274510
 Ka 0.111133 0.111133 0.111133
 Kd 0.729400 0.725500 0.521600
 Ks 0.894100 0.894100 0.894100
@@ -46,7 +46,7 @@ illum 2
 map_Kd yellow.png
 
 newmtl Loft01
-Ns 88.235294
+Ns 86.274510
 Ka 0.111133 0.111133 0.111133
 Kd 0.729400 0.725500 0.521600
 Ks 0.894100 0.894100 0.894100
@@ -57,7 +57,7 @@ illum 2
 map_Kd yellow.png
 
 newmtl Loft02
-Ns 88.235294
+Ns 86.274510
 Ka 0.111133 0.111133 0.111133
 Kd 0.729400 0.725500 0.521600
 Ks 0.894100 0.894100 0.894100
@@ -68,7 +68,7 @@ illum 2
 map_Kd yellow.png
 
 newmtl Shape02
-Ns 88.235294
+Ns 86.274510
 Ka 0.111133 0.111133 0.111133
 Kd 0.729400 0.725500 0.521600
 Ks 0.894100 0.894100 0.894100

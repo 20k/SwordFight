@@ -17,7 +17,9 @@ namespace leap_replay_names
         LIDLE1,
         LSNAP,
         LSNAP_FAST,
+        LTROMBONE,
         RHAND_IDLE,
+        RTROMBONE,
         COUNT
     };
 }
@@ -29,7 +31,9 @@ namespace leap_animation_names
         LEFT_IDLE,
         LEFT_SNAP,
         LEFT_SNAP_FAST,
+        LEFT_TROMBONE_IDLE,
         RIGHT_IDLE,
+        RIGHT_TROMBONE_IDLE,
         COUNT
     };
 
@@ -39,6 +43,8 @@ namespace leap_animation_names
         true,
         true,
         true,
+        true,
+        false,
         false,
     };
 
