@@ -57,6 +57,9 @@ void trombone_manager::init(object_context* _ctx)
     trombone->cache = false;
 
     ctx->load_active();
+
+    trombone->set_does_not_receive_dynamic_shadows(true);
+
     ctx->build_request();
 
     texture* yellow = ctx->tex_ctx.make_new();

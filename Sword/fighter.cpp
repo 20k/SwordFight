@@ -276,6 +276,8 @@ void part::load_team_model()
 
     cpu_context->load_active();
 
+    model->set_does_not_receive_dynamic_shadows(true);
+
     texture_context* tex_ctx = &cpu_context->tex_ctx;
 
     texture* tex = tex_ctx->id_to_tex(model->objs[0].tid);
@@ -540,6 +542,8 @@ void sword::load_team_model()
 
     model->set_active(true);
 
+    model->set_does_not_receive_dynamic_shadows(true);
+
     cpu_context->load_active();
 
 
@@ -671,6 +675,11 @@ link make_link(part* p1, part* p2, int team, float squish = 0.0f, float thicknes
     objects_container* o = p1->cpu_context->make_new();
     o->set_load_func(std::bind(load_object_cube_tex, std::placeholders::_1, start, finish, thickness, *ntex, false));
     o->cache = false;
+
+    p1->cpu_context->load_active();
+
+    o->set_does_not_receive_dynamic_shadows(true);
+
 
     link l;
 
