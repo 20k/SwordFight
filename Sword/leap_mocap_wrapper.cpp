@@ -91,6 +91,11 @@ void leap_mocap_wrapper::set_team(int id)
     team = id;
 }
 
+void leap_mocap_wrapper::set_animation_pose(int pose_id)
+{
+    pose = pose_id;
+}
+
 void leap_mocap_wrapper::transition(leap_animation_names_t animation_id)
 {
     if(!leap_animation_names::same_hand(animation_id, hand))

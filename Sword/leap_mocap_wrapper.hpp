@@ -74,6 +74,7 @@ struct leap_mocap_wrapper
 
     int hand;
     int team = 0;
+    int pose = 0; ///0 -> sword, 1 -> trombone
 
     float time_between_snaps_s = 10.f;
 
@@ -88,6 +89,7 @@ struct leap_mocap_wrapper
     void transition(leap_animation_names_t animation_id);
 
     void set_team(int id);
+    void set_animation_pose(int pose_id);
 
     vec3f get_hand_pos();
 

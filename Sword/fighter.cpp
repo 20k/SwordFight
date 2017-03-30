@@ -3274,6 +3274,9 @@ void fighter::update_hand_mocap()
     mocap_lhand_wrapper.tick(get_current_weapon_container());
     mocap_rhand_wrapper.tick(get_current_weapon_container());
 
+    mocap_lhand_wrapper.set_animation_pose(current_weapon);
+    mocap_rhand_wrapper.set_animation_pose(current_weapon);
+
     //lhand_model.position(mocap_lhand_wrapper.capture_manager.ctrs);
     //rhand_model.position(mocap_rhand_wrapper.capture_manager.ctrs);
 
