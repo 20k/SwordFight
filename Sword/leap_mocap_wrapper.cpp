@@ -56,12 +56,7 @@ leap_mocap_wrapper::leap_mocap_wrapper(object_context& pctx, int hand_side, vec3
 
 leap_mocap_wrapper::~leap_mocap_wrapper()
 {
-    for(auto& o : capture_manager.ctrs)
-    {
-        //o->set_active(false);
-        //o->parent->build_request();
-        //o->parent->destroy(o);
-    }
+    //capture_manager.destroy_manual_containers();
 }
 
 void leap_mocap_wrapper::handle_automatic_transitions()
