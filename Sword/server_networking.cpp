@@ -849,6 +849,19 @@ void server_networking::tick(object_context* ctx, object_context* tctx, world_co
                 ///but ignore the ping we set, as we already have this
                 handle_ping_gameserver_response(fetch);
             }
+
+            if(type == message::PLAYER_STATS_UPDATE_INDIVIDUAL)
+            {
+                net_type::player_t id = fetch.get<net_type::player_t>();
+                player_info_shared player_info = fetch.get<player_info_shared>();
+
+                int found_end = fetch.get<int32_t>();
+
+                if(found_end == canary_end)
+                {
+                    connected_server.game_info.shared_game_state.player_info[(int32_t)id] = player_info;
+                }
+            }
         }
     }
 
@@ -1222,6 +1235,7 @@ void server_networking::tick(object_context* ctx, object_context* tctx, world_co
         {
             fight->die();
             i.second.cleanup = true;
+            connected_server.game_info.shared_game_state.remove_player_entry(fight->network_id);
 
             lg::log("Disconnected player ", fight->network_id);
         }

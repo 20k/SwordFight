@@ -88,6 +88,7 @@ struct leap_mocap_wrapper
     ///we're moving out of leap stuff and into fighter territory mashing together
     ///this this is now allowed to drastically venture into the wilds of fighter specific code
     leap_mocap_wrapper(object_context& ctx, int hand_side, vec3f col = team_info::get_team_col(0));
+    ~leap_mocap_wrapper();
 
     void tick(objects_container* sword);
 
