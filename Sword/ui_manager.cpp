@@ -687,8 +687,10 @@ void ui_manager::tick_scoreboard_ui(server_networking& networking)
         pad_lengths[net_player.fight->team] = merge_pad_lengths(pad_lengths[net_player.fight->team], display_pads);
     }
 
-    if(team_to_info.size() > 0)
-        ImGui::Columns(team_to_info.size());
+    //if(team_to_info.size() > 0)
+    //    ImGui::Columns(team_to_info.size());
+
+    std::string team_separation_space = "        ";
 
     for(auto& i : team_to_info)
     {
@@ -712,12 +714,13 @@ void ui_manager::tick_scoreboard_ui(server_networking& networking)
 
         display_string.resize(display_string.size() - strlen(" | "));
 
+        display_string = display_string + team_separation_space;
 
         std::string total_disp;
 
         for(const scoreboard_info& inf : info)
         {
-            std::string disp = inf.get_fixed_padded_length_string(pad_lengths[team]) + "\n";
+            std::string disp = inf.get_fixed_padded_length_string(pad_lengths[team]) + team_separation_space + "\n";
 
             total_disp = total_disp + disp;
         }
@@ -726,7 +729,9 @@ void ui_manager::tick_scoreboard_ui(server_networking& networking)
 
         ImGui::Text(total_disp.c_str());
 
-        ImGui::NextColumn();
+        //ImGui::NextColumn();
+
+        ImGui::SameLine();
     }
 
     ImGui::End();
