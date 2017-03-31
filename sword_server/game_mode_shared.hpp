@@ -17,9 +17,9 @@ struct server_game_state;
 
 struct player_info_shared
 {
-    int kills = 0;
-    int assists = 0;
-    int deaths = 0;
+    int32_t kills = 0;
+    int32_t assists = 0;
+    int32_t deaths = 0;
 };
 
 struct game_mode_handler_shared
@@ -40,6 +40,9 @@ struct game_mode_handler_shared
     bool game_over();
 
     void register_kill(int32_t id_who_killed, int32_t id_who_died, int32_t team_who_killed, int32_t team_who_died);
+
+    void make_player_entry(int32_t id);
+    void remove_player_entry(int32_t id);
 
     ///useless on client
     bool in_game_over_state = false;

@@ -45,3 +45,13 @@ void game_mode_handler_shared::register_kill(int32_t id_who_killed, int32_t id_w
     current_session_state.team_kills[team_who_killed]++;
     current_session_state.team_killed[team_who_died]++;
 }
+
+void game_mode_handler_shared::make_player_entry(int32_t id)
+{
+    player_info[id] = player_info_shared();
+}
+
+void game_mode_handler_shared::remove_player_entry(int32_t id)
+{
+    player_info.erase(id);
+}
