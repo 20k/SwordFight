@@ -55,3 +55,8 @@ void game_mode_handler_shared::remove_player_entry(int32_t id)
 {
     player_info.erase(id);
 }
+
+bool game_mode_handler_shared::has_player_entry(int32_t id)
+{
+    return player_info.find(id) != player_info.end();
+}

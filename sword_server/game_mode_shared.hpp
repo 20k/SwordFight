@@ -43,6 +43,7 @@ struct game_mode_handler_shared
 
     void make_player_entry(int32_t id);
     void remove_player_entry(int32_t id);
+    bool has_player_entry(int32_t id);
 
     ///useless on client
     bool in_game_over_state = false;
