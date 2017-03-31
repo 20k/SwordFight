@@ -39,6 +39,7 @@ leap_mocap_wrapper::leap_mocap_wrapper(object_context& pctx, int hand_side, vec3
         base_loop.set_base_animation(mocap_manager.animations[leap_animation_names::RIGHT_IDLE]);
     }
 
+    ///replace this if we want to swap perpetual animations in short term
     looping_animations.looping_animations.push_back(base_loop);
     looping_animations.currently_going.push_back(base_loop);
 
