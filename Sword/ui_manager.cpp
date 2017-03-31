@@ -5,6 +5,7 @@
 #include "server_networking.hpp"
 #include "imgui_extension.hpp"
 #include "server_networking.hpp"
+#include "../sword_server/game_mode_shared.hpp"
 
 int window_element_ids::label_gid;
 
@@ -564,6 +565,171 @@ void ui_manager::tick_health_display(fighter* my_fight)
     ImGui::End();
 
     any_render = true;
+}
+
+std::vector<int> merge_pad_lengths(const std::vector<int>& one, const std::vector<int>& two)
+{
+    if(one.size() < two.size())
+        return two;
+
+    std::vector<int> ret = one;
+
+    for(int i=0; i<one.size(); i++)
+    {
+        ret[i] = std::max(one[i], two[i]);
+    }
+
+    return ret;
+}
+
+struct scoreboard_info
+{
+    std::string name;
+
+    int kills = 0;
+    int deaths = 0;
+
+    float ping = 0;
+
+    std::vector<int> get_pad_lengths() const
+    {
+        return {name.length(), std::to_string(kills).length(), std::to_string(deaths).length(), std::to_string((int)ping).length()};
+    }
+
+    std::string pad(const std::string& str, int len) const
+    {
+        std::string ret = str;
+
+        for(int i=str.length(); i < len; i++)
+        {
+            ret = ret + " ";
+        }
+
+        for(int i=0; i<ret.size(); i++)
+        {
+            if(ret[i] == '\\')
+            {
+                ret.insert(ret.begin() + i, '\\');
+                i++;
+                continue;
+            }
+        }
+
+        int max_size = 20;
+
+        if(ret.size() > max_size)
+            ret.resize(max_size);
+
+        return ret;
+    }
+
+    template<typename T>
+    std::string pad(T val, int len) const
+    {
+        std::string ret = std::to_string((int)val);
+
+        return pad(ret, len);
+    }
+
+    std::string get_fixed_padded_length_string(const std::vector<int>& pad_lengths) const
+    {
+        std::string ret;
+
+        ret = pad(name, pad_lengths[0]) + " | " +
+        pad(kills, pad_lengths[1]) + " | " +
+        pad(deaths, pad_lengths[2]) + " | " +
+        pad(ping, pad_lengths[3]);
+
+        return ret;
+    }
+};
+
+void ui_manager::tick_scoreboard_ui(server_networking& networking)
+{
+    ImGui::Begin("Scoreboard");
+
+    std::map<int, std::vector<scoreboard_info>> team_to_info;
+    std::map<int, std::vector<int>> pad_lengths;
+
+    std::vector<std::string> display_headers = {"Name", "Kills", "Deaths", "Ping"};
+    std::vector<int> display_pads;
+
+    for(auto& i : display_headers)
+    {
+        display_pads.push_back(i.length());
+    }
+
+    for(auto& i : networking.connected_server.discovered_fighters)
+    {
+        int32_t id = i.first;
+
+        network_player& net_player = i.second;
+
+        game_mode_handler_shared& mode_handler_shared = networking.connected_server.game_info.shared_game_state;
+
+        if(!mode_handler_shared.has_player_entry(id))
+            continue;
+
+        player_info_shared& info_shared = mode_handler_shared.player_info[id];
+
+        scoreboard_info sinfo;
+
+        sinfo.name = net_player.fight->local_name;
+        sinfo.kills = info_shared.kills;
+        sinfo.deaths = info_shared.deaths;
+        sinfo.ping = net_player.fight->net.ping;
+
+        team_to_info[net_player.fight->team].push_back(sinfo);
+
+        std::vector<int> pad_lens = sinfo.get_pad_lengths();
+
+        pad_lengths[net_player.fight->team] = merge_pad_lengths(pad_lengths[net_player.fight->team], pad_lens);
+        pad_lengths[net_player.fight->team] = merge_pad_lengths(pad_lengths[net_player.fight->team], display_pads);
+    }
+
+    if(team_to_info.size() > 0)
+        ImGui::Columns(team_to_info.size());
+
+    for(auto& i : team_to_info)
+    {
+        int team = i.first;
+
+        const std::vector<scoreboard_info>& info = i.second;
+
+        std::vector<std::string> cdisplay_headers = display_headers;
+
+        for(int i=0; i<cdisplay_headers.size(); i++)
+        {
+            cdisplay_headers[i] = scoreboard_info().pad(cdisplay_headers[i], pad_lengths[team][i]);
+        }
+
+        std::string display_string;
+
+        for(auto& i : cdisplay_headers)
+        {
+            display_string = display_string + i + " | ";
+        }
+
+        display_string.resize(display_string.size() - strlen(" | "));
+
+
+        std::string total_disp;
+
+        for(const scoreboard_info& inf : info)
+        {
+            std::string disp = inf.get_fixed_padded_length_string(pad_lengths[team]) + "\n";
+
+            total_disp = total_disp + disp;
+        }
+
+        total_disp = display_string + "\n" + total_disp;
+
+        ImGui::Text(total_disp.c_str());
+
+        ImGui::NextColumn();
+    }
+
+    ImGui::End();
 }
 
 void ui_manager::tick_render()

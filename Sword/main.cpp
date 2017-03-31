@@ -953,6 +953,9 @@ int main(int argc, char *argv[])
 
         ui_manage.tick_health_display(my_fight);
 
+        if(key.isKeyPressed(sf::Keyboard::Tab))
+            ui_manage.tick_scoreboard_ui(server);
+
         if(controls_state == 0)
             server_browse.tick(window.get_frametime_ms(), server);
 

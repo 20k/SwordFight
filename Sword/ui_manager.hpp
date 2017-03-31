@@ -273,6 +273,8 @@ struct configuration_values
 
 struct fighter;
 struct network_statistics;
+struct game_mode_handler_shared;
+struct server_networking;
 
 ///we need a network statistics graph so we can more easily, and objectively look at network traffic
 struct ui_manager
@@ -321,6 +323,9 @@ struct ui_manager
 
     void tick_health_display_old(fighter* my_fight);
     void tick_health_display(fighter* my_fight);
+
+    ///ie tab button
+    void tick_scoreboard_ui(server_networking& networking);
 
     void tick_render();
 
